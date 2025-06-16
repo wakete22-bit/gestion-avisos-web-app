@@ -1,0 +1,124 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  background: #fff;
+  padding: 0 32px;
+  position: relative;
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  min-width: 48px;
+}
+
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  margin-right: 16px;
+  cursor: pointer;
+}
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  background: #f7f7fb;
+  border-radius: 16px;
+  padding: 0 18px;
+  height: 44px;
+  box-shadow: none;
+}
+
+.search-icon {
+  color: #4F46E5;
+  font-size: 1.2em;
+  margin-right: 8px;
+}
+
+.search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 1em;
+  color: #222;
+  padding: 8px 0;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+  justify-content: flex-end;
+}
+
+.welcome {
+  color: #888;
+  font-size: 14px;
+}
+
+.username {
+  font-weight: 500;
+  margin-right: 8px;
+  color: #222; 
+  font-size: 14px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background: #ffe7a0;
+  border-radius: 50%;
+  display: inline-block;
+  background-image: url('https://randomuser.me/api/portraits/men/1.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    padding: 0 12px;
+  }
+  .search-bar {
+    max-width: 220px;
+    padding: 0 10px;
+  }
+  .topbar-right {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu-btn {
+    display: block;
+  }
+  .topbar-center {
+    flex: 1;
+    margin: 0 8px;
+  }
+  .search-bar {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .topbar-right {
+    min-width: 80px;
+    gap: 4px;
+  }
+  .welcome {
+    display: none;
+  }
+}
