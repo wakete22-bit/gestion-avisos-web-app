@@ -60,6 +60,12 @@ a.active, a:hover {
   font-weight: 500;
 }
 
+a.active {
+  background: #EEF2FF;
+  color: #4F46E5;
+  font-weight: 600;
+}
+
 .icon {
   font-size: 1.2em;
 }

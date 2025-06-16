@@ -49,3 +49,238 @@ ion-content {
 #container a {
   text-decoration: none;
 }
+
+.dashboard-main {
+  padding: 32px 24px;
+  background: #fafbff;
+  min-height: 100vh;
+}
+
+.dashboard-summary {
+  width: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px 0 #e0e7ef33;
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 30px;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 220px;
+}
+
+.summary-card .icon {
+  width: 74px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; 
+  font-size: 36px;
+}
+.purple-bg { background: rgba(78, 70, 229, 0.13);  color: #605BFF;}
+.yellow-bg { background: #FEF0C7; color: #DC6803;}
+.red-bg { background: #FEE4E2; color: #D92D20;}
+.blue-bg { background: #EEF2FF; color: #0F5FC2;}
+
+.summary-title {
+  font-size: 14px;
+  color: #ACACAC;
+  margin-bottom: 2px;
+}
+.summary-value {
+  font-size: 31px;
+  color: #333333;
+  font-weight: 600;
+  line-height: 30px;
+}
+
+.summary-subtitle {
+  font-size: 14px;
+  color: #26262A;
+  font-weight: 500;
+}
+
+.summary-value span {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.dashboard-cards {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.pending-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px 0 #e0e7ef33;
+  padding: 24px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pending-title {
+  font-size: 18px;
+  color: #26262A;
+  font-weight: 500;
+}
+
+.pending-details-container {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+
+  .pending-details-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 400;
+    text-wrap: nowrap;
+  }
+}
+
+.pending-amount {
+  font-size: 30px;
+  color: #4F46E5;
+  font-weight: 500;
+}
+.pending-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #64748b;
+  font-size: 0.98rem;
+}
+.pending-status.orange {
+  color: #DC6803;
+  font-weight: 600;
+  font-size: 16px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.pending-more {
+  color: #4F46E5;
+  font-size: 0.98rem;
+  text-decoration: none;
+  margin-top: 8px;
+  align-self: flex-end;
+}
+
+.dashboard-table {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px 0 #e0e7ef33;
+  padding: 28px 32px 18px 32px;
+}
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.table-title {
+  font-size: 18px;
+  color: #26262A;
+  font-weight: 500;
+}
+.table-meta {
+  color: #64748b;
+  font-size: 1rem;
+}
+.table-search {
+  display: flex;
+  gap: 10px;
+}
+.table-search input {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  background: #f3f4f6;
+}
+.table-search select {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  background: #f3f4f6;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  margin-bottom: 12px;
+}
+thead th {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  text-align: left;
+}
+tbody td {
+  border-radius: 8px;
+  color: #26262A;
+  font-size: 0.98rem;
+}
+.badge.yellow {
+  background: #facc15;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.urgent-x {
+  color: #ef4444;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.view-icon {
+  font-size: 1.2rem;
+  color: #64748b;
+  cursor: pointer;
+}
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 0.98rem;
+  color: #64748b;
+}
+.pagination {
+  display: flex;
+  gap: 4px;
+}
+.pagination button {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 1rem;
+  color: #26262A;
+  cursor: pointer;
+}
+.pagination button.active {
+  background: #4F46E5;
+  color: #fff;
+}
+
+/* Ocultar columna Fecha emisión si el ancho es menor a 1700px */
+@media (max-width: 1699px) {
+  .pending-details-table th:nth-child(2),
+  .pending-details-table td:nth-child(2) {
+    display: none;
+  }
+}

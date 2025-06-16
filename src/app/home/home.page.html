@@ -13,8 +13,174 @@
     </ion-toolbar>
   </ion-header>
 
-  <div class="home-container">
-    <h1>Bienvenido 👋</h1>
-    <p>Selecciona una opción del menú para comenzar.</p>
-  </div>
+  <main class="dashboard-main">
+    <!-- Resumen de tarjetas -->
+    <section class="dashboard-summary">
+      <div class="summary-card">
+        <div class="icon purple-bg">
+          <ion-icon name="receipt"></ion-icon>
+        </div>
+        <div>
+          <div class="summary-title">Facturas</div>
+          <div class="summary-value">4</div>
+          <div class="summary-subtitle">Pendientes</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="icon yellow-bg">
+          <ion-icon name="hourglass-outline" style="font-size: 42px;"></ion-icon>
+        </div>
+        <div>
+          <div class="summary-title">Avisos</div>
+          <div class="summary-value">2</div>
+          <div class="summary-subtitle">En curso</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="icon red-bg">
+          <ion-icon name="warning" style="font-size: 42px;"></ion-icon>
+        </div>
+        <div>
+          <div class="summary-title">Avisos</div>
+          <div class="summary-value">4</div>
+          <div class="summary-subtitle">Urgentes</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="icon blue-bg">
+          <ion-icon name="document" style="font-size: 40px;"></ion-icon>
+        </div>
+        <div>
+          <div class="summary-title">Presupuestos</div>
+          <div class="summary-value">2</div>
+          <div class="summary-subtitle">Pendientes</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Presupuestos y Facturas Pendientes -->
+    <section class="dashboard-cards">
+      <div class="pending-card">
+        <div class="pending-title">Presupuestos Pendientes</div>
+        <div class="pending-details-container">
+          <div class="pending-details-title">
+            <div class="pending-amount">5.250,75€</div>
+            <span class="pending-details-subtitle">Presupuestos: 4</span>
+            <div class="pending-status orange">
+              <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+              Pendientes
+            </div>
+          </div>
+          <table class="pending-details-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Fecha emisión</th>
+                <th>Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Residencia Ancianos Sol</td>
+                <td>2025-05-20</td>
+                <td>1.250,00€</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <a class="pending-more" href="#">Mostrar más &gt;</a>
+      </div>
+      <div class="pending-card">
+        <div class="pending-title">Facturas Pendientes</div>
+        <div class="pending-details-container">
+          <div class="pending-details-title">
+            <div class="pending-amount">650,75€</div>
+            <span class="pending-details-subtitle">Facturas: 4</span>
+            <div class="pending-status orange">
+              <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+              Pendientes
+            </div>
+          </div>
+          <table class="pending-details-table">
+            <thead>
+              <tr>
+                <th>Nº Factura</th>
+                <th>Nº Aviso</th>
+                <th>Fecha emisión</th>
+                <th>Importe total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>F2025-001</td>
+                <td>001</td>
+                <td>2025-05-20</td>
+                <td>1.250,00€</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <a class="pending-more" href="#">Mostrar más &gt;</a>
+      </div>
+    </section>
+
+    <!-- Avisos recientes -->
+    <section class="dashboard-table">
+      <div class="table-header">
+        <div class="table-title">Avisos recientes</div>
+        <div class="table-meta">Avisos: {{ avisos.length }}</div>
+        <div class="table-search">
+          <input type="text" placeholder="Buscar..." />
+          <select>
+            <option>Ordenar por: Recientes</option>
+          </select>
+        </div>
+      </div>
+      <table class="custom-mat-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Estado</th>
+            <th>Nombre</th>
+            <th>Detalle</th>
+            <th>Fecha</th>
+            <th>Urgente</th>
+            <th>Dirección</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let aviso of avisos">
+            <td>{{ aviso.numero }}</td>
+            <td>
+              <span class="badge yellow" *ngIf="aviso.estado === 'En curso'">En curso</span>
+              <span class="badge" *ngIf="aviso.estado !== 'En curso'">{{ aviso.estado }}</span>
+            </td>
+            <td>{{ aviso.nombre }}</td>
+            <td>{{ aviso.detalle }}</td>
+            <td>{{ aviso.fecha }}</td>
+            <td>
+              <ion-icon *ngIf="aviso.urgente" name="alert-circle" style="color: #D92D20; font-size: 20px;"></ion-icon>
+              <ion-icon *ngIf="!aviso.urgente" name="close" style="color: #64748b; font-size: 20px;"></ion-icon>
+            </td>
+            <td>{{ aviso.direccion }}</td>
+            <td><ion-icon name="eye-outline" class="view-icon"></ion-icon></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-pagination">
+        <span>Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
+        <div class="pagination">
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <span>...</span>
+          <button>40</button>
+        </div>
+      </div>
+    </section>
+  </main>
 </ion-content>
