@@ -18,6 +18,14 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/historial/pages/historial/historial.component').then((m) => m.HistorialComponent),
       },
       {
+        path: 'inventario',
+        loadComponent: () => import('./modules/inventario/pages/inventario/inventario.component').then((m) => m.InventarioComponent),
+      },
+      {
+        path: 'facturas',
+        loadComponent: () => import('./modules/facturas/pages/facturas/facturas.component').then((m) => m.FacturasComponent),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

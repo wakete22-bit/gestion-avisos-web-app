@@ -1,0 +1,125 @@
+<!-- <ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Blank
+    </ion-title>
+  </ion-toolbar>
+</ion-header> -->
+
+
+<ion-content [fullscreen]="true">
+  <div class="header-container">
+    <div class="header-left">
+      <h1 class="header-title">Inventario</h1>
+      <label class="header-subtitle">Accede a un registro completo de todos los productos, con opciones avanzadas de búsqueda y filtrado para consulta y auditoría.</label>  
+    </div>
+    <div class="header-actions">
+      <button class="btn-add">
+        <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+        Añadir producto
+      </button>
+    </div>
+  </div>
+  
+  <main class="dashboard-main">
+    <!-- Resumen de tarjetas -->
+    <section class="dashboard-summary">
+      <div class="summary-card">
+        <div>
+          <div class="summary-title" style="color: #4F46E5;">Categorías</div>
+          <div class="summary-value">4</div>
+          <div class="summary-subtitle">Últimos 7 días</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div>
+          <div class="summary-title" style="color: #DC6803;">Productos totales</div>
+          <div class="summary-container">
+            <div class="value-container">
+              <div class="summary-value">2</div>
+              <div class="summary-subtitle">Últimos 7 días</div>
+            </div>
+            <div class="value-container">
+              <div class="summary-value">14</div>
+              <div class="summary-subtitle">Total</div>
+            </div>  
+          </div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div>
+          <div class="summary-title" style="color: #D92D20;">Sin Stock</div>
+          <div class="summary-value">4</div>
+          <div class="summary-subtitle">Productos</div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div>
+          <div class="summary-title" style="color: #0F5FC2;">En Stock</div>
+          <div class="summary-value">2</div>
+          <div class="summary-subtitle">Productos</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Productos recientes -->
+    <section class="dashboard-table">
+      <div class="table-header">
+        <div class="table-header-left">
+          <div class="table-title">Productos</div>
+          <div class="table-meta">Productos: {{ productos.length }}</div>  
+        </div>
+        <div class="table-search">
+          <input type="text" placeholder="Buscar..." />
+          <select>
+            <option>Ordenar por: Recientes</option>
+          </select>
+        </div>
+      </div>
+      <table class="custom-mat-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th> 
+            <th>Descripción</th>
+            <th>Cantidad</th>
+            <th>Unidad</th>
+            <th>En Stock</th>
+            <th>Precio Neto</th>  
+            <th>PVP</th>
+            <th>Acciones</th>   
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let producto of productos">
+            <td>{{ producto.codigo }}</td>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.descripcion }}</td>
+            <td>{{ producto.cantidad }}</td>
+            <td>{{ producto.unidad }}</td>  
+            <td>
+              <span class="badge yellow" *ngIf="producto.enStock">En Stock</span>
+              <span class="badge red" *ngIf="!producto.enStock">Sin Stock</span>
+            </td>
+            <td>{{ producto.precioNeto }}</td>
+            <td>{{ producto.pvp }}</td>
+            <td>
+              <ion-icon name="eye-outline" class="view-icon"></ion-icon>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-pagination">
+        <span>Mostrando datos 1 a {{ productos.length }} de {{ productos.length }} producto</span>
+        <div class="pagination">
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <span>...</span>
+          <button>40</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</ion-content>
