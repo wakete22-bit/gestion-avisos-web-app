@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline } from 'ionicons/icons';
+import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 
 export interface Aviso {
   numero: string;
@@ -26,7 +27,8 @@ export interface Aviso {
     IonContent,
     IonIcon,
     MatTableModule,
-    MatIconModule
+    MatIconModule,
+    CrearAvisosModalComponent
   ],
 })
 export class AvisosComponent {
@@ -79,7 +81,22 @@ export class AvisosComponent {
     }
   ];
 
-  constructor() {
+  constructor(private modalController: ModalController) {
     addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+  }
+
+  async abrirModalCrearAviso() {
+    const modal = await this.modalController.create({
+      component: CrearAvisosModalComponent,
+      cssClass: 'modal-crear-aviso'
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data) {
+      // Aquí manejaremos los datos del nuevo aviso cuando se cree
+      console.log('Nuevo aviso creado:', data);
+    }
   }
 }
