@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { gridOutline, notificationsOutline, timeOutline, cubeOutline, documentTextOutline, peopleOutline, settingsOutline, personCircleOutline, receipt, hourglass, alertCircleOutline, hourglassOutline, warningOutline, cashOutline, warning, document, alertCircle, close, eyeOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -41,9 +41,6 @@ export interface Aviso {
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
     IonContent, 
     IonIcon, 
     MatTableModule, 

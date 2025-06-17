@@ -1,13 +1,13 @@
 <ion-content>
   <div class="header-container">
     <div class="header-left">
-      <h1 class="header-title">Facturación</h1>
-      <label class="header-subtitle">Consulta, gestiona y desglosa todas las facturas generadas. Filtra por estado y accede al detalle de cada servicio facturado.</label>  
+      <h1 class="header-title">Presupuestos</h1>
+      <label class="header-subtitle">Consulta, gestiona y desglosa todos los presupuestos generados. Filtra por estado y accede al detalle de cada presupuesto.</label>  
     </div>
     <div class="header-actions">
       <button class="btn-add">
         <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-        Añadir factura
+        Añadir presupuesto
       </button>
     </div>
   </div>
@@ -15,8 +15,8 @@
   <section class="dashboard-table">
     <div class="table-header">
       <div class="table-header-left">
-        <div class="table-title">Tabla de facturas</div>
-        <div class="table-meta">Facturas: {{ facturas.length }}</div>  
+        <div class="table-title">Tabla de presupuestos</div>
+        <div class="table-meta">Presupuestos: {{ presupuestos.length }}</div>  
       </div>
       <div class="table-search">
         <input type="text" placeholder="Buscar..." />
@@ -38,17 +38,17 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let factura of facturas">
-          <td>{{ factura.numero }}</td>
+        <tr *ngFor="let presupuesto of presupuestos">
+          <td>{{ presupuesto.numero }}</td>
           <td>
-            <span class="badge yellow" *ngIf="factura.estado === 'En curso'">En curso</span>
-            <span class="badge red" *ngIf="factura.estado === 'Pendiente'">Pendiente</span>
-            <span class="badge green" *ngIf="factura.estado === 'Completado'">Completado</span>
+            <span class="badge yellow" *ngIf="presupuesto.estado === 'En curso'">En curso</span>
+            <span class="badge red" *ngIf="presupuesto.estado === 'Pendiente'">Pendiente</span>
+            <span class="badge green" *ngIf="presupuesto.estado === 'Completado'">Completado</span>
           </td>
-          <td>{{ factura.nombre }}</td>
-          <td>{{ factura.detalle }}</td>
-          <td>{{ factura.fecha }}</td>
-          <td>{{ factura.pvp }}</td>
+          <td>{{ presupuesto.nombre }}</td>
+          <td>{{ presupuesto.detalle }}</td>
+          <td>{{ presupuesto.fecha }}</td>
+          <td>{{ presupuesto.pvp }}</td>
           <td>
             <ion-icon name="eye-outline" class="view-icon"></ion-icon>
           </td>
@@ -56,7 +56,7 @@
       </tbody>
     </table>
     <div class="table-pagination">
-      <span>Mostrando datos 1 a {{ facturas.length }} de {{ facturas.length }} factura</span>
+      <span>Mostrando datos 1 a {{ presupuestos.length }} de {{ presupuestos.length }} presupuesto</span>
       <div class="pagination">
         <button class="active">1</button>
         <button>2</button>

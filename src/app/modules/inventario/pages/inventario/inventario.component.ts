@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, receipt, hourglassOutline, warning, document } from 'ionicons/icons';
 
@@ -27,10 +27,7 @@ export interface Producto {
     IonContent,
     IonIcon,
     MatTableModule,
-    MatIconModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle
+    MatIconModule
   ],
 })
 export class InventarioComponent  implements OnInit {

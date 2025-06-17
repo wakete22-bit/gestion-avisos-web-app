@@ -26,6 +26,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/facturas/pages/facturas/facturas.component').then((m) => m.FacturasComponent),
       },
       {
+        path: 'presupuestos',
+        loadComponent: () => import('./modules/presupuestos/pages/presupuestos/presupuestos.component').then((m) => m.PresupuestosComponent),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',
