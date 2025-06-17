@@ -195,7 +195,7 @@ ion-content {
   font-weight: 500;
 }
 .table-meta {
-  color: #64748b;
+  color: #4F46E5;
   font-size: 1rem;
 }
 .table-search {
@@ -203,18 +203,20 @@ ion-content {
   gap: 10px;
 }
 .table-search input {
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   font-size: 1rem;
-  background: #f3f4f6;
+  border: none;
+  background: #F9FBFF;
+  color: #26262A;
 }
 .table-search select {
-  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   font-size: 1rem;
-  background: #f3f4f6;
+  background: #F9FBFF;
+  border: none;
+  color: #26262A;
 }
 table {
   width: 100%;
@@ -261,20 +263,29 @@ tbody td {
 }
 .pagination {
   display: flex;
-  gap: 4px;
+  gap: 10px;
 }
 .pagination button {
   background: #f3f4f6;
+  width: auto;
+  height: 28px;
   border: none;
   border-radius: 6px;
   padding: 4px 10px;
-  font-size: 1rem;
+  font-size: 14px;
   color: #26262A;
   cursor: pointer;
+  text-wrap: nowrap;
 }
 .pagination button.active {
   background: #4F46E5;
   color: #fff;
+}
+
+.table-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 /* Ocultar columna Fecha emisión si el ancho es menor a 1700px */
