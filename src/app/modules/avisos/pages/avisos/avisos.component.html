@@ -1,0 +1,76 @@
+<div class="header-container">
+  <h1 class="header-title">Avisos</h1>
+  <div class="header-actions">
+    <button class="btn-map">
+      <ion-icon name="map-outline" style="font-size: 18px;"></ion-icon>
+      Mapa de avisos
+    </button>
+    <button class="btn-add">
+      <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+      Añadir aviso
+    </button>
+  </div>
+</div>
+
+<ion-content>
+  <section class="dashboard-table">
+    <div class="table-header">
+      <div class="table-header-left">
+        <div class="table-title">Lista de avisos</div>
+        <div class="table-meta">Avisos: {{ avisos.length }}</div>  
+      </div>
+      <div class="table-search">
+        <input type="text" placeholder="Buscar..." />
+        <select>
+          <option>Ordenar por: Recientes</option>
+        </select>
+      </div>
+    </div>
+    <table class="custom-mat-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Estado</th>
+          <th>Nombre</th>
+          <th>Detalle</th>
+          <th>Fecha</th>
+          <th>Urgente</th>
+          <th>Dirección</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let aviso of avisos">
+          <td>{{ aviso.numero }}</td>
+          <td>
+            <span class="badge yellow" *ngIf="aviso.estado === 'En curso'">En curso</span>
+            <span class="badge red" *ngIf="aviso.estado === 'Pendiente'">Pendiente</span>
+            <span class="badge green" *ngIf="aviso.estado === 'Completado'">Completado</span>
+          </td>
+          <td>{{ aviso.nombre }}</td>
+          <td>{{ aviso.detalle }}</td>
+          <td>{{ aviso.fecha }}</td>
+          <td>
+            <ion-icon *ngIf="aviso.urgente" name="alert-circle" style="color: #D92D20; font-size: 20px;"></ion-icon>
+            <ion-icon *ngIf="!aviso.urgente" name="close" style="color: #64748b; font-size: 20px;"></ion-icon>
+          </td>
+          <td>{{ aviso.direccion }}</td>
+          <td>
+            <ion-icon name="eye-outline" class="view-icon"></ion-icon>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="table-pagination">
+      <span>Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
+      <div class="pagination">
+        <button class="active">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <span>...</span>
+        <button>40</button>
+      </div>
+    </div>
+  </section>
+</ion-content>

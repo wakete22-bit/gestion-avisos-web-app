@@ -1,28 +1,10 @@
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { gridOutline, notificationsOutline, timeOutline, cubeOutline, documentTextOutline, peopleOutline, settingsOutline, personCircleOutline, receipt, hourglass, alertCircleOutline, hourglassOutline, warningOutline, cashOutline, warning, document, alertCircle, close, eyeOutline } from 'ionicons/icons';
-import { addIcons } from 'ionicons';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-
-addIcons({
-  'grid-outline': gridOutline,
-  'notifications-outline': notificationsOutline,
-  'time-outline': timeOutline,
-  'cube-outline': cubeOutline,  
-  'document-text-outline': documentTextOutline,
-  'cash-outline': cashOutline,
-  'people-outline': peopleOutline,
-  'settings-outline': settingsOutline,
-  'person-circle-outline': personCircleOutline,
-  'receipt': receipt,
-  'hourglass-outline': hourglassOutline,
-  'alert-circle-outline': alertCircleOutline,
-  'warning': warning,
-  'document': document,
-  'alert-circle': alertCircle
-});
+import { addIcons } from 'ionicons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline } from 'ionicons/icons';
 
 export interface Aviso {
   numero: string;
@@ -35,22 +17,19 @@ export interface Aviso {
 }
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: 'app-avisos',
+  templateUrl: './avisos.component.html',
+  styleUrls: ['./avisos.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonContent, 
-    IonIcon, 
-    MatTableModule, 
+    IonContent,
+    IonIcon,
+    MatTableModule,
     MatIconModule
   ],
 })
-export class HomePage {
+export class AvisosComponent {
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'urgente', 'direccion', 'acciones'];
   avisos: Aviso[] = [
     {
@@ -99,6 +78,8 @@ export class HomePage {
       direccion: 'Av. Principal 100'
     }
   ];
+
   constructor() {
-      addIcons({receipt,hourglassOutline,warning,document,alertCircle,close,eyeOutline});}
+    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+  }
 }
