@@ -46,3 +46,36 @@ ion-content {
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
 }
+
+ion-modal{
+  --background: #fff;
+  --border-radius: 10px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --width: 90%;
+  --height: auto;
+  --max-width: 1100px;
+  --max-height: 90vh;
+  --min-width: 300px;
+  --min-height: 200px;
+}
+
+ion-modal.side-modal {
+  --width: 420px;
+  --height: 100vh;
+  --border-radius: 0;
+  --box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  ion-modal.side-modal {
+    --width: 100vw;
+    --height: 100vh;
+  }
+}
+
+ion-modal.modal-crear-cliente::part(backdrop) {
+  background: rgba(16, 18, 27, 0.55); // Más oscuro que el default
+  opacity: 1;
+}

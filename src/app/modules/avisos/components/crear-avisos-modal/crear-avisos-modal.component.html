@@ -1,163 +1,141 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Añadir aviso</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="cerrarModal()">
+<div class="modal-container">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>Añadir aviso</h2>
+      <button class="close-button" (click)="cerrarModal()">
         <ion-icon name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-  <ion-text color="medium" class="ion-padding">
-    <p>Añade un nuevo aviso</p>
-  </ion-text>
-</ion-header>
+      </button>
+    </div>
+    <p class="subtitle">Añade un nuevo aviso</p>
+  </header>
 
-<ion-content>
-  <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()">
-    <ion-grid>
-      <ion-row>
-        <ion-col size="12">
-          <ion-text>Paso {{paso}}/2</ion-text>
-        </ion-col>
-      </ion-row>
+  <div class="modal-content">
+    <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()">
+      <div class="modal-grid">
+        <!-- Sección Izquierda - Formulario -->
+        <div class="form-section">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select formControlName="tipo" class="form-control">
+              <option value="">Correctivo, preventivo...</option>
+              <option value="correctivo">Correctivo</option>
+              <option value="preventivo">Preventivo</option>
+            </select>
+          </div>
 
-      <!-- Paso 1 -->
-      <div *ngIf="paso === 1">
-        <ion-row>
-          <ion-col size="12">
-            <ion-item>
-              <ion-label position="stacked">Tipo</ion-label>
-              <ion-select formControlName="tipo" placeholder="Correctivo, preventivo...">
-                <ion-select-option value="correctivo">Correctivo</ion-select-option>
-                <ion-select-option value="preventivo">Preventivo</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </ion-col>
-        </ion-row>
-
-        <ion-row>
-          <ion-col size="12">
-            <ion-item>
-              <ion-label position="stacked">Cliente</ion-label>
-              <ion-input formControlName="cliente" placeholder="Seleccionar cliente"></ion-input>
-              <ion-button slot="end" fill="clear" color="primary">
+          <div class="form-group">
+            <label>Cliente</label>
+            <div class="input-with-button">
+              <input type="text" formControlName="cliente" placeholder="Seleccionar cliente" class="form-control">
+              <button type="button" class="add-button" (click)="crearCliente()">
+                <ion-icon name="add-circle"></ion-icon>
                 Añadir cliente
-                <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-              </ion-button>
-            </ion-item>
-          </ion-col>
-        </ion-row>
+              </button>
+            </div>
+          </div>
 
-        <ion-row>
-          <ion-col size="12">
-            <ion-item>
-              <ion-label position="stacked">Detalles descripción <ion-text color="danger">*</ion-text></ion-label>
-              <ion-textarea
-                formControlName="descripcion"
-                placeholder="Ejemplo: 'El trabajador Mathias ha informado que no pudo fichar por error en la app. Adjuntamos justificante.'"
-                [counter]="true"
-                maxlength="200"
-                rows="3">
-              </ion-textarea>
-            </ion-item>
-          </ion-col>
-        </ion-row>
+          <div class="form-group">
+            <label>Detalles descripción <span class="required">*</span></label>
+            <textarea 
+              formControlName="descripcion" 
+              class="form-control"
+              placeholder="Ejemplo: 'El trabajador Mathias ha informado que no pudo fichar por error en la app. Adjuntamos justificante.'"
+              rows="3"
+              maxlength="200">
+            </textarea>
+            <div class="character-count">{{avisoForm.get('descripcion')?.value?.length || 0}}/200</div>
+          </div>
 
-        <ion-row>
-          <ion-col size="12">
-            <ion-item>
-              <ion-label position="stacked">Dirección local <ion-text color="danger">*</ion-text></ion-label>
-              <ion-input formControlName="direccionLocal" placeholder="Ej: Calle Madrid"></ion-input>
-            </ion-item>
-          </ion-col>
-        </ion-row>
+          <div class="form-group">
+            <label>Dirección local <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="direccionLocal" 
+              placeholder="Ej: Calle Madrid"
+              class="form-control">
+          </div>
 
-        <ion-row>
-          <ion-col size="12" size-md="6">
-            <ion-item>
-              <ion-label position="stacked">Teléfono <ion-text color="danger">*</ion-text></ion-label>
-              <ion-input formControlName="telefono" type="tel" placeholder="Ej: +34 569 23 56 89"></ion-input>
-            </ion-item>
-          </ion-col>
-          <ion-col size="12" size-md="6">
-            <ion-item>
-              <ion-label position="stacked">Nombre contacto <ion-text color="danger">*</ion-text></ion-label>
-              <ion-input formControlName="nombreContacto" placeholder="Ej: David"></ion-input>
-            </ion-item>
-          </ion-col>
-        </ion-row>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Teléfono <span class="required">*</span></label>
+              <input 
+                type="tel" 
+                formControlName="telefono" 
+                placeholder="Ej: +34 569 23 56 89"
+                class="form-control">
+            </div>
+            <div class="form-group half">
+              <label>Nombre contacto <span class="required">*</span></label>
+              <input 
+                type="text" 
+                formControlName="nombreContacto" 
+                placeholder="Ej: David"
+                class="form-control">
+            </div>
+          </div>
 
-        <ion-row>
-          <ion-col size="12">
-            <ion-item lines="none">
-              <ion-checkbox formControlName="esUrgente"></ion-checkbox>
-              <ion-label class="ion-padding-start">Aviso Urgente</ion-label>
-              <ion-note>Marque si este aviso requiere atención inmediata.</ion-note>
-            </ion-item>
-          </ion-col>
-        </ion-row>
-      </div>
+          <div class="form-group checkbox-group">
+            <label class="checkbox-container">
+              <input type="checkbox" formControlName="esUrgente">
+              <span class="checkbox-label">Aviso Urgente</span>
+            </label>
+            <span class="helper-text">Marque si este aviso requiere atención inmediata.</span>
+          </div>
+        </div>
 
-      <!-- Paso 2 -->
-      <div *ngIf="paso === 2">
-        <ion-row>
-          <ion-col size="12">
-            <div class="imagen-upload-container">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                #fileInput
-                (change)="onFileSelected($event)"
-                style="display: none">
-              
-              <div class="drop-zone" (click)="fileInput.click()">
-                <ion-icon name="cloud-upload-outline"></ion-icon>
-                <h3>Selecciona una o varias imágenes</h3>
-                <p>Solo se admiten archivos .jpg, .png, .svg y z...</p>
+        <!-- Sección Derecha - Imágenes -->
+        <div class="images-section">
+          <div class="imagen-upload-container">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              #fileInput
+              (change)="onFileSelected($event)"
+              style="display: none">
+            
+            <div class="drop-zone" (click)="fileInput.click()">
+              <ion-icon name="cloud-upload-outline"></ion-icon>
+              <h3>Selecciona una o varias imágenes</h3>
+              <p>Solo se admiten archivos .jpg, .png, .svg y z...</p>
+            </div>
+          </div>
+
+          <div class="uploaded-files" *ngIf="imagenes.length > 0">
+            <h4>Archivos adjuntos</h4>
+            <div class="file-list">
+              <div class="file-item" *ngFor="let imagen of imagenes; let i = index">
+                <div class="file-preview">
+                  <img [src]="'assets/icon/image-placeholder.png'" alt="Preview">
+                </div>
+                <div class="file-info">
+                  <span class="file-name">{{imagen.name}}</span>
+                  <span class="file-size">{{imagen.size / 1024 / 1024 | number:'1.1-1'}}MB</span>
+                </div>
+                <button type="button" class="remove-file" (click)="removeImage(i)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
               </div>
             </div>
-          </ion-col>
-        </ion-row>
-
-        <ion-row *ngIf="imagenes.length > 0">
-          <ion-col size="12">
-            <h4>Archivos adjuntos</h4>
-            <ion-list>
-              <ion-item *ngFor="let imagen of imagenes; let i = index">
-                <ion-thumbnail slot="start">
-                  <img [src]="'assets/icon/image-placeholder.png'" alt="Preview">
-                </ion-thumbnail>
-                <ion-label>
-                  {{imagen.name}}
-                  <p>{{imagen.size / 1024 / 1024 | number:'1.1-1'}}MB</p>
-                </ion-label>
-                <ion-button fill="clear" (click)="removeImage(i)">
-                  <ion-icon name="trash-outline" color="danger"></ion-icon>
-                </ion-button>
-              </ion-item>
-            </ion-list>
-          </ion-col>
-        </ion-row>
+          </div>
+        </div>
       </div>
-    </ion-grid>
-  </form>
-</ion-content>
+    </form>
+  </div>
 
-<ion-footer>
-  <ion-toolbar>
-    <ion-row>
-      <ion-col>
-        <ion-button expand="block" fill="outline" (click)="cerrarModal()">
-          Cancelar
-        </ion-button>
-      </ion-col>
-      <ion-col>
-        <ion-button expand="block" color="primary" (click)="paso === 1 ? paso = 2 : crearAviso()">
-          {{paso === 1 ? 'Crear aviso' : 'Crear aviso'}}
-          <ion-icon slot="end" name="checkmark-outline"></ion-icon>
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-toolbar>
-</ion-footer>
+  <footer class="modal-footer">
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="crearAviso()"
+        [disabled]="!avisoForm.valid">
+        Crear aviso
+        <ion-icon name="save-outline"></ion-icon>
+      </button>
+    </div>
+  </footer>
+</div>

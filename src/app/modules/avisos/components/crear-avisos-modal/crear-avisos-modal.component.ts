@@ -1,20 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { arrowForward, personOutline, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline } from 'ionicons/icons';
+import { arrowForward, personOutline, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline, trashOutline } from 'ionicons/icons';
+import { CrearClienteModalComponent } from '../crear-cliente-modal/crear-cliente-modal.component';
 
 @Component({
   selector: 'app-crear-avisos-modal',
   templateUrl: './crear-avisos-modal.component.html',
   styleUrls: ['./crear-avisos-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule, CrearClienteModalComponent]
 })
 export class CrearAvisosModalComponent implements OnInit {
+  @Input() clienteData: any;
   avisoForm: FormGroup;
-  paso = 1;
   imagenes: File[] = [];
 
   constructor(
@@ -33,7 +34,28 @@ export class CrearAvisosModalComponent implements OnInit {
   }
 
   ngOnInit() {
-    addIcons({arrowForward,personOutline,mailOutline,chevronDownOutline,copyOutline,shieldOutline,informationCircleOutline,cloudUploadOutline,closeOutline,save,saveOutline});
+    addIcons({
+      arrowForward,
+      personOutline,
+      mailOutline,
+      chevronDownOutline,
+      copyOutline,
+      shieldOutline,
+      informationCircleOutline,
+      cloudUploadOutline,
+      closeOutline,
+      save,
+      saveOutline,
+      trashOutline
+    });
+    if (this.clienteData) {
+      this.avisoForm.patchValue({
+        cliente: this.clienteData.nombreContacto,
+        direccionLocal: this.clienteData.direccionLocal,
+        telefono: this.clienteData.telefono,
+        nombreContacto: this.clienteData.nombreContacto
+      });
+    }
   }
 
   onFileSelected(event: any) {
@@ -57,11 +79,15 @@ export class CrearAvisosModalComponent implements OnInit {
         ...this.avisoForm.value,
         imagenes: this.imagenes
       };
-      await this.modalController.dismiss(avisoData);
+      await this.modalController.dismiss(avisoData, 'confirm');
     }
   }
 
   async cerrarModal() {
-    await this.modalController.dismiss();
+    await this.modalController.dismiss(null, 'cancel');
+  }
+
+  async crearCliente() {
+    await this.modalController.dismiss(null, 'crear-cliente');
   }
 }

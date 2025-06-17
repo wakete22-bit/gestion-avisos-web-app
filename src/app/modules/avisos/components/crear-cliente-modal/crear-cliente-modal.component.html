@@ -1,0 +1,100 @@
+<div class="modal-container">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>Añadir nuevo cliente</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="subtitle">Añade un nuevo cliente</p>
+  </header>
+
+  <div class="modal-content">
+    <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+      <div class="form-section">
+        <div class="form-group">
+          <label>Nombre de contacto</label>
+          <input 
+            type="text" 
+            formControlName="nombreContacto" 
+            class="form-control"
+            placeholder="Ej: Luis Pérez">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Teléfono</label>
+            <input 
+              type="tel" 
+              formControlName="telefono" 
+              class="form-control"
+              placeholder="Ej: +34 569 23 56 89">
+          </div>
+          <div class="form-group half">
+            <label>Correo electrónico</label>
+            <input 
+              type="email" 
+              formControlName="correoElectronico" 
+              class="form-control"
+              placeholder="Ej: ejemplo@dominio.es">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notas importantes</label>
+          <textarea 
+            formControlName="notasImportantes" 
+            class="form-control"
+            placeholder="Descripción más detallada del artículo"
+            rows="3"
+            maxlength="200">
+          </textarea>
+          <div class="character-count">{{clienteForm.get('notasImportantes')?.value?.length || 0}}/200</div>
+        </div>
+
+        <div class="form-group">
+          <label>Direccion local <span class="required">*</span></label>
+          <input 
+            type="text" 
+            formControlName="direccionLocal" 
+            class="form-control"
+            placeholder="Ej: Calle Azorin">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Código Postal <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="codigoPostal" 
+              class="form-control"
+              placeholder="28004">
+          </div>
+          <div class="form-group half">
+            <label>Localidad <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="localidad" 
+              class="form-control"
+              placeholder="Ej: Madrid">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <footer class="modal-footer">
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="guardarCliente()"
+        [disabled]="!clienteForm.valid">
+        Guardar cliente
+      </button>
+    </div>
+  </footer>
+</div>

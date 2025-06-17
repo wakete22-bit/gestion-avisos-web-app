@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
+import { CrearClienteModalComponent } from '../../components/crear-cliente-modal/crear-cliente-modal.component';
 
 export interface Aviso {
   numero: string;
@@ -85,16 +86,36 @@ export class AvisosComponent {
     addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
   }
 
-  async abrirModalCrearAviso() {
+  async abrirModalCrearAviso(clienteData?: any) {
     const modal = await this.modalController.create({
       component: CrearAvisosModalComponent,
-      cssClass: 'modal-crear-aviso'
+      cssClass: 'modal-crear-aviso',
+      componentProps: clienteData ? {
+        clienteData
+      } : {}
     });
 
     await modal.present();
 
-    const { data } = await modal.onWillDismiss();
-    if (data) {
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'crear-cliente') {
+      // Abrir modal de cliente
+      const clienteModal = await this.modalController.create({
+        component: CrearClienteModalComponent,
+        cssClass: 'modal-crear-cliente',
+        showBackdrop: true,
+        backdropDismiss: true
+      });
+      await clienteModal.present();
+      const { data: cliente, role: clienteRole } = await clienteModal.onWillDismiss();
+      if (clienteRole === 'confirm' && cliente) {
+        // Reabrir modal de aviso con los datos del cliente
+        this.abrirModalCrearAviso(cliente);
+      } else {
+        this.abrirModalCrearAviso(clienteData);
+      }
+
+    } else if (data) {
       // Aquí manejaremos los datos del nuevo aviso cuando se cree
       console.log('Nuevo aviso creado:', data);
     }
