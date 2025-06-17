@@ -38,6 +38,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/mi-cuenta/pages/mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent),
       },
       {
+        path: 'crear-factura',
+        loadComponent: () => import('./modules/facturas/components/crear-factura/crear-factura.component').then((m) => m.CrearFacturaComponent),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

@@ -1,0 +1,265 @@
+<div class="factura-container">
+  <div class="factura-formulario">
+    <h2>Crear Factura</h2>
+    <form [formGroup]="facturaForm">
+      <div class="grid-datos">
+        <div class="form-group">
+          <label>Número Factura</label>
+          <input type="text" placeholder="#876370A" />
+        </div>
+        <div class="form-group">
+          <label>Fecha de emisión</label>
+          <input type="date" />
+        </div>
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" placeholder="Ejemplo" />
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <input type="text" placeholder="Calle" />
+        </div>
+        <div class="form-group">
+          <label>CIF</label>
+          <input type="text" placeholder="12345678A" />
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" placeholder="ejemplo@gmail.com" />
+        </div>
+      </div>
+
+      <!-- Repuestos -->
+      <section class="tabla-section">
+        <div class="tabla-header">
+          <span>Repuestos Utilizados</span>
+          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cantidad</th>
+              <th>Neto</th>
+              <th>PVP</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="#">Válvula de expansión</a></td>
+              <td>1</td>
+              <td>25.00€</td>
+              <td class="success">35.00€</td>
+              <td class="trash-btn"><button type="button" class="icon-btn danger">
+                <ion-icon name="trash"></ion-icon>
+              </button></td>
+            </tr>
+            <tr>
+              <td><a href="#">Filtro de Aire Hepa</a></td>
+              <td>2</td>
+              <td>18.00€</td>
+              <td class="success">25.00€</td>
+              <td class="trash-btn"><button type="button" class="icon-btn danger">
+                <ion-icon name="trash"></ion-icon>
+              </button></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="2">Total</td>
+              <td>43.00€</td>
+              <td class="success">60.00€</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Mano de obra -->
+      <section class="tabla-section">
+        <div class="tabla-header">
+          <span>Mano de Obra</span>
+          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cantidad</th>
+              <th>PVP</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="#">Mano de obra Técnico</a></td>
+              <td>2.25h</td>
+              <td class="success">45.00€</td>
+              <td class="trash-btn"><button type="button" class="icon-btn danger">
+                <ion-icon name="trash"></ion-icon>
+              </button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Desplazamiento -->
+      <section class="tabla-section">
+        <div class="tabla-header">
+          <span>Desplazamiento</span>
+          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Cantidad</th>
+              <th>PVP</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a>Kilometraje</a></td>
+              <td>10km</td>
+              <td class="success">3.50€</td>
+                <td class="trash-btn"><button type="button" class="icon-btn danger">
+                <ion-icon name="trash"></ion-icon>
+              </button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="tabla-section">
+        <div class="tabla-header" style="margin-bottom: 20px;">
+          <span>Detalles descripción</span>
+        </div>
+
+        <div class="form-group">
+          <textarea placeholder="Notas"></textarea>
+        </div>
+      </section>
+
+      <div class="botones-footer">
+        <button type="button" class="btn-outline">Enviar factura</button>
+        <button type="button" class="btn-primary">Generar factura</button>
+      </div>
+      
+    </form>
+  </div>
+
+  <!-- Vista previa -->
+  <div class="factura-preview">
+    <h2>Vista previa</h2>
+    <div class="preview-header">
+      <div class="logo-box">
+        <img src="assets/icon/LogoGestionAvisos.png" alt="Logo" />
+      </div>
+      <div class="empresa-datos">
+        <div>
+          <span class="empresa-nombre">NOMBRE DE EMPRESA</span>
+          <address>Dirección de empresa</address>
+          <span>Ciudad de empresa</span>
+          <span>CIF de empresa</span>
+          <span>ejemplodominio.es</span>
+          <span>+34 123 45 56 65</span>
+        </div>
+        <div class="factura-info">
+          <div class="factura-label">Factura</div>
+          <div><b>Nº FACTURA</b><br>003/2021</div>
+          <div><b>FECHA DE EMISIÓN</b><br>Enero 1, 2021</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-tabla">
+      <div class="tabla-titulo">Repuestos utilizados</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Repuestos utilizados</th>
+            <th>CANTIDAD</th>
+            <th>NETO</th>
+            <th>PVP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Válvula de expansión</td>
+            <td>1</td>
+            <td>25.00€</td>
+            <td>35.00€</td>
+          </tr>
+          <tr>
+            <td>Filtro de Aire Hepa</td>
+            <td>2</td>
+            <td>18.00€</td>
+            <td>25.00€</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="2"></td>
+            <td><b>TOTAL</b></td>
+            <td class="success">43.00€</td>
+            <td class="success">60.00€</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="preview-tabla">
+      <div class="tabla-titulo">Mano de obra / Kilometraje</div>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>CANTIDAD</th>
+            <th>PVP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mano de obra Técnico</td>
+            <td>2.25h</td>
+            <td>87.00€</td>
+          </tr>
+          <tr>
+            <td>Kilometraje</td>
+            <td>10km</td>
+            <td>3.50€</td>
+          </tr>
+          <tr class="total-row">
+            <td colspan="2"><b>TOTAL</b></td>
+            <td class="success">90.50€</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="preview-totales-box">
+      <div class="totales-row">
+        <span>Subtotal</span>
+        <span>90.50€</span>
+      </div>
+      <div class="totales-row">
+        <span>IVA (21%)</span>
+        <span>18.10€</span>
+      </div>
+      <div class="totales-row total-final">
+        <span>TOTAL</span>
+        <span>108.60€</span>
+      </div>
+    </div>
+
+    <div class="preview-notas">
+      <b>Notas</b>
+      <div class="notas-texto">
+        (Campo de texto para añadir notas para el cliente en la factura, como "Condiciones de pago: 30 días")
+      </div>
+    </div>
+    <div class="preview-footer">
+      <span>Nombre de empresa</span>
+      <span>+34 698 12 12 12</span>
+      <span>ejemploemail.com</span>
+    </div>
+  </div>
+</div>

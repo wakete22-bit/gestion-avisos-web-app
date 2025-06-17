@@ -1,0 +1,85 @@
+<div class="modal-container">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>Añadir producto</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="subtitle">Añade un nuevo producto a tu inventario</p>
+  </header>
+
+  <div class="modal-content">
+    <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+      <div class="form-section">
+        <div class="form-group">
+          <label>Código</label>
+          <input type="text" formControlName="codigo" class="form-control" placeholder="Generado aleatoriamente">
+        </div>
+
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" formControlName="nombre" class="form-control" placeholder="Nombre del repuesto o material">
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea formControlName="descripcion" class="form-control" placeholder="Descripción más detallada del artículo" maxlength="200"></textarea>
+          <div class="character-count">{{productoForm.get('descripcion')?.value?.length || 0}}/200</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Stock</label>
+            <select formControlName="stock" class="form-control">
+              <option value="">Cantidad disponible</option>
+              <option *ngFor="let n of [1,2,3,4,5,10,20,50,100]" [value]="n">{{n}}</option>
+            </select>
+          </div>
+          <div class="form-group half">
+            <label>Unidad</label>
+            <select formControlName="unidad" class="form-control">
+              <option value="">Ej: kg, m, cm, unidad..</option>
+              <option value="kg">kg</option>
+              <option value="m">m</option>
+              <option value="cm">cm</option>
+              <option value="unidad">unidad</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Precio Neto (€)</label>
+            <div class="input-currency">
+              <input type="number" formControlName="precioNeto" class="form-control" placeholder="Precio artículo sin IVA">
+              <span class="currency">€</span>
+            </div>
+          </div>
+          <div class="form-group half">
+            <label>PVP (€)</label>
+            <div class="input-currency">
+              <input type="number" formControlName="pvp" class="form-control" placeholder="Precio de venta al público">
+              <span class="currency">€</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <footer class="modal-footer">
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="guardarProducto()"
+        [disabled]="!productoForm.valid">
+        Guardar producto
+      </button>
+    </div>
+  </footer>
+</div>

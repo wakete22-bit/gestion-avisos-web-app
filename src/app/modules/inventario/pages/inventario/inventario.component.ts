@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, receipt, hourglassOutline, warning, document } from 'ionicons/icons';
+import { CrearProductoModalComponent } from '../../components/crear-producto-modal/crear-producto-modal.component';
 
 export interface Producto {
   codigo: string;
@@ -46,10 +47,24 @@ export class InventarioComponent  implements OnInit {
     }
   ];
 
-  constructor() { 
+  constructor(private modalController: ModalController) { 
     addIcons({receipt,hourglassOutline,warning,document,alertCircle,close,eyeOutline,mapOutline,add,addCircle,addCircleOutline});
   }
 
   ngOnInit() {}
+
+  async abrirModalCrearProducto() {
+    const modal = await this.modalController.create({
+      component: CrearProductoModalComponent,
+      cssClass: 'modal-crear-producto',
+      showBackdrop: true,
+      backdropDismiss: true
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data) {
+      console.log('Producto creado:', data);
+    }
+  }
 
 }
