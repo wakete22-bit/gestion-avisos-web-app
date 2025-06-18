@@ -31,16 +31,6 @@ import { PwaInstallService } from '../../services/pwa-install.service';
     </div>
   `,
   styles: [`
-    .pwa-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      padding: 16px;
-      background: rgba(0, 0, 0, 0.8);
-    }
-    
     .banner-content {
       display: flex;
       align-items: center;

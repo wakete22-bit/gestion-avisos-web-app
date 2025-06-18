@@ -11,14 +11,14 @@ export class PwaIosService {
   }
 
   private initializeIOSPWA() {
-    // Detectar si estamos en iOS
-    if (this.platform.is('ios')) {
-      this.setupIOSPWA();
+    // Detectar si estamos en iOS o Android
+    if (this.platform.is('ios') || this.platform.is('android')) {
+      this.setupMobilePWA();
     }
   }
 
-  private setupIOSPWA() {
-    // Prevenir el zoom en iOS
+  private setupMobilePWA() {
+    // Prevenir el zoom en dispositivos móviles
     document.addEventListener('gesturestart', (e) => {
       e.preventDefault();
     });
@@ -36,7 +36,7 @@ export class PwaIosService {
       (window as any).lastTouch = now;
     });
 
-    // Configurar el viewport para iOS
+    // Configurar el viewport para dispositivos móviles
     const viewport = document.querySelector('meta[name="viewport"]');
     if (viewport) {
       viewport.setAttribute('content', 
@@ -44,25 +44,88 @@ export class PwaIosService {
       );
     }
 
-    // Agregar estilos específicos para iOS
-    this.addIOSStyles();
+    // Agregar estilos específicos para móviles
+    this.addMobileStyles();
   }
 
-  private addIOSStyles() {
+  private addMobileStyles() {
     const style = document.createElement('style');
     style.textContent = `
-      /* Estilos específicos para iOS PWA */
-      @supports (-webkit-touch-callout: none) {
+      /* Estilos específicos para dispositivos móviles */
+      html {
+        height: 100%;
+        overflow: hidden;
+      }
+      
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        background-color: var(--ion-background-color, #ffffff);
+      }
+      
+      /* Configuración para PWA standalone */
+      @media all and (display-mode: standalone) {
         body {
-          -webkit-touch-callout: none;
-          -webkit-user-select: none;
-          -webkit-tap-highlight-color: transparent;
+          /* Usar env() para las safe areas en iOS */
+          padding-top: env(safe-area-inset-top);
+          padding-bottom: env(safe-area-inset-bottom);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
         }
         
-        /* Prevenir el bounce scroll en iOS */
-        html, body {
+        /* Asegurar que ion-app ocupe todo el espacio disponible */
+        ion-app {
+          height: 100vh;
+          height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+          margin-top: env(safe-area-inset-top);
+          margin-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Configurar ion-content para que ocupe el espacio correcto */
+        ion-content {
+          --offset-top: env(safe-area-inset-top);
+          --offset-bottom: env(safe-area-inset-bottom);
+          --padding-top: env(safe-area-inset-top);
+          --padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        /* Configurar ion-header para que respete la safe area superior */
+        ion-header {
+          padding-top: env(safe-area-inset-top);
+        }
+        
+        /* Configurar ion-footer para que respete la safe area inferior */
+        ion-footer {
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+      }
+      
+      /* Fallback para navegadores que no soportan env() */
+      @supports not (padding-top: env(safe-area-inset-top)) {
+        @media all and (display-mode: standalone) {
+          body {
+            padding-top: 20px;
+            padding-bottom: 20px;
+          }
+          
+          ion-app {
+            height: calc(100vh - 40px);
+            margin-top: 20px;
+            margin-bottom: 20px;
+          }
+        }
+      }
+      
+      /* Configuración específica para iOS */
+      @supports (-webkit-touch-callout: none) {
+        body {
+          /* Prevenir el bounce scroll en iOS */
           position: fixed;
-          overflow: hidden;
           width: 100%;
           height: 100%;
         }
@@ -71,16 +134,27 @@ export class PwaIosService {
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         }
-        
-        /* Ocultar la barra de direcciones en modo standalone */
-        @media all and (display-mode: standalone) {
-          body {
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-          }
+      }
+      
+      /* Configuración para Android */
+      @supports not (-webkit-touch-callout: none) {
+        body {
+          /* Configuración específica para Android */
+          position: relative;
         }
+      }
+      
+      /* Asegurar que el contenido principal ocupe todo el espacio */
+      .ion-page {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      
+      /* Configurar el router outlet para que ocupe el espacio disponible */
+      ion-router-outlet {
+        flex: 1;
+        height: 100%;
       }
     `;
     document.head.appendChild(style);
@@ -110,5 +184,28 @@ export class PwaIosService {
   public isStandalone(): boolean {
     return (window.navigator as any).standalone === true || 
            window.matchMedia('(display-mode: standalone)').matches;
+  }
+
+  // Método para obtener información de las safe areas
+  public getSafeAreaInfo(): any {
+    return {
+      top: this.getComputedValue('env(safe-area-inset-top)'),
+      bottom: this.getComputedValue('env(safe-area-inset-bottom)'),
+      left: this.getComputedValue('env(safe-area-inset-left)'),
+      right: this.getComputedValue('env(safe-area-inset-right)')
+    };
+  }
+
+  private getComputedValue(property: string): string {
+    const testElement = document.createElement('div');
+    testElement.style.position = 'absolute';
+    testElement.style.visibility = 'hidden';
+    testElement.style[property as any] = property;
+    document.body.appendChild(testElement);
+    
+    const computedValue = getComputedStyle(testElement)[property as any];
+    document.body.removeChild(testElement);
+    
+    return computedValue || '0px';
   }
 } 

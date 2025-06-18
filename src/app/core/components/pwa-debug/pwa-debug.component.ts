@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { PwaInstallService } from '../../services/pwa-install.service';
 import { PwaUpdateService } from '../../services/pwa-update.service';
+import { PwaIosService } from '../../services/pwa-ios.service';
+import { ViewportService } from '../../services/viewport.service';
 
 @Component({
   selector: 'app-pwa-debug',
@@ -22,6 +24,24 @@ import { PwaUpdateService } from '../../services/pwa-update.service';
             <p><strong>Navegador:</strong> {{ debugInfo.browser.name }} {{ debugInfo.browser.version }}</p>
             <p><strong>Móvil:</strong> {{ debugInfo.browser.isMobile ? 'Sí' : 'No' }}</p>
             <p><strong>Plataforma:</strong> {{ debugInfo.platform.join(', ') }}</p>
+            
+            <div class="safe-area-info" *ngIf="safeAreaInfo">
+              <p><strong>Safe Areas:</strong></p>
+              <p>Top: {{ safeAreaInfo.top }}</p>
+              <p>Bottom: {{ safeAreaInfo.bottom }}</p>
+              <p>Left: {{ safeAreaInfo.left }}</p>
+              <p>Right: {{ safeAreaInfo.right }}</p>
+            </div>
+            
+            <div class="viewport-info">
+              <p><strong>Viewport:</strong></p>
+              <p>Width: {{ viewportInfo.width }}px</p>
+              <p>Height: {{ viewportInfo.height }}px</p>
+              <p>Device Pixel Ratio: {{ viewportInfo.devicePixelRatio }}</p>
+              <p>Orientación: {{ viewportInfo.orientation }}</p>
+              <p>Es Móvil: {{ viewportService.isMobile() ? 'Sí' : 'No' }}</p>
+              <p>Es Standalone: {{ viewportService.isStandalone() ? 'Sí' : 'No' }}</p>
+            </div>
           </div>
           <div class="debug-actions">
             <ion-button size="small" (click)="checkForUpdates()">
@@ -29,6 +49,9 @@ import { PwaUpdateService } from '../../services/pwa-update.service';
             </ion-button>
             <ion-button size="small" (click)="showInstallInstructions()">
               Instrucciones de Instalación
+            </ion-button>
+            <ion-button size="small" (click)="refreshDebugInfo()">
+              Actualizar Info
             </ion-button>
             <ion-button size="small" (click)="toggleDebug()">
               Ocultar Debug
@@ -45,11 +68,20 @@ import { PwaUpdateService } from '../../services/pwa-update.service';
       right: 20px;
       z-index: 1001;
       max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
     }
     
     .debug-info p {
       margin: 8px 0;
       font-size: 14px;
+    }
+    
+    .safe-area-info, .viewport-info {
+      margin-top: 16px;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
     }
     
     .debug-actions {
@@ -63,10 +95,14 @@ import { PwaUpdateService } from '../../services/pwa-update.service';
 export class PwaDebugComponent implements OnInit {
   showDebug = false;
   debugInfo: any = {};
+  safeAreaInfo: any = null;
+  viewportInfo: any = {};
 
   constructor(
     private pwaInstallService: PwaInstallService,
-    private pwaUpdateService: PwaUpdateService
+    private pwaUpdateService: PwaUpdateService,
+    private pwaIosService: PwaIosService,
+    public viewportService: ViewportService
   ) {}
 
   ngOnInit() {
@@ -84,6 +120,8 @@ export class PwaDebugComponent implements OnInit {
 
   updateDebugInfo() {
     this.debugInfo = this.pwaInstallService.getDebugInfo();
+    this.safeAreaInfo = this.viewportService.getSafeAreaInfo();
+    this.viewportInfo = this.viewportService.getViewportInfo();
   }
 
   checkForUpdates() {
@@ -93,6 +131,10 @@ export class PwaDebugComponent implements OnInit {
   showInstallInstructions() {
     const instructions = this.pwaInstallService.getInstallInstructions();
     alert(instructions);
+  }
+
+  refreshDebugInfo() {
+    this.updateDebugInfo();
   }
 
   toggleDebug() {
