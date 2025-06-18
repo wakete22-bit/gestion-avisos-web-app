@@ -9,8 +9,8 @@
     <p class="subtitle">Añade un nuevo aviso</p>
   </header>
 
-  <div class="modal-content">
-    <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()">
+  <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()" class="modal-body">
+    <div class="modal-content">
       <div class="modal-grid">
         <!-- Sección Izquierda - Formulario -->
         <div class="form-section">
@@ -102,7 +102,7 @@
           </div>
 
           <div class="uploaded-files" *ngIf="imagenes.length > 0">
-            <h4>Archivos adjuntos</h4>
+            <h4>Archivos adjuntos</h4> 
             <div class="file-list">
               <div class="file-item" *ngFor="let imagen of imagenes; let i = index">
                 <div class="file-preview">
@@ -120,8 +120,8 @@
           </div>
         </div>
       </div>
-    </form>
-  </div>
+    </div>
+  </form>
 
   <footer class="modal-footer">
     <div class="button-group">

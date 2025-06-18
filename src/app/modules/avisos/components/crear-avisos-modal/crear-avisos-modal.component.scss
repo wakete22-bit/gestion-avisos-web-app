@@ -1,9 +1,10 @@
 .modal-container {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  max-height: 85vh;
+  height: 100%;
+  max-height: 90vh;
   background: #fff;
+  position: relative;
 }
 
 .modal-header {
@@ -50,35 +51,60 @@
   }
 }
 
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .modal-content {
   flex: 1;
-  min-height: 0;
   overflow: hidden;
-  
-  form {
-    height: 100%;
-  }
+  position: relative;
+  min-height: 0;
 }
 
 .modal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 0;
   height: 100%;
-  min-height: 0;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    height: auto;
+  }
 }
 
 .form-section {
   padding: 24px;
   border-right: 1px solid #e5e7eb;
   overflow-y: auto;
-  max-height: calc(85vh - 140px); // Restamos altura del header y footer
+  height: 100%;
+
+  @media (max-width: 768px) {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    height: auto;
+    padding-bottom: 30px;
+  }
 }
 
 .images-section {
   padding: 24px;
   background-color: #f9fafb;
   overflow-y: auto;
-  max-height: calc(85vh - 140px); // Restamos altura del header y footer
+  height: 100%;
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 300px;
+    padding-bottom: 80px;
+  }
 }
 
 .step-indicator {
@@ -389,8 +415,13 @@ textarea.form-control {
 .modal-footer {
   padding: 16px 24px;
   border-top: 1px solid #e5e7eb;
-  background-color: #fff;
+  background: #fff;
   flex-shrink: 0;
+  z-index: 10;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
 
   .button-group {
     display: flex;
@@ -438,6 +469,43 @@ textarea.form-control {
         background-color: #1d4ed8;
         border-color: #1d4ed8;
       }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-container {
+    height: 95vh;
+    max-height: none;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    height: auto;
+    overflow: auto;
+  }
+
+  .form-control {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  textarea, select, input {
+    font-size: 14px!important;
+    padding: 12px;
+  }
+
+  .input-with-button {
+    flex-direction: column;
+    
+    .add-button {
+      position: static;
+      margin-top: 8px;
+      width: 100%;
+      justify-content: center;
     }
   }
 }

@@ -178,3 +178,39 @@ textarea.form-control {
     }
   }
 }
+
+@media (max-width: 768px) {
+  .modal-container {
+    max-height: none;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    height: auto;
+    overflow: auto;
+  }
+
+  .form-control {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  textarea, select, input {
+    font-size: 14px!important;
+    padding: 12px;
+  }
+
+  .input-with-button {
+    flex-direction: column;
+    
+    .add-button {
+      position: static;
+      margin-top: 8px;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

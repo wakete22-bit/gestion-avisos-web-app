@@ -4,7 +4,18 @@ import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline } from 'ionicons/icons';
+import { 
+  alertCircle, 
+  close, 
+  eyeOutline, 
+  mapOutline, 
+  add, 
+  addCircle, 
+  addCircleOutline,
+  searchOutline,
+  locationOutline,
+  calendarOutline
+} from 'ionicons/icons';
 import { Aviso } from 'src/app/modules/avisos/pages/avisos/avisos.component';
 
 @Component({
@@ -36,7 +47,18 @@ export class HistorialComponent  implements OnInit {
   ];
 
   constructor() { 
-    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+    addIcons({
+      mapOutline,
+      addCircle,
+      alertCircle,
+      close,
+      eyeOutline,
+      add,
+      addCircleOutline,
+      searchOutline,
+      locationOutline,
+      calendarOutline
+    });
   }
 
   ngOnInit() {}

@@ -5,6 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
 import { mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline } from 'ionicons/icons';
+import { Router } from '@angular/router';
 
 interface Factura {
   numero: string;
@@ -43,10 +44,14 @@ export class FacturasComponent  implements OnInit {
     
   ];
 
-  constructor() { 
+  constructor(private router: Router) { 
     addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
   }
 
   ngOnInit() {}
+
+  abrirCrearFactura() {
+    this.router.navigate(['/crear-factura']);
+  }
 
 }

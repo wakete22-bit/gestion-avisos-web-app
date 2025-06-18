@@ -43,6 +43,47 @@
   }
 }
 
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .actions-preview {
+    display: flex;
+    gap: 12px;
+
+    .btn-outline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 10px 15px;
+      background-color: white;
+      color: #26262A;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      border: 1px solid #7d83983e;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 10px 15px;
+      background-color: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+    }
+  }
+}
+
 .form-control {
   position: relative;
   width: 100%;
@@ -181,7 +222,7 @@
       width: 36px;
       height: 36px;
       font-size: 1.2rem;
-      color: #3B36F4;
+      color: #4F46E5;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -200,17 +241,13 @@
     gap: 32px;
 
     .logo-box {
-      width: 64px;
-      height: 64px;
-      background: #F3F4F6;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
 
       img {
-        max-width: 48px;
-        max-height: 48px;
+        max-width: 44px;
       }
     }
 
@@ -223,13 +260,13 @@
       address {
         display: block;
         color: #6B7280;
-        font-size: 1rem;
+        font-size: 14px;
         margin-bottom: 2px;
         font-style: normal;
       }
 
       .empresa-nombre {
-        color: #3B36F4;
+        color: #4F46E5;
         font-weight: 700;
         font-size: 1.1rem;
         margin-bottom: 4px;
@@ -265,7 +302,7 @@
 
       th {
         color: #9CA3AF;
-        font-weight: 500;
+        font-weight: 400;
         background: none;
         border-bottom: 1px solid #E5E7EB;
       }
@@ -282,8 +319,7 @@
 
       .total-row td {
         font-weight: 700;
-        color: #3B36F4;
-        background: #F3F4F6;
+        color: #4F46E5;
         border-bottom: none;
       }
     }
@@ -291,11 +327,15 @@
 
   .preview-totales-box {
     margin: 24px 0 0 0;
-    background: #F3F4F6;
+    background: #EEF2FF;
     border-radius: 16px;
-    padding: 20px 32px;
-    width: 320px;
+    padding: 15px 15px;
+    width: 300px;
     align-self: flex-end;
+
+    span {
+      color: #4F46E5;
+    }
 
     .totales-row {
       display: flex;
@@ -305,9 +345,9 @@
 
       &.total-final {
         font-size: 1.3rem;
-        font-weight: 700;
+        font-weight: 600;
         color: #fff;
-        background: #3B36F4;
+        background: #4F46E5;
         border-radius: 12px;
         padding: 12px 20px;
         margin-top: 12px;
@@ -324,7 +364,7 @@
     margin-top: 24px;
 
     b {
-      color: #3B36F4;
+      color: #4F46E5;
       font-size: 1rem;
     }
 
@@ -351,6 +391,7 @@
   height: auto;
   gap: 32px;
   display: flex;
+  padding: 25px;
 }
 
 .factura-formulario {
@@ -537,7 +578,7 @@
 
     .total-row .success {
       color: #2B9943;
-      font-weight: 700!important;
+      font-weight: 700 !important;
     }
   }
 }
@@ -586,13 +627,19 @@
   text-align: right;
   min-width: 180px;
 
-  .factura-label {
+  label {
     display: block;
-    font-size: 1.3rem;
+    font-size: 14px;
+    font-weight: 400;
+    color: #6B7280;
+    margin-bottom: 4px;
+  }
+
+  .factura-label {
+    color: #4F46E5;
     font-weight: 700;
-    color: #3B36F4;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
   }
 
   dl {

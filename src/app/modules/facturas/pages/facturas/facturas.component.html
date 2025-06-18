@@ -1,17 +1,4 @@
 <ion-content>
-  <div class="header-container">
-    <div class="header-left">
-      <h1 class="header-title">Facturación</h1>
-      <label class="header-subtitle">Consulta, gestiona y desglosa todas las facturas generadas. Filtra por estado y accede al detalle de cada servicio facturado.</label>  
-    </div>
-    <div class="header-actions">
-      <button class="btn-add">
-        <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-        Añadir factura
-      </button>
-    </div>
-  </div>
-  
   <section class="dashboard-table">
     <div class="table-header">
       <div class="table-header-left">
@@ -23,6 +10,10 @@
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
+        <button class="btn-add" (click)="abrirCrearFactura()">
+          <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+          Añadir factura
+        </button>
       </div>
     </div>
     <table class="custom-mat-table">

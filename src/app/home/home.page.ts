@@ -1,7 +1,30 @@
 import { Component } from '@angular/core';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
-import { gridOutline, notificationsOutline, timeOutline, cubeOutline, documentTextOutline, peopleOutline, settingsOutline, personCircleOutline, receipt, hourglass, alertCircleOutline, hourglassOutline, warningOutline, cashOutline, warning, document, alertCircle, close, eyeOutline } from 'ionicons/icons';
+import { 
+  gridOutline, 
+  notificationsOutline, 
+  timeOutline, 
+  cubeOutline, 
+  documentTextOutline, 
+  peopleOutline, 
+  settingsOutline, 
+  personCircleOutline, 
+  receipt, 
+  hourglass, 
+  alertCircleOutline, 
+  hourglassOutline, 
+  warningOutline, 
+  cashOutline, 
+  warning, 
+  document, 
+  alertCircle, 
+  close, 
+  eyeOutline,
+  searchOutline,
+  locationOutline,
+  calendarOutline
+} from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,7 +44,10 @@ addIcons({
   'alert-circle-outline': alertCircleOutline,
   'warning': warning,
   'document': document,
-  'alert-circle': alertCircle
+  'alert-circle': alertCircle,
+  'search-outline': searchOutline,
+  'location-outline': locationOutline,
+  'calendar-outline': calendarOutline
 });
 
 export interface Aviso {
@@ -97,5 +123,17 @@ export class HomePage {
     }
   ];
   constructor() {
-      addIcons({receipt,hourglassOutline,warning,document,alertCircle,close,eyeOutline});}
+      addIcons({
+        receipt,
+        hourglassOutline,
+        warning,
+        document,
+        alertCircle,
+        close,
+        eyeOutline,
+        searchOutline,
+        locationOutline,
+        calendarOutline
+      });
+  }
 }

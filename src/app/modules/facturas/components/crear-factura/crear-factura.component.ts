@@ -5,10 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { IonContent } from "@ionic/angular/standalone";
 import { IonIcon } from '@ionic/angular/standalone';
 
-import { trash, closeOutline, trashOutline } from 'ionicons/icons';
+import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 
-
+    
 
 @Component({
   selector: 'app-crear-factura',
@@ -36,7 +36,7 @@ export class CrearFacturaComponent implements OnInit {
   }
 
   ngOnInit() {
-    addIcons({ trash, closeOutline });
+    addIcons({ trash, closeOutline, download, print });
   } 
 
   // Repuestos

@@ -7,20 +7,7 @@
 </ion-header> -->
 
 
-<ion-content [fullscreen]="true">
-  <div class="header-container">
-    <div class="header-left">
-      <h1 class="header-title">Inventario</h1>
-      <label class="header-subtitle">Accede a un registro completo de todos los productos, con opciones avanzadas de búsqueda y filtrado para consulta y auditoría.</label>  
-    </div>
-    <div class="header-actions">
-      <button class="btn-add" (click)="abrirModalCrearProducto()">
-        <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-        Añadir producto
-      </button>
-    </div>
-  </div>
-  
+<ion-content [fullscreen]="true">  
   <main class="dashboard-main">
     <!-- Resumen de tarjetas -->
     <section class="dashboard-summary">
@@ -74,6 +61,10 @@
           <select>
             <option>Ordenar por: Recientes</option>
           </select>
+          <button class="btn-add" (click)="abrirModalCrearProducto()">
+            <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+            Añadir producto
+          </button>
         </div>
       </div>
       <table class="custom-mat-table">

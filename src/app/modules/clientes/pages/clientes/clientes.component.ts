@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
 import { mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline } from 'ionicons/icons';
-import { CrearClienteModalComponent } from 'src/app/modules/avisos/components/crear-cliente-modal/crear-cliente-modal.component';
+import { CrearClienteModalComponent } from 'src/app/modules/clientes/components/crear-cliente-modal/crear-cliente-modal.component';
   
 
 interface Cliente {

@@ -10,131 +10,262 @@
   <main class="dashboard-main">
     <!-- Resumen de tarjetas -->
     <section class="dashboard-summary">
-      <div class="summary-card">
-        <div class="icon purple-bg">
-          <ion-icon name="receipt"></ion-icon>
+      <!-- Desktop Summary Cards -->
+      <div class="summary-cards-desktop">
+        <div class="summary-card">
+          <div class="icon yellow-bg">
+            <ion-icon name="hourglass-outline" style="font-size: 42px;"></ion-icon>
+          </div>
+          <div>
+            <div class="summary-title">Avisos</div>
+            <div class="summary-value">2</div>
+            <div class="summary-subtitle">En curso</div>
+          </div>
         </div>
-        <div>
-          <div class="summary-title">Facturas</div>
-          <div class="summary-value">4</div>
-          <div class="summary-subtitle">Pendientes</div>
+        <div class="summary-card">
+          <div class="icon red-bg">
+            <ion-icon name="warning" style="font-size: 42px;"></ion-icon>
+          </div>
+          <div>
+            <div class="summary-title">Avisos</div>
+            <div class="summary-value">4</div>
+            <div class="summary-subtitle">Urgentes</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="icon purple-bg">
+            <ion-icon name="receipt"></ion-icon>
+          </div>
+          <div>
+            <div class="summary-title">Facturas</div>
+            <div class="summary-value">4</div>
+            <div class="summary-subtitle">Pendientes</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="icon blue-bg">
+            <ion-icon name="document" style="font-size: 40px;"></ion-icon>
+          </div>
+          <div>
+            <div class="summary-title">Presupuestos</div>
+            <div class="summary-value">2</div>
+            <div class="summary-subtitle">Pendientes</div>
+          </div>
         </div>
       </div>
-      <div class="summary-card">
-        <div class="icon yellow-bg">
-          <ion-icon name="hourglass-outline" style="font-size: 42px;"></ion-icon>
-        </div>
-        <div>
-          <div class="summary-title">Avisos</div>
-          <div class="summary-value">2</div>
-          <div class="summary-subtitle">En curso</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="icon red-bg">
-          <ion-icon name="warning" style="font-size: 42px;"></ion-icon>
-        </div>
-        <div>
-          <div class="summary-title">Avisos</div>
-          <div class="summary-value">4</div>
-          <div class="summary-subtitle">Urgentes</div>
-        </div>
-      </div>
-      <div class="summary-card">
-        <div class="icon blue-bg">
-          <ion-icon name="document" style="font-size: 40px;"></ion-icon>
-        </div>
-        <div>
-          <div class="summary-title">Presupuestos</div>
-          <div class="summary-value">2</div>
-          <div class="summary-subtitle">Pendientes</div>
+
+      <!-- Mobile Summary Cards -->
+      <div class="summary-cards-mobile">
+        <div class="summary-grid">
+          <div class="summary-card-mobile">
+            <div class="icon yellow-bg">
+              <ion-icon name="hourglass-outline"></ion-icon>
+            </div>
+            <div class="mobile-card-content">
+              <div class="summary-title">Avisos</div>
+              <div class="summary-value">2</div>
+              <div class="summary-subtitle">En curso</div>
+            </div>
+          </div>
+          <div class="summary-card-mobile">
+            <div class="icon red-bg">
+              <ion-icon name="warning"></ion-icon>
+            </div>
+            <div class="mobile-card-content">
+              <div class="summary-title">Avisos</div>
+              <div class="summary-value">4</div>
+              <div class="summary-subtitle">Urgentes</div>
+            </div>
+          </div>
+          <div class="summary-card-mobile">
+            <div class="icon purple-bg">
+              <ion-icon name="receipt"></ion-icon>
+            </div>
+            <div class="mobile-card-content">
+              <div class="summary-title">Facturas</div>
+              <div class="summary-value">4</div>
+              <div class="summary-subtitle">Pendientes</div>
+            </div>
+          </div>
+          <div class="summary-card-mobile">
+            <div class="icon blue-bg">
+              <ion-icon name="document"></ion-icon>
+            </div>
+            <div class="mobile-card-content">
+              <div class="summary-title">Presupuestos</div>
+              <div class="summary-value">2</div>
+              <div class="summary-subtitle">Pendientes</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Presupuestos y Facturas Pendientes -->
     <section class="dashboard-cards">
-      <div class="pending-card">
-        <div class="pending-title">Presupuestos Pendientes</div>
-        <div class="pending-details-container">
-          <div class="pending-details-title">
-            <div class="pending-amount">5.250,75€</div>
-            <span class="pending-details-subtitle">Presupuestos: 4</span>
-            <div class="pending-status orange">
-              <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
-              Pendientes
+      <!-- Desktop Cards -->
+      <div class="pending-cards-desktop">
+        <div class="pending-card">
+          <div class="pending-title">Presupuestos Pendientes</div>
+          <div class="pending-details-container">
+            <div class="pending-details-title">
+              <div class="pending-amount">5.250,75€</div>
+              <span class="pending-details-subtitle">Presupuestos: 4</span>
+              <div class="pending-status orange">
+                <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+                Pendientes
+              </div>
             </div>
+            <table class="pending-details-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Fecha emisión</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Residencia Ancianos Sol</td>
+                  <td>2025-05-20</td>
+                  <td>1.250,00€</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <table class="pending-details-table">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Fecha emisión</th>
-                <th>Importe</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Residencia Ancianos Sol</td>
-                <td>2025-05-20</td>
-                <td>1.250,00€</td>
-              </tr>
-            </tbody>
-          </table>
-
+          <a class="pending-more" href="#">Mostrar más &gt;</a>
         </div>
-        <a class="pending-more" href="#">Mostrar más &gt;</a>
+        <div class="pending-card">
+          <div class="pending-title">Facturas Pendientes</div>
+          <div class="pending-details-container">
+            <div class="pending-details-title">
+              <div class="pending-amount">650,75€</div>
+              <span class="pending-details-subtitle">Facturas: 4</span>
+              <div class="pending-status orange">
+                <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+                Pendientes
+              </div>
+            </div>
+            <table class="pending-details-table">
+              <thead>
+                <tr>
+                  <th>Nº Factura</th>
+                  <th>Nº Aviso</th>
+                  <th>Fecha emisión</th>
+                  <th>Importe total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>F2025-001</td>
+                  <td>001</td>
+                  <td>2025-05-20</td>
+                  <td>1.250,00€</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <a class="pending-more" href="#">Mostrar más &gt;</a>
+        </div>
       </div>
-      <div class="pending-card">
-        <div class="pending-title">Facturas Pendientes</div>
-        <div class="pending-details-container">
-          <div class="pending-details-title">
-            <div class="pending-amount">650,75€</div>
-            <span class="pending-details-subtitle">Facturas: 4</span>
+
+      <!-- Mobile Cards -->
+      <div class="pending-cards-mobile">
+        <div class="pending-card-mobile">
+          <div class="mobile-card-header">
+            <div class="pending-title">Presupuestos Pendientes</div>
             <div class="pending-status orange">
-              <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+              <ion-icon name="alert-circle"></ion-icon>
               Pendientes
             </div>
           </div>
-          <table class="pending-details-table">
-            <thead>
-              <tr>
-                <th>Nº Factura</th>
-                <th>Nº Aviso</th>
-                <th>Fecha emisión</th>
-                <th>Importe total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>F2025-001</td>
-                <td>001</td>
-                <td>2025-05-20</td>
-                <td>1.250,00€</td>
-              </tr>
-            </tbody>
-          </table>
-
+          <div class="mobile-card-body">
+            <div class="mobile-amount">5.250,75€</div>
+            <div class="mobile-subtitle">Presupuestos: 4</div>
+            <div class="mobile-item">
+              <div class="item-label">Cliente:</div>
+              <div class="item-value">Residencia Ancianos Sol</div>
+            </div>
+            <div class="mobile-item">
+              <div class="item-label">Fecha:</div>
+              <div class="item-value">2025-05-20</div>
+            </div>
+            <div class="mobile-item">
+              <div class="item-label">Importe:</div>
+              <div class="item-value">1.250,00€</div>
+            </div>
+          </div>
+          <a class="pending-more" href="#">Mostrar más &gt;</a>
         </div>
-        <a class="pending-more" href="#">Mostrar más &gt;</a>
+
+        <div class="pending-card-mobile">
+          <div class="mobile-card-header">
+            <div class="pending-title">Facturas Pendientes</div>
+            <div class="pending-status orange">
+              <ion-icon name="alert-circle"></ion-icon>
+              Pendientes
+            </div>
+          </div>
+          <div class="mobile-card-body">
+            <div class="mobile-amount">650,75€</div>
+            <div class="mobile-subtitle">Facturas: 4</div>
+            <div class="mobile-item">
+              <div class="item-label">Nº Factura:</div>
+              <div class="item-value">F2025-001</div>
+            </div>
+            <div class="mobile-item">
+              <div class="item-label">Nº Aviso:</div>
+              <div class="item-value">001</div>
+            </div>
+            <div class="mobile-item">
+              <div class="item-label">Fecha:</div>
+              <div class="item-value">2025-05-20</div>
+            </div>
+            <div class="mobile-item">
+              <div class="item-label">Importe:</div>
+              <div class="item-value">1.250,00€</div>
+            </div>
+          </div>
+          <a class="pending-more" href="#">Mostrar más &gt;</a>
+        </div>
       </div>
     </section>
 
     <!-- Avisos recientes -->
     <section class="dashboard-table">
+      <!-- Header Section -->
       <div class="table-header">
         <div class="table-header-left">
           <div class="table-title">Avisos recientes</div>
           <div class="table-meta">Avisos: {{ avisos.length }}</div>  
         </div>
-        <div class="table-search">
+        
+        <!-- Mobile Search Bar -->
+        <div class="mobile-search">
+          <input type="text" placeholder="Buscar aviso..." />
+          <ion-icon name="search-outline"></ion-icon>
+        </div>
+
+        <!-- Desktop Search and Actions -->
+        <div class="table-search desktop-only">
           <input type="text" placeholder="Buscar..." />
           <select>
             <option>Ordenar por: Recientes</option>
           </select>
         </div>
       </div>
-      <table class="custom-mat-table">
+
+      <!-- Mobile Actions -->
+      <div class="mobile-actions">
+        <select class="mobile-filter">
+          <option>Ordenar: Recientes</option>
+          <option>Ordenar: Antiguos</option>
+          <option>Ordenar: Urgentes</option>
+        </select>
+      </div>
+
+      <!-- Desktop Table View -->
+      <table class="custom-mat-table desktop-only">
         <thead>
           <tr>
             <th>Número</th>
@@ -169,15 +300,58 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Mobile Cards View -->
+      <div class="mobile-cards">
+        <div class="aviso-card" *ngFor="let aviso of avisos">
+          <div class="card-header">
+            <div class="card-number">#{{ aviso.numero }}</div>
+            <span class="badge" 
+                  [ngClass]="{
+                    'yellow': aviso.estado === 'En curso',
+                    'red': aviso.estado === 'Pendiente',
+                    'green': aviso.estado === 'Completado'
+                  }">
+              {{ aviso.estado }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <strong>{{ aviso.nombre }}</strong>
+              <ion-icon *ngIf="aviso.urgente" 
+                       name="alert-circle" 
+                       class="urgente-icon">
+              </ion-icon>
+            </div>
+            <div class="card-row detail">{{ aviso.detalle }}</div>
+            <div class="card-row">
+              <ion-icon name="location-outline"></ion-icon>
+              {{ aviso.direccion }}
+            </div>
+            <div class="card-row">
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ aviso.fecha }}
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn">
+              <ion-icon name="eye-outline"></ion-icon>
+              Ver detalles
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
       <div class="table-pagination">
-        <span>Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
+        <span class="pagination-info">Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
         <div class="pagination">
           <button class="active">1</button>
           <button>2</button>
           <button>3</button>
-          <button>4</button>
-          <span>...</span>
-          <button>40</button>
+          <button class="desktop-only">4</button>
+          <span class="desktop-only">...</span>
+          <button class="desktop-only">40</button>
         </div>
       </div>
     </section>

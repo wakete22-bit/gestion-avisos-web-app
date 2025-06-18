@@ -42,6 +42,24 @@
   font-family: 'Poppins', sans-serif;
 }
 
+// Estilos globales para móviles
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+// Prevenir zoom en inputs en iOS
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+// Mejorar scrolling en móviles
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
 ion-content {
   --offset-top: 0px !important;
   --offset-bottom: 0px !important;
@@ -78,4 +96,35 @@ ion-modal.side-modal {
 ion-modal.modal-crear-cliente::part(backdrop) {
   background: rgba(16, 18, 27, 0.55); // Más oscuro que el default
   opacity: 1;
+}
+
+// Media queries adicionales para móviles
+@media (max-width: 768px) {
+  // Ocultar scrollbars en móviles para una experiencia más limpia
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  // Mejorar el espaciado en móviles
+  .ion-padding {
+    padding: 16px !important;
+  }
+  
+  // Ajustar tamaños de fuente en móviles
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+  }
+  
+  h3 {
+    font-size: 1.1rem !important;
+  }
 }

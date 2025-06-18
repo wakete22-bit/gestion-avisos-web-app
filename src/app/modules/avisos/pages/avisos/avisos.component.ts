@@ -4,9 +4,9 @@ import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone'
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
-import { CrearClienteModalComponent } from '../../components/crear-cliente-modal/crear-cliente-modal.component';
+import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 
 export interface Aviso {
   numero: string;
@@ -83,7 +83,7 @@ export class AvisosComponent {
   ];
 
   constructor(private modalController: ModalController) {
-    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+    addIcons({searchOutline,mapOutline,addCircle,alertCircle,close,eyeOutline,locationOutline,calendarOutline,add,addCircleOutline});
   }
 
   async abrirModalCrearAviso(clienteData?: any) {

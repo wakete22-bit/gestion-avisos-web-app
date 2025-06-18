@@ -1,32 +1,56 @@
-<ion-content>
-  <div class="header-container">
-    <h1 class="header-title">Avisos</h1>
-    <div class="header-actions">
-      <button class="btn-map">
-        <ion-icon name="map-outline" style="font-size: 18px;"></ion-icon>
-        Mapa de avisos
-      </button>
-      <button class="btn-add" (click)="abrirModalCrearAviso()">
-        <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-        Añadir aviso
-      </button>
-    </div>
-  </div>
-  
+<ion-content>  
   <section class="dashboard-table">
+    <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Lista de avisos</div>
         <div class="table-meta">Avisos: {{ avisos.length }}</div>  
       </div>
-      <div class="table-search">
+      
+      <!-- Mobile Search Bar -->
+      <div class="mobile-search">
+        <input type="text" placeholder="Buscar aviso..." />
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+
+      <!-- Desktop Search and Actions -->
+      <div class="table-search desktop-only">
         <input type="text" placeholder="Buscar..." />
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
+        <div class="header-actions">
+          <button class="btn-map">
+            <ion-icon name="map-outline"></ion-icon>
+            Mapa de avisos
+          </button>
+          <button class="btn-add" (click)="abrirModalCrearAviso()">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir aviso
+          </button>
+        </div>
       </div>
     </div>
-    <table class="custom-mat-table">
+
+    <!-- Mobile Actions -->
+    <div class="mobile-actions">
+      <select class="mobile-filter">
+        <option>Ordenar: Recientes</option>
+        <option>Ordenar: Antiguos</option>
+        <option>Ordenar: Urgentes</option>
+      </select>
+      <div class="mobile-buttons">
+        <button class="btn-map">
+          <ion-icon name="map-outline"></ion-icon>
+        </button>
+        <button class="btn-add" (click)="abrirModalCrearAviso()">
+          <ion-icon name="add-circle"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <table class="custom-mat-table desktop-only">
       <thead>
         <tr>
           <th>Número</th>
@@ -61,15 +85,58 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Mobile Cards View -->
+    <div class="mobile-cards">
+      <div class="aviso-card" *ngFor="let aviso of avisos">
+        <div class="card-header">
+          <div class="card-number">#{{ aviso.numero }}</div>
+          <span class="badge" 
+                [ngClass]="{
+                  'yellow': aviso.estado === 'En curso',
+                  'red': aviso.estado === 'Pendiente',
+                  'green': aviso.estado === 'Completado'
+                }">
+            {{ aviso.estado }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <strong>{{ aviso.nombre }}</strong>
+            <ion-icon *ngIf="aviso.urgente" 
+                     name="alert-circle" 
+                     class="urgente-icon">
+            </ion-icon>
+          </div>
+          <div class="card-row detail">{{ aviso.detalle }}</div>
+          <div class="card-row">
+            <ion-icon name="location-outline"></ion-icon>
+            {{ aviso.direccion }}
+          </div>
+          <div class="card-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ aviso.fecha }}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn">
+            <ion-icon name="eye-outline"></ion-icon>
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
     <div class="table-pagination">
-      <span>Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
+      <span class="pagination-info">Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
       <div class="pagination">
         <button class="active">1</button>
         <button>2</button>
         <button>3</button>
-        <button>4</button>
-        <span>...</span>
-        <button>40</button>
+        <button class="desktop-only">4</button>
+        <span class="desktop-only">...</span>
+        <button class="desktop-only">40</button>
       </div>
     </div>
   </section>

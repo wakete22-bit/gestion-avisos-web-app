@@ -203,7 +203,7 @@ ion-content {
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 2px 8px 0 #e0e7ef33;
-    padding: 28px 32px 18px 32px;
+    padding: 25px;
 }
 
 .table-header {
@@ -226,7 +226,7 @@ ion-content {
 
 .table-search {
     display: flex;
-    gap: 10px;
+    gap: 20px;
 }
 
 .table-search input {
@@ -271,20 +271,16 @@ ion-content {
             background: white;
 
             td {
-                padding: 16px;
+                padding: 4px 16px;
                 color: #26262A;
                 font-size: 14px;
-                border-top: 1px solid #F0F0F0;
-                border-bottom: 1px solid #F0F0F0;
 
                 &:first-child {
-                    border-left: 1px solid #F0F0F0;
                     border-top-left-radius: 8px;
                     border-bottom-left-radius: 8px;
                 }
 
                 &:last-child {
-                    border-right: 1px solid #F0F0F0;
                     border-top-right-radius: 8px;
                     border-bottom-right-radius: 8px;
                 }

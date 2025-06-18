@@ -4,19 +4,106 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
+    position: relative;
+    background-color: #FAFBFF;
 
-    .topbar {
+    // Header móvil
+    .mobile-header {
+        display: none;
+        align-items: center;
+        padding: 12px 16px;
+        background: #fff;
+        border-bottom: 1px solid #e2e8f0;
+        z-index: 999;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         height: 64px;
-        width: 100%;
-        z-index: 100;
-        box-shadow: 0 10px 60px 0 #0000000b;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
 
+        .hamburger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: background-color 0.2s ease;
+
+            ion-icon {
+                font-size: 24px;
+                color: #64748b;
+            }
+
+            &:hover {
+                background: #f1f5f9;
+            }
+        }
+
+        .mobile-title {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .mobile-logo {
+                height: 32px;
+                width: auto;
+            }
+        }
+
+        .mobile-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: #f1f5f9;
+            }
+
+            .avatar {
+                width: 36px;
+                height: 36px;
+                background: #ffe7a0;
+                border-radius: 50%;
+                display: inline-block;
+                background-image: url('https://randomuser.me/api/portraits/men/1.jpg');
+                background-size: cover;
+                background-position: center;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+        }
+    }
+
+    // Overlay para cerrar sidebar
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        animation: fadeIn 0.3s ease;
     }
 
     .content-wrapper {
         display: flex;
         flex: 1;
         overflow: hidden;
+        position: relative;
+        height: 100vh;
 
         .sidebar {
             width: 250px;
@@ -24,34 +111,71 @@
             overflow-y: auto;
             overflow-x: hidden;
             background-color: #FAFBFF;
-            transition: width 0.3s ease;
+            transition: transform 0.3s ease;
             z-index: 1000;
+            flex-shrink: 0;
         }
 
         .main-content {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
             background-color: #FAFBFF;
+            padding: 24px;
+            width: 100%;
+            height: 100%;
+            position: relative;
+
+            &.mobile {
+                padding-top: 60px!important;
+                padding: 0px;
+            }
         }
     }
 }
 
-// Media query para dispositivos móviles
+// Animaciones
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// Media queries para dispositivos móviles
 @media (max-width: 768px) {
     .main-layout {
+        .mobile-header {
+            display: flex;
+        }
+
         .content-wrapper {
-            .sidebar {
-                position: fixed;
-                left: -250px;
-                top: 64px;
-                bottom: 0;
-                z-index: 99;
-                
-                &.open {
-                    left: 0;
+            padding-top: 0;
+
+            .main-content {
+                padding: 16px;
+                width: 100%;
+                margin-left: 0;
+                min-height: 100%;
+
+                &.mobile {
+                    padding-top: 60px!important;
+                    padding: 0px;
                 }
             }
         }
     }
 }
+
+@media (max-width: 480px) {
+    .main-layout {
+        .content-wrapper {
+            .sidebar {
+                width: 100vw;
+                max-width: 100vw;
+            }
+        }
+    }
+}
+

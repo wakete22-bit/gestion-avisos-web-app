@@ -52,8 +52,8 @@
               <td>25.00€</td>
               <td class="success">35.00€</td>
               <td class="trash-btn"><button type="button" class="icon-btn danger">
-                <ion-icon name="trash"></ion-icon>
-              </button></td>
+                  <ion-icon name="trash"></ion-icon>
+                </button></td>
             </tr>
             <tr>
               <td><a href="#">Filtro de Aire Hepa</a></td>
@@ -61,8 +61,8 @@
               <td>18.00€</td>
               <td class="success">25.00€</td>
               <td class="trash-btn"><button type="button" class="icon-btn danger">
-                <ion-icon name="trash"></ion-icon>
-              </button></td>
+                  <ion-icon name="trash"></ion-icon>
+                </button></td>
             </tr>
             <tr class="total-row">
               <td colspan="2">Total</td>
@@ -95,8 +95,8 @@
               <td>2.25h</td>
               <td class="success">45.00€</td>
               <td class="trash-btn"><button type="button" class="icon-btn danger">
-                <ion-icon name="trash"></ion-icon>
-              </button></td>
+                  <ion-icon name="trash"></ion-icon>
+                </button></td>
             </tr>
           </tbody>
         </table>
@@ -122,9 +122,9 @@
               <td><a>Kilometraje</a></td>
               <td>10km</td>
               <td class="success">3.50€</td>
-                <td class="trash-btn"><button type="button" class="icon-btn danger">
-                <ion-icon name="trash"></ion-icon>
-              </button></td>
+              <td class="trash-btn"><button type="button" class="icon-btn danger">
+                  <ion-icon name="trash"></ion-icon>
+                </button></td>
             </tr>
           </tbody>
         </table>
@@ -144,36 +144,50 @@
         <button type="button" class="btn-outline">Enviar factura</button>
         <button type="button" class="btn-primary">Generar factura</button>
       </div>
-      
+
     </form>
   </div>
 
   <!-- Vista previa -->
   <div class="factura-preview">
-    <h2>Vista previa</h2>
+    <div class="header-container">
+      <h2>Vista previa</h2>
+      <div class="actions-preview">
+        <button type="button" class="btn-outline">
+          <ion-icon name="download"></ion-icon>
+          Descargar
+        </button>
+        <button type="button" class="btn-primary">
+          <ion-icon name="print"></ion-icon>
+          Imprimir
+        </button>
+      </div>  
+    </div>
     <div class="preview-header">
       <div class="logo-box">
-        <img src="assets/icon/LogoGestionAvisos.png" alt="Logo" />
+        <img src="assets/icon/favicon.png" alt="Logo" />
       </div>
       <div class="empresa-datos">
         <div>
-          <span class="empresa-nombre">NOMBRE DE EMPRESA</span>
+          <span class="empresa-nombre">DATOS DE EMPRESA</span>
+          <span>Nombre de empresa</span>
           <address>Dirección de empresa</address>
           <span>Ciudad de empresa</span>
           <span>CIF de empresa</span>
-          <span>ejemplodominio.es</span>
+          <span style="margin-top: 20px;">ejemplodominio.es</span>
           <span>+34 123 45 56 65</span>
         </div>
         <div class="factura-info">
-          <div class="factura-label">Factura</div>
-          <div><b>Nº FACTURA</b><br>003/2021</div>
-          <div><b>FECHA DE EMISIÓN</b><br>Enero 1, 2021</div>
+          <label class="factura-label">Factura</label>
+          <label style="color: #111827; font-weight: 500;">Nº FACTURA</label>
+          <label>003/2021</label>
+          <label style="color: #111827; font-weight: 500;">FECHA DE EMISIÓN</label>
+          <label>Enero 1, 2021</label>
         </div>
       </div>
     </div>
 
     <div class="preview-tabla">
-      <div class="tabla-titulo">Repuestos utilizados</div>
       <table>
         <thead>
           <tr>
@@ -197,8 +211,8 @@
             <td>25.00€</td>
           </tr>
           <tr class="total-row">
-            <td colspan="2"></td>
             <td><b>TOTAL</b></td>
+            <td></td>
             <td class="success">43.00€</td>
             <td class="success">60.00€</td>
           </tr>
@@ -207,11 +221,10 @@
     </div>
 
     <div class="preview-tabla">
-      <div class="tabla-titulo">Mano de obra / Kilometraje</div>
       <table>
         <thead>
           <tr>
-            <th></th>
+            <th>Mano de obra/Kilometraje</th>
             <th>CANTIDAD</th>
             <th>PVP</th>
           </tr>

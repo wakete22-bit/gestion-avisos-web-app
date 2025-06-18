@@ -1,28 +1,19 @@
 <ion-content>
-  <div class="header-container">
-    <div class="header-left">
-      <h1 class="header-title">Presupuestos</h1>
-      <label class="header-subtitle">Consulta, gestiona y desglosa todos los presupuestos generados. Filtra por estado y accede al detalle de cada presupuesto.</label>  
-    </div>
-    <div class="header-actions">
-      <button class="btn-add">
-        <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-        Añadir presupuesto
-      </button>
-    </div>
-  </div>
-  
   <section class="dashboard-table">
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de presupuestos</div>
-        <div class="table-meta">Presupuestos: {{ presupuestos.length }}</div>  
+        <div class="table-meta">Presupuestos: {{ presupuestos.length }}</div>
       </div>
       <div class="table-search">
         <input type="text" placeholder="Buscar..." />
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
+        <button class="btn-add">
+          <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+          Añadir presupuesto
+        </button>
       </div>
     </div>
     <table class="custom-mat-table">

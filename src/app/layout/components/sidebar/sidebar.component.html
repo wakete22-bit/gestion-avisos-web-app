@@ -1,15 +1,34 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.open]="isOpen">
+  <!-- Botón de cerrar para móviles -->
+  <div class="sidebar-close-btn" (click)="onCloseSidebar()">
+    <ion-icon name="close-outline"></ion-icon>
+  </div>
+
+  <div class="sidebar-header">
+    <img style="width: 180px;" src="assets/icon/LogoGestionAvisosLargo.png" alt="Logo" class="logo">
+  </div>
   <nav class="sidebar-menu">
-    <a routerLink="/home" routerLinkActive="active"><ion-icon name="grid-outline" class="icon"></ion-icon>Inicio</a>
-    <a routerLink="/avisos" routerLinkActive="active"><ion-icon name="notifications-outline" class="icon"></ion-icon>Avisos</a>
-    <a routerLink="/historial" routerLinkActive="active"><ion-icon name="time-outline" class="icon"></ion-icon>Historial</a>
-    <a routerLink="/inventario" routerLinkActive="active"><ion-icon name="cube-outline" class="icon"></ion-icon>Inventario</a>
-    <a routerLink="/facturas" routerLinkActive="active"><ion-icon name="document-text-outline" class="icon"></ion-icon>Facturas</a>
-    <a routerLink="/presupuestos" routerLinkActive="active"><ion-icon name="cash-outline" class="icon"></ion-icon>Presupuestos</a>
-    <a routerLink="/clientes" routerLinkActive="active"><ion-icon name="people-outline" class="icon"></ion-icon>Clientes</a>
+    <a routerLink="/home" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="grid-outline" class="icon"></ion-icon>Inicio</a>
+    <a routerLink="/avisos" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="notifications-outline" class="icon"></ion-icon>Avisos</a>
+    <a routerLink="/historial" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="time-outline" class="icon"></ion-icon>Historial</a>
+    <a routerLink="/inventario" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="cube-outline" class="icon"></ion-icon>Inventario</a>
+    <a routerLink="/facturas" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="document-text-outline" class="icon"></ion-icon>Facturas</a>
+    <a routerLink="/presupuestos" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="cash-outline" class="icon"></ion-icon>Presupuestos</a>
+    <a routerLink="/clientes" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="people-outline" class="icon"></ion-icon>Clientes</a>
   </nav>
   <div class="sidebar-footer">
-    <a routerLink="/ajustes" routerLinkActive="active"><ion-icon name="settings-outline" class="icon"></ion-icon>Ajustes</a>
-    <a routerLink="/cuenta" routerLinkActive="active"><ion-icon name="person-circle-outline" class="icon"></ion-icon>Mi cuenta</a>
+    <a routerLink="/ajustes" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="settings-outline" class="icon"></ion-icon>Ajustes</a>
+    <a routerLink="/cuenta" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="person-circle-outline" class="icon"></ion-icon>Mi cuenta</a>
+  </div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-user">
+    <div class="topbar-right">
+      <span class="avatar"></span>
+      <div class="user-info-container">
+        <span class="welcome">Bienvenido,</span>
+        <span class="username">Juan</span>  
+      </div>
+    </div>  
+    <ion-icon name="chevron-forward-outline" class="icon-user"></ion-icon>
   </div>
 </aside>
