@@ -1,13 +1,20 @@
-
-
 <ion-content>
   <section class="dashboard-table">
+    <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de clientes</div>
         <div class="table-meta">Clientes: {{ clientes.length }}</div>  
       </div>
-      <div class="table-search">
+      
+      <!-- Mobile Search Bar -->
+      <div class="mobile-search">
+        <input type="text" placeholder="Buscar cliente..." />
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+
+      <!-- Desktop Search and Actions -->
+      <div class="table-search desktop-only">
         <input type="text" placeholder="Buscar..." />
         <select>
           <option>Ordenar por: Recientes</option>
@@ -18,7 +25,23 @@
         </button>
       </div>
     </div>
-    <table class="custom-mat-table">
+
+    <!-- Mobile Actions -->
+    <div class="mobile-actions">
+      <select class="mobile-filter">
+        <option>Ordenar: Recientes</option>
+        <option>Ordenar: Alfabético</option>
+        <option>Ordenar: Estado</option>
+      </select>
+      <div class="mobile-buttons">
+        <button class="btn-add" (click)="abrirModalCrearCliente()">
+          <ion-icon name="add-circle"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <table class="custom-mat-table desktop-only">
       <thead>
         <tr>
           <th>Nombre/Razón Social</th>
@@ -47,15 +70,57 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Mobile Cards View -->
+    <div class="mobile-cards">
+      <div class="cliente-card" *ngFor="let cliente of clientes">
+        <div class="card-header">
+          <div class="card-name">{{ cliente.nombre }}</div>
+          <span class="badge" 
+                [ngClass]="{
+                  'green': cliente.estado === 'Activo',
+                  'red': cliente.estado === 'Inactivo'
+                }">
+            {{ cliente.estado }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <ion-icon name="call-outline"></ion-icon>
+            {{ cliente.telefono }}
+          </div>
+          <div class="card-row">
+            <ion-icon name="mail-outline"></ion-icon>
+            {{ cliente.email }}
+          </div>
+          <div class="card-row">
+            <ion-icon name="location-outline"></ion-icon>
+            {{ cliente.direccion }}
+          </div>
+          <div class="card-row">
+            <div class="item-label">Último aviso:</div>
+            <div class="item-value">{{ cliente.ultimoAviso }}</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn">
+            <ion-icon name="eye-outline"></ion-icon>
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
     <div class="table-pagination">
-      <span>Mostrando datos 1 a {{ clientes.length }} de {{ clientes.length }} cliente</span>
+      <span class="pagination-info">Mostrando datos 1 a {{ clientes.length }} de {{ clientes.length }} cliente</span>
       <div class="pagination">
         <button class="active">1</button>
         <button>2</button>
         <button>3</button>
-        <button>4</button>
-        <span>...</span>
-        <button>40</button>
+        <button class="desktop-only">4</button>
+        <span class="desktop-only">...</span>
+        <button class="desktop-only">40</button>
       </div>
     </div>
   </section>

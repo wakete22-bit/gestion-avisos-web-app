@@ -4,7 +4,19 @@ import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone'
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline } from 'ionicons/icons';
+import { 
+  mapOutline,
+  addCircle,
+  alertCircle,
+  close,
+  eyeOutline,
+  add,
+  addCircleOutline,
+  searchOutline,
+  callOutline,
+  mailOutline,
+  locationOutline
+} from 'ionicons/icons';
 import { CrearClienteModalComponent } from 'src/app/modules/clientes/components/crear-cliente-modal/crear-cliente-modal.component';
   
 
@@ -30,21 +42,65 @@ interface Cliente {
     MatIconModule
   ],
 })
-export class ClientesComponent  implements OnInit {
+export class ClientesComponent implements OnInit {
 
   clientes: Cliente[] = [
     {
-      nombre: 'Cliente 1',
-      telefono: '1234567890',
-      email: 'cliente1@gmail.com',
-      direccion: 'Calle 123, Ciudad',
-      ultimoAviso: '001 (04/06/25)',  
+      nombre: 'Restaurante El Sol',
+      telefono: '963 123 456',
+      email: 'info@restauranteelsol.com',
+      direccion: 'Plaza de la Virgen 3, Valencia',
+      ultimoAviso: '001 (27/05/25)',  
       estado: 'Activo'
+    },
+    {
+      nombre: 'Hotel Marina',
+      telefono: '963 234 567',
+      email: 'recepcion@hotelmarina.com',
+      direccion: 'Avenida del Mar 45, Valencia',
+      ultimoAviso: '002 (26/05/25)',  
+      estado: 'Activo'
+    },
+    {
+      nombre: 'Oficinas Centrales',
+      telefono: '963 345 678',
+      email: 'admin@oficinacentral.com',
+      direccion: 'Calle Mayor 12, Valencia',
+      ultimoAviso: '003 (25/05/25)',  
+      estado: 'Activo'
+    },
+    {
+      nombre: 'Residencia Ancianos',
+      telefono: '963 456 789',
+      email: 'gerencia@residenciaancianos.com',
+      direccion: 'Calle San Juan 8, Valencia',
+      ultimoAviso: '004 (24/05/25)',  
+      estado: 'Activo'
+    },
+    {
+      nombre: 'Centro Comercial Plaza',
+      telefono: '963 567 890',
+      email: 'info@centrocomercialplaza.com',
+      direccion: 'Avenida Principal 100, Valencia',
+      ultimoAviso: '005 (23/05/25)',  
+      estado: 'Inactivo'
     }
   ];
 
   constructor(private modalController: ModalController) { 
-    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+    addIcons({
+      mapOutline,
+      addCircle,
+      alertCircle,
+      close,
+      eyeOutline,
+      add,
+      addCircleOutline,
+      searchOutline,
+      callOutline,
+      mailOutline,
+      locationOutline
+    });
   }
 
   ngOnInit() {}

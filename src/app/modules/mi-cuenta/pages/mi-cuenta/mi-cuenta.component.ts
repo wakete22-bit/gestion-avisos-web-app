@@ -1,7 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personOutline, arrowForward, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline } from 'ionicons/icons';
+import { 
+  personOutline, 
+  arrowForward, 
+  mailOutline, 
+  chevronDownOutline, 
+  copyOutline, 
+  shieldOutline, 
+  informationCircleOutline, 
+  cloudUploadOutline, 
+  closeOutline, 
+  save, 
+  saveOutline,
+  cameraOutline
+} from 'ionicons/icons';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -14,7 +27,20 @@ import { CommonModule } from '@angular/common';
 export class MiCuentaComponent implements OnInit {
 
   constructor() { 
-    addIcons({arrowForward,personOutline,mailOutline,chevronDownOutline,copyOutline,shieldOutline,informationCircleOutline,cloudUploadOutline,closeOutline,save,saveOutline});
+    addIcons({
+      arrowForward,
+      personOutline,
+      mailOutline,
+      chevronDownOutline,
+      copyOutline,
+      shieldOutline,
+      informationCircleOutline,
+      cloudUploadOutline,
+      closeOutline,
+      save,
+      saveOutline,
+      cameraOutline
+    });
   }
 
   ngOnInit() {} 

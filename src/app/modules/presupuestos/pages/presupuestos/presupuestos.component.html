@@ -1,11 +1,20 @@
 <ion-content>
   <section class="dashboard-table">
+    <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de presupuestos</div>
         <div class="table-meta">Presupuestos: {{ presupuestos.length }}</div>
       </div>
-      <div class="table-search">
+      
+      <!-- Mobile Search Bar -->
+      <div class="mobile-search">
+        <input type="text" placeholder="Buscar presupuesto..." />
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+
+      <!-- Desktop Search and Actions -->
+      <div class="table-search desktop-only">
         <input type="text" placeholder="Buscar..." />
         <select>
           <option>Ordenar por: Recientes</option>
@@ -16,7 +25,23 @@
         </button>
       </div>
     </div>
-    <table class="custom-mat-table">
+
+    <!-- Mobile Actions -->
+    <div class="mobile-actions">
+      <select class="mobile-filter">
+        <option>Ordenar: Recientes</option>
+        <option>Ordenar: Antiguos</option>
+        <option>Ordenar: Estado</option>
+      </select>
+      <div class="mobile-buttons">
+        <button class="btn-add">
+          <ion-icon name="add-circle"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <table class="custom-mat-table desktop-only">
       <thead>
         <tr>
           <th>Número</th>
@@ -46,15 +71,54 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Mobile Cards View -->
+    <div class="mobile-cards">
+      <div class="presupuesto-card" *ngFor="let presupuesto of presupuestos">
+        <div class="card-header">
+          <div class="card-number">#{{ presupuesto.numero }}</div>
+          <span class="badge" 
+                [ngClass]="{
+                  'yellow': presupuesto.estado === 'En curso',
+                  'red': presupuesto.estado === 'Pendiente',
+                  'green': presupuesto.estado === 'Completado'
+                }">
+            {{ presupuesto.estado }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <strong>{{ presupuesto.nombre }}</strong>
+          </div>
+          <div class="card-row detail">{{ presupuesto.detalle }}</div>
+          <div class="card-row">
+            <div class="item-label">Fecha:</div>
+            <div class="item-value">{{ presupuesto.fecha }}</div>
+          </div>
+          <div class="card-row">
+            <div class="item-label">PVP:</div>
+            <div class="item-value">{{ presupuesto.pvp }}</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="action-btn">
+            <ion-icon name="eye-outline"></ion-icon>
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
     <div class="table-pagination">
-      <span>Mostrando datos 1 a {{ presupuestos.length }} de {{ presupuestos.length }} presupuesto</span>
+      <span class="pagination-info">Mostrando datos 1 a {{ presupuestos.length }} de {{ presupuestos.length }} presupuesto</span>
       <div class="pagination">
         <button class="active">1</button>
         <button>2</button>
         <button>3</button>
-        <button>4</button>
-        <span>...</span>
-        <button>40</button>
+        <button class="desktop-only">4</button>
+        <span class="desktop-only">...</span>
+        <button class="desktop-only">40</button>
       </div>
     </div>
   </section>

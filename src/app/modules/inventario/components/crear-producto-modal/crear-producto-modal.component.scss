@@ -192,4 +192,11 @@
       }
     }
   }
+
+  @media (max-width: 768px) {
+    .modal-container {
+      max-height: none;
+      height: 100vh;
+    }
+  }
   

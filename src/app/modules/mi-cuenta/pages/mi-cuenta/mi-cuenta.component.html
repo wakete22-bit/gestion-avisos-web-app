@@ -9,7 +9,7 @@
       <p class="user-email">juan.perez&#64;tuempresa.com</p>
     </div>
   </div>
-  <button class="profile-settings-btn">
+  <button class="profile-settings-btn desktop-only">
     Ajustes de Perfil
     <ion-icon name="arrow-forward"></ion-icon>
   </button>
@@ -17,13 +17,18 @@
 
 <!-- Información Personal -->
 <div class="personal-info-section">
-  <div class="section-title-container">
+  <div class="section-title-container desktop-only">
     <h3 class="section-title">Información Personal</h3>
     <p class="section-description">Puede cambiar la configuración de su información personal aquí.</p>
   </div>
 
-  <div class="form-container">
+  <!-- Mobile Section Header -->
+  <div class="mobile-section-header">
+    <h3 class="mobile-section-title">Información Personal</h3>
+    <p class="mobile-section-description">Configuración de tu información personal</p>
+  </div>
 
+  <div class="form-container">
     <div class="form-grid">
       <!-- Nombre completo -->
       <div class="form-group">
@@ -84,7 +89,6 @@
           </div>
         </div>
       </div>
-  
     </div>
   
     <!-- Botones de acción -->
@@ -97,9 +101,5 @@
         <ion-icon name="save" style="font-size: 18px;"></ion-icon>
       </button>
     </div>
-  
-
   </div>
-
-
 </div>

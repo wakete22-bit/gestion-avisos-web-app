@@ -4,7 +4,16 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline } from 'ionicons/icons';
+import { 
+  mapOutline,
+  addCircle,
+  alertCircle,
+  close,
+  eyeOutline,
+  add,
+  addCircleOutline, 
+  searchOutline 
+} from 'ionicons/icons';
 
 interface Presupuesto {
   numero: string;
@@ -12,10 +21,10 @@ interface Presupuesto {
   nombre: string;
   detalle: string;
   fecha: string;
-  pvp: number;
+  pvp: string;
 }
 
-  @Component({
+@Component({
   selector: 'app-presupuestos',
   templateUrl: './presupuestos.component.html',
   styleUrls: ['./presupuestos.component.scss'],
@@ -28,22 +37,63 @@ interface Presupuesto {
     MatIconModule
   ],
 })
-export class PresupuestosComponent  implements OnInit {
+export class PresupuestosComponent implements OnInit {
   
-  displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp'];
+  displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp', 'acciones'];
   presupuestos: Presupuesto[] = [
     {
-      numero: '001',
+      numero: 'P001',
       estado: 'En curso',
       nombre: 'Restaurante El Sol',   
-      detalle: 'Aviso de incendio',
-      fecha: '2025-01-01',
-      pvp: 100
+      detalle: 'Instalación sistema de climatización',
+      fecha: '2025-01-15',
+      pvp: '2.500,00€'
+    },
+    {
+      numero: 'P002',
+      estado: 'Pendiente',
+      nombre: 'Hotel Marina',   
+      detalle: 'Mantenimiento preventivo calderas',
+      fecha: '2025-01-20',
+      pvp: '1.800,00€'
+    },
+    {
+      numero: 'P003',
+      estado: 'Completado',
+      nombre: 'Oficinas Centrales',   
+      detalle: 'Reparación sistema eléctrico',
+      fecha: '2025-01-10',
+      pvp: '3.200,00€'
+    },
+    {
+      numero: 'P004',
+      estado: 'En curso',
+      nombre: 'Residencia Ancianos',   
+      detalle: 'Instalación sistema de seguridad',
+      fecha: '2025-01-25',
+      pvp: '4.500,00€'
+    },
+    {
+      numero: 'P005',
+      estado: 'Pendiente',
+      nombre: 'Centro Comercial Plaza',   
+      detalle: 'Mantenimiento ascensores',
+      fecha: '2025-01-30',
+      pvp: '2.800,00€'
     }
   ];
 
   constructor() { 
-    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+    addIcons({
+      searchOutline,
+      addCircle,
+      eyeOutline,
+      mapOutline,
+      alertCircle,
+      close,
+      add,
+      addCircleOutline
+    });
   }
 
   ngOnInit() {}
