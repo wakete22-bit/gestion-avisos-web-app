@@ -7,8 +7,12 @@ import { IonIcon } from '@ionic/angular/standalone';
 
 import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
-
-    
+import { 
+  eyeOutline, 
+  downloadOutline, 
+  printOutline, 
+  createOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-crear-factura',
@@ -22,6 +26,7 @@ export class CrearFacturaComponent implements OnInit {
   repuestos: any[] = [];
   manoObra: any[] = [];
   desplazamientos: any[] = [];
+  mostrarVistaPrevia: boolean = false;
 
   constructor(private fb: FormBuilder) {
     this.facturaForm = this.fb.group({
@@ -33,6 +38,7 @@ export class CrearFacturaComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       notas: ['']
     });
+    addIcons({trash,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
   }
 
   ngOnInit() {
@@ -91,5 +97,9 @@ export class CrearFacturaComponent implements OnInit {
   }
   generarFactura() {
     // lógica para generar factura
+  }
+
+  toggleVistaPrevia() {
+    this.mostrarVistaPrevia = !this.mostrarVistaPrevia;
   }
 }

@@ -149,17 +149,17 @@
   </div>
 
   <!-- Vista previa -->
-  <div class="factura-preview">
+  <div class="factura-preview" [class.active]="mostrarVistaPrevia">
     <div class="header-container">
       <h2>Vista previa</h2>
       <div class="actions-preview">
         <button type="button" class="btn-outline">
           <ion-icon name="download"></ion-icon>
-          Descargar
+          <span class="button-text">Descargar</span>
         </button>
         <button type="button" class="btn-primary">
           <ion-icon name="print"></ion-icon>
-          Imprimir
+          <span class="button-text">Imprimir</span>
         </button>
       </div>  
     </div>
@@ -169,7 +169,7 @@
       </div>
       <div class="empresa-datos">
         <div>
-          <span class="empresa-nombre">DATOS DE EMPRESA</span>
+          <span class="empresa-nombre">Datos de empresa</span>
           <span>Nombre de empresa</span>
           <address>Dirección de empresa</address>
           <span>Ciudad de empresa</span>
@@ -275,4 +275,9 @@
       <span>ejemploemail.com</span>
     </div>
   </div>
+
+  <!-- Botón flotante para alternar vista en móvil -->
+  <button class="toggle-preview-btn" (click)="toggleVistaPrevia()">
+    <ion-icon [name]="mostrarVistaPrevia ? 'create-outline' : 'eye-outline'"></ion-icon>
+  </button>
 </div>
