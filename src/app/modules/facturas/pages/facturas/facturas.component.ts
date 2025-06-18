@@ -4,7 +4,20 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline } from 'ionicons/icons';
+import { 
+  mapOutline,
+  addCircle, 
+  alertCircle, 
+  close, 
+  eyeOutline, 
+  add, 
+  addCircleOutline, 
+  searchOutline,
+  receipt,
+  hourglassOutline,
+  warning,
+  document
+} from 'ionicons/icons';
 import { Router } from '@angular/router';
 
 interface Factura {
@@ -13,7 +26,7 @@ interface Factura {
   nombre: string;
   detalle: string;
   fecha: string;
-  pvp: number;
+  pvp: string;
 }
 
 @Component({
@@ -29,23 +42,46 @@ interface Factura {
     MatIconModule
   ],
 })
-export class FacturasComponent  implements OnInit {
+export class FacturasComponent implements OnInit {
 
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp'];
   facturas: Factura[] = [
     {
-      numero: '001',
+      numero: 'F2025-001',
       estado: 'En curso',
       nombre: 'Restaurante El Sol',
-      detalle: 'Aviso de incendio',
-      fecha: '2025-01-01',
-      pvp: 100
+      detalle: 'Mantenimiento preventivo de 3 equipos A/C',
+      fecha: '2025-01-15',
+      pvp: '450,00€'
     },
-    
+    {
+      numero: 'F2025-002',
+      estado: 'Pendiente',
+      nombre: 'Hotel Marina',
+      detalle: 'Reparación urgente de caldera',
+      fecha: '2025-01-14',
+      pvp: '1.250,00€'
+    },
+    {
+      numero: 'F2025-003',
+      estado: 'Completado',
+      nombre: 'Oficinas Centrales',
+      detalle: 'Revisión sistema de climatización',
+      fecha: '2025-01-13',
+      pvp: '320,00€'
+    },
+    {
+      numero: 'F2025-004',
+      estado: 'En curso',
+      nombre: 'Residencia Ancianos',
+      detalle: 'Instalación nuevo sistema de calefacción',
+      fecha: '2025-01-12',
+      pvp: '2.800,00€'
+    }
   ];
 
   constructor(private router: Router) { 
-    addIcons({mapOutline,addCircle,alertCircle,close,eyeOutline,add,addCircleOutline});
+    addIcons({searchOutline,addCircle,eyeOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document});
   }
 
   ngOnInit() {}
