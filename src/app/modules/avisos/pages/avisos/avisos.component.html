@@ -145,6 +145,23 @@
     <ng-container *ngIf="isMapView">
       <div class="map-view-container">
         <div class="map-list-container">
+          
+          <!-- Leyenda de colores -->
+          <div class="map-legend">
+            <div class="legend-item" title="Aviso no visitado - Requiere primera visita técnica">
+              <div class="legend-color no-visitado"></div>
+              <span>No visitado</span>
+            </div>
+            <div class="legend-item" title="Visitado pero pendiente de otra visita - Requiere seguimiento">
+              <div class="legend-color visitado-pendiente"></div>
+              <span>Visitado pendiente</span>
+            </div>
+            <div class="legend-item" title="Pendiente de presupuesto - Necesita presupuesto para continuar">
+              <div class="legend-color pendiente-presupuesto"></div>
+              <span>Pendiente presupuesto</span>
+            </div>
+          </div>
+
           <div class="map-list-filters">
             <select>
               <option>Estado</option>
@@ -156,25 +173,44 @@
               <ion-icon name="options-outline"></ion-icon>
             </button>
           </div>
-          <div class="map-avisos-list">
-            <div class="aviso-map-card" *ngFor="let aviso of avisos" (click)="centrarAvisoEnMapa(aviso)">
-              <div class="aviso-map-card-header">
-                <h3>{{ aviso.detalle }}</h3>
-                <span class="urgente-tag" *ngIf="aviso.urgente">URGENTE</span>
-              </div>
-              <div class="aviso-map-card-body">
-                <div class="info-row">
-                  <span>Dirección</span>
-                  <div>
-                    <ion-icon name="location-outline"></ion-icon>
-                    <p>{{ aviso.direccion }}</p>
-                  </div>
+          
+          <div class="map-avisos-table">
+            <div class="avisos-table">
+              <div class="table-header">
+                <div class="header-row">
+                  <div class="header-cell">Número</div>
+                  <div class="header-cell">Cliente</div>
+                  <div class="header-cell">Detalle</div>
+                  <div class="header-cell">Acciones</div>
                 </div>
-                <div class="info-row">
-                  <span>Fecha de creación</span>
-                  <div>
-                    <ion-icon name="calendar-outline"></ion-icon>
-                    <p>{{ aviso.fecha }}</p>
+              </div>
+              <div class="table-body">
+                <div *ngFor="let aviso of avisos" 
+                     class="aviso-row"
+                     [ngClass]="{
+                       'no-visitado': aviso.estado === 'No visitado',
+                       'visitado-pendiente': aviso.estado === 'Visitado pendiente',
+                       'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto'
+                     }"
+                     (click)="centrarAvisoEnMapa(aviso, $event)">
+                  <div class="aviso-cell numero-aviso">#{{ aviso.numero }}</div>
+                  <div class="aviso-cell nombre-cliente">{{ aviso.nombre }}</div>
+                  <div class="aviso-cell detalle-servicio">
+                    <div class="detalle-texto" [title]="aviso.detalle">
+                      {{ aviso.detalle }}
+                    </div>
+                  </div>
+                  <div class="aviso-cell acciones">
+                    <button class="btn-mapa" 
+                            (click)="centrarAvisoEnMapa(aviso, $event)"
+                            title="Ir al punto en el mapa">
+                      <ion-icon name="map-outline"></ion-icon>
+                    </button>
+                    <button class="btn-ver" 
+                            (click)="$event.stopPropagation()"
+                            title="Ver detalles">
+                      <ion-icon name="eye-outline"></ion-icon>
+                    </button>
                   </div>
                 </div>
               </div>

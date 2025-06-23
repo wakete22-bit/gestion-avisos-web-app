@@ -2,7 +2,7 @@
   "name": "Gestión de Avisos",
   "short_name": "Gestión Avisos",
   "description": "Aplicación para gestión de avisos y clientes",
-  "theme_color": "#3880ff",
+  "theme_color": "#4F46E5",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",

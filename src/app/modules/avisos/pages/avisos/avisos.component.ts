@@ -40,49 +40,50 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   isMapView = false;
   private map: MapLibreMap | null = null;
   private avisoMarkers: Map<string, Marker> = new Map();
+  selectedAviso: string | null = null; // Para rastrear el aviso seleccionado
 
   avisos: Aviso[] = [
     {
       numero: '001',
-      estado: 'En curso',
+      estado: 'No visitado',
       nombre: 'Restaurante El Sol',
-      detalle: 'Mantenimiento preventivo de 3 equipos A/C.',
+      detalle: 'Mantenimiento preventivo de 3 equipos A/C. Revisión completa del sistema de climatización y limpieza de filtros.',
       fecha: '2025-05-27',
       urgente: false,
       direccion: 'Pza. de la Virgen 3'
     },
     {
       numero: '002',
-      estado: 'Pendiente',
+      estado: 'Pendiente de presupuesto',
       nombre: 'Hotel Marina',
-      detalle: 'Reparación urgente de caldera',
+      detalle: 'Reparación urgente de caldera. Necesita revisión técnica completa y presupuesto para reparación o sustitución.',
       fecha: '2025-05-26',
       urgente: true,
       direccion: 'Av. del Mar 45'
     },
     {
       numero: '003',
-      estado: 'Completado',
+      estado: 'Visitado pendiente',
       nombre: 'Oficinas Centrales',
-      detalle: 'Revisión sistema de climatización',
+      detalle: 'Revisión sistema de climatización. Primera visita realizada, pendiente segunda visita para completar mantenimiento.',
       fecha: '2025-05-25',
       urgente: false,
       direccion: 'Calle Mayor 12'
     },
     {
       numero: '004',
-      estado: 'En curso',
+      estado: 'No visitado',
       nombre: 'Residencia Ancianos',
-      detalle: 'Instalación nuevo sistema de calefacción',
+      detalle: 'Instalación nuevo sistema de calefacción. Requiere visita técnica para evaluar instalación actual y planificar nueva instalación.',
       fecha: '2025-05-24',
       urgente: true,
       direccion: 'Calle San Juan 8'
     },
     {
       numero: '005',
-      estado: 'Pendiente',
+      estado: 'Pendiente de presupuesto',
       nombre: 'Centro Comercial Plaza',
-      detalle: 'Mantenimiento ascensores',
+      detalle: 'Mantenimiento ascensores. Evaluación técnica completada, pendiente envío de presupuesto detallado.',
       fecha: '2025-05-23',
       urgente: false,
       direccion: 'Av. Principal 100'
@@ -99,6 +100,12 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // No inicializamos el mapa aquí para evitar que se cargue innecesariamente
+    
+    // Listener para detectar cambios en pantalla completa
+    document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange.bind(this));
+    document.addEventListener('mozfullscreenchange', this.handleFullscreenChange.bind(this));
+    document.addEventListener('MSFullscreenChange', this.handleFullscreenChange.bind(this));
   }
 
   // ngAfterViewChecked() {
@@ -110,6 +117,24 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.map) {
       this.map.remove();
+    }
+    
+    // Remover listeners
+    document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange.bind(this));
+    document.removeEventListener('mozfullscreenchange', this.handleFullscreenChange.bind(this));
+    document.removeEventListener('MSFullscreenChange', this.handleFullscreenChange.bind(this));
+  }
+
+  private handleFullscreenChange() {
+    // Si salimos de pantalla completa, restaurar el estado normal
+    const isFullscreen = !!(document.fullscreenElement || 
+                           (document as any).webkitFullscreenElement || 
+                           (document as any).mozFullScreenElement || 
+                           (document as any).msFullscreenElement);
+    
+    if (!isFullscreen) {
+      this.closeExpandedMap();
     }
   }
 
@@ -139,12 +164,59 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  centrarAvisoEnMapa(aviso: Aviso) {
+  centrarAvisoEnMapa(aviso: Aviso, event?: Event) {
+    // Prevenir comportamiento por defecto para evitar scroll
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    // Establecer el aviso seleccionado
+    this.selectedAviso = aviso.numero;
+
     const marker = this.avisoMarkers.get(aviso.numero);
     if (marker && this.map) {
       const lngLat = marker.getLngLat();
-      this.map.flyTo({ center: [lngLat.lng, lngLat.lat], zoom: 15, essential: true });
-      marker.togglePopup();
+      
+      // Usar una transición más suave y evitar scroll
+      this.map.flyTo({ 
+        center: [lngLat.lng, lngLat.lat], 
+        zoom: 15, 
+        essential: true,
+        duration: 1000 // Transición más suave
+      });
+      
+      // Mostrar popup después de un pequeño delay
+      setTimeout(() => {
+        marker.togglePopup();
+      }, 500);
+    }
+
+    // Hacer scroll al componente del mapa en móvil
+    this.scrollToMap();
+  }
+
+  private scrollToMap() {
+    // Detectar si estamos en móvil (ancho menor a 992px)
+    if (window.innerWidth <= 992) {
+      const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
+      if (mapContainer) {
+        // Hacer scroll suave al mapa
+        mapContainer.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+        
+        // Añadir un pequeño delay para asegurar que el scroll se complete
+        setTimeout(() => {
+          // Resaltar brevemente el mapa para feedback visual
+          mapContainer.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.3)';
+          setTimeout(() => {
+            mapContainer.style.boxShadow = '';
+          }, 1000);
+        }, 500);
+      }
     }
   }
 
@@ -216,13 +288,106 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  toggleFullscreen() {
+  async toggleFullscreen() {
     const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
-    if (!mapContainer) return;
-    if (!document.fullscreenElement) {
-      mapContainer.requestFullscreen();
-    } else {
-      document.exitFullscreen();
+    if (!mapContainer) {
+      console.warn('Contenedor del mapa no encontrado');
+      return;
+    }
+
+    try {
+      // Verificar si ya estamos en pantalla completa
+      const isFullscreen = !!(document.fullscreenElement || 
+                             (document as any).webkitFullscreenElement || 
+                             (document as any).mozFullScreenElement || 
+                             (document as any).msFullscreenElement);
+
+      if (!isFullscreen) {
+        // Entrar en pantalla completa
+        if (mapContainer.requestFullscreen) {
+          await mapContainer.requestFullscreen();
+        } else if ((mapContainer as any).webkitRequestFullscreen) {
+          await (mapContainer as any).webkitRequestFullscreen();
+        } else if ((mapContainer as any).mozRequestFullScreen) {
+          await (mapContainer as any).mozRequestFullScreen();
+        } else if ((mapContainer as any).msRequestFullscreen) {
+          await (mapContainer as any).msRequestFullscreen();
+        } else {
+          console.warn('Pantalla completa no soportada en este navegador');
+          // Fallback: hacer el mapa más grande
+          this.expandMap();
+        }
+      } else {
+        // Salir de pantalla completa
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        } else if ((document as any).mozCancelFullScreen) {
+          await (document as any).mozCancelFullScreen();
+        } else if ((document as any).msExitFullscreen) {
+          await (document as any).msExitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Error al cambiar pantalla completa:', error);
+      // Fallback: hacer el mapa más grande
+      this.expandMap();
+    }
+  }
+
+  private expandMap() {
+    const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
+    const listContainer = document.querySelector('.map-list-container') as HTMLElement;
+    
+    if (mapContainer && listContainer) {
+      // Ocultar la lista y expandir el mapa
+      listContainer.style.display = 'none';
+      mapContainer.style.position = 'fixed';
+      mapContainer.style.top = '0';
+      mapContainer.style.left = '0';
+      mapContainer.style.width = '100vw';
+      mapContainer.style.height = '100vh';
+      mapContainer.style.zIndex = '9999';
+      
+      // Añadir botón para cerrar
+      const closeButton = document.createElement('button');
+      closeButton.innerHTML = '<ion-icon name="close"></ion-icon>';
+      closeButton.className = 'btn-close-expanded';
+      closeButton.onclick = () => this.closeExpandedMap();
+      mapContainer.appendChild(closeButton);
+      
+      // Redimensionar el mapa
+      if (this.map) {
+        setTimeout(() => this.map!.resize(), 100);
+      }
+    }
+  }
+
+  private closeExpandedMap() {
+    const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
+    const listContainer = document.querySelector('.map-list-container') as HTMLElement;
+    
+    if (mapContainer && listContainer) {
+      // Restaurar estado normal
+      listContainer.style.display = 'flex';
+      mapContainer.style.position = '';
+      mapContainer.style.top = '';
+      mapContainer.style.left = '';
+      mapContainer.style.width = '';
+      mapContainer.style.height = '';
+      mapContainer.style.zIndex = '';
+      
+      // Remover botón de cerrar
+      const closeButton = mapContainer.querySelector('.btn-close-expanded');
+      if (closeButton) {
+        closeButton.remove();
+      }
+      
+      // Redimensionar el mapa
+      if (this.map) {
+        setTimeout(() => this.map!.resize(), 100);
+      }
     }
   }
 }

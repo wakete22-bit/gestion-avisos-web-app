@@ -418,8 +418,8 @@ ion-router-outlet {
 // Estilos para desktop
 @media (min-width: 1025px) {
   ion-content {
-    --padding-start: 32px;
-    --padding-end: 32px;
+    --padding-start: 0px;
+    --padding-end: 0px;
   }
   
   ion-card {
