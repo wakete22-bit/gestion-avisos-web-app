@@ -35,12 +35,21 @@
                 "output": "assets"
               },
               {
+                "glob": "**/*.svg",
+                "input": "node_modules/ionicons/dist/ionicons/svg",
+                "output": "./svg"
+              },
+              {
                 "glob": "**/*",
                 "input": "public",
                 "output": "."
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              "src/global.scss",
+              "src/theme/variables.scss",
+              "node_modules/maplibre-gl/dist/maplibre-gl.css"
+            ],
             "scripts": [],
             "browser": "src/main.ts"
           },

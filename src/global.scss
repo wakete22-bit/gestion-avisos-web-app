@@ -10,6 +10,7 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
@@ -40,6 +41,10 @@
 
 * {   
   font-family: 'Poppins', sans-serif;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
 }
 
 // Estilos globales para móviles
@@ -284,4 +289,50 @@ ion-router-outlet {
       top: 40px;
     }
   }
+}
+
+/* Estilos para los popups de MapLibre */
+.maplibregl-popup-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  h3 {
+    color: #111827; /* Color oscuro para el título */
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+  }
+
+  p {
+    color: #4B5563; /* Color gris oscuro para el texto */
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+.maplibregl-popup-close-button {
+  color: #6B7280;
+  font-size: 24px;
+  padding: 0;
+  line-height: 1;
+  top: 10px !important;
+  right: 10px !important;
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #fff;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: #fff;
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: #fff;
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: #fff;
 }

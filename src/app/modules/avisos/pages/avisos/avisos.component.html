@@ -20,9 +20,9 @@
           <option>Ordenar por: Recientes</option>
         </select>
         <div class="header-actions">
-          <button class="btn-map">
-            <ion-icon name="map-outline"></ion-icon>
-            Mapa de avisos
+          <button class="btn-map" (click)="toggleView()">
+            <ion-icon [name]="isMapView ? 'list-outline' : 'map-outline'"></ion-icon>
+            {{ isMapView ? 'Lista de avisos' : 'Mapa de avisos' }}
           </button>
           <button class="btn-add" (click)="abrirModalCrearAviso()">
             <ion-icon name="add-circle"></ion-icon>
@@ -32,112 +32,161 @@
       </div>
     </div>
 
-    <!-- Mobile Actions -->
-    <div class="mobile-actions">
-      <select class="mobile-filter">
-        <option>Ordenar: Recientes</option>
-        <option>Ordenar: Antiguos</option>
-        <option>Ordenar: Urgentes</option>
-      </select>
-      <div class="mobile-buttons">
-        <button class="btn-map">
-          <ion-icon name="map-outline"></ion-icon>
-        </button>
-        <button class="btn-add" (click)="abrirModalCrearAviso()">
-          <ion-icon name="add-circle"></ion-icon>
-        </button>
-      </div>
-    </div>
-
-    <!-- Desktop Table View -->
-    <table class="custom-mat-table desktop-only">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Estado</th>
-          <th>Nombre</th>
-          <th>Detalle</th>
-          <th>Fecha</th>
-          <th>Urgente</th>
-          <th>Dirección</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let aviso of avisos">
-          <td>{{ aviso.numero }}</td>
-          <td>
-            <span class="badge yellow" *ngIf="aviso.estado === 'En curso'">En curso</span>
-            <span class="badge red" *ngIf="aviso.estado === 'Pendiente'">Pendiente</span>
-            <span class="badge green" *ngIf="aviso.estado === 'Completado'">Completado</span>
-          </td>
-          <td>{{ aviso.nombre }}</td>
-          <td>{{ aviso.detalle }}</td>
-          <td>{{ aviso.fecha }}</td>
-          <td>
-            <ion-icon *ngIf="aviso.urgente" name="alert-circle" style="color: #D92D20; font-size: 20px;"></ion-icon>
-            <ion-icon *ngIf="!aviso.urgente" name="close" style="color: #64748b; font-size: 20px;"></ion-icon>
-          </td>
-          <td>{{ aviso.direccion }}</td>
-          <td>
-            <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Mobile Cards View -->
-    <div class="mobile-cards">
-      <div class="aviso-card" *ngFor="let aviso of avisos">
-        <div class="card-header">
-          <div class="card-number">#{{ aviso.numero }}</div>
-          <span class="badge" 
-                [ngClass]="{
-                  'yellow': aviso.estado === 'En curso',
-                  'red': aviso.estado === 'Pendiente',
-                  'green': aviso.estado === 'Completado'
-                }">
-            {{ aviso.estado }}
-          </span>
-        </div>
-        <div class="card-body">
-          <div class="card-row">
-            <strong>{{ aviso.nombre }}</strong>
-            <ion-icon *ngIf="aviso.urgente" 
-                     name="alert-circle" 
-                     class="urgente-icon">
-            </ion-icon>
-          </div>
-          <div class="card-row detail">{{ aviso.detalle }}</div>
-          <div class="card-row">
-            <ion-icon name="location-outline"></ion-icon>
-            {{ aviso.direccion }}
-          </div>
-          <div class="card-row">
-            <ion-icon name="calendar-outline"></ion-icon>
-            {{ aviso.fecha }}
-          </div>
-        </div>
-        <div class="card-actions">
-          <button class="action-btn">
-            <ion-icon name="eye-outline"></ion-icon>
-            Ver detalles
+    <ng-container *ngIf="!isMapView">
+      <!-- Mobile Actions -->
+      <div class="mobile-actions">
+        <select class="mobile-filter">
+          <option>Ordenar: Recientes</option>
+          <option>Ordenar: Antiguos</option>
+          <option>Ordenar: Urgentes</option>
+        </select>
+        <div class="mobile-buttons">
+          <button class="btn-map" (click)="toggleView()">
+            <ion-icon name="map-outline"></ion-icon>
+          </button>
+          <button class="btn-add" (click)="abrirModalCrearAviso()">
+            <ion-icon name="add-circle"></ion-icon>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Pagination -->
-    <div class="table-pagination">
-      <span class="pagination-info">Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
-      <div class="pagination">
-        <button class="active">1</button>
-        <button>2</button>
-        <button>3</button>
-        <button class="desktop-only">4</button>
-        <span class="desktop-only">...</span>
-        <button class="desktop-only">40</button>
+      <!-- Desktop Table View -->
+      <table class="custom-mat-table desktop-only">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Estado</th>
+            <th>Nombre</th>
+            <th>Detalle</th>
+            <th>Fecha</th>
+            <th>Urgente</th>
+            <th>Dirección</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let aviso of avisos">
+            <td>{{ aviso.numero }}</td>
+            <td>
+              <span class="badge yellow" *ngIf="aviso.estado === 'En curso'">En curso</span>
+              <span class="badge red" *ngIf="aviso.estado === 'Pendiente'">Pendiente</span>
+              <span class="badge green" *ngIf="aviso.estado === 'Completado'">Completado</span>
+            </td>
+            <td>{{ aviso.nombre }}</td>
+            <td>{{ aviso.detalle }}</td>
+            <td>{{ aviso.fecha }}</td>
+            <td>
+              <ion-icon *ngIf="aviso.urgente" name="alert-circle" style="color: #D92D20; font-size: 20px;"></ion-icon>
+              <ion-icon *ngIf="!aviso.urgente" name="close" style="color: #64748b; font-size: 20px;"></ion-icon>
+            </td>
+            <td>{{ aviso.direccion }}</td>
+            <td>
+              <ion-icon name="eye-outline" class="view-icon"></ion-icon>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Mobile Cards View -->
+      <div class="mobile-cards">
+        <div class="aviso-card" *ngFor="let aviso of avisos">
+          <div class="card-header">
+            <div class="card-number">#{{ aviso.numero }}</div>
+            <span class="badge" 
+                  [ngClass]="{
+                    'yellow': aviso.estado === 'En curso',
+                    'red': aviso.estado === 'Pendiente',
+                    'green': aviso.estado === 'Completado'
+                  }">
+              {{ aviso.estado }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <strong>{{ aviso.nombre }}</strong>
+              <ion-icon *ngIf="aviso.urgente" 
+                       name="alert-circle" 
+                       class="urgente-icon">
+              </ion-icon>
+            </div>
+            <div class="card-row detail">{{ aviso.detalle }}</div>
+            <div class="card-row">
+              <ion-icon name="location-outline"></ion-icon>
+              {{ aviso.direccion }}
+            </div>
+            <div class="card-row">
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ aviso.fecha }}
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn">
+              <ion-icon name="eye-outline"></ion-icon>
+              Ver detalles
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <!-- Pagination -->
+      <div class="table-pagination">
+        <span class="pagination-info">Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} aviso</span>
+        <div class="pagination">
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button class="desktop-only">4</button>
+          <span class="desktop-only">...</span>
+          <button class="desktop-only">40</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="isMapView">
+      <div class="map-view-container">
+        <div class="map-list-container">
+          <div class="map-list-filters">
+            <select>
+              <option>Estado</option>
+            </select>
+            <select>
+              <option>Distancia</option>
+            </select>
+            <button class="btn-filter">
+              <ion-icon name="options-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="map-avisos-list">
+            <div class="aviso-map-card" *ngFor="let aviso of avisos" (click)="centrarAvisoEnMapa(aviso)">
+              <div class="aviso-map-card-header">
+                <h3>{{ aviso.detalle }}</h3>
+                <span class="urgente-tag" *ngIf="aviso.urgente">URGENTE</span>
+              </div>
+              <div class="aviso-map-card-body">
+                <div class="info-row">
+                  <span>Dirección</span>
+                  <div>
+                    <ion-icon name="location-outline"></ion-icon>
+                    <p>{{ aviso.direccion }}</p>
+                  </div>
+                </div>
+                <div class="info-row">
+                  <span>Fecha de creación</span>
+                  <div>
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <p>{{ aviso.fecha }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="map-display-container">
+          <!-- El mapa se renderizará aquí -->
+          <div id="map"></div>
+        </div>
+      </div>
+    </ng-container>
+
   </section>
 </ion-content>
