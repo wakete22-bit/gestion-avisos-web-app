@@ -918,6 +918,25 @@ ion-content {
     ion-icon {
       font-size: 24px;
     }
+    
+    // Estilos específicos para móvil
+    @media (max-width: 992px) {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(239, 68, 68, 0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      
+      ion-icon {
+        font-size: 26px;
+      }
+      
+      &:hover {
+        background: rgba(254, 226, 226, 0.95);
+        transform: scale(1.1);
+      }
+    }
   }
   
   #map {
@@ -930,7 +949,6 @@ ion-content {
   .map-view-container {
     flex-direction: column;
     overflow: visible;
-    scroll-behavior: smooth;
   }
   .map-list-container {
     width: 100%;
@@ -943,67 +961,72 @@ ion-content {
   .map-display-container {
     height: 50vh;
     margin-bottom: 20px;
-    scroll-margin-top: 20px;
+  }
+}
+
+.map-display-container {
+  height: 50vh;
+  margin-bottom: 20px;
+}
+
+.map-legend {
+  flex-wrap: wrap;
+  gap: 12px;
+  
+  .legend-item {
+    font-size: 11px;
+  }
+}
+
+.avisos-table {
+  font-size: 12px;
+  grid-template-columns: 45px 90px 130px 60px; // Ajustado para móvil
+  
+  .table-header .header-row .header-cell {
+    font-size: 11px;
+    padding: 8px 4px;
   }
   
-  .map-legend {
-    flex-wrap: wrap;
-    gap: 12px;
+  .table-body .aviso-row {
+    // Mejorar respuesta táctil en móvil
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     
-    .legend-item {
-      font-size: 11px;
-    }
-  }
-  
-  .avisos-table {
-    font-size: 12px;
-    grid-template-columns: 50px 100px 1fr 70px;
-    
-    .table-header .header-row .header-cell {
-      font-size: 11px;
+    .aviso-cell {
       padding: 8px 4px;
-    }
-    
-    .table-body .aviso-row {
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
       
-      .aviso-cell {
-        padding: 8px 4px;
+      &.numero-aviso {
+        font-size: 13px;
+      }
+      
+      &.nombre-cliente {
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      &.detalle-servicio {
+        max-width: 120px; // Anchura máxima en móvil
         
-        &.numero-aviso {
-          font-size: 13px;
-        }
-        
-        &.nombre-cliente {
-          font-size: 12px;
+        .detalle-texto {
+          width: 100%;
+          max-width: 120px; // Anchura máxima en móvil
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          font-size: 11px;
+          line-height: 1.3;
+          display: block;
         }
+      }
+      
+      &.acciones button {
+        width: 24px;
+        height: 24px;
         
-        &.detalle-servicio {
-          max-width: 120px;
-          
-          .detalle-texto {
-            width: 100%;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-size: 11px;
-            line-height: 1.3;
-            display: block;
-          }
-        }
-        
-        &.acciones button {
-          width: 24px;
-          height: 24px;
-          
-          ion-icon {
-            font-size: 14px;
-          }
+        ion-icon {
+          font-size: 14px;
         }
       }
     }

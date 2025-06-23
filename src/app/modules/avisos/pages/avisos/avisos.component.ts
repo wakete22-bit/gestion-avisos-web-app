@@ -106,6 +106,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     document.addEventListener('webkitfullscreenchange', this.handleFullscreenChange.bind(this));
     document.addEventListener('mozfullscreenchange', this.handleFullscreenChange.bind(this));
     document.addEventListener('MSFullscreenChange', this.handleFullscreenChange.bind(this));
+    
+    // Listener para ajustar posición del botón en resize
+    window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   // ngAfterViewChecked() {
@@ -124,6 +127,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange.bind(this));
     document.removeEventListener('mozfullscreenchange', this.handleFullscreenChange.bind(this));
     document.removeEventListener('MSFullscreenChange', this.handleFullscreenChange.bind(this));
+    window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
   private handleFullscreenChange() {
@@ -135,6 +139,15 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     
     if (!isFullscreen) {
       this.closeExpandedMap();
+    }
+  }
+
+  private handleResize() {
+    // Ajustar posición del botón de cerrar si está visible
+    const closeButton = document.querySelector('.btn-close-expanded') as HTMLElement;
+    if (closeButton && window.innerWidth <= 992) {
+      const headerHeight = this.getHeaderHeight();
+      closeButton.style.top = `${headerHeight + 10}px`;
     }
   }
 
@@ -190,33 +203,6 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       setTimeout(() => {
         marker.togglePopup();
       }, 500);
-    }
-
-    // Hacer scroll al componente del mapa en móvil
-    this.scrollToMap();
-  }
-
-  private scrollToMap() {
-    // Detectar si estamos en móvil (ancho menor a 992px)
-    if (window.innerWidth <= 992) {
-      const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
-      if (mapContainer) {
-        // Hacer scroll suave al mapa
-        mapContainer.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start',
-          inline: 'nearest'
-        });
-        
-        // Añadir un pequeño delay para asegurar que el scroll se complete
-        setTimeout(() => {
-          // Resaltar brevemente el mapa para feedback visual
-          mapContainer.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.3)';
-          setTimeout(() => {
-            mapContainer.style.boxShadow = '';
-          }, 1000);
-        }, 500);
-      }
     }
   }
 
@@ -350,17 +336,49 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       mapContainer.style.height = '100vh';
       mapContainer.style.zIndex = '9999';
       
-      // Añadir botón para cerrar
+      // Añadir botón para cerrar con posición ajustada para móvil
       const closeButton = document.createElement('button');
       closeButton.innerHTML = '<ion-icon name="close"></ion-icon>';
       closeButton.className = 'btn-close-expanded';
       closeButton.onclick = () => this.closeExpandedMap();
+      
+      // Ajustar posición del botón según el dispositivo
+      if (window.innerWidth <= 992) {
+        // En móvil, posicionar debajo del header
+        const headerHeight = this.getHeaderHeight();
+        closeButton.style.top = `${headerHeight + 10}px`; // 10px de margen
+        closeButton.style.right = '16px';
+      }
+      
       mapContainer.appendChild(closeButton);
       
       // Redimensionar el mapa
       if (this.map) {
         setTimeout(() => this.map!.resize(), 100);
       }
+    }
+  }
+
+  private getHeaderHeight(): number {
+    // Intentar obtener la altura del header de diferentes maneras
+    const header = document.querySelector('ion-header') || 
+                   document.querySelector('.header') || 
+                   document.querySelector('[data-header]') ||
+                   document.querySelector('header') ||
+                   document.querySelector('.topbar') ||
+                   document.querySelector('.main-layout-header');
+    
+    if (header) {
+      return header.getBoundingClientRect().height;
+    }
+    
+    // Valores por defecto según el dispositivo
+    if (window.innerWidth <= 480) {
+      return 60; // Móvil pequeño
+    } else if (window.innerWidth <= 768) {
+      return 70; // Tablet
+    } else {
+      return 80; // Desktop
     }
   }
 
