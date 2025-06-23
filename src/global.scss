@@ -213,7 +213,7 @@ body {
     --offset-top: 0px;
     --offset-bottom: 0px;
     --padding-top: 0px;
-    --padding-bottom: 0px;
+    --padding-bottom: var(--safe-area-bottom);
   }
   
   /* Configurar ion-header para que respete la safe area superior */
@@ -260,6 +260,11 @@ body {
       height: 100vh;
       height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
       margin: 0;
+    }
+    
+    ion-content {
+      /* En iOS, agregar padding inferior para safe area */
+      --padding-bottom: var(--safe-area-bottom);
     }
   }
 }
@@ -378,4 +383,47 @@ ion-router-outlet {
 
 .maplibregl-popup-anchor-right .maplibregl-popup-tip {
   border-left-color: #fff;
+}
+
+// Estilos globales para móviles
+@media (max-width: 768px) {
+  ion-content {
+    --padding-start: 16px;
+    --padding-end: 16px;
+  }
+  
+  ion-card {
+    margin: 8px;
+    border-radius: 12px;
+  }
+  
+  ion-button {
+    --border-radius: 8px;
+  }
+}
+
+// Estilos para tablets
+@media (min-width: 769px) and (max-width: 1024px) {
+  ion-content {
+    --padding-start: 24px;
+    --padding-end: 24px;
+  }
+  
+  ion-card {
+    margin: 16px;
+    border-radius: 16px;
+  }
+}
+
+// Estilos para desktop
+@media (min-width: 1025px) {
+  ion-content {
+    --padding-start: 32px;
+    --padding-end: 32px;
+  }
+  
+  ion-card {
+    margin: 24px;
+    border-radius: 20px;
+  }
 }
