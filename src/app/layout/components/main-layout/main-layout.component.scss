@@ -167,7 +167,7 @@
                 &.mobile {
                     margin-top: calc(66px + var(--safe-area-top, 0px)) !important;
                     padding: 0px;
-                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    padding-bottom: 80px;
                     min-height: calc(100vh - 66px - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
                 }
             }
