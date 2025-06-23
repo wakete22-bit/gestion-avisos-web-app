@@ -186,14 +186,38 @@
 @media all and (display-mode: standalone) {
     .main-layout {
         .mobile-header {
-            padding-top: calc(12px + var(--safe-area-top, 0px));
-            height: calc(100px + var(--safe-area-top, 0px));
+            top: 0;
+            padding-top: 12px;
+            height: 66px;
         }
 
         .content-wrapper {
+            padding-top: 0;
+
             .main-content {
                 &.mobile {
-                    margin-top: calc(100px + var(--safe-area-top, 0px)) !important;
+                    margin-top: 66px !important;
+                }
+            }
+        }
+    }
+}
+
+/* Configuración específica para iOS en PWA standalone */
+@supports (-webkit-touch-callout: none) {
+    @media all and (display-mode: standalone) {
+        .main-layout {
+            .mobile-header {
+                top: 0;
+                padding-top: 12px;
+                height: 66px;
+            }
+
+            .content-wrapper {
+                .main-content {
+                    &.mobile {
+                        margin-top: 66px !important;
+                    }
                 }
             }
         }

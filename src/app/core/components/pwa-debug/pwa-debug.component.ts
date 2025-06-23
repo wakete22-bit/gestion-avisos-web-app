@@ -42,6 +42,14 @@ import { ViewportService } from '../../services/viewport.service';
               <p>Es Móvil: {{ viewportService.isMobile() ? 'Sí' : 'No' }}</p>
               <p>Es Standalone: {{ viewportService.isStandalone() ? 'Sí' : 'No' }}</p>
             </div>
+
+            <div class="pwa-info">
+              <p><strong>PWA Info:</strong></p>
+              <p>Display Mode: {{ getDisplayMode() }}</p>
+              <p>Body Padding Top: {{ getBodyPaddingTop() }}</p>
+              <p>Header Height: {{ getHeaderHeight() }}</p>
+              <p>Content Margin: {{ getContentMargin() }}</p>
+            </div>
           </div>
           <div class="debug-actions">
             <ion-button size="small" (click)="checkForUpdates()">
@@ -77,7 +85,7 @@ import { ViewportService } from '../../services/viewport.service';
       font-size: 14px;
     }
     
-    .safe-area-info, .viewport-info {
+    .safe-area-info, .viewport-info, .pwa-info {
       margin-top: 16px;
       padding: 8px;
       background: rgba(0, 0, 0, 0.05);
@@ -122,6 +130,40 @@ export class PwaDebugComponent implements OnInit {
     this.debugInfo = this.pwaInstallService.getDebugInfo();
     this.safeAreaInfo = this.viewportService.getSafeAreaInfo();
     this.viewportInfo = this.viewportService.getViewportInfo();
+  }
+
+  getDisplayMode(): string {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      return 'standalone';
+    } else if (window.matchMedia('(display-mode: fullscreen)').matches) {
+      return 'fullscreen';
+    } else if (window.matchMedia('(display-mode: minimal-ui)').matches) {
+      return 'minimal-ui';
+    } else {
+      return 'browser';
+    }
+  }
+
+  getBodyPaddingTop(): string {
+    const body = document.body;
+    const computedStyle = getComputedStyle(body);
+    return computedStyle.paddingTop;
+  }
+
+  getHeaderHeight(): string {
+    const header = document.querySelector('.mobile-header') as HTMLElement;
+    if (header) {
+      return header.offsetHeight + 'px';
+    }
+    return 'N/A';
+  }
+
+  getContentMargin(): string {
+    const content = document.querySelector('.main-content.mobile') as HTMLElement;
+    if (content) {
+      return getComputedStyle(content).marginTop;
+    }
+    return 'N/A';
   }
 
   checkForUpdates() {
