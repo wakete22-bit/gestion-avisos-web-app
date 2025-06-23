@@ -108,7 +108,7 @@ export class PwaDebugComponent implements OnInit {
   ngOnInit() {
     // Solo mostrar en modo desarrollo
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // this.showDebug = true;
+      this.showDebug = true;
       this.updateDebugInfo();
       
       // Actualizar información cada 5 segundos

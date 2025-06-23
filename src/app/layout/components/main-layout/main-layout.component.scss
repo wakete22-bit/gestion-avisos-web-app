@@ -12,11 +12,12 @@
         display: none;
         align-items: center;
         padding: 12px 16px;
+        padding-top: calc(12px + var(--safe-area-top, 0px));
         background: #fff;
         border-bottom: 1px solid #e2e8f0;
         z-index: 999;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        height: 64px;
+        height: calc(100px + var(--safe-area-top, 0px));
         position: fixed;
         top: 0;
         left: 0;
@@ -81,7 +82,7 @@
                 background-size: cover;
                 background-position: center;
                 border: 2px solid #fff;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             }
         }
     }
@@ -104,6 +105,7 @@
         overflow: hidden;
         position: relative;
         height: 100vh;
+        padding-top: 0;
 
         .sidebar {
             width: 250px;
@@ -125,7 +127,7 @@
             position: relative;
 
             &.mobile {
-                padding-top: 60px!important;
+                padding-top: calc(60px + var(--safe-area-top, 0px)) !important;
                 padding: 0px;
             }
         }
@@ -137,6 +139,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -159,7 +162,7 @@
                 min-height: 100%;
 
                 &.mobile {
-                    padding-top: 60px!important;
+                    padding-top: calc(60px + var(--safe-area-top, 0px)) !important;
                     padding: 0px;
                 }
             }
@@ -178,3 +181,38 @@
     }
 }
 
+/* Configuración específica para PWA standalone */
+@media all and (display-mode: standalone) {
+    .main-layout {
+        .mobile-header {
+            padding-top: calc(12px + var(--safe-area-top, 0px));
+            height: calc(100px + var(--safe-area-top, 0px));
+        }
+
+        .content-wrapper {
+            .main-content {
+                &.mobile {
+                    padding-top: calc(60px + var(--safe-area-top, 0px)) !important;
+                }
+            }
+        }
+    }
+}
+
+/* Fallback para navegadores que no soportan env() */
+@supports not (padding-top: env(safe-area-inset-top)) {
+    .main-layout {
+        .mobile-header {
+            padding-top: 39px;
+            height: 100px;
+        }
+
+        .content-wrapper {
+            .main-content {
+                &.mobile {
+                    padding-top: 60px !important;
+                }
+            }
+        }
+    }
+}
