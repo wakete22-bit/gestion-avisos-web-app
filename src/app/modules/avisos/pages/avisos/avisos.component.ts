@@ -101,6 +101,12 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     // No inicializamos el mapa aquí para evitar que se cargue innecesariamente
   }
 
+  // ngAfterViewChecked() {
+  //   if (this.isMapView && this.map) {
+  //     this.map.resize();
+  //   }
+  // }
+
   ngOnDestroy() {
     if (this.map) {
       this.map.remove();

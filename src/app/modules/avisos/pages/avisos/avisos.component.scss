@@ -539,6 +539,31 @@ ion-content {
       }
     }
   }
+
+  .map-display-container {
+    height: 40vh;
+  }
+  .map-avisos-list {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .aviso-map-card {
+    padding: 20px 14px;
+    font-size: 16px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    .aviso-map-card-header h3 {
+      font-size: 16px;
+    }
+    .aviso-map-card-body {
+      font-size: 15px;
+    }
+  }
+  .btn-filter, .btn-map, .btn-add {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 10px 16px;
+  }
 }
 
 // Map view styles
@@ -598,7 +623,7 @@ ion-content {
   }
 
   .map-avisos-list {
-    max-height: 60vh;
+    max-height: 70vh;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -691,7 +716,6 @@ ion-content {
   border-radius: 12px;
   overflow: hidden;
   background-color: #F3F4F6;
-  height: 70vh;
   
   #map {
     height: 100%;
