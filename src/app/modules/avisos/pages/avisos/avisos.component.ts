@@ -4,7 +4,7 @@ import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone'
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
@@ -94,7 +94,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private geocodingService: GeocodingService
   ) {
-    addIcons({searchOutline,mapOutline,addCircle,alertCircle,close,eyeOutline,locationOutline,calendarOutline,add,addCircleOutline, listOutline, optionsOutline});
+    addIcons({searchOutline,addCircle,mapOutline,alertCircle,close,eyeOutline,locationOutline,calendarOutline,optionsOutline,expandOutline,add,addCircleOutline,listOutline});
   }
 
   ngAfterViewInit() {
@@ -213,6 +213,16 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     } else if (data) {
       // Aquí manejaremos los datos del nuevo aviso cuando se cree
       console.log('Nuevo aviso creado:', data);
+    }
+  }
+
+  toggleFullscreen() {
+    const mapContainer = document.querySelector('.map-display-container') as HTMLElement;
+    if (!mapContainer) return;
+    if (!document.fullscreenElement) {
+      mapContainer.requestFullscreen();
+    } else {
+      document.exitFullscreen();
     }
   }
 }

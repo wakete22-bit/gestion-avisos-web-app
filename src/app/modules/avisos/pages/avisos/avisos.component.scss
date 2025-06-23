@@ -544,8 +544,8 @@ ion-content {
     height: 40vh;
   }
   .map-avisos-list {
-    max-height: 50vh;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
   }
   .aviso-map-card {
     padding: 20px 14px;
@@ -716,6 +716,30 @@ ion-content {
   border-radius: 12px;
   overflow: hidden;
   background-color: #F3F4F6;
+  position: relative;
+  
+  .btn-fullscreen {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 22px;
+    color: #4F46E5;
+  }
+  .btn-fullscreen:hover {
+    background: #F3F4F6;
+  }
   
   #map {
     height: 100%;
@@ -735,5 +759,6 @@ ion-content {
   }
   .map-display-container {
     height: 50vh;
+    margin-bottom: 20px;
   }
 }
