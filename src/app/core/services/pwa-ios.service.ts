@@ -7,10 +7,10 @@ import { Platform } from '@ionic/angular';
 export class PwaIosService {
 
   constructor(private platform: Platform) {
-    this.initializeIOSPWA();
+    this.initializeMobilePWA();
   }
 
-  private initializeIOSPWA() {
+  private initializeMobilePWA() {
     // Detectar si estamos en iOS o Android
     if (this.platform.is('ios') || this.platform.is('android')) {
       this.setupMobilePWA();
@@ -37,21 +37,34 @@ export class PwaIosService {
     });
 
     // Configurar el viewport para dispositivos móviles
-    const viewport = document.querySelector('meta[name="viewport"]');
-    if (viewport) {
-      viewport.setAttribute('content', 
-        'viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no'
-      );
-    }
-
+    this.setupViewport();
+    
     // Agregar estilos específicos para móviles
     this.addMobileStyles();
+  }
+
+  private setupViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      const content = [
+        'viewport-fit=cover',
+        'width=device-width',
+        'initial-scale=1.0',
+        'minimum-scale=1.0',
+        'maximum-scale=1.0',
+        'user-scalable=no'
+      ].join(', ');
+      
+      viewport.setAttribute('content', content);
+    }
   }
 
   private addMobileStyles() {
     const style = document.createElement('style');
     style.textContent = `
       /* Estilos específicos para dispositivos móviles */
+      
+      /* Configuración base */
       html {
         height: 100%;
         overflow: hidden;
@@ -65,59 +78,48 @@ export class PwaIosService {
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         -webkit-tap-highlight-color: transparent;
-        background-color: var(--ion-background-color, #ffffff);
       }
       
       /* Configuración para PWA standalone */
       @media all and (display-mode: standalone) {
         body {
-          /* Usar env() para las safe areas en iOS */
-          padding-top: env(safe-area-inset-top);
-          padding-bottom: env(safe-area-inset-bottom);
-          padding-left: env(safe-area-inset-left);
-          padding-right: env(safe-area-inset-right);
+          /* Aplicar safe areas solo en modo standalone */
+          padding-top: env(safe-area-inset-top, 0px);
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+          padding-left: env(safe-area-inset-left, 0px);
+          padding-right: env(safe-area-inset-right, 0px);
         }
         
-        /* Asegurar que ion-app ocupe todo el espacio disponible */
+        /* Configurar ion-app */
         ion-app {
           height: 100vh;
-          height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-          margin-top: env(safe-area-inset-top);
-          margin-bottom: env(safe-area-inset-bottom);
+          height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+          margin: 0;
+          padding: 0;
         }
         
-        /* Configurar ion-content para que ocupe el espacio correcto */
+        /* Configurar ion-content */
         ion-content {
-          --offset-top: env(safe-area-inset-top);
-          --offset-bottom: env(safe-area-inset-bottom);
-          --padding-top: env(safe-area-inset-top);
-          --padding-bottom: env(safe-area-inset-bottom);
+          --offset-top: 0px;
+          --offset-bottom: 0px;
+          --padding-top: 0px;
+          --padding-bottom: 0px;
         }
         
-        /* Configurar ion-header para que respete la safe area superior */
+        /* Configurar ion-header */
         ion-header {
-          padding-top: env(safe-area-inset-top);
+          padding-top: 0px;
         }
         
-        /* Configurar ion-footer para que respete la safe area inferior */
+        /* Configurar ion-footer */
         ion-footer {
-          padding-bottom: env(safe-area-inset-bottom);
+          padding-bottom: 0px;
         }
-      }
-      
-      /* Fallback para navegadores que no soportan env() */
-      @supports not (padding-top: env(safe-area-inset-top)) {
-        @media all and (display-mode: standalone) {
-          body {
-            padding-top: 20px;
-            padding-bottom: 20px;
-          }
-          
-          ion-app {
-            height: calc(100vh - 40px);
-            margin-top: 20px;
-            margin-bottom: 20px;
-          }
+        
+        /* Configurar ion-toolbar */
+        ion-toolbar {
+          --padding-top: 0px;
+          --padding-bottom: 0px;
         }
       }
       

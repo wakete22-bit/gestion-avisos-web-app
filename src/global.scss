@@ -9,6 +9,21 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import '@ionic/angular/css/display.css';
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -19,7 +34,7 @@
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
+@import '@ionic/angular/css/display.css';
 
 /* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
@@ -157,51 +172,64 @@ ion-modal.modal-crear-cliente::part(backdrop) {
   --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
-/* Configuración global para PWA standalone */
+/* Configuración base para todos los dispositivos */
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--ion-background-color, #ffffff);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Configuración específica para PWA standalone */
 @media all and (display-mode: standalone) {
-  html {
-    height: 100%;
-    overflow: hidden;
-  }
-  
   body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background-color: var(--ion-background-color, #ffffff);
+    /* Aplicar safe areas solo en modo standalone */
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
   }
   
   /* Configurar ion-app para que ocupe todo el espacio disponible */
   ion-app {
     height: 100vh;
     height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    margin-top: var(--safe-area-top);
-    margin-bottom: var(--safe-area-bottom);
+    margin: 0;
+    padding: 0;
   }
   
   /* Configurar ion-content para que respete las safe areas */
   ion-content {
-    --offset-top: var(--safe-area-top);
-    --offset-bottom: var(--safe-area-bottom);
-    --padding-top: var(--safe-area-top);
-    --padding-bottom: var(--safe-area-bottom);
+    --offset-top: 0px;
+    --offset-bottom: 0px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
   }
   
   /* Configurar ion-header para que respete la safe area superior */
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0px;
   }
   
   /* Configurar ion-footer para que respete la safe area inferior */
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0px;
   }
   
   /* Configurar ion-toolbar para que respete las safe areas */
   ion-toolbar {
-    --padding-top: var(--safe-area-top);
-    --padding-bottom: var(--safe-area-bottom);
+    --padding-top: 0px;
+    --padding-bottom: 0px;
   }
 }
 
@@ -217,6 +245,22 @@ ion-modal.modal-crear-cliente::part(backdrop) {
   ion-content {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Configuración específica para iOS en modo standalone */
+  @media all and (display-mode: standalone) {
+    body {
+      /* En iOS, el body ya tiene el padding de safe areas */
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom);
+    }
+    
+    ion-app {
+      /* En iOS, ion-app no necesita margin adicional */
+      height: 100vh;
+      height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+      margin: 0;
+    }
   }
 }
 
@@ -277,8 +321,7 @@ ion-router-outlet {
     
     ion-app {
       height: calc(100vh - 40px);
-      margin-top: 20px;
-      margin-bottom: 20px;
+      margin: 0;
     }
     
     .pwa-banner {
