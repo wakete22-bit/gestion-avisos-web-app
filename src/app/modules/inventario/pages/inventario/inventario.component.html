@@ -138,78 +138,48 @@
           </button>
         </div>
       </div>
+      
 
-      <!-- Desktop Table View -->
-      <table class="custom-mat-table desktop-only">
-        <thead>
-          <tr>
-            <th>Código</th>
-            <th>Nombre</th> 
-            <th>Descripción</th>
-            <th>Cantidad</th>
-            <th>Unidad</th>
-            <th>En Stock</th>
-            <th>Precio Neto</th>  
-            <th>PVP</th>
-            <th>Acciones</th>   
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let producto of productos">
-            <td>{{ producto.codigo }}</td>
-            <td>{{ producto.nombre }}</td>
-            <td>{{ producto.descripcion }}</td>
-            <td>{{ producto.cantidad }}</td>
-            <td>{{ producto.unidad }}</td>  
-            <td>
-              <span class="badge yellow" *ngIf="producto.enStock">En Stock</span>
-              <span class="badge red" *ngIf="!producto.enStock">Sin Stock</span>
-            </td>
-            <td>{{ producto.precioNeto }}</td>
-            <td>{{ producto.pvp }}</td>
-            <td>
-              <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Mobile Cards View -->
-      <div class="mobile-cards">
-        <div class="producto-card" *ngFor="let producto of productos">
-          <div class="card-header">
-            <div class="card-number">#{{ producto.codigo }}</div>
-            <span class="badge" 
-                  [ngClass]="{
-                    'yellow': producto.enStock,
-                    'red': !producto.enStock
-                  }">
-              {{ producto.enStock ? 'En Stock' : 'Sin Stock' }}
-            </span>
-          </div>
-          <div class="card-body">
-            <div class="card-row">
-              <strong>{{ producto.nombre }}</strong>
-            </div>
-            <div class="card-row detail">{{ producto.descripcion }}</div>
-            <div class="card-row">
-              <div class="item-label">Cantidad:</div>
-              <div class="item-value">{{ producto.cantidad }} {{ producto.unidad }}</div>
-            </div>
-            <div class="card-row">
-              <div class="item-label">Precio Neto:</div>
-              <div class="item-value">{{ producto.precioNeto }}</div>
-            </div>
-            <div class="card-row">
-              <div class="item-label">PVP:</div>
-              <div class="item-value">{{ producto.pvp }}</div>
+      <!-- Compact Table View (grid, igual que avisos) -->
+      <div class="compact-inventario-table">
+        <div class="inventario-table">
+          <div class="table-header">
+            <div class="header-row">
+              <div class="header-cell">Código</div>
+              <div class="header-cell">Nombre</div>
+              <div class="header-cell">Descripción</div>
+              <div class="header-cell">Cantidad</div>
+              <div class="header-cell">Unidad</div>
+              <div class="header-cell">Stock</div>
+              <div class="header-cell">Precio Neto</div>
+              <div class="header-cell">PVP</div>
+              <div class="header-cell">Acciones</div>
             </div>
           </div>
-          <div class="card-actions">
-            <button class="action-btn">
-              <ion-icon name="eye-outline"></ion-icon>
-              Ver detalles
-            </button>
+          <div class="table-body">
+            <div *ngFor="let producto of productos"
+                 class="aviso-row"
+                 [ngClass]="{ 'no-visitado': !producto.enStock, 'completado': producto.enStock }">
+              <div class="aviso-cell numero-aviso">{{ producto.codigo }}</div>
+              <div class="aviso-cell nombre-cliente">{{ producto.nombre }}</div>
+              <div class="aviso-cell detalle-servicio">
+                <div class="detalle-texto" [title]="producto.descripcion">{{ producto.descripcion }}</div>
+              </div>
+              <div class="aviso-cell cantidad-aviso">{{ producto.cantidad }}</div>
+              <div class="aviso-cell unidad-aviso">{{ producto.unidad }}</div>
+              <div class="aviso-cell estado-aviso">
+                <span class="badge" [ngClass]="{ 'yellow': producto.enStock, 'red': !producto.enStock }">
+                  {{ producto.enStock ? 'En Stock' : 'Sin Stock' }}
+                </span>
+              </div>
+              <div class="aviso-cell precio-neto-aviso">{{ producto.precioNeto }}</div>
+              <div class="aviso-cell pvp-aviso">{{ producto.pvp }}</div>
+              <div class="aviso-cell acciones">
+                <button class="btn-ver" title="Ver detalles">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

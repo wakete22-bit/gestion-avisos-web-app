@@ -12,7 +12,7 @@ ion-content {
 
 .table-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
   flex-wrap: wrap;
@@ -57,12 +57,13 @@ ion-content {
   display: none;
   position: relative;
   width: 100%;
+  padding: 0px 16px;
 
   input {
     width: 100%;
     padding: 8px 16px;
     padding-right: 40px;
-    border-radius: 0px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     font-size: 14px;
     background: #fff;
@@ -70,7 +71,7 @@ ion-content {
 
   ion-icon {
     position: absolute;
-    right: 12px;
+    right: 26px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 18px;
@@ -299,6 +300,7 @@ ion-content {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .table-pagination {
@@ -381,6 +383,19 @@ ion-content {
   &:hover {
     background-color: #4338CA;
     box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+  }
+}
+
+.mobile-buttons {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-buttons {
+    display: flex !important;
+    width: auto;
+    justify-content: stretch;
+    gap: 8px;
   }
 }
 
@@ -478,6 +493,61 @@ ion-content {
   gap: 1rem;
 }
 
+// Mobile actions in header
+.mobile-actions.mobile-only {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0;
+  
+  .mobile-buttons {
+    display: flex;
+    gap: 8px;
+    
+    button {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: none;
+      transition: all 0.2s ease;
+      
+      &.btn-map {
+        background: #F8FAFC;
+        color: #475569;
+        border: 1px solid #E2E8F0;
+        
+        &:hover, &:active {
+          background: #F1F5F9;
+          border-color: #CBD5E1;
+        }
+      }
+      
+      &.btn-add {
+        background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1), 
+                    0 2px 4px -1px rgba(79, 70, 229, 0.06);
+        
+        &:hover, &:active {
+          background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+          box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+      }
+      
+      ion-icon {
+        font-size: 20px;
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}
+
 // Responsive Styles
 @media (max-width: 768px) {
   .dashboard-table {
@@ -493,17 +563,26 @@ ion-content {
   }
 
   .mobile-search,
-  .mobile-actions,
-  .mobile-cards {
+  .mobile-actions.mobile-only {
     display: flex;
   }
 
   .table-header {
     margin-bottom: 12px;
+    align-items: center;
+    gap: 12px;
   }
 
   .table-header-left {
-    padding: 0px 10px;
+    flex: 1;
+  }
+
+  .table-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 16px;
+    width: 100%;
   }
 
   .table-pagination {
@@ -523,6 +602,64 @@ ion-content {
     border-radius: 0px!important;
   }
 
+  // Mobile styles for compact table
+  .compact-avisos-table {
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
+    max-height: none;
+    
+    .avisos-table {
+      grid-template-columns: 60px 110px 120px minmax(150px, 1fr) 80px 60px 80px; // Ajustado para móvil con minmax
+      font-size: 12px;
+      
+      .table-header .header-row .header-cell {
+        font-size: 11px;
+        padding: 8px 4px;
+      }
+      
+      .table-body .aviso-row {
+        .aviso-cell {
+          padding: 8px 4px;
+          
+          &.numero-aviso {
+            font-size: 13px;
+          }
+          
+          &.nombre-cliente {
+            font-size: 12px;
+          }
+          
+          &.detalle-servicio {
+            .detalle-texto {
+              font-size: 11px;
+              line-height: 1.3;
+            }
+          }
+          
+          &.fecha-aviso {
+            font-size: 11px;
+          }
+          
+          &.urgente-aviso {
+            .urgente-icon,
+            .no-urgente-icon {
+              font-size: 16px;
+            }
+          }
+          
+          &.acciones button {
+            width: 24px;
+            height: 24px;
+            
+            ion-icon {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 @media (max-width: 480px) {
@@ -535,7 +672,8 @@ ion-content {
     gap: 12px;
     
     .mobile-buttons {
-      width: 100%;
+      display: flex;
+      width: 30%;
       justify-content: stretch;
       
       button {
@@ -551,6 +689,7 @@ ion-content {
 
   .map-display-container {
     height: 40vh;
+    margin-bottom: 0px;
   }
   .map-avisos-list {
     max-height: none;
@@ -572,6 +711,16 @@ ion-content {
     min-height: 44px;
     font-size: 16px;
     padding: 10px 16px;
+  }
+  
+  // Estilos específicos para badges en móvil
+  .compact-avisos-table .avisos-table .table-body .aviso-row .aviso-cell.estado-aviso {
+    .badge {
+      padding: 1px 4px;
+      font-size: 9px;
+      max-width: 90px;
+      border-radius: 6px;
+    }
   }
 }
 
@@ -602,47 +751,6 @@ ion-content {
       font-size: 14px;
       color: #4F46E5;
       margin: 0;
-    }
-  }
-
-  .map-legend {
-    display: flex;
-    gap: 16px;
-    padding: 12px;
-    background: #F8FAFC;
-    border-radius: 8px;
-    border: 1px solid #E2E8F0;
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #475569;
-      cursor: help;
-
-      .legend-color {
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        border: 1px solid rgba(0,0,0,0.1);
-
-        &.no-visitado {
-          background-color: #EF4444;
-        }
-
-        &.visitado-pendiente {
-          background-color: #F59E0B;
-        }
-
-        &.pendiente-presupuesto {
-          background-color: #3B82F6;
-        }
-      }
-
-      span {
-        white-space: nowrap;
-      }
     }
   }
 
@@ -686,7 +794,7 @@ ion-content {
     .avisos-table {
       width: 100%;
       display: grid;
-      grid-template-columns: 60px 120px 1fr 80px; // Columnas fijas más eficientes
+      grid-template-columns: 80px 1.2fr minmax(0, 1fr) 100px; // Escritorio: Número | Cliente | Detalle | Acciones
       font-size: 13px;
 
       .table-header {
@@ -853,12 +961,100 @@ ion-content {
                 }
               }
             }
+
+            &.estado-aviso {
+              justify-content: center;
+              font-size: 11px;
+              
+              .badge {
+                padding: 2px 6px;
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 500;
+                white-space: nowrap;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                
+                &.yellow {
+                  background: #FFF7E6;
+                  color: #B25E02;
+                }
+                
+                &.red {
+                  background: #FEE4E2;
+                  color: #D92D20;
+                }
+                
+                &.green {
+                  background: #E6F4EA;
+                  color: #137333;
+                }
+                
+                &.no-visitado {
+                  background: #FEE2E2;
+                  color: #DC2626;
+                }
+                
+                &.visitado-pendiente {
+                  background: #FEF3C7;
+                  color: #D97706;
+                }
+                
+                &.pendiente-presupuesto {
+                  background: #DBEAFE;
+                  color: #2563EB;
+                }
+              }
+            }
           }
         }
       }
     }
   }
 }
+
+.map-legend {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #475569;
+    cursor: help;
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      border: 1px solid rgba(0,0,0,0.1);
+
+      &.no-visitado {
+        background-color: #EF4444;
+      }
+
+      &.visitado-pendiente {
+        background-color: #F59E0B;
+      }
+
+      &.pendiente-presupuesto {
+        background-color: #3B82F6;
+      }
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+}
+
 
 .map-display-container {
   flex-grow: 1;
@@ -893,6 +1089,57 @@ ion-content {
     
     &:active {
       transform: scale(0.95);
+    }
+  }
+  
+  .btn-back-to-list {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    color: #4F46E5;
+    
+    ion-icon {
+      font-size: 18px;
+    }
+    
+    &:hover {
+      background: #F3F4F6;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+    
+    // Estilos específicos para móvil
+    @media (max-width: 992px) {
+      padding: 8px;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+      
+      span {
+        display: none;
+      }
     }
   }
   
@@ -962,6 +1209,7 @@ ion-content {
   }
   .map-list-container {
     width: 100%;
+    gap: 0px!important;
   }
   .map-avisos-table {
     max-height: 35vh;
@@ -971,7 +1219,7 @@ ion-content {
   }
   .map-display-container {
     height: 50vh;
-    margin-bottom: 20px;
+    margin-bottom: 0px!important;
     border-radius: 0px!important;
   }
 }
@@ -992,7 +1240,7 @@ ion-content {
 
 .avisos-table {
   font-size: 12px;
-  grid-template-columns: 45px 90px 130px 60px; // Ajustado para móvil
+  grid-template-columns: 60px 110px 120px minmax(150px, 1fr) 80px 60px 80px; // Ajustado para móvil con minmax
   
   .table-header .header-row .header-cell {
     font-size: 11px;
@@ -1019,11 +1267,8 @@ ion-content {
       }
       
       &.detalle-servicio {
-        max-width: 128px; // Anchura máxima en móvil
-        
         .detalle-texto {
           width: 100%;
-          max-width: 120px; // Anchura máxima en móvil
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -1042,5 +1287,309 @@ ion-content {
         }
       }
     }
+  }
+}
+
+// Mobile only class
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+// Compact Table View Styles (replaces desktop table and mobile cards)
+.compact-avisos-table {
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  margin-bottom: 16px;
+
+  .avisos-table {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 80px 140px 150px minmax(200px, 1fr) 100px 80px 100px; // Ajustado para que detalle use minmax
+    font-size: 13px;
+
+    .table-header {
+      display: contents;
+      
+      .header-row {
+        display: contents;
+        
+        .header-cell {
+          padding: 12px 8px;
+          background: #F9FAFB;
+          border-bottom: 1px solid #E5E7EB;
+          font-weight: 500;
+          color: #374151;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+
+    .table-body {
+      display: contents;
+      
+      .aviso-row {
+        display: contents;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+
+        &:hover {
+          .aviso-cell {
+            background-color: #F9FAFB;
+          }
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+
+        // Estados de color para diferentes tipos de avisos
+        &.no-visitado {
+          .aviso-cell:first-child {
+            border-left: 4px solid #EF4444;
+          }
+          .aviso-cell {
+            background-color: #FEF2F2;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEE2E2;
+          }
+        }
+
+        &.visitado-pendiente {
+          .aviso-cell:first-child {
+            border-left: 4px solid #F59E0B;
+          }
+          .aviso-cell {
+            background-color: #FFFBEB;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEF3C7;
+          }
+        }
+
+        &.pendiente-presupuesto {
+          .aviso-cell:first-child {
+            border-left: 4px solid #3B82F6;
+          }
+          .aviso-cell {
+            background-color: #EFF6FF;
+          }
+          &:hover .aviso-cell {
+            background-color: #DBEAFE;
+          }
+        }
+
+        &.en-curso {
+          .aviso-cell:first-child {
+            border-left: 4px solid #F59E0B;
+          }
+          .aviso-cell {
+            background-color: #FFFBEB;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEF3C7;
+          }
+        }
+
+        &.pendiente {
+          .aviso-cell:first-child {
+            border-left: 4px solid #EF4444;
+          }
+          .aviso-cell {
+            background-color: #FEF2F2;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEE2E2;
+          }
+        }
+
+        &.completado {
+          .aviso-cell:first-child {
+            border-left: 4px solid #10B981;
+          }
+          .aviso-cell {
+            background-color: #ECFDF5;
+          }
+          &:hover .aviso-cell {
+            background-color: #D1FAE5;
+          }
+        }
+
+        .aviso-cell {
+          padding: 12px 8px;
+          border-bottom: 1px solid #F3F4F6;
+          display: flex;
+          align-items: center;
+
+          &.numero-aviso {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+            justify-content: center;
+          }
+
+          &.estado-aviso {
+            justify-content: center;
+            font-size: 11px;
+            
+            .badge {
+              padding: 2px 6px;
+              border-radius: 8px;
+              font-size: 10px;
+              font-weight: 500;
+              white-space: nowrap;
+              max-width: 120px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              
+              &.yellow {
+                background: #FFF7E6;
+                color: #B25E02;
+              }
+              
+              &.red {
+                background: #FEE4E2;
+                color: #D92D20;
+              }
+              
+              &.green {
+                background: #E6F4EA;
+                color: #137333;
+              }
+              
+              &.no-visitado {
+                background: #FEE2E2;
+                color: #DC2626;
+              }
+              
+              &.visitado-pendiente {
+                background: #FEF3C7;
+                color: #D97706;
+              }
+              
+              &.pendiente-presupuesto {
+                background: #DBEAFE;
+                color: #2563EB;
+              }
+            }
+          }
+
+          &.nombre-cliente {
+            font-weight: 500;
+            color: #374151;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          &.detalle-servicio {
+            .detalle-texto {
+              width: 100%;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              color: #6B7280;
+              font-size: 12px;
+              line-height: 1.4;
+            }
+          }
+
+          &.fecha-aviso {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: center;
+          }
+
+          &.urgente-aviso {
+            justify-content: center;
+            
+            .urgente-icon {
+              color: #D92D20;
+              font-size: 18px;
+            }
+            
+            .no-urgente-icon {
+              color: #64748b;
+              font-size: 18px;
+            }
+          }
+
+          &.acciones {
+            justify-content: center;
+            gap: 4px;
+
+            button {
+              width: 28px;
+              height: 28px;
+              border: none;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: transparent;
+              -webkit-tap-highlight-color: transparent;
+              touch-action: manipulation;
+
+              ion-icon {
+                font-size: 16px;
+                color: #6B7280;
+              }
+
+              &.btn-ver {
+                &:hover {
+                  background-color: #10B981;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #059669;
+                }
+              }
+
+              &.btn-editar {
+                &:hover {
+                  background-color: #F59E0B;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #D97706;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .map-avisos-table .avisos-table {
+    grid-template-columns: 50px 1fr minmax(0, 1.5fr) 60px; // Móvil: Número | Cliente | Detalle | Acciones
   }
 }

@@ -763,3 +763,336 @@ ion-icon[name="alert-circle"] {
         padding: 16px;
     }
 }
+
+// Compact Table View Styles (replaces desktop table and mobile cards)
+.compact-inventario-table {
+    max-height: 70vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    margin-bottom: 16px;
+  
+    .inventario-table {
+      width: 100%;
+      display: grid;
+      grid-template-columns:
+        80px    /* Código */
+        140px   /* Nombre */
+        minmax(200px, 1fr) /* Descripción */
+        80px    /* Cantidad */
+        80px    /* Unidad */
+        100px   /* Stock */
+        120px   /* Precio Neto */
+        120px   /* PVP */
+        80px;   /* Acciones */
+      font-size: 13px;
+  
+      .table-header {
+        display: contents;
+        
+        .header-row {
+          display: contents;
+          
+          .header-cell {
+            padding: 12px 8px;
+            background: #F9FAFB;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 500;
+            color: #374151;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+          }
+        }
+      }
+  
+      .table-body {
+        display: contents;
+        
+        .aviso-row {
+          display: contents;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+  
+          &:hover {
+            .aviso-cell {
+              background-color: #F9FAFB;
+            }
+          }
+  
+          &:active {
+            transform: scale(0.98);
+          }
+  
+          // Estados de color para diferentes tipos de avisos
+          &.no-visitado {
+            .aviso-cell:first-child {
+              border-left: 4px solid #EF4444;
+            }
+            .aviso-cell {
+              background-color: #FEF2F2;
+            }
+            &:hover .aviso-cell {
+              background-color: #FEE2E2;
+            }
+          }
+  
+          &.visitado-pendiente {
+            .aviso-cell:first-child {
+              border-left: 4px solid #F59E0B;
+            }
+            .aviso-cell {
+              background-color: #FFFBEB;
+            }
+            &:hover .aviso-cell {
+              background-color: #FEF3C7;
+            }
+          }
+  
+          &.pendiente-presupuesto {
+            .aviso-cell:first-child {
+              border-left: 4px solid #3B82F6;
+            }
+            .aviso-cell {
+              background-color: #EFF6FF;
+            }
+            &:hover .aviso-cell {
+              background-color: #DBEAFE;
+            }
+          }
+  
+          &.en-curso {
+            .aviso-cell:first-child {
+              border-left: 4px solid #F59E0B;
+            }
+            .aviso-cell {
+              background-color: #FFFBEB;
+            }
+            &:hover .aviso-cell {
+              background-color: #FEF3C7;
+            }
+          }
+  
+          &.pendiente {
+            .aviso-cell:first-child {
+              border-left: 4px solid #EF4444;
+            }
+            .aviso-cell {
+              background-color: #FEF2F2;
+            }
+            &:hover .aviso-cell {
+              background-color: #FEE2E2;
+            }
+          }
+  
+          &.completado {
+            .aviso-cell:first-child {
+              border-left: 4px solid #10B981;
+            }
+            .aviso-cell {
+              background-color: #ECFDF5;
+            }
+            &:hover .aviso-cell {
+              background-color: #D1FAE5;
+            }
+          }
+  
+          .aviso-cell {
+            padding: 12px 8px;
+            border-bottom: 1px solid #F3F4F6;
+            display: flex;
+            align-items: center;
+  
+            &.numero-aviso {
+              font-weight: 600;
+              color: #111827;
+              font-size: 14px;
+              justify-content: center;
+            }
+  
+            &.estado-aviso {
+              justify-content: center;
+              font-size: 11px;
+              
+              .badge {
+                padding: 2px 6px;
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 500;
+                white-space: nowrap;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                
+                &.yellow {
+                  background: #FFF7E6;
+                  color: #B25E02;
+                }
+                
+                &.red {
+                  background: #FEE4E2;
+                  color: #D92D20;
+                }
+                
+                &.green {
+                  background: #E6F4EA;
+                  color: #137333;
+                }
+                
+                &.no-visitado {
+                  background: #FEE2E2;
+                  color: #DC2626;
+                }
+                
+                &.visitado-pendiente {
+                  background: #FEF3C7;
+                  color: #D97706;
+                }
+                
+                &.pendiente-presupuesto {
+                  background: #DBEAFE;
+                  color: #2563EB;
+                }
+              }
+            }
+  
+            &.nombre-cliente {
+              font-weight: 500;
+              color: #374151;
+              font-size: 13px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+  
+            &.detalle-servicio {
+              .detalle-texto {
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                color: #6B7280;
+                font-size: 12px;
+                line-height: 1.4;
+              }
+            }
+  
+            &.fecha-aviso {
+              font-size: 12px;
+              color: #6B7280;
+              justify-content: center;
+            }
+  
+            &.urgente-aviso {
+              justify-content: center;
+              
+              .urgente-icon {
+                color: #D92D20;
+                font-size: 18px;
+              }
+              
+              .no-urgente-icon {
+                color: #64748b;
+                font-size: 18px;
+              }
+            }
+  
+            &.acciones {
+              justify-content: center;
+              gap: 4px;
+  
+              button {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: transparent;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+  
+                ion-icon {
+                  font-size: 16px;
+                  color: #6B7280;
+                }
+  
+                &.btn-ver {
+                  &:hover {
+                    background-color: #10B981;
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+                  
+                  &:active {
+                    transform: scale(0.9);
+                    background-color: #059669;
+                  }
+                }
+  
+                &.btn-editar {
+                  &:hover {
+                    background-color: #F59E0B;
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+                  
+                  &:active {
+                    transform: scale(0.9);
+                    background-color: #D97706;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+
+@media (max-width: 768px) {
+  .compact-inventario-table {
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
+    max-height: none;
+    .inventario-table {
+      grid-template-columns:
+        60px   /* Código */
+        100px  /* Nombre */
+        minmax(100px, 1fr) /* Descripción */
+        60px   /* Cantidad */
+        60px   /* Unidad */
+        80px   /* Stock */
+        80px   /* Precio Neto */
+        80px   /* PVP */
+        60px;  /* Acciones */
+      font-size: 12px;
+      .table-header .header-row .header-cell {
+        font-size: 11px;
+        padding: 8px 4px;
+      }
+      .table-body .producto-row .producto-cell {
+        padding: 8px 4px;
+        &.nombre { font-size: 12px; }
+        &.descripcion .descripcion-texto { font-size: 11px; }
+        &.acciones button { width: 24px; height: 24px; ion-icon { font-size: 14px; } }
+      }
+    }
+  }
+}
+
+.compact-inventario-table .inventario-table .aviso-cell {
+  color: #26262A !important;
+}
