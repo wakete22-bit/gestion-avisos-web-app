@@ -284,6 +284,8 @@ body {
   flex-direction: column;
 }
 
+
+
 /* Configurar el router outlet para que ocupe el espacio disponible */
 ion-router-outlet {
   flex: 1;
@@ -388,8 +390,10 @@ ion-router-outlet {
 // Estilos globales para móviles
 @media (max-width: 768px) {
   ion-content {
-    --padding-start: 16px;
-    --padding-end: 16px;
+    --padding-start: 0px;
+    --padding-end: 0px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
   }
   
   ion-card {

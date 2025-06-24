@@ -62,7 +62,7 @@ ion-content {
     width: 100%;
     padding: 8px 16px;
     padding-right: 40px;
-    border-radius: 8px;
+    border-radius: 0px;
     border: 1px solid #e2e8f0;
     font-size: 14px;
     background: #fff;
@@ -483,7 +483,7 @@ ion-content {
   .dashboard-table {
     height: 100%;
     margin: 0;
-    padding: 16px;
+    padding: 0px;
     border-radius: 0;
     box-shadow: none;
   }
@@ -502,6 +502,10 @@ ion-content {
     margin-bottom: 12px;
   }
 
+  .table-header-left {
+    padding: 0px 10px;
+  }
+
   .table-pagination {
     .pagination-info {
       width: 100%;
@@ -514,12 +518,17 @@ ion-content {
       justify-content: center;
     }
   }
+
+  .map-legend {
+    border-radius: 0px!important;
+  }
+
 }
 
 @media (max-width: 480px) {
   .dashboard-table {
     height: 100%;
-    padding: 16px;
+    padding: 0px;
   }
 
   .mobile-actions {
@@ -949,6 +958,7 @@ ion-content {
   .map-view-container {
     flex-direction: column;
     overflow: visible;
+    gap: 0px!important;
   }
   .map-list-container {
     width: 100%;
@@ -957,10 +967,12 @@ ion-content {
     max-height: 35vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: 0px!important;
   }
   .map-display-container {
     height: 50vh;
     margin-bottom: 20px;
+    border-radius: 0px!important;
   }
 }
 
@@ -1007,7 +1019,7 @@ ion-content {
       }
       
       &.detalle-servicio {
-        max-width: 120px; // Anchura máxima en móvil
+        max-width: 128px; // Anchura máxima en móvil
         
         .detalle-texto {
           width: 100%;

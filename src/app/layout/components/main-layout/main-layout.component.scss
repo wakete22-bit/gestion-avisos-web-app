@@ -152,7 +152,7 @@
     .main-layout {
         .mobile-header {
             display: flex;
-            height: 66px!important;
+            height: 50px!important;
         }
 
         .content-wrapper {
@@ -165,10 +165,10 @@
                 min-height: 100%;
 
                 &.mobile {
-                    margin-top: calc(66px + var(--safe-area-top, 0px)) !important;
+                    margin-top: calc(50px + var(--safe-area-top, 0px)) !important;
                     padding: 0px;
                     padding-bottom: 80px;
-                    min-height: calc(100vh - 66px - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 50px - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
                 }
             }
         }
@@ -192,7 +192,7 @@
         .mobile-header {
             top: 0;
             padding-top: 12px;
-            height: 66px;
+            height: 55px;
         }
 
         .content-wrapper {
@@ -200,9 +200,9 @@
 
             .main-content {
                 &.mobile {
-                    margin-top: 66px !important;
+                    margin-top: 50px !important;
                     padding-bottom: 16px;
-                    min-height: calc(100vh - 66px - var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
                 }
             }
         }
@@ -216,15 +216,15 @@
             .mobile-header {
                 top: 0;
                 padding-top: 12px;
-                height: 66px;
+                height: 55px;
             }
 
             .content-wrapper {
                 .main-content {
                     &.mobile {
-                        margin-top: 66px !important;
+                        margin-top: 50px !important;
                         padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
-                        min-height: calc(100vh - 66px - var(--safe-area-bottom, 0px));
+                        min-height: calc(100vh - 50px - var(--safe-area-bottom, 0px));
                     }
                 }
             }
