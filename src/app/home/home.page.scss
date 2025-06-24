@@ -67,12 +67,14 @@ ion-content {
 }
 
 .dashboard-summary {
-  width: auto;
+  width: fit-content;
+  max-width: 100%;
   background: $bg-white;
   border-radius: 18px;
   box-shadow: $shadow;
   margin-bottom: 32px;
   padding: 30px;
+  margin-right: auto;
 }
 
 // Tarjetas de resumen
@@ -80,6 +82,8 @@ ion-content {
   display: inline-flex;
   align-items: center;
   gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .summary-card {
@@ -87,6 +91,7 @@ ion-content {
   align-items: center;
   gap: 16px;
   min-width: 220px;
+  flex-shrink: 0;
 
   .icon {
     width: 74px;
@@ -107,6 +112,8 @@ ion-content {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .summary-card-mobile {
@@ -636,9 +643,12 @@ ion-icon[name="alert-circle"] {
 
   .dashboard-summary {
     margin-bottom: 24px;
-    grid-template-columns: 2fr;
     background-color: transparent;
     padding: 0px!important;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .desktop-only {
@@ -691,10 +701,15 @@ ion-icon[name="alert-circle"] {
 
   .dashboard-summary {
     padding: 16px;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .summary-grid {
-    width: 100%;
+    width: fit-content;
+    max-width: 100%;
   }
 
   .mobile-search input {

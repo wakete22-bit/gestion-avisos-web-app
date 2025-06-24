@@ -127,6 +127,34 @@ ion-modal.side-modal {
   }
 }
 
+// Configuración específica para PWA standalone en móviles
+@media all and (display-mode: standalone) {
+  ion-modal {
+    --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+  }
+  
+  @media (max-width: 768px) {
+    ion-modal {
+      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    }
+  }
+}
+
+// Configuración específica para iOS en PWA standalone
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    ion-modal {
+      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    }
+  }
+}
+
 ion-modal.modal-crear-cliente::part(backdrop) {
   background: rgba(16, 18, 27, 0.55); // Más oscuro que el default
   opacity: 1;
@@ -387,13 +415,17 @@ ion-router-outlet {
   border-left-color: #fff;
 }
 
+section {
+  padding-top: 15px!important;
+}
+
 // Estilos globales para móviles
 @media (max-width: 768px) {
   ion-content {
     --padding-start: 0px;
     --padding-end: 0px;
-    --padding-top: 10px;
-    --padding-bottom: 10px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
   }
   
   ion-card {
@@ -429,5 +461,79 @@ ion-router-outlet {
   ion-card {
     margin: 24px;
     border-radius: 20px;
+  }
+}
+
+// Estilos adicionales para modales en PWA standalone
+@media all and (display-mode: standalone) {
+  // Asegurar que los modales respeten las safe areas
+  ion-modal {
+    --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+  }
+  
+  // Aplicar safe areas a los contenedores de modales
+  .modal-container {
+    height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+  }
+  
+  // Aplicar safe areas a los headers de modales
+  .modal-header {
+    padding-top: calc(16px + var(--safe-area-top, 0px)) !important;
+  }
+  
+  // Aplicar safe areas a los footers de modales
+  .modal-footer {
+    padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+  }
+}
+
+// Configuración específica para iOS en PWA standalone
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    ion-modal {
+      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    }
+    
+    .modal-container {
+      height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+      max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
+    }
+    
+    .modal-header {
+      padding-top: calc(16px + var(--safe-area-top, 0px)) !important;
+    }
+    
+    .modal-footer {
+      padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+    }
+  }
+}
+
+// Fallback para navegadores que no soportan env() en modales
+@supports not (padding-top: env(safe-area-inset-top)) {
+  @media all and (display-mode: standalone) {
+    ion-modal {
+      --height: calc(100vh - 40px) !important;
+      --max-height: calc(100vh - 40px) !important;
+      --min-height: calc(100vh - 40px) !important;
+    }
+    
+    .modal-container {
+      height: calc(100vh - 40px) !important;
+      max-height: calc(100vh - 40px) !important;
+    }
+    
+    .modal-header {
+      padding-top: 36px !important;
+    }
+    
+    .modal-footer {
+      padding-bottom: 36px !important;
+    }
   }
 }

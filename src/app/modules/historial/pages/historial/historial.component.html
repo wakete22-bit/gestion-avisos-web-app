@@ -48,12 +48,12 @@
         <div class="table-header">
           <div class="header-row">
             <div class="header-cell">Número</div>
-            <div class="header-cell">Estado</div>
-            <div class="header-cell">Nombre</div>
+            <div class="header-cell desktop-only">Estado</div>
+            <div class="header-cell">Cliente</div>
             <div class="header-cell">Detalle</div>
-            <div class="header-cell">Fecha</div>
-            <div class="header-cell">Urgente</div>
-            <div class="header-cell">Dirección</div>
+            <div class="header-cell desktop-only">Fecha</div>
+            <div class="header-cell desktop-only">Urgente</div>
+            <div class="header-cell desktop-only">Dirección</div>
             <div class="header-cell">Acciones</div>
           </div>
         </div>
@@ -65,7 +65,7 @@
                  'completado': aviso.estado === 'Completado'
                }">
             <div class="aviso-cell numero-aviso">{{ aviso.numero }}</div>
-            <div class="aviso-cell estado-aviso">
+            <div class="aviso-cell estado-aviso desktop-only" style="justify-content: start;">
               <span class="badge"
                     [ngClass]="{
                       'yellow': aviso.estado === 'En curso',
@@ -79,12 +79,12 @@
             <div class="aviso-cell detalle-servicio">
               <div class="detalle-texto" [title]="aviso.detalle">{{ aviso.detalle }}</div>
             </div>
-            <div class="aviso-cell fecha-aviso">{{ aviso.fecha }}</div>
-            <div class="aviso-cell urgente-aviso">
+            <div class="aviso-cell fecha-aviso desktop-only">{{ aviso.fecha }}</div>
+            <div class="aviso-cell urgente-aviso desktop-only">
               <ion-icon *ngIf="aviso.urgente" name="alert-circle" class="urgente-icon" title="Aviso urgente"></ion-icon>
               <ion-icon *ngIf="!aviso.urgente" name="close" class="no-urgente-icon" title="No urgente"></ion-icon>
             </div>
-            <div class="aviso-cell direccion-aviso">{{ aviso.direccion }}</div>
+            <div class="aviso-cell direccion-aviso desktop-only">{{ aviso.direccion }}</div>
             <div class="aviso-cell acciones">
               <button class="btn-ver" title="Ver detalles">
                 <ion-icon name="eye-outline"></ion-icon>

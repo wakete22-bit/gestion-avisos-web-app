@@ -610,9 +610,6 @@ ion-content {
     max-height: none;
     
     .avisos-table {
-      grid-template-columns: 60px 110px 120px minmax(150px, 1fr) 80px 60px 80px; // Ajustado para móvil con minmax
-      font-size: 12px;
-      
       .table-header .header-row .header-cell {
         font-size: 11px;
         padding: 8px 4px;
@@ -634,17 +631,6 @@ ion-content {
             .detalle-texto {
               font-size: 11px;
               line-height: 1.3;
-            }
-          }
-          
-          &.fecha-aviso {
-            font-size: 11px;
-          }
-          
-          &.urgente-aviso {
-            .urgente-icon,
-            .no-urgente-icon {
-              font-size: 16px;
             }
           }
           
@@ -713,13 +699,39 @@ ion-content {
     padding: 10px 16px;
   }
   
-  // Estilos específicos para badges en móvil
-  .compact-avisos-table .avisos-table .table-body .aviso-row .aviso-cell.estado-aviso {
-    .badge {
-      padding: 1px 4px;
-      font-size: 9px;
-      max-width: 90px;
-      border-radius: 6px;
+  // Estilos específicos para la tabla compacta en móvil pequeño
+  .compact-avisos-table .avisos-table {
+    grid-template-columns: 50px 1fr minmax(0, 1.5fr) 70px; // Móvil pequeño: Número | Cliente | Detalle | Acciones
+    
+    .table-header .header-row .header-cell {
+      font-size: 10px;
+      padding: 6px 2px;
+    }
+    
+    .table-body .aviso-row .aviso-cell {
+      padding: 6px 2px;
+      
+      &.numero-aviso {
+        font-size: 12px;
+      }
+      
+      &.nombre-cliente {
+        font-size: 11px;
+      }
+      
+      &.detalle-servicio .detalle-texto {
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      
+      &.acciones button {
+        width: 22px;
+        height: 22px;
+        
+        ion-icon {
+          font-size: 12px;
+        }
+      }
     }
   }
 }
@@ -794,8 +806,9 @@ ion-content {
     .avisos-table {
       width: 100%;
       display: grid;
-      grid-template-columns: 80px 1.2fr minmax(0, 1fr) 100px; // Escritorio: Número | Cliente | Detalle | Acciones
-      font-size: 13px;
+      // Móvil por defecto: Número | Cliente | Detalle | Acciones
+      grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+      font-size: 12px;
 
       .table-header {
         display: contents;
@@ -958,52 +971,6 @@ ion-content {
                     transform: scale(0.9);
                     background-color: #059669;
                   }
-                }
-              }
-            }
-
-            &.estado-aviso {
-              justify-content: center;
-              font-size: 11px;
-              
-              .badge {
-                padding: 2px 6px;
-                border-radius: 8px;
-                font-size: 10px;
-                font-weight: 500;
-                white-space: nowrap;
-                max-width: 120px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                
-                &.yellow {
-                  background: #FFF7E6;
-                  color: #B25E02;
-                }
-                
-                &.red {
-                  background: #FEE4E2;
-                  color: #D92D20;
-                }
-                
-                &.green {
-                  background: #E6F4EA;
-                  color: #137333;
-                }
-                
-                &.no-visitado {
-                  background: #FEE2E2;
-                  color: #DC2626;
-                }
-                
-                &.visitado-pendiente {
-                  background: #FEF3C7;
-                  color: #D97706;
-                }
-                
-                &.pendiente-presupuesto {
-                  background: #DBEAFE;
-                  color: #2563EB;
                 }
               }
             }
@@ -1240,7 +1207,7 @@ ion-content {
 
 .avisos-table {
   font-size: 12px;
-  grid-template-columns: 60px 110px 120px minmax(150px, 1fr) 80px 60px 80px; // Ajustado para móvil con minmax
+  grid-template-columns: 80px 1.2fr minmax(0, 1fr) 100px; // Número | Cliente | Detalle | Acciones
   
   .table-header .header-row .header-cell {
     font-size: 11px;
@@ -1305,16 +1272,20 @@ ion-content {
 .compact-avisos-table {
   max-height: 70vh;
   overflow-y: auto;
-  border-radius: 8px;
+  border-radius: 0px;
   border: 1px solid #E5E7EB;
   background: #fff;
   margin-bottom: 16px;
+  max-width: 100%;
+  overflow-x: auto;
 
   .avisos-table {
     width: 100%;
     display: grid;
-    grid-template-columns: 80px 140px 150px minmax(200px, 1fr) 100px 80px 100px; // Ajustado para que detalle use minmax
-    font-size: 13px;
+    // Móvil por defecto: Número | Cliente | Detalle | Acciones
+    grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+    font-size: 12px;
+    min-width: 0; // Importante para que el grid respete el contenedor
 
     .table-header {
       display: contents;
@@ -1333,6 +1304,7 @@ ion-content {
           letter-spacing: 0.5px;
           display: flex;
           align-items: center;
+          min-width: 0; // Importante para que las celdas se compriman
         }
       }
     }
@@ -1435,17 +1407,20 @@ ion-content {
           border-bottom: 1px solid #F3F4F6;
           display: flex;
           align-items: center;
+          min-width: 0; // Importante para que las celdas se compriman
 
           &.numero-aviso {
             font-weight: 600;
             color: #111827;
             font-size: 14px;
             justify-content: center;
+            flex-shrink: 0;
           }
 
           &.estado-aviso {
             justify-content: center;
             font-size: 11px;
+            flex-shrink: 0;
             
             .badge {
               padding: 2px 6px;
@@ -1496,9 +1471,14 @@ ion-content {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 0;
+            flex: 1;
           }
 
           &.detalle-servicio {
+            min-width: 0;
+            flex: 1;
+            
             .detalle-texto {
               width: 100%;
               overflow: hidden;
@@ -1507,6 +1487,7 @@ ion-content {
               color: #6B7280;
               font-size: 12px;
               line-height: 1.4;
+              max-width: 100%;
             }
           }
 
@@ -1514,10 +1495,12 @@ ion-content {
             font-size: 12px;
             color: #6B7280;
             justify-content: center;
+            flex-shrink: 0;
           }
 
           &.urgente-aviso {
             justify-content: center;
+            flex-shrink: 0;
             
             .urgente-icon {
               color: #D92D20;
@@ -1533,6 +1516,7 @@ ion-content {
           &.acciones {
             justify-content: center;
             gap: 4px;
+            flex-shrink: 0;
 
             button {
               width: 28px;
@@ -1588,8 +1572,110 @@ ion-content {
   }
 }
 
+// Desktop styles - sobrescribir el grid para pantallas grandes
+@media (min-width: 769px) {
+  .compact-avisos-table {
+    max-width: 100%;
+    overflow-x: auto;
+    
+    .avisos-table {
+      // Desktop: Número | Estado | Cliente | Detalle | Fecha | Urgente | Acciones
+      // Usar valores fijos y minmax para evitar que la tabla sea demasiado ancha
+      grid-template-columns: 80px 140px minmax(150px, 1.5fr) minmax(200px, 2fr) 120px 100px 120px;
+      font-size: 13px;
+      min-width: 0;
+      
+      .table-header .header-row .header-cell {
+        font-size: 12px;
+        padding: 12px 8px;
+        min-width: 0;
+      }
+      
+      .table-body .aviso-row .aviso-cell {
+        padding: 12px 8px;
+        min-width: 0;
+        
+        &.numero-aviso {
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+        
+        &.estado-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.nombre-cliente {
+          font-size: 13px;
+          min-width: 0;
+          flex: 1;
+        }
+        
+        &.detalle-servicio {
+          min-width: 0;
+          flex: 1;
+          
+          .detalle-texto {
+            font-size: 12px;
+            max-width: 100%;
+          }
+        }
+        
+        &.fecha-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.urgente-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.acciones {
+          flex-shrink: 0;
+          
+          button {
+            width: 28px;
+            height: 28px;
+            
+            ion-icon {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .map-avisos-table .avisos-table {
-    grid-template-columns: 50px 1fr minmax(0, 1.5fr) 60px; // Móvil: Número | Cliente | Detalle | Acciones
+    .table-header .header-row .header-cell {
+      font-size: 11px;
+      padding: 8px 4px;
+    }
+    
+    .table-body .aviso-row .aviso-cell {
+      padding: 8px 4px;
+      
+      &.numero-aviso {
+        font-size: 13px;
+      }
+      
+      &.nombre-cliente {
+        font-size: 12px;
+      }
+      
+      &.detalle-servicio .detalle-texto {
+        font-size: 11px;
+        line-height: 1.3;
+      }
+      
+      &.acciones button {
+        width: 24px;
+        height: 24px;
+        
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
   }
 }

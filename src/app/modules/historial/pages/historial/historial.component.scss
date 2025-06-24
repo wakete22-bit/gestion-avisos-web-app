@@ -472,6 +472,7 @@ ion-content {
   
     .table-header {
       margin-bottom: 12px;
+      padding: 0px 16px;
     }
   
     .table-pagination {
@@ -490,7 +491,7 @@ ion-content {
   
   @media (max-width: 480px) {
     .dashboard-table {
-      padding: 16px;
+      padding: 0px;
     }
   
     .mobile-search {
@@ -506,6 +507,7 @@ ion-content {
   
     .mobile-actions {
       gap: 12px;
+      padding: 0px 16px;
       
       .mobile-filter {
         width: 60%;
@@ -541,16 +543,9 @@ ion-content {
     .historial-table {
       width: 100%;
       display: grid;
-      grid-template-columns:
-        80px    /* Número */
-        120px   /* Estado */
-        150px   /* Nombre */
-        minmax(200px, 1fr) /* Detalle */
-        100px   /* Fecha */
-        80px    /* Urgente */
-        180px   /* Dirección */
-        80px;   /* Acciones */
-      font-size: 13px;
+      // Móvil por defecto: Número | Cliente | Detalle | Acciones
+      grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+      font-size: 12px;
   
       .table-header {
         display: contents;
@@ -737,6 +732,45 @@ ion-content {
     }
   }
   
+  // Desktop styles - sobrescribir el grid para pantallas grandes
+  @media (min-width: 769px) {
+    .compact-historial-table .historial-table {
+      // Desktop: Número | Estado | Cliente | Detalle | Fecha | Urgente | Dirección | Acciones
+      grid-template-columns: 80px 140px 1.5fr 2fr 120px 100px 2fr 120px;
+      font-size: 13px;
+      
+      .table-header .header-row .header-cell {
+        font-size: 12px;
+        padding: 12px 8px;
+      }
+      
+      .table-body .aviso-row .aviso-cell {
+        padding: 12px 8px;
+        
+        &.numero-aviso {
+          font-size: 14px;
+        }
+        
+        &.nombre-cliente {
+          font-size: 13px;
+        }
+        
+        &.detalle-servicio .detalle-texto {
+          font-size: 12px;
+        }
+        
+        &.acciones button {
+          width: 28px;
+          height: 28px;
+          
+          ion-icon {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+  
   @media (max-width: 768px) {
     .compact-historial-table {
       border-radius: 0px;
@@ -744,25 +778,28 @@ ion-content {
       border-right: none;
       max-height: none;
       .historial-table {
-        grid-template-columns:
-          60px   /* Número */
-          80px   /* Estado */
-          100px  /* Nombre */
-          minmax(100px, 1fr) /* Detalle */
-          80px   /* Fecha */
-          60px   /* Urgente */
-          120px  /* Dirección */
-          60px;  /* Acciones */
-        font-size: 12px;
         .table-header .header-row .header-cell {
           font-size: 11px;
           padding: 8px 4px;
         }
         .table-body .aviso-row .aviso-cell {
           padding: 8px 4px;
-          &.nombre-cliente { font-size: 12px; }
-          &.detalle-servicio .detalle-texto { font-size: 11px; }
-          &.acciones button { width: 24px; height: 24px; ion-icon { font-size: 14px; } }
+          &.numero-aviso {
+            font-size: 13px;
+          }
+          &.nombre-cliente { 
+            font-size: 12px; 
+          }
+          &.detalle-servicio .detalle-texto { 
+            font-size: 11px; 
+          }
+          &.acciones button { 
+            width: 24px; 
+            height: 24px; 
+            ion-icon { 
+              font-size: 14px; 
+            } 
+          }
         }
       }
     }

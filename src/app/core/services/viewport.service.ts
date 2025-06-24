@@ -126,6 +126,49 @@ export class ViewportService {
     }
   }
 
+  // Aplicar safe areas a un modal
+  public applySafeAreaToModal(modalElement: HTMLElement) {
+    if (!this.isStandalone() || !this.isMobile()) {
+      return; // Solo aplicar en PWA standalone en móviles
+    }
+
+    const safeAreaInfo = this.getSafeAreaInfo();
+    
+    // Aplicar al contenedor principal del modal
+    modalElement.style.height = `calc(100vh - ${safeAreaInfo.top} - ${safeAreaInfo.bottom})`;
+    modalElement.style.maxHeight = `calc(100vh - ${safeAreaInfo.top} - ${safeAreaInfo.bottom})`;
+    
+    // Buscar y aplicar al header
+    const header = modalElement.querySelector('.modal-header') as HTMLElement;
+    if (header) {
+      header.style.paddingTop = `calc(16px + ${safeAreaInfo.top})`;
+    }
+    
+    // Buscar y aplicar al footer
+    const footer = modalElement.querySelector('.modal-footer') as HTMLElement;
+    if (footer) {
+      footer.style.paddingBottom = `calc(16px + ${safeAreaInfo.bottom})`;
+    }
+  }
+
+  // Obtener estilos CSS para safe areas
+  public getSafeAreaStyles() {
+    const safeAreaInfo = this.getSafeAreaInfo();
+    
+    return {
+      modalContainer: {
+        height: `calc(100vh - ${safeAreaInfo.top} - ${safeAreaInfo.bottom})`,
+        maxHeight: `calc(100vh - ${safeAreaInfo.top} - ${safeAreaInfo.bottom})`
+      },
+      modalHeader: {
+        paddingTop: `calc(16px + ${safeAreaInfo.top})`
+      },
+      modalFooter: {
+        paddingBottom: `calc(16px + ${safeAreaInfo.bottom})`
+      }
+    };
+  }
+
   // Forzar el viewport a un tamaño específico (útil para testing)
   public setViewportSize(width: number, height: number) {
     const viewport = document.querySelector('meta[name="viewport"]');

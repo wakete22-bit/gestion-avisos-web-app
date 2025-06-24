@@ -1,10 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { arrowForward, personOutline, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline, trashOutline } from 'ionicons/icons';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
+import { ViewportService } from 'src/app/core/services/viewport.service';
 
 @Component({
   selector: 'app-crear-avisos-modal',
@@ -13,14 +14,16 @@ import { CrearClienteModalComponent } from '../../../clientes/components/crear-c
   standalone: true,
   imports: [IonicModule, CommonModule, ReactiveFormsModule, CrearClienteModalComponent]
 })
-export class CrearAvisosModalComponent implements OnInit {
+export class CrearAvisosModalComponent implements OnInit, AfterViewInit {
   @Input() clienteData: any;
   avisoForm: FormGroup;
   imagenes: File[] = [];
 
   constructor(
     private fb: FormBuilder,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private viewportService: ViewportService,
+    private elementRef: ElementRef
   ) {
     this.avisoForm = this.fb.group({
       tipo: ['', Validators.required],
@@ -56,6 +59,16 @@ export class CrearAvisosModalComponent implements OnInit {
         nombreContacto: this.clienteData.nombreContacto
       });
     }
+  }
+
+  ngAfterViewInit() {
+    // Aplicar safe areas al modal después de que se renderice
+    setTimeout(() => {
+      const modalContainer = this.elementRef.nativeElement.querySelector('.modal-container');
+      if (modalContainer) {
+        this.viewportService.applySafeAreaToModal(modalContainer);
+      }
+    }, 100);
   }
 
   onFileSelected(event: any) {

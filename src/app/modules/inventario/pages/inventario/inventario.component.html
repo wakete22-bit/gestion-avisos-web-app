@@ -8,7 +8,6 @@
 
 
 <ion-content [fullscreen]="true">  
-  <main class="dashboard-main">
     <!-- Resumen de tarjetas -->
     <section class="dashboard-summary">
       <!-- Desktop Summary Cards -->
@@ -101,10 +100,22 @@
     <!-- Productos recientes -->
     <section class="dashboard-table">
       <div class="table-header">
-        <div class="table-header-left">
-          <div class="table-title">Productos</div>
-          <div class="table-meta">Productos: {{ productos.length }}</div>  
+
+        <div class="table-header-container">
+          <div class="table-header-left">
+            <div class="table-title">Productos</div>
+            <div class="table-meta">Productos: {{ productos.length }}</div>  
+          </div>
+    
+          <div class="mobile-buttons">
+            <button class="btn-add" (click)="abrirModalCrearProducto()">
+              <ion-icon name="add-circle"></ion-icon>
+            </button>
+          </div>
+  
+  
         </div>
+  
         
         <!-- Mobile Search Bar -->
         <div class="mobile-search">
@@ -123,22 +134,7 @@
             Añadir producto
           </button>
         </div>
-      </div>
-
-      <!-- Mobile Actions -->
-      <div class="mobile-actions">
-        <select class="mobile-filter">
-          <option>Ordenar: Recientes</option>
-          <option>Ordenar: A-Z</option>
-          <option>Ordenar: Stock</option>
-        </select>
-        <div class="mobile-buttons">
-          <button class="btn-add" (click)="abrirModalCrearProducto()">
-            <ion-icon name="add-circle"></ion-icon>
-          </button>
-        </div>
-      </div>
-      
+      </div>      
 
       <!-- Compact Table View (grid, igual que avisos) -->
       <div class="compact-inventario-table">
@@ -197,5 +193,4 @@
         </div>
       </div>
     </section>
-  </main>
 </ion-content>
