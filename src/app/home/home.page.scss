@@ -61,18 +61,15 @@ ion-content {
 
 // Dashboard principal
 .dashboard-main {
-  padding: 32px 24px;
-  background: $bg-light;
+  background: white;
   min-height: 100vh;
+  padding: 10px 0px;
 }
 
 .dashboard-summary {
   width: fit-content;
   max-width: 100%;
   background: $bg-white;
-  border-radius: 18px;
-  box-shadow: $shadow;
-  margin-bottom: 32px;
   padding: 30px;
   margin-right: auto;
 }
@@ -109,11 +106,18 @@ ion-content {
 }
 
 .summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 16px;
   width: fit-content;
   max-width: 100%;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 .summary-card-mobile {
@@ -124,6 +128,8 @@ ion-content {
   background: #F8FAFC;
   border-radius: 12px;
   border: 1px solid $border-color;
+  min-width: 200px;
+  flex-shrink: 0;
 
   .icon {
     width: 56px;
@@ -138,6 +144,7 @@ ion-content {
 
   .mobile-card-content {
     flex: 1;
+    min-width: 0;
   }
 }
 
@@ -176,7 +183,7 @@ ion-content {
 
 // Tarjetas pendientes
 .dashboard-cards {
-  margin-bottom: 32px;
+  margin-bottom: 0px;
 }
 
 .pending-cards-desktop {
@@ -186,9 +193,7 @@ ion-content {
 
 .pending-card {
   background: $bg-white;
-  border-radius: 18px;
-  box-shadow: $shadow;
-  padding: 24px 32px;
+  padding: 15px 32px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -197,8 +202,16 @@ ion-content {
 
 .pending-cards-mobile {
   display: none;
-  flex-direction: column;
+  flex-direction: row;
   gap: 16px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 .pending-card-mobile {
@@ -207,6 +220,9 @@ ion-content {
   box-shadow: $shadow;
   padding: 20px;
   border: 1px solid $border-color;
+  min-width: 280px;
+  height: min-content;
+  flex-shrink: 0;
 
   .mobile-card-header {
     display: flex;
@@ -217,12 +233,33 @@ ion-content {
     border-bottom: 1px solid $border-light;
   }
 
+  .pending-title {
+    font-size: 14px;
+    color: $text-primary;
+    font-weight: 500;
+    margin-right: 20px;
+  }
+
+  .pending-status {
+    font-size: 14px;
+    color: $text-secondary;
+    font-weight: 400;
+
+    ion-icon {
+      display: none;
+    }
+
+    &.red {
+      color: #D92D20;
+    }
+  }
+
   .mobile-card-body {
     margin-bottom: 16px;
   }
 
   .mobile-amount {
-    font-size: 24px;
+    font-size: 20px;
     color: $primary-color;
     font-weight: 600;
     margin-bottom: 4px;
@@ -260,7 +297,7 @@ ion-content {
 }
 
 .pending-title {
-  font-size: 18px;
+  font-size: 16px;
   color: $text-primary;
   font-weight: 500;
 }
@@ -268,7 +305,9 @@ ion-content {
 .pending-details-container {
   display: flex;
   flex-direction: row;
-  gap: 40px;
+  align-items: start;
+  justify-content: start;
+  gap: 25px;
 
   .pending-details-subtitle {
     font-size: 14px;
@@ -278,8 +317,15 @@ ion-content {
   }
 }
 
+.pending-details-title {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .pending-amount {
-  font-size: 30px;
+  font-size: 22px;
   color: $primary-color;
   font-weight: 500;
 }
@@ -295,7 +341,7 @@ ion-content {
 .pending-status.orange {
   color: #DC6803;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -309,11 +355,45 @@ ion-content {
   align-self: flex-end;
 }
 
+// Estilos para la tabla de detalles pendientes
+.pending-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0px;
+  font-size: 14px;
+  background: $bg-white;
+  border-radius: 8px;
+  overflow: hidden;
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: transparent;
+    color: $text-secondary;
+    font-weight: 500;
+    border-bottom: 1px solid $border-color;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid $border-light;
+    color: $text-primary;
+    vertical-align: top;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover {
+    background: #F8FAFC;
+  }
+}
+
 // Tabla del dashboard
 .dashboard-table {
   background: $bg-white;
-  border-radius: 18px;
-  box-shadow: $shadow;
   padding: 25px;
 }
 
@@ -630,10 +710,10 @@ ion-icon[name="alert-circle"] {
 
 // Media queries
 @media (max-width: 1699px) {
-  .pending-details-table th:nth-child(2),
-  .pending-details-table td:nth-child(2) {
-    display: none;
-  }
+  // .pending-details-table th:nth-child(2),
+  // .pending-details-table td:nth-child(2) {
+  //   display: none;
+  // }
 }
 
 @media (max-width: 768px) {
@@ -642,7 +722,7 @@ ion-icon[name="alert-circle"] {
   }
 
   .dashboard-summary {
-    margin-bottom: 24px;
+    margin-bottom: 0px;
     background-color: transparent;
     padding: 0px!important;
     width: fit-content;
@@ -779,6 +859,466 @@ ion-icon[name="alert-circle"] {
   }
 
   .dashboard-table {
-    padding: 16px;
+    padding: 0px;
+  }
+}
+
+// Compact Table View Styles (copied from avisos component)
+.compact-avisos-table {
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  margin-bottom: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+
+  .avisos-table {
+    width: 100%;
+    display: grid;
+    // Móvil por defecto: Número | Cliente | Detalle | Acciones
+    grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+    font-size: 12px;
+    min-width: 0; // Importante para que el grid respete el contenedor
+
+    .table-header {
+      display: contents;
+      
+      .header-row {
+        display: contents;
+        
+        .header-cell {
+          padding: 12px 8px;
+          background: #F9FAFB;
+          border-bottom: 1px solid #E5E7EB;
+          font-weight: 500;
+          color: #374151;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          min-width: 0; // Importante para que las celdas se compriman
+        }
+      }
+    }
+
+    .table-body {
+      display: contents;
+      
+      .aviso-row {
+        display: contents;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+
+        &:hover {
+          .aviso-cell {
+            background-color: #F9FAFB;
+          }
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+
+        // Estados de color para diferentes tipos de avisos
+        &.no-visitado {
+          .aviso-cell:first-child {
+            border-left: 4px solid #EF4444;
+          }
+          .aviso-cell {
+            background-color: #FEF2F2;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEE2E2;
+          }
+        }
+
+        &.visitado-pendiente {
+          .aviso-cell:first-child {
+            border-left: 4px solid #F59E0B;
+          }
+          .aviso-cell {
+            background-color: #FFFBEB;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEF3C7;
+          }
+        }
+
+        &.pendiente-presupuesto {
+          .aviso-cell:first-child {
+            border-left: 4px solid #3B82F6;
+          }
+          .aviso-cell {
+            background-color: #EFF6FF;
+          }
+          &:hover .aviso-cell {
+            background-color: #DBEAFE;
+          }
+        }
+
+        &.en-curso {
+          .aviso-cell:first-child {
+            border-left: 4px solid #F59E0B;
+          }
+          .aviso-cell {
+            background-color: #FFFBEB;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEF3C7;
+          }
+        }
+
+        &.pendiente {
+          .aviso-cell:first-child {
+            border-left: 4px solid #EF4444;
+          }
+          .aviso-cell {
+            background-color: #FEF2F2;
+          }
+          &:hover .aviso-cell {
+            background-color: #FEE2E2;
+          }
+        }
+
+        &.completado {
+          .aviso-cell:first-child {
+            border-left: 4px solid #10B981;
+          }
+          .aviso-cell {
+            background-color: #ECFDF5;
+          }
+          &:hover .aviso-cell {
+            background-color: #D1FAE5;
+          }
+        }
+
+        .aviso-cell {
+          padding: 12px 8px;
+          border-bottom: 1px solid #F3F4F6;
+          display: flex;
+          align-items: center;
+          min-width: 0; // Importante para que las celdas se compriman
+
+          &.numero-aviso {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          &.estado-aviso {
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+            
+            .badge {
+              padding: 2px 6px;
+              border-radius: 8px;
+              font-size: 10px;
+              font-weight: 500;
+              white-space: nowrap;
+              max-width: 120px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              
+              &.yellow {
+                background: #FFF7E6;
+                color: #B25E02;
+              }
+              
+              &.red {
+                background: #FEE4E2;
+                color: #D92D20;
+              }
+              
+              &.green {
+                background: #E6F4EA;
+                color: #137333;
+              }
+              
+              &.no-visitado {
+                background: #FEE2E2;
+                color: #DC2626;
+              }
+              
+              &.visitado-pendiente {
+                background: #FEF3C7;
+                color: #D97706;
+              }
+              
+              &.pendiente-presupuesto {
+                background: #DBEAFE;
+                color: #2563EB;
+              }
+            }
+          }
+
+          &.nombre-cliente {
+            font-weight: 500;
+            color: #374151;
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+            flex: 1;
+          }
+
+          &.detalle-servicio {
+            min-width: 0;
+            flex: 1;
+            
+            .detalle-texto {
+              width: 100%;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              color: #6B7280;
+              font-size: 12px;
+              line-height: 1.4;
+              max-width: 100%;
+            }
+          }
+
+          &.fecha-aviso {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          &.urgente-aviso {
+            justify-content: center;
+            flex-shrink: 0;
+            
+            .urgente-icon {
+              color: #D92D20;
+              font-size: 18px;
+            }
+            
+            .no-urgente-icon {
+              color: #64748b;
+              font-size: 18px;
+            }
+          }
+
+          &.acciones {
+            justify-content: center;
+            gap: 4px;
+            flex-shrink: 0;
+
+            button {
+              width: 28px;
+              height: 28px;
+              border: none;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: transparent;
+              -webkit-tap-highlight-color: transparent;
+              touch-action: manipulation;
+
+              ion-icon {
+                font-size: 16px;
+                color: #6B7280;
+              }
+
+              &.btn-ver {
+                &:hover {
+                  background-color: #10B981;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #059669;
+                }
+              }
+
+              &.btn-editar {
+                &:hover {
+                  background-color: #F59E0B;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #D97706;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Desktop styles - sobrescribir el grid para pantallas grandes
+@media (min-width: 769px) {
+  .compact-avisos-table {
+    max-width: 100%;
+    overflow-x: auto;
+    
+    .avisos-table {
+      // Desktop: Número | Estado | Cliente | Detalle | Fecha | Urgente | Acciones
+      // Usar valores fijos y minmax para evitar que la tabla sea demasiado ancha
+      grid-template-columns: 80px 140px minmax(150px, 1.5fr) minmax(200px, 2fr) 120px 100px 120px;
+      font-size: 13px;
+      min-width: 0;
+      
+      .table-header .header-row .header-cell {
+        font-size: 12px;
+        padding: 12px 8px;
+        min-width: 0;
+      }
+      
+      .table-body .aviso-row .aviso-cell {
+        padding: 12px 8px;
+        min-width: 0;
+        
+        &.numero-aviso {
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+        
+        &.estado-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.nombre-cliente {
+          font-size: 13px;
+          min-width: 0;
+          flex: 1;
+        }
+        
+        &.detalle-servicio {
+          min-width: 0;
+          flex: 1;
+          
+          .detalle-texto {
+            font-size: 12px;
+            max-width: 100%;
+          }
+        }
+        
+        &.fecha-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.urgente-aviso {
+          flex-shrink: 0;
+        }
+        
+        &.acciones {
+          flex-shrink: 0;
+          
+          button {
+            width: 28px;
+            height: 28px;
+            
+            ion-icon {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  // Mobile styles for compact table
+  .compact-avisos-table {
+    border-radius: 8px;
+    max-height: none;
+    
+    .avisos-table {
+      .table-header .header-row .header-cell {
+        font-size: 11px;
+        padding: 8px 4px;
+      }
+      
+      .table-body .aviso-row {
+        .aviso-cell {
+          padding: 8px 4px;
+          
+          &.numero-aviso {
+            font-size: 13px;
+          }
+          
+          &.nombre-cliente {
+            font-size: 12px;
+          }
+          
+          &.detalle-servicio {
+            .detalle-texto {
+              font-size: 11px;
+              line-height: 1.3;
+            }
+          }
+          
+          &.acciones button {
+            width: 24px;
+            height: 24px;
+            
+            ion-icon {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  // Estilos específicos para la tabla compacta en móvil pequeño
+  .compact-avisos-table .avisos-table {
+    grid-template-columns: 50px 1fr minmax(0, 1.5fr) 70px; // Móvil pequeño: Número | Cliente | Detalle | Acciones
+    
+    .table-header .header-row .header-cell {
+      font-size: 10px;
+      padding: 6px 2px;
+    }
+    
+    .table-body .aviso-row .aviso-cell {
+      padding: 6px 2px;
+      
+      &.numero-aviso {
+        font-size: 12px;
+      }
+      
+      &.nombre-cliente {
+        font-size: 11px;
+      }
+      
+      &.detalle-servicio .detalle-texto {
+        font-size: 10px;
+        line-height: 1.2;
+      }
+      
+      &.acciones button {
+        width: 22px;
+        height: 22px;
+        
+        ion-icon {
+          font-size: 12px;
+        }
+      }
+    }
   }
 }

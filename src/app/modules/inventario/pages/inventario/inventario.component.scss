@@ -8,6 +8,9 @@ $border-color: #E2E8F0;
 $border-light: #F1F5F9;
 $shadow: 0 2px 8px 0 #e0e7ef33;
 
+ion-content {
+  --background: #FFF;
+}
 
 .home-container {
   display: flex;
@@ -22,10 +25,6 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
   font-size: 2.2rem;
   color: #4F46E5;
   margin-bottom: 12px;
-}
-
-ion-content {
-  --background: #FAFBFF;
 }
 
 .home-container p {
@@ -1102,9 +1101,9 @@ ion-icon[name="alert-circle"] {
 
 @media (max-width: 768px) {
 .compact-inventario-table {
-  border-radius: 0px;
-  border-left: none;
-  border-right: none;
+  border-radius: 0px!important;
+  border-left: none!important;
+  border-right: none!important;
   max-height: none;
   .inventario-table {
     grid-template-columns:

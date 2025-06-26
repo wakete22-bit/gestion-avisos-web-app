@@ -48,7 +48,6 @@
         <div class="table-header">
           <div class="header-row">
             <div class="header-cell">Número</div>
-            <div class="header-cell desktop-only">Estado</div>
             <div class="header-cell">Cliente</div>
             <div class="header-cell">Detalle</div>
             <div class="header-cell desktop-only">Fecha</div>
@@ -65,16 +64,6 @@
                  'completado': aviso.estado === 'Completado'
                }">
             <div class="aviso-cell numero-aviso">{{ aviso.numero }}</div>
-            <div class="aviso-cell estado-aviso desktop-only" style="justify-content: start;">
-              <span class="badge"
-                    [ngClass]="{
-                      'yellow': aviso.estado === 'En curso',
-                      'red': aviso.estado === 'Pendiente',
-                      'green': aviso.estado === 'Completado'
-                    }">
-                {{ aviso.estado }}
-              </span>
-            </div>
             <div class="aviso-cell nombre-cliente">{{ aviso.nombre }}</div>
             <div class="aviso-cell detalle-servicio">
               <div class="detalle-texto" [title]="aviso.detalle">{{ aviso.detalle }}</div>

@@ -112,7 +112,7 @@
               <div class="pending-amount">5.250,75€</div>
               <span class="pending-details-subtitle">Presupuestos: 4</span>
               <div class="pending-status orange">
-                <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+                <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
                 Pendientes
               </div>
             </div>
@@ -142,7 +142,7 @@
               <div class="pending-amount">650,75€</div>
               <span class="pending-details-subtitle">Facturas: 4</span>
               <div class="pending-status orange">
-                <ion-icon name="alert-circle" style="font-size: 20px;"></ion-icon>
+                <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
                 Pendientes
               </div>
             </div>
@@ -213,10 +213,10 @@
               <div class="item-label">Nº Factura:</div>
               <div class="item-value">F2025-001</div>
             </div>
-            <div class="mobile-item">
+            <!-- <div class="mobile-item">
               <div class="item-label">Nº Aviso:</div>
               <div class="item-value">001</div>
-            </div>
+            </div> -->
             <div class="mobile-item">
               <div class="item-label">Fecha:</div>
               <div class="item-value">2025-05-20</div>
@@ -264,80 +264,64 @@
         </select>
       </div>
 
-      <!-- Desktop Table View -->
-      <table class="custom-mat-table desktop-only">
-        <thead>
-          <tr>
-            <th>Número</th>
-            <th>Estado</th>
-            <th>Nombre</th>
-            <th>Detalle</th>
-            <th>Fecha</th>
-            <th>Urgente</th>
-            <th>Dirección</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let aviso of avisos">
-            <td>{{ aviso.numero }}</td>
-            <td>
-              <span class="badge yellow" *ngIf="aviso.estado === 'En curso'">En curso</span>
-              <span class="badge red" *ngIf="aviso.estado === 'Pendiente'">Pendiente</span>
-              <span class="badge green" *ngIf="aviso.estado === 'Completado'">Completado</span>
-            </td>
-            <td>{{ aviso.nombre }}</td>
-            <td>{{ aviso.detalle }}</td>
-            <td>{{ aviso.fecha }}</td>
-            <td>
-              <ion-icon *ngIf="aviso.urgente" name="alert-circle" style="color: #D92D20; font-size: 20px;"></ion-icon>
-              <ion-icon *ngIf="!aviso.urgente" name="close" style="color: #64748b; font-size: 20px;"></ion-icon>
-            </td>
-            <td>{{ aviso.direccion }}</td>
-            <td>
-              <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Mobile Cards View -->
-      <div class="mobile-cards">
-        <div class="aviso-card" *ngFor="let aviso of avisos">
-          <div class="card-header">
-            <div class="card-number">#{{ aviso.numero }}</div>
-            <span class="badge" 
-                  [ngClass]="{
-                    'yellow': aviso.estado === 'En curso',
-                    'red': aviso.estado === 'Pendiente',
-                    'green': aviso.estado === 'Completado'
-                  }">
-              {{ aviso.estado }}
-            </span>
-          </div>
-          <div class="card-body">
-            <div class="card-row">
-              <strong>{{ aviso.nombre }}</strong>
-              <ion-icon *ngIf="aviso.urgente" 
-                       name="alert-circle" 
-                       class="urgente-icon">
-              </ion-icon>
-            </div>
-            <div class="card-row detail">{{ aviso.detalle }}</div>
-            <div class="card-row">
-              <ion-icon name="location-outline"></ion-icon>
-              {{ aviso.direccion }}
-            </div>
-            <div class="card-row">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ aviso.fecha }}
+      <!-- Compact Table View -->
+      <div class="compact-avisos-table">
+        <div class="avisos-table">
+          <div class="table-header">
+            <div class="header-row">
+              <div class="header-cell">Número</div>
+              <div class="header-cell desktop-only">Estado</div>
+              <div class="header-cell">Cliente</div>
+              <div class="header-cell">Detalle</div>
+              <div class="header-cell desktop-only">Fecha</div>
+              <div class="header-cell desktop-only">Urgente</div>
+              <div class="header-cell">Acciones</div>
             </div>
           </div>
-          <div class="card-actions">
-            <button class="action-btn">
-              <ion-icon name="eye-outline"></ion-icon>
-              Ver detalles
-            </button>
+          <div class="table-body">
+            <div *ngFor="let aviso of avisos" class="aviso-row" [ngClass]="{
+                   'no-visitado': aviso.estado === 'No visitado',
+                   'visitado-pendiente': aviso.estado === 'Visitado pendiente',
+                   'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
+                   'en-curso': aviso.estado === 'En curso',
+                   'pendiente': aviso.estado === 'Pendiente',
+                   'completado': aviso.estado === 'Completado'
+                 }">
+              <div class="aviso-cell numero-aviso">#{{ aviso.numero }}</div>
+              <div class="aviso-cell estado-aviso desktop-only">
+                <span class="badge" [ngClass]="{
+                        'yellow': aviso.estado === 'En curso',
+                        'red': aviso.estado === 'Pendiente',
+                        'green': aviso.estado === 'Completado',
+                        'no-visitado': aviso.estado === 'No visitado',
+                        'visitado-pendiente': aviso.estado === 'Visitado pendiente',
+                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto'
+                      }">
+                  {{ aviso.estado }}
+                </span>
+              </div>
+              <div class="aviso-cell nombre-cliente">{{ aviso.nombre }}</div>
+              <div class="aviso-cell detalle-servicio">
+                <div class="detalle-texto" [title]="aviso.detalle">
+                  {{ aviso.detalle }}
+                </div>
+              </div>
+              <div class="aviso-cell fecha-aviso desktop-only">{{ aviso.fecha }}</div>
+              <div class="aviso-cell urgente-aviso desktop-only">
+                <ion-icon *ngIf="aviso.urgente" name="alert-circle" class="urgente-icon" title="Aviso urgente">
+                </ion-icon>
+                <ion-icon *ngIf="!aviso.urgente" name="close" class="no-urgente-icon" title="No urgente">
+                </ion-icon>
+              </div>
+              <div class="aviso-cell acciones">
+                <button class="btn-ver" title="Ver detalles">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </button>
+                <button class="btn-editar" title="Editar aviso">
+                  <ion-icon name="create-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

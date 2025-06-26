@@ -1,13 +1,11 @@
 ion-content {
-  --background: #FAFBFF;
+  --background: #FFF;
 }
 
 .dashboard-table {
   background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 2px 8px 0 #e0e7ef33;
   padding: 25px;
-  margin: 32px 24px;
+  // margin: 32px 24px;
 }
 
 .table-header {
@@ -698,6 +696,12 @@ ion-content {
     font-size: 16px;
     padding: 10px 16px;
   }
+
+  .compact-avisos-table {
+    border-radius: 0px!important;
+    border-left: none!important;
+    border-right: none!important;
+  }
   
   // Estilos específicos para la tabla compacta en móvil pequeño
   .compact-avisos-table .avisos-table {
@@ -1272,7 +1276,7 @@ ion-content {
 .compact-avisos-table {
   max-height: 70vh;
   overflow-y: auto;
-  border-radius: 0px;
+  border-radius: 8px;
   border: 1px solid #E5E7EB;
   background: #fff;
   margin-bottom: 16px;
@@ -1413,12 +1417,12 @@ ion-content {
             font-weight: 600;
             color: #111827;
             font-size: 14px;
-            justify-content: center;
+            justify-content: start;
             flex-shrink: 0;
           }
 
           &.estado-aviso {
-            justify-content: center;
+            justify-content: start;
             font-size: 11px;
             flex-shrink: 0;
             
@@ -1494,12 +1498,12 @@ ion-content {
           &.fecha-aviso {
             font-size: 12px;
             color: #6B7280;
-            justify-content: center;
+            justify-content: start;
             flex-shrink: 0;
           }
 
           &.urgente-aviso {
-            justify-content: center;
+            justify-content: start;
             flex-shrink: 0;
             
             .urgente-icon {
@@ -1514,7 +1518,7 @@ ion-content {
           }
 
           &.acciones {
-            justify-content: center;
+                justify-content: start;
             gap: 4px;
             flex-shrink: 0;
 
@@ -1577,11 +1581,14 @@ ion-content {
   .compact-avisos-table {
     max-width: 100%;
     overflow-x: auto;
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
     
     .avisos-table {
       // Desktop: Número | Estado | Cliente | Detalle | Fecha | Urgente | Acciones
       // Usar valores fijos y minmax para evitar que la tabla sea demasiado ancha
-      grid-template-columns: 80px 140px minmax(150px, 1.5fr) minmax(200px, 2fr) 120px 100px 120px;
+      grid-template-columns: 80px 140px minmax(150px, 1fr) minmax(200px, 2fr) 120px 100px 120px;
       font-size: 13px;
       min-width: 0;
       

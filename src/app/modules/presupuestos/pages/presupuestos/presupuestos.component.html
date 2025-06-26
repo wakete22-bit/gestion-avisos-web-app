@@ -19,10 +19,12 @@
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
-        <button class="btn-add">
-          <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-          Añadir presupuesto
-        </button>
+        <div class="header-actions">
+          <button class="btn-add">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir presupuesto
+          </button>
+        </div>
       </div>
     </div>
 
@@ -40,71 +42,50 @@
       </div>
     </div>
 
-    <!-- Desktop Table View -->
-    <table class="custom-mat-table desktop-only">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Estado</th>
-          <th>Cliente</th>
-          <th>Descripción</th>
-          <th>Fecha</th>
-          <th>PVP</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let presupuesto of presupuestos">
-          <td>{{ presupuesto.numero }}</td>
-          <td>
-            <span class="badge yellow" *ngIf="presupuesto.estado === 'En curso'">En curso</span>
-            <span class="badge red" *ngIf="presupuesto.estado === 'Pendiente'">Pendiente</span>
-            <span class="badge green" *ngIf="presupuesto.estado === 'Completado'">Completado</span>
-          </td>
-          <td>{{ presupuesto.nombre }}</td>
-          <td>{{ presupuesto.detalle }}</td>
-          <td>{{ presupuesto.fecha }}</td>
-          <td>{{ presupuesto.pvp }}</td>
-          <td>
-            <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Mobile Cards View -->
-    <div class="mobile-cards">
-      <div class="presupuesto-card" *ngFor="let presupuesto of presupuestos">
-        <div class="card-header">
-          <div class="card-number">#{{ presupuesto.numero }}</div>
-          <span class="badge" 
-                [ngClass]="{
-                  'yellow': presupuesto.estado === 'En curso',
-                  'red': presupuesto.estado === 'Pendiente',
-                  'green': presupuesto.estado === 'Completado'
-                }">
-            {{ presupuesto.estado }}
-          </span>
-        </div>
-        <div class="card-body">
-          <div class="card-row">
-            <strong>{{ presupuesto.nombre }}</strong>
-          </div>
-          <div class="card-row detail">{{ presupuesto.detalle }}</div>
-          <div class="card-row">
-            <div class="item-label">Fecha:</div>
-            <div class="item-value">{{ presupuesto.fecha }}</div>
-          </div>
-          <div class="card-row">
-            <div class="item-label">PVP:</div>
-            <div class="item-value">{{ presupuesto.pvp }}</div>
+    <!-- Compact Table View (replaces desktop table and mobile cards) -->
+    <div class="compact-presupuestos-table">
+      <div class="presupuestos-table">
+        <div class="table-header">
+          <div class="header-row">
+            <div class="header-cell">Número</div>
+            <div class="header-cell desktop-only">Estado</div>
+            <div class="header-cell">Cliente</div>
+            <div class="header-cell">Descripción</div>
+            <div class="header-cell desktop-only">Fecha</div>
+            <div class="header-cell desktop-only">PVP</div>
+            <div class="header-cell">Acciones</div>
           </div>
         </div>
-        <div class="card-actions">
-          <button class="action-btn">
-            <ion-icon name="eye-outline"></ion-icon>
-            Ver detalles
-          </button>
+        <div class="table-body">
+          <div *ngFor="let presupuesto of presupuestos" class="presupuesto-row" [ngClass]="{
+                 'en-curso': presupuesto.estado === 'En curso',
+                 'pendiente': presupuesto.estado === 'Pendiente',
+                 'completado': presupuesto.estado === 'Completado'
+               }">
+            <div class="presupuesto-cell numero-presupuesto">#{{ presupuesto.numero }}</div>
+            <div class="presupuesto-cell estado-presupuesto desktop-only">
+              <span class="badge" [ngClass]="{
+                      'yellow': presupuesto.estado === 'En curso',
+                      'red': presupuesto.estado === 'Pendiente',
+                      'green': presupuesto.estado === 'Completado'
+                    }">
+                {{ presupuesto.estado }}
+              </span>
+            </div>
+            <div class="presupuesto-cell nombre-cliente">{{ presupuesto.nombre }}</div>
+            <div class="presupuesto-cell descripcion-presupuesto">
+              <div class="descripcion-texto" [title]="presupuesto.detalle">
+                {{ presupuesto.detalle }}
+              </div>
+            </div>
+            <div class="presupuesto-cell fecha-presupuesto desktop-only">{{ presupuesto.fecha }}</div>
+            <div class="presupuesto-cell pvp-presupuesto desktop-only">{{ presupuesto.pvp }}</div>
+            <div class="presupuesto-cell acciones">
+              <button class="btn-ver" title="Ver detalles">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

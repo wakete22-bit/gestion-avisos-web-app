@@ -23,7 +23,8 @@ import {
   eyeOutline,
   searchOutline,
   locationOutline,
-  calendarOutline
+  calendarOutline,
+  createOutline
 } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { MatTableModule } from '@angular/material/table';
@@ -47,7 +48,8 @@ addIcons({
   'alert-circle': alertCircle,
   'search-outline': searchOutline,
   'location-outline': locationOutline,
-  'calendar-outline': calendarOutline
+  'calendar-outline': calendarOutline,
+  'create-outline': createOutline
 });
 
 export interface Aviso {
@@ -133,7 +135,8 @@ export class HomePage {
         eyeOutline,
         searchOutline,
         locationOutline,
-        calendarOutline
+        calendarOutline,
+        createOutline
       });
   }
 }

@@ -19,10 +19,12 @@
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
-        <button class="btn-add" (click)="abrirModalCrearCliente()">
-          <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-          Añadir cliente
-        </button>
+        <div class="header-actions">
+          <button class="btn-add" (click)="abrirModalCrearCliente()">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir cliente
+          </button>
+        </div>
       </div>
     </div>
 
@@ -40,73 +42,48 @@
       </div>
     </div>
 
-    <!-- Desktop Table View -->
-    <table class="custom-mat-table desktop-only">
-      <thead>
-        <tr>
-          <th>Nombre/Razón Social</th>
-          <th>Teléfono</th>
-          <th>Correo electrónico</th>
-          <th>Dirección local</th>
-          <th>Último aviso</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let cliente of clientes">
-          <td>{{ cliente.nombre }}</td>
-          <td>{{ cliente.telefono }}</td>
-          <td>{{ cliente.email }}</td>
-          <td>{{ cliente.direccion }}</td>
-          <td>{{ cliente.ultimoAviso }}</td>
-          <td>
-            <span class="badge green" *ngIf="cliente.estado === 'Activo'">Activo</span>
-            <span class="badge red" *ngIf="cliente.estado === 'Inactivo'">Inactivo</span>
-          </td>
-          <td>  
-            <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Mobile Cards View -->
-    <div class="mobile-cards">
-      <div class="cliente-card" *ngFor="let cliente of clientes">
-        <div class="card-header">
-          <div class="card-name">{{ cliente.nombre }}</div>
-          <span class="badge" 
-                [ngClass]="{
-                  'green': cliente.estado === 'Activo',
-                  'red': cliente.estado === 'Inactivo'
-                }">
-            {{ cliente.estado }}
-          </span>
-        </div>
-        <div class="card-body">
-          <div class="card-row">
-            <ion-icon name="call-outline"></ion-icon>
-            {{ cliente.telefono }}
-          </div>
-          <div class="card-row">
-            <ion-icon name="mail-outline"></ion-icon>
-            {{ cliente.email }}
-          </div>
-          <div class="card-row">
-            <ion-icon name="location-outline"></ion-icon>
-            {{ cliente.direccion }}
-          </div>
-          <div class="card-row">
-            <div class="item-label">Último aviso:</div>
-            <div class="item-value">{{ cliente.ultimoAviso }}</div>
+    <!-- Compact Table View (replaces desktop table and mobile cards) -->
+    <div class="compact-clientes-table">
+      <div class="clientes-table">
+        <div class="table-header">
+          <div class="header-row">
+            <div class="header-cell">Nombre/Razón Social</div>
+            <div class="header-cell desktop-only">Teléfono</div>
+            <div class="header-cell desktop-only">Correo electrónico</div>
+            <div class="header-cell desktop-only">Dirección local</div>
+            <div class="header-cell desktop-only">Último aviso</div>
+            <div class="header-cell desktop-only">Estado</div>
+            <div class="header-cell">Acciones</div>
           </div>
         </div>
-        <div class="card-actions">
-          <button class="action-btn">
-            <ion-icon name="eye-outline"></ion-icon>
-            Ver detalles
-          </button>
+        <div class="table-body">
+          <div *ngFor="let cliente of clientes" class="cliente-row" [ngClass]="{
+                 'activo': cliente.estado === 'Activo',
+                 'inactivo': cliente.estado === 'Inactivo'
+               }">
+            <div class="cliente-cell nombre-cliente">{{ cliente.nombre }}</div>
+            <div class="cliente-cell telefono-cliente desktop-only">{{ cliente.telefono }}</div>
+            <div class="cliente-cell email-cliente desktop-only">{{ cliente.email }}</div>
+            <div class="cliente-cell direccion-cliente desktop-only">
+              <div class="direccion-texto" [title]="cliente.direccion">
+                {{ cliente.direccion }}
+              </div>
+            </div>
+            <div class="cliente-cell ultimo-aviso desktop-only">{{ cliente.ultimoAviso }}</div>
+            <div class="cliente-cell estado-cliente desktop-only">
+              <span class="badge" [ngClass]="{
+                      'green': cliente.estado === 'Activo',
+                      'red': cliente.estado === 'Inactivo'
+                    }">
+                {{ cliente.estado }}
+              </span>
+            </div>
+            <div class="cliente-cell acciones">
+              <button class="btn-ver" title="Ver detalles">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

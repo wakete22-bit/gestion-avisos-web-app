@@ -696,6 +696,10 @@
   }
 }
 
+.toggle-preview-btn{
+  display: none;
+}
+
 // Estilos responsive
 @media (max-width: 768px) {
   .factura-container {

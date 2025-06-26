@@ -1,18 +1,16 @@
 ion-content {
-    --background: #FAFBFF;
+    --background: #FFF;
   }
   
   .dashboard-table {
     background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 2px 8px 0 #e0e7ef33;
     padding: 25px;
-    margin: 32px 24px;
+    // margin: 32px 24px;
   }
   
   .table-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 18px;
     flex-wrap: wrap;
@@ -57,6 +55,7 @@ ion-content {
     display: none;
     position: relative;
     width: 100%;
+    padding: 0px 16px;
 
     input {
       width: 100%;
@@ -70,7 +69,7 @@ ion-content {
 
     ion-icon {
       position: absolute;
-      right: 12px;
+      right: 26px;
       top: 50%;
       transform: translateY(-50%);
       font-size: 18px;
@@ -141,7 +140,6 @@ ion-content {
           font-size: 14px;
           font-weight: 400;
           text-align: left;
-          padding: 8px 16px;
           background: transparent;
         }
       }
@@ -151,7 +149,6 @@ ion-content {
       tr {
         background: white;
         td {
-          padding: 0px 16px;
           color: #26262A;
           font-size: 14px;
   
@@ -299,6 +296,7 @@ ion-content {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex-shrink: 0;
   }
   
   .table-pagination {
@@ -429,7 +427,7 @@ ion-content {
     .dashboard-table {
       height: 100%;
       margin: 0;
-      padding: 16px;
+      padding: 0px;
       border-radius: 0;
       box-shadow: none;
     }
@@ -439,13 +437,27 @@ ion-content {
     }
 
     .mobile-search,
-    .mobile-actions,
-    .mobile-cards {
+    .mobile-actions {
       display: flex;
     }
 
     .table-header {
       margin-bottom: 12px;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .table-header-left {
+      flex: 1;
+      padding: 0px 16px;
+    }
+
+    .table-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0px 16px;
+      width: 100%;
     }
 
     .table-pagination {
@@ -460,47 +472,434 @@ ion-content {
         justify-content: center;
       }
     }
+
+    // Mobile styles for compact table
+    .compact-presupuestos-table {
+      border-radius: 0px;
+      border-left: none;
+      border-right: none;
+      max-height: none;
+
+      .presupuestos-table {
+        .table-header .header-row .header-cell {
+          font-size: 11px;
+          padding: 8px 4px;
+        }
+        
+        .table-body .presupuesto-row {
+          .presupuesto-cell {
+            padding: 8px 4px;
+            
+            &.numero-presupuesto {
+              font-size: 13px;
+            }
+            
+            &.nombre-cliente {
+              font-size: 12px;
+            }
+            
+            &.descripcion-presupuesto {
+              .descripcion-texto {
+                font-size: 11px;
+                line-height: 1.3;
+              }
+            }
+            
+            &.acciones button {
+              width: 24px;
+              height: 24px;
+              
+              ion-icon {
+                font-size: 14px;
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   @media (max-width: 480px) {
     .dashboard-table {
-      padding: 16px;
-    }
-
-    .mobile-search {
-      input {
-        padding: 8px 16px !important;
-        font-size: 14px !important;
-      }
-
-      ion-icon {
-        font-size: 18px !important;
-      }
+      height: 100%;
+      padding: 0px;
     }
 
     .mobile-actions {
       gap: 12px;
+      padding: 0px 16px;
       
-      .mobile-filter {
-        width: 60%;
-        padding: 8px 16px !important;
-        height: 40px !important;
-        font-size: 14px !important;
-      }
-
       .mobile-buttons {
+        display: flex;
         width: 20%;
         justify-content: stretch;
         
         button {
           flex: 1;
-          height: 40px !important;
+          height: 40px;
           
           ion-icon {
-            font-size: 20px !important;
+            font-size: 20px;
           }
         }
       }
+    }
+
+    .compact-presupuestos-table {
+      border-radius: 0px!important;
+      border-left: none!important;
+      border-right: none!important;
+    }
+    
+    // Estilos específicos para la tabla compacta en móvil pequeño
+    .compact-presupuestos-table .presupuestos-table {
+      grid-template-columns: 50px 1fr minmax(0, 1.5fr) 70px; // Móvil pequeño: Número | Cliente | Descripción | Acciones
+      
+      .table-header .header-row .header-cell {
+        font-size: 10px;
+        padding: 6px 2px;
+      }
+      
+      .table-body .presupuesto-row .presupuesto-cell {
+        padding: 6px 2px;
+        
+        &.numero-presupuesto {
+          font-size: 12px;
+        }
+        
+        &.nombre-cliente {
+          font-size: 11px;
+        }
+        
+        &.descripcion-presupuesto .descripcion-texto {
+          font-size: 10px;
+          line-height: 1.2;
+        }
+        
+        &.acciones button {
+          width: 22px;
+          height: 22px;
+          
+          ion-icon {
+            font-size: 12px;
+          }
+        }
+      }
+    }
+  }
+  
+  // Compact Table View Styles (replaces desktop table and mobile cards)
+  .compact-presupuestos-table {
+    max-height: 70vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    margin-bottom: 16px;
+    max-width: 100%;
+    overflow-x: auto;
+
+    .presupuestos-table {
+      width: 100%;
+      display: grid;
+      // Móvil por defecto: Número | Cliente | Descripción | Acciones
+      grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+      font-size: 12px;
+      min-width: 0; // Importante para que el grid respete el contenedor
+
+      .table-header {
+        display: contents;
+        
+        .header-row {
+          display: contents;
+          
+          .header-cell {
+            padding: 12px 8px;
+            background: #F9FAFB;
+            border-bottom: 1px solid #E5E7EB;
+            font-weight: 500;
+            color: #374151;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            min-width: 0; // Importante para que las celdas se compriman
+          }
+        }
+      }
+
+      .table-body {
+        display: contents;
+        
+        .presupuesto-row {
+          display: contents;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+
+          &:hover {
+            .presupuesto-cell {
+              background-color: #F9FAFB;
+            }
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
+
+          // Estados de color para diferentes tipos de presupuestos
+          &.en-curso {
+            .presupuesto-cell:first-child {
+              border-left: 4px solid #F59E0B;
+            }
+            .presupuesto-cell {
+              background-color: #FFFBEB;
+            }
+            &:hover .presupuesto-cell {
+              background-color: #FEF3C7;
+            }
+          }
+
+          &.pendiente {
+            .presupuesto-cell:first-child {
+              border-left: 4px solid #EF4444;
+            }
+            .presupuesto-cell {
+              background-color: #FEF2F2;
+            }
+            &:hover .presupuesto-cell {
+              background-color: #FEE2E2;
+            }
+          }
+
+          &.completado {
+            .presupuesto-cell:first-child {
+              border-left: 4px solid #10B981;
+            }
+            .presupuesto-cell {
+              background-color: #ECFDF5;
+            }
+            &:hover .presupuesto-cell {
+              background-color: #D1FAE5;
+            }
+          }
+
+          .presupuesto-cell {
+            padding: 12px 8px;
+            border-bottom: 1px solid #F3F4F6;
+            display: flex;
+            align-items: center;
+            min-width: 0; // Importante para que las celdas se compriman
+
+            &.numero-presupuesto {
+              font-weight: 600;
+              color: #111827;
+              font-size: 14px;
+              justify-content: start;
+              flex-shrink: 0;
+            }
+
+            &.estado-presupuesto {
+              justify-content: start;
+              font-size: 11px;
+              flex-shrink: 0;
+              
+              .badge {
+                padding: 2px 6px;
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 500;
+                white-space: nowrap;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                
+                &.yellow {
+                  background: #FFF7E6;
+                  color: #B25E02;
+                }
+                
+                &.red {
+                  background: #FEE4E2;
+                  color: #D92D20;
+                }
+                
+                &.green {
+                  background: #E6F4EA;
+                  color: #137333;
+                }
+              }
+            }
+
+            &.nombre-cliente {
+              font-weight: 500;
+              color: #374151;
+              font-size: 13px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              min-width: 0;
+              flex: 1;
+            }
+
+            &.descripcion-presupuesto {
+              min-width: 0;
+              flex: 1;
+              
+              .descripcion-texto {
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                color: #6B7280;
+                font-size: 12px;
+                line-height: 1.4;
+                max-width: 100%;
+              }
+            }
+
+            &.fecha-presupuesto {
+              font-size: 12px;
+              color: #6B7280;
+              justify-content: start;
+              flex-shrink: 0;
+            }
+
+            &.pvp-presupuesto {
+              font-size: 12px;
+              color: #374151;
+              font-weight: 500;
+              justify-content: start;
+              flex-shrink: 0;
+            }
+
+            &.acciones {
+              justify-content: start;
+              gap: 4px;
+              flex-shrink: 0;
+
+              button {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                background: transparent;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+
+                ion-icon {
+                  font-size: 16px;
+                  color: #6B7280;
+                }
+
+                &.btn-ver {
+                  &:hover {
+                    background-color: #10B981;
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+                  
+                  &:active {
+                    transform: scale(0.9);
+                    background-color: #059669;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Desktop styles - sobrescribir el grid para pantallas grandes
+  @media (min-width: 769px) {
+    .compact-presupuestos-table {
+      max-width: 100%;
+      overflow-x: auto;
+      
+      .presupuestos-table {
+        // Desktop: Número | Estado | Cliente | Descripción | Fecha | PVP | Acciones
+        grid-template-columns: 130px 140px minmax(150px, 1fr) minmax(200px, 2fr) 120px 100px 120px;
+        font-size: 13px;
+        min-width: 0;
+        
+        .table-header .header-row .header-cell {
+          font-size: 12px;
+          padding: 12px 8px;
+          min-width: 0;
+        }
+        
+        .table-body .presupuesto-row .presupuesto-cell {
+          padding: 12px 8px;
+          min-width: 0;
+          
+          &.numero-presupuesto {
+            font-size: 14px;
+            flex-shrink: 0;
+          }
+          
+          &.estado-presupuesto {
+            flex-shrink: 0;
+          }
+          
+          &.nombre-cliente {
+            font-size: 13px;
+            min-width: 0;
+            flex: 1;
+          }
+          
+          &.descripcion-presupuesto {
+            min-width: 0;
+            flex: 1;
+            
+            .descripcion-texto {
+              font-size: 12px;
+              max-width: 100%;
+            }
+          }
+          
+          &.fecha-presupuesto {
+            flex-shrink: 0;
+          }
+          
+          &.pvp-presupuesto {
+            flex-shrink: 0;
+          }
+          
+          &.acciones {
+            flex-shrink: 0;
+            
+            button {
+              width: 28px;
+              height: 28px;
+              
+              ion-icon {
+                font-size: 16px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Mobile only class
+  .mobile-only {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-only {
+      display: flex !important;
     }
   }
   

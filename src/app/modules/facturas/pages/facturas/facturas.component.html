@@ -19,10 +19,12 @@
         <select>
           <option>Ordenar por: Recientes</option>
         </select>
-        <button class="btn-add" (click)="abrirCrearFactura()">
-          <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-          Añadir factura
-        </button>
+        <div class="header-actions">
+          <button class="btn-add" (click)="abrirCrearFactura()">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir factura
+          </button>
+        </div>
       </div>
     </div>
 
@@ -40,71 +42,50 @@
       </div>
     </div>
 
-    <!-- Desktop Table View -->
-    <table class="custom-mat-table desktop-only">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Estado</th>
-          <th>Cliente</th>
-          <th>Descripción</th>
-          <th>Fecha</th>
-          <th>PVP</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let factura of facturas">
-          <td>{{ factura.numero }}</td>
-          <td>
-            <span class="badge yellow" *ngIf="factura.estado === 'En curso'">En curso</span>
-            <span class="badge red" *ngIf="factura.estado === 'Pendiente'">Pendiente</span>
-            <span class="badge green" *ngIf="factura.estado === 'Completado'">Completado</span>
-          </td>
-          <td>{{ factura.nombre }}</td>
-          <td>{{ factura.detalle }}</td>
-          <td>{{ factura.fecha }}</td>
-          <td>{{ factura.pvp }}</td>
-          <td>
-            <ion-icon name="eye-outline" class="view-icon"></ion-icon>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Mobile Cards View -->
-    <div class="mobile-cards">
-      <div class="factura-card" *ngFor="let factura of facturas">
-        <div class="card-header">
-          <div class="card-number">#{{ factura.numero }}</div>
-          <span class="badge" 
-                [ngClass]="{
-                  'yellow': factura.estado === 'En curso',
-                  'red': factura.estado === 'Pendiente',
-                  'green': factura.estado === 'Completado'
-                }">
-            {{ factura.estado }}
-          </span>
-        </div>
-        <div class="card-body">
-          <div class="card-row">
-            <strong>{{ factura.nombre }}</strong>
-          </div>
-          <div class="card-row detail">{{ factura.detalle }}</div>
-          <div class="card-row">
-            <div class="item-label">Fecha:</div>
-            <div class="item-value">{{ factura.fecha }}</div>
-          </div>
-          <div class="card-row">
-            <div class="item-label">PVP:</div>
-            <div class="item-value">{{ factura.pvp }}</div>
+    <!-- Compact Table View (replaces desktop table and mobile cards) -->
+    <div class="compact-facturas-table">
+      <div class="facturas-table">
+        <div class="table-header">
+          <div class="header-row">
+            <div class="header-cell">Número</div>
+            <div class="header-cell desktop-only">Estado</div>
+            <div class="header-cell">Cliente</div>
+            <div class="header-cell">Descripción</div>
+            <div class="header-cell desktop-only">Fecha</div>
+            <div class="header-cell desktop-only">PVP</div>
+            <div class="header-cell">Acciones</div>
           </div>
         </div>
-        <div class="card-actions">
-          <button class="action-btn">
-            <ion-icon name="eye-outline"></ion-icon>
-            Ver detalles
-          </button>
+        <div class="table-body">
+          <div *ngFor="let factura of facturas" class="factura-row" [ngClass]="{
+                 'en-curso': factura.estado === 'En curso',
+                 'pendiente': factura.estado === 'Pendiente',
+                 'completado': factura.estado === 'Completado'
+               }">
+            <div class="factura-cell numero-factura">#{{ factura.numero }}</div>
+            <div class="factura-cell estado-factura desktop-only">
+              <span class="badge" [ngClass]="{
+                      'yellow': factura.estado === 'En curso',
+                      'red': factura.estado === 'Pendiente',
+                      'green': factura.estado === 'Completado'
+                    }">
+                {{ factura.estado }}
+              </span>
+            </div>
+            <div class="factura-cell nombre-cliente">{{ factura.nombre }}</div>
+            <div class="factura-cell descripcion-factura">
+              <div class="descripcion-texto" [title]="factura.detalle">
+                {{ factura.detalle }}
+              </div>
+            </div>
+            <div class="factura-cell fecha-factura desktop-only">{{ factura.fecha }}</div>
+            <div class="factura-cell pvp-factura desktop-only">{{ factura.pvp }}</div>
+            <div class="factura-cell acciones">
+              <button class="btn-ver" title="Ver detalles">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
