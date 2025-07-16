@@ -4,21 +4,39 @@
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de clientes</div>
-        <div class="table-meta">Clientes: {{ clientes.length }}</div>  
+        <div class="table-meta">Clientes: {{ clientesFiltrados.length }}</div>  
       </div>
       
       <!-- Mobile Search Bar -->
       <div class="mobile-search">
-        <input type="text" placeholder="Buscar cliente..." />
+        <input 
+          type="text" 
+          placeholder="Buscar cliente..." 
+          [(ngModel)]="busqueda"
+          (input)="onBuscar($any($event.target).value)" />
         <ion-icon name="search-outline"></ion-icon>
       </div>
 
       <!-- Desktop Search and Actions -->
       <div class="table-search desktop-only">
-        <input type="text" placeholder="Buscar..." />
-        <select>
-          <option>Ordenar por: Recientes</option>
+        <input 
+          type="text" 
+          placeholder="Buscar..." 
+          [(ngModel)]="busqueda"
+          (input)="onBuscar($any($event.target).value)" />
+        <select (change)="onOrdenar($any($event.target).value)">
+          <option value="nombre_completo">Ordenar por: Nombre</option>
+          <option value="fecha_creacion">Ordenar por: Recientes</option>
+          <option value="nivel_urgencia_habitual">Ordenar por: Urgencia</option>
         </select>
+        <button 
+          class="btn-filter" 
+          [class.active]="mostrarSoloActivos"
+          (click)="cambiarFiltroActivos()"
+          [title]="mostrarSoloActivos ? 'Mostrar todos los clientes' : 'Mostrar solo activos'">
+          <ion-icon name="filter-outline"></ion-icon>
+          {{ mostrarSoloActivos ? 'Solo Activos' : 'Todos' }}
+        </button>
         <div class="header-actions">
           <button class="btn-add" (click)="abrirModalCrearCliente()">
             <ion-icon name="add-circle"></ion-icon>
@@ -30,10 +48,10 @@
 
     <!-- Mobile Actions -->
     <div class="mobile-actions">
-      <select class="mobile-filter">
-        <option>Ordenar: Recientes</option>
-        <option>Ordenar: Alfabético</option>
-        <option>Ordenar: Estado</option>
+      <select class="mobile-filter" (change)="onOrdenar($any($event.target).value)">
+        <option value="nombre_completo">Ordenar: Alfabético</option>
+        <option value="fecha_creacion">Ordenar: Recientes</option>
+        <option value="nivel_urgencia_habitual">Ordenar: Urgencia</option>
       </select>
       <div class="mobile-buttons">
         <button class="btn-add" (click)="abrirModalCrearCliente()">
@@ -42,8 +60,28 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando clientes...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="refrescarClientes()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
     <!-- Compact Table View (replaces desktop table and mobile cards) -->
-    <div class="compact-clientes-table">
+    <div *ngIf="!loading && !error" class="compact-clientes-table">
       <div class="clientes-table">
         <div class="table-header">
           <div class="header-row">
@@ -52,35 +90,50 @@
             <div class="header-cell desktop-only">Correo electrónico</div>
             <div class="header-cell desktop-only">Dirección local</div>
             <div class="header-cell desktop-only">Último aviso</div>
-            <div class="header-cell desktop-only">Estado</div>
+            <div class="header-cell desktop-only">Activo</div>
             <div class="header-cell">Acciones</div>
           </div>
         </div>
         <div class="table-body">
-          <div *ngFor="let cliente of clientes" class="cliente-row" [ngClass]="{
-                 'activo': cliente.estado === 'Activo',
-                 'inactivo': cliente.estado === 'Inactivo'
+          <!-- Mensaje cuando no hay clientes -->
+          <div *ngIf="clientesFiltrados.length === 0 && !loading" class="no-clientes">
+            <div class="no-clientes-message">
+              <ion-icon name="people-outline"></ion-icon>
+              <p>No se encontraron clientes</p>
+              <p *ngIf="busqueda">Intenta con otros términos de búsqueda</p>
+            </div>
+          </div>
+          
+          <div *ngFor="let cliente of clientesFiltrados" class="cliente-row" [ngClass]="{
+                 'activo': cliente.es_activo,
+                 'inactivo': !cliente.es_activo
                }">
-            <div class="cliente-cell nombre-cliente">{{ cliente.nombre }}</div>
-            <div class="cliente-cell telefono-cliente desktop-only">{{ cliente.telefono }}</div>
-            <div class="cliente-cell email-cliente desktop-only">{{ cliente.email }}</div>
+            <div class="cliente-cell nombre-cliente">{{ cliente.nombre_completo }}</div>
+            <div class="cliente-cell telefono-cliente desktop-only">{{ cliente.telefono_contacto || 'No especificado' }}</div>
+            <div class="cliente-cell email-cliente desktop-only">{{ cliente.email || 'No especificado' }}</div>
             <div class="cliente-cell direccion-cliente desktop-only">
               <div class="direccion-texto" [title]="cliente.direccion">
-                {{ cliente.direccion }}
+                {{ cliente.direccion || 'No especificada' }}
               </div>
             </div>
-            <div class="cliente-cell ultimo-aviso desktop-only">{{ cliente.ultimoAviso }}</div>
-            <div class="cliente-cell estado-cliente desktop-only">
-              <span class="badge" [ngClass]="{
-                      'green': cliente.estado === 'Activo',
-                      'red': cliente.estado === 'Inactivo'
+            <div class="cliente-cell ultimo-aviso desktop-only">{{ cliente.nivel_urgencia_habitual || 'No especificado' }}</div>
+            <div class="cliente-cell estado-activo desktop-only">
+              <span class="badge-estado" [ngClass]="{
+                      'activo': cliente.es_activo,
+                      'inactivo': !cliente.es_activo
                     }">
-                {{ cliente.estado }}
+                {{ cliente.es_activo ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
             <div class="cliente-cell acciones">
               <button class="btn-ver" title="Ver detalles">
                 <ion-icon name="eye-outline"></ion-icon>
+              </button>
+              <button 
+                class="btn-toggle-estado" 
+                [title]="cliente.es_activo ? 'Desactivar cliente' : 'Activar cliente'"
+                (click)="toggleEstadoCliente(cliente)">
+                <ion-icon [name]="cliente.es_activo ? 'pause-circle' : 'play-circle'"></ion-icon>
               </button>
             </div>
           </div>
@@ -89,15 +142,21 @@
     </div>
 
     <!-- Pagination -->
-    <div class="table-pagination">
-      <span class="pagination-info">Mostrando datos 1 a {{ clientes.length }} de {{ clientes.length }} cliente</span>
+    <div *ngIf="totalClientes > 0" class="table-pagination">
+      <span class="pagination-info">
+        Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalClientes) }} de {{ totalClientes }} clientes
+      </span>
       <div class="pagination">
-        <button class="active">1</button>
-        <button>2</button>
-        <button>3</button>
-        <button class="desktop-only">4</button>
-        <span class="desktop-only">...</span>
-        <button class="desktop-only">40</button>
+        <ng-container *ngFor="let pagina of getPaginas()">
+          <button 
+            *ngIf="isNumber(pagina)"
+            [class.active]="pagina === paginaActual"
+            (click)="onCambiarPagina(pagina)"
+            class="pagination-btn">
+            {{ pagina }}
+          </button>
+          <span *ngIf="pagina === '...'" class="pagination-ellipsis">...</span>
+        </ng-container>
       </div>
     </div>
   </section>

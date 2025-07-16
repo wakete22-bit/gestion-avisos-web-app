@@ -28,6 +28,9 @@ CREATE TABLE public.clientes (
   telefono_contacto text,
   email text,
   nivel_urgencia_habitual text,
+  es_activo boolean DEFAULT true,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT clientes_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.facturas (
@@ -112,6 +115,8 @@ CREATE TABLE public.usuarios (
   email text NOT NULL UNIQUE,
   telefono text,
   rol_id uuid NOT NULL,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT usuarios_pkey PRIMARY KEY (id),
   CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id),
   CONSTRAINT usuarios_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)

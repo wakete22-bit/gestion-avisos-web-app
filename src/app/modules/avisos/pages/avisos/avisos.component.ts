@@ -4,22 +4,17 @@ import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone'
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, trashOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
 import { environment } from 'src/environments/environment';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
+import { AvisosService } from '../../../../core/services/avisos.service';
+import { Aviso } from '../../models/aviso.model';
+import { Subject, takeUntil } from 'rxjs';
 
-export interface Aviso {
-  numero: string;
-  estado: string;
-  nombre: string;
-  detalle: string;
-  fecha: string;
-  urgente: boolean;
-  direccion: string;
-}
+
 
 @Component({
   selector: 'app-avisos',
@@ -42,63 +37,36 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   private avisoMarkers: Map<string, Marker> = new Map();
   selectedAviso: string | null = null; // Para rastrear el aviso seleccionado
 
-  avisos: Aviso[] = [
-    {
-      numero: '001',
-      estado: 'No visitado',
-      nombre: 'Restaurante El Sol',
-      detalle: 'Mantenimiento preventivo de 3 equipos A/C. Revisión completa del sistema de climatización y limpieza de filtros.',
-      fecha: '2025-05-27',
-      urgente: false,
-      direccion: 'Pza. de la Virgen 3'
-    },
-    {
-      numero: '002',
-      estado: 'Pendiente de presupuesto',
-      nombre: 'Hotel Marina',
-      detalle: 'Reparación urgente de caldera. Necesita revisión técnica completa y presupuesto para reparación o sustitución.',
-      fecha: '2025-05-26',
-      urgente: true,
-      direccion: 'Av. del Mar 45'
-    },
-    {
-      numero: '003',
-      estado: 'Visitado pendiente',
-      nombre: 'Oficinas Centrales',
-      detalle: 'Revisión sistema de climatización. Primera visita realizada, pendiente segunda visita para completar mantenimiento.',
-      fecha: '2025-05-25',
-      urgente: false,
-      direccion: 'Calle Mayor 12'
-    },
-    {
-      numero: '004',
-      estado: 'No visitado',
-      nombre: 'Residencia Ancianos',
-      detalle: 'Instalación nuevo sistema de calefacción. Requiere visita técnica para evaluar instalación actual y planificar nueva instalación.',
-      fecha: '2025-05-24',
-      urgente: true,
-      direccion: 'Calle San Juan 8'
-    },
-    {
-      numero: '005',
-      estado: 'Pendiente de presupuesto',
-      nombre: 'Centro Comercial Plaza',
-      detalle: 'Mantenimiento ascensores. Evaluación técnica completada, pendiente envío de presupuesto detallado.',
-      fecha: '2025-05-23',
-      urgente: false,
-      direccion: 'Av. Principal 100'
-    }
-  ];
+  avisos: Aviso[] = [];
+  loading = false;
+  error: string | null = null;
+  totalAvisos = 0;
+  paginaActual = 1;
+  porPagina = 10;
+  busqueda = '';
+  ordenarPor = 'fecha_creacion';
+  orden: 'asc' | 'desc' = 'desc';
+  estadoFiltro = '';
+
+  private destroy$ = new Subject<void>();
+  
+  // Hacer Math disponible en el template
+  Math = Math;
 
   constructor(
     private modalController: ModalController, 
     private cdr: ChangeDetectorRef,
-    private geocodingService: GeocodingService
+    private geocodingService: GeocodingService,
+    private avisosService: AvisosService
   ) {
-    addIcons({searchOutline,addCircle,mapOutline,alertCircle,close,eyeOutline,createOutline,listOutline,expandOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
   }
 
   ngAfterViewInit() {
+    // Cargar avisos al inicializar
+    this.cargarAvisos();
+    this.suscribirseAAvisos();
+    
     // No inicializamos el mapa aquí para evitar que se cargue innecesariamente
     
     // Listener para detectar cambios en pantalla completa
@@ -118,6 +86,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   // }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    
     if (this.map) {
       this.map.remove();
     }
@@ -142,6 +113,149 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Carga la lista de avisos desde el servicio
+   */
+  cargarAvisos() {
+    this.loading = true;
+    this.error = null;
+
+    this.avisosService.getAvisosActivos(
+      this.paginaActual,
+      this.porPagina,
+      this.busqueda,
+      this.ordenarPor,
+      this.orden,
+      this.estadoFiltro
+    ).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.avisos = response.avisos;
+        this.totalAvisos = response.total;
+        this.loading = false;
+        
+        // Actualizar marcadores del mapa si está en vista de mapa
+        if (this.isMapView && this.map) {
+          this.plotAvisosOnMap();
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar avisos:', error);
+        this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Se suscribe a los cambios en la lista de avisos
+   */
+  private suscribirseAAvisos() {
+    this.avisosService.avisos$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(avisos => {
+        this.avisos = avisos;
+      });
+  }
+
+  /**
+   * Refresca la lista de avisos
+   */
+  refrescarAvisos() {
+    this.cargarAvisos();
+  }
+
+  /**
+   * Cambia a la página especificada
+   */
+  cambiarPagina(pagina: number) {
+    if (pagina >= 1 && pagina <= this.obtenerTotalPaginas()) {
+      this.paginaActual = pagina;
+      this.cargarAvisos();
+    }
+  }
+
+  /**
+   * Calcula el total de páginas
+   */
+  obtenerTotalPaginas(): number {
+    return Math.ceil(this.totalAvisos / this.porPagina);
+  }
+
+  /**
+   * Obtiene el rango de páginas a mostrar
+   */
+  obtenerRangoPaginas(): number[] {
+    const totalPaginas = this.obtenerTotalPaginas();
+    const paginaActual = this.paginaActual;
+    const rango = 2; // Número de páginas a mostrar antes y después de la actual
+
+    let inicio = Math.max(1, paginaActual - rango);
+    let fin = Math.min(totalPaginas, paginaActual + rango);
+
+    // Ajustar para mostrar siempre 5 páginas si es posible
+    if (fin - inicio < 4) {
+      if (inicio === 1) {
+        fin = Math.min(totalPaginas, inicio + 4);
+      } else {
+        inicio = Math.max(1, fin - 4);
+      }
+    }
+
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  }
+
+  /**
+   * Verifica si se puede ir a la página anterior
+   */
+  puedeAnterior(): boolean {
+    return this.paginaActual > 1;
+  }
+
+  /**
+   * Verifica si se puede ir a la página siguiente
+   */
+  puedeSiguiente(): boolean {
+    return this.paginaActual < this.obtenerTotalPaginas();
+  }
+
+  /**
+   * Va a la página anterior
+   */
+  paginaAnterior() {
+    if (this.puedeAnterior()) {
+      this.cambiarPagina(this.paginaActual - 1);
+    }
+  }
+
+  /**
+   * Va a la página siguiente
+   */
+  paginaSiguiente() {
+    if (this.puedeSiguiente()) {
+      this.cambiarPagina(this.paginaActual + 1);
+    }
+  }
+
+  /**
+   * Va a la primera página
+   */
+  primeraPagina() {
+    this.cambiarPagina(1);
+  }
+
+  /**
+   * Va a la última página
+   */
+  ultimaPagina() {
+    this.cambiarPagina(this.obtenerTotalPaginas());
+  }
+
   private handleResize() {
     // Ajustar posición del botón de cerrar si está visible
     const closeButton = document.querySelector('.btn-close-expanded') as HTMLElement;
@@ -158,12 +272,12 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
 
     this.avisos.forEach(aviso => {
       // Añadir "España" para mejorar la precisión de la geocodificación
-      const fullAddress = `${aviso.direccion}, España`;
+      const fullAddress = `${aviso.direccion_cliente_aviso}, España`;
 
       this.geocodingService.geocode(fullAddress).subscribe(coordinates => {
         if (coordinates && this.map) {
           const popup = new Popup({ offset: 25 }).setHTML(
-            `<h3>${aviso.nombre}</h3><p>${aviso.detalle}</p>`
+            `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
           );
 
           const marker = new Marker({color: '#4F46E5'})
@@ -171,7 +285,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
             .setPopup(popup)
             .addTo(this.map);
 
-          this.avisoMarkers.set(aviso.numero, marker);
+          this.avisoMarkers.set(aviso.id, marker);
         }
       });
     });
@@ -185,9 +299,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
 
     // Establecer el aviso seleccionado
-    this.selectedAviso = aviso.numero;
+    this.selectedAviso = aviso.id;
 
-    const marker = this.avisoMarkers.get(aviso.numero);
+    const marker = this.avisoMarkers.get(aviso.id);
     if (marker && this.map) {
       const lngLat = marker.getLngLat();
       
@@ -269,8 +383,50 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       }
 
     } else if (data) {
-      // Aquí manejaremos los datos del nuevo aviso cuando se cree
-      console.log('Nuevo aviso creado:', data);
+      console.log('Datos del formulario:', data);
+      
+      // Crear el aviso en Supabase
+      this.loading = true;
+      this.error = null;
+      
+      // Preparar datos del aviso
+      const avisoData = {
+        cliente_id: data.cliente || clienteData?.id || 'cliente-temp-id', // Usar el ID del cliente seleccionado
+        nombre_cliente_aviso: data.nombreContacto || clienteData?.nombreContacto || 'Cliente',
+        direccion_cliente_aviso: data.direccionLocal || clienteData?.direccionLocal || '',
+        telefono_cliente_aviso: data.telefono || clienteData?.telefono || '',
+        nombre_contacto: data.nombreContacto || clienteData?.nombreContacto || '',
+        tipo: data.tipo || 'correctivo',
+        descripcion_problema: data.descripcion || '',
+        es_urgente: data.esUrgente || false,
+        urgencia: data.esUrgente ? 'Alta' : 'Normal' // Asegurar que urgencia tenga un valor
+      };
+      
+      this.avisosService.crearAviso(avisoData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (avisoCreado) => {
+            console.log('Aviso creado exitosamente:', avisoCreado);
+            this.loading = false;
+            
+            // Subir imágenes si las hay
+            if (data.imagenes && data.imagenes.length > 0) {
+              data.imagenes.forEach((file: File) => {
+                this.avisosService.subirFoto(avisoCreado.id, file)
+                  .pipe(takeUntil(this.destroy$))
+                  .subscribe({
+                    next: (foto) => console.log('Foto subida:', foto),
+                    error: (error) => console.error('Error al subir foto:', error)
+                  });
+              });
+            }
+          },
+          error: (error) => {
+            console.error('Error al crear aviso:', error);
+            this.error = 'Error al crear el aviso. Por favor, inténtalo de nuevo.';
+            this.loading = false;
+          }
+        });
     }
   }
 
@@ -406,6 +562,45 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       if (this.map) {
         setTimeout(() => this.map!.resize(), 100);
       }
+    }
+  }
+
+  /**
+   * Elimina un aviso con confirmación
+   */
+  async eliminarAviso(aviso: Aviso) {
+    // Mostrar confirmación antes de eliminar
+    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el aviso #${aviso.id?.substring(0, 8)}?\n\nEsta acción eliminará también todas las fotos asociadas y no se puede deshacer.`);
+    
+    if (confirmacion) {
+      this.loading = true;
+      this.error = null;
+
+      this.avisosService.eliminarAviso(aviso.id!)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            console.log('Aviso eliminado exitosamente');
+            this.loading = false;
+            
+            // Recargar la lista de avisos
+            this.cargarAvisos();
+            
+            // Mostrar mensaje de éxito (opcional)
+            // Puedes implementar un toast o notificación aquí
+          },
+          error: (error) => {
+            console.error('Error al eliminar aviso:', error);
+            
+            // Mostrar mensaje de error más específico
+            if (error.code === '23503') {
+              this.error = 'No se puede eliminar el aviso porque tiene datos relacionados (fotos, facturas, etc.). Contacta al administrador.';
+            } else {
+              this.error = 'Error al eliminar el aviso. Por favor, inténtalo de nuevo.';
+            }
+            this.loading = false;
+          }
+        });
     }
   }
 }

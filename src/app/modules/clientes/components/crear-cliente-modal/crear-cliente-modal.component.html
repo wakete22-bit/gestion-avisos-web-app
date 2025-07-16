@@ -61,24 +61,36 @@
             placeholder="Ej: Calle Azorin">
         </div>
 
-        <div class="form-row">
-          <div class="form-group half">
-            <label>Código Postal <span class="required">*</span></label>
-            <input 
-              type="text" 
-              formControlName="codigoPostal" 
-              class="form-control"
-              placeholder="28004">
+                  <div class="form-row">
+            <div class="form-group half">
+              <label>Código Postal <span class="required">*</span></label>
+              <input 
+                type="text" 
+                formControlName="codigoPostal" 
+                class="form-control"
+                placeholder="28004">
+            </div>
+            <div class="form-group half">
+              <label>Localidad <span class="required">*</span></label>
+              <input 
+                type="text" 
+                formControlName="localidad" 
+                class="form-control"
+                placeholder="Ej: Madrid">
+            </div>
           </div>
-          <div class="form-group half">
-            <label>Localidad <span class="required">*</span></label>
-            <input 
-              type="text" 
-              formControlName="localidad" 
-              class="form-control"
-              placeholder="Ej: Madrid">
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                formControlName="esActivo"
+                class="form-checkbox">
+              <span class="checkmark"></span>
+              Cliente activo
+            </label>
+            <small class="form-help">Los clientes inactivos no aparecerán en las búsquedas principales</small>
           </div>
-        </div>
       </div>
     </form>
   </div>

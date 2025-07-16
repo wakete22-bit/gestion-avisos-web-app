@@ -4,7 +4,7 @@
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de servicios completados</div>
-        <div class="table-meta">Servicios completados: {{ avisos.length }}</div>  
+        <div class="table-meta">Servicios completados: {{ totalAvisos }}</div>  
       </div>
       
       <!-- Mobile Search Bar -->
@@ -42,8 +42,28 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando historial...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="refrescarHistorial()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
     <!-- Compact Table View (grid, igual que avisos) -->
-    <div class="compact-historial-table">
+    <div *ngIf="!loading && !error" class="compact-historial-table">
       <div class="historial-table">
         <div class="table-header">
           <div class="header-row">
@@ -63,17 +83,17 @@
                  'pendiente': aviso.estado === 'Pendiente',
                  'completado': aviso.estado === 'Completado'
                }">
-            <div class="aviso-cell numero-aviso">{{ aviso.numero }}</div>
-            <div class="aviso-cell nombre-cliente">{{ aviso.nombre }}</div>
+            <div class="aviso-cell numero-aviso">#{{ aviso.id?.substring(0, 8) || 'N/A' }}</div>
+            <div class="aviso-cell nombre-cliente">{{ aviso.nombre_cliente_aviso }}</div>
             <div class="aviso-cell detalle-servicio">
-              <div class="detalle-texto" [title]="aviso.detalle">{{ aviso.detalle }}</div>
+              <div class="detalle-texto" [title]="aviso.descripcion_problema">{{ aviso.descripcion_problema }}</div>
             </div>
-            <div class="aviso-cell fecha-aviso desktop-only">{{ aviso.fecha }}</div>
+            <div class="aviso-cell fecha-aviso desktop-only">{{ aviso.fecha_creacion | date:'dd/MM/yyyy' }}</div>
             <div class="aviso-cell urgente-aviso desktop-only">
-              <ion-icon *ngIf="aviso.urgente" name="alert-circle" class="urgente-icon" title="Aviso urgente"></ion-icon>
-              <ion-icon *ngIf="!aviso.urgente" name="close" class="no-urgente-icon" title="No urgente"></ion-icon>
+              <ion-icon *ngIf="aviso.urgencia === 'Alta' || aviso.es_urgente" name="alert-circle" class="urgente-icon" title="Aviso urgente"></ion-icon>
+              <ion-icon *ngIf="aviso.urgencia !== 'Alta' && !aviso.es_urgente" name="close" class="no-urgente-icon" title="No urgente"></ion-icon>
             </div>
-            <div class="aviso-cell direccion-aviso desktop-only">{{ aviso.direccion }}</div>
+            <div class="aviso-cell direccion-aviso desktop-only">{{ aviso.direccion_cliente_aviso }}</div>
             <div class="aviso-cell acciones">
               <button class="btn-ver" title="Ver detalles">
                 <ion-icon name="eye-outline"></ion-icon>
@@ -85,15 +105,58 @@
     </div>
 
     <!-- Pagination -->
-    <div class="table-pagination">
-      <span class="pagination-info">Mostrando datos 1 a {{ avisos.length }} de {{ avisos.length }} servicio</span>
+    <div *ngIf="totalAvisos > 0" class="table-pagination">
+      <span class="pagination-info">
+        Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalAvisos) }} de {{ totalAvisos }} servicios
+      </span>
       <div class="pagination">
-        <button class="active">1</button>
-        <button>2</button>
-        <button>3</button>
-        <button class="desktop-only">4</button>
-        <span class="desktop-only">...</span>
-        <button class="desktop-only">40</button>
+        <!-- Botón Primera Página -->
+        <button 
+          class="pagination-btn" 
+          [disabled]="!puedeAnterior()"
+          (click)="primeraPagina()"
+          title="Primera página">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+
+        <!-- Botón Página Anterior -->
+        <button 
+          class="pagination-btn" 
+          [disabled]="!puedeAnterior()"
+          (click)="paginaAnterior()"
+          title="Página anterior">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+        </button>
+
+        <!-- Páginas -->
+        <ng-container *ngFor="let pagina of obtenerRangoPaginas()">
+          <button 
+            class="pagination-btn" 
+            [class.active]="pagina === paginaActual"
+            (click)="cambiarPagina(pagina)">
+            {{ pagina }}
+          </button>
+        </ng-container>
+
+        <!-- Botón Página Siguiente -->
+        <button 
+          class="pagination-btn" 
+          [disabled]="!puedeSiguiente()"
+          (click)="paginaSiguiente()"
+          title="Página siguiente">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
+
+        <!-- Botón Última Página -->
+        <button 
+          class="pagination-btn" 
+          [disabled]="!puedeSiguiente()"
+          (click)="ultimaPagina()"
+          title="Última página">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </button>
       </div>
     </div>
   </section>

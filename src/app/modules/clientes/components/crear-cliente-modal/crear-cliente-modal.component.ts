@@ -29,7 +29,8 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
       notasImportantes: ['', Validators.maxLength(200)],
       direccionLocal: ['', Validators.required],
       codigoPostal: ['', Validators.required],
-      localidad: ['', Validators.required]
+      localidad: ['', Validators.required],
+      esActivo: [true, Validators.required]
     });
   }
 
@@ -50,9 +51,12 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
   async guardarCliente() {
     if (this.clienteForm.valid) {
       const clienteData = {
-        ...this.clienteForm.value,
-        // Añadimos un nombre completo para mostrar en el select de clientes
-        nombre: this.clienteForm.value.nombreContacto
+        nombre_completo: this.clienteForm.value.nombreContacto,
+        telefono_contacto: this.clienteForm.value.telefono,
+        email: this.clienteForm.value.correoElectronico,
+        direccion: `${this.clienteForm.value.direccionLocal}, ${this.clienteForm.value.codigoPostal} ${this.clienteForm.value.localidad}`,
+        nivel_urgencia_habitual: 'Media', // Valor por defecto
+        es_activo: this.clienteForm.value.esActivo
       };
       await this.modalController.dismiss(clienteData, 'confirm');
     }

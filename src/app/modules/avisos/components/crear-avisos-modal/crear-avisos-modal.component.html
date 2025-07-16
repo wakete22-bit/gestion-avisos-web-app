@@ -24,13 +24,29 @@
           </div>
 
           <div class="form-group">
-            <label>Cliente</label>
+            <label>Cliente <span class="required">*</span></label>
             <div class="input-with-button">
-              <input type="text" formControlName="cliente" placeholder="Seleccionar cliente" class="form-control">
+              <select 
+                formControlName="cliente" 
+                class="form-control"
+                (change)="onClienteChange($event)"
+                [disabled]="loadingClientes">
+                <option value="">Seleccionar cliente</option>
+                <option *ngFor="let cliente of clientes" [value]="cliente.id">
+                  {{ cliente.nombre_completo }}
+                </option>
+              </select>
               <button type="button" class="add-button" (click)="crearCliente()">
                 <ion-icon name="add-circle"></ion-icon>
                 Añadir cliente
               </button>
+            </div>
+            <div *ngIf="loadingClientes" class="loading-indicator">
+              <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+              Cargando clientes...
+            </div>
+            <div *ngIf="errorClientes" class="error-message">
+              {{ errorClientes }}
             </div>
           </div>
 
@@ -106,7 +122,7 @@
             <div class="file-list">
               <div class="file-item" *ngFor="let imagen of imagenes; let i = index">
                 <div class="file-preview">
-                  <img [src]="'assets/icon/image-placeholder.png'" alt="Preview">
+                  <img [src]="getImagePreview(imagen)" alt="Preview">
                 </div>
                 <div class="file-info">
                   <span class="file-name">{{imagen.name}}</span>

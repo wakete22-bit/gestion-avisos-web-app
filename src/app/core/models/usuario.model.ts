@@ -77,6 +77,7 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
+  id?: string; // ID del usuario de Supabase Auth
   nombre_completo: string;
   email: string;
   password: string;

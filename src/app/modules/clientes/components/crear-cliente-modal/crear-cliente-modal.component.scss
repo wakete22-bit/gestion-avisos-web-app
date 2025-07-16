@@ -116,6 +116,35 @@ textarea.form-control {
   color: #6b7280;
 }
 
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+
+  .form-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #4F46E5;
+    cursor: pointer;
+  }
+
+  .checkmark {
+    display: none;
+  }
+}
+
+.form-help {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
 .form-row {
   display: flex;
   gap: 16px;
