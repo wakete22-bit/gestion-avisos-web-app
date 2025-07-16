@@ -18,10 +18,13 @@ export class PwaUpdateService {
 
   private checkForUpdates() {
     if (this.swUpdate.isEnabled) {
-      // Verificar actualizaciones cada 6 horas
+      // Verificar actualizaciones al iniciar la aplicación
+      this.swUpdate.checkForUpdate();
+      
+      // Verificar actualizaciones cada 30 minutos (en lugar de 6 horas)
       setInterval(() => {
         this.swUpdate.checkForUpdate();
-      }, 6 * 60 * 60 * 1000);
+      }, 30 * 60 * 1000);
 
       // Escuchar actualizaciones disponibles
       this.swUpdate.versionUpdates
@@ -39,6 +42,15 @@ export class PwaUpdateService {
         )
         .subscribe(() => {
           this.showError();
+        });
+
+      // Escuchar cuando hay una nueva versión disponible
+      this.swUpdate.versionUpdates
+        .pipe(
+          filter(event => event.type === 'VERSION_DETECTED')
+        )
+        .subscribe(() => {
+          console.log('Nueva versión detectada');
         });
     }
   }
@@ -86,6 +98,28 @@ export class PwaUpdateService {
     if (this.swUpdate.isEnabled) {
       this.swUpdate.checkForUpdate().then(() => {
         console.log('Verificando actualizaciones...');
+      });
+    }
+  }
+
+  // Método para forzar la actualización sin preguntar al usuario
+  public forceUpdate() {
+    if (this.swUpdate.isEnabled) {
+      this.swUpdate.activateUpdate().then(() => {
+        window.location.reload();
+      });
+    }
+  }
+
+  // Método para limpiar el cache del Service Worker
+  public clearCache() {
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => {
+          caches.delete(name);
+        });
+        console.log('Cache limpiado');
+        window.location.reload();
       });
     }
   }

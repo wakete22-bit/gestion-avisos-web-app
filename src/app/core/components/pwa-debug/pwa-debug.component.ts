@@ -55,6 +55,12 @@ import { ViewportService } from '../../services/viewport.service';
             <ion-button size="small" (click)="checkForUpdates()">
               Verificar Actualizaciones
             </ion-button>
+            <ion-button size="small" (click)="forceUpdate()" color="warning">
+              Forzar Actualización
+            </ion-button>
+            <ion-button size="small" (click)="clearCache()" color="danger">
+              Limpiar Cache
+            </ion-button>
             <ion-button size="small" (click)="showInstallInstructions()">
               Instrucciones de Instalación
             </ion-button>
@@ -168,6 +174,14 @@ export class PwaDebugComponent implements OnInit {
 
   checkForUpdates() {
     this.pwaUpdateService.checkForUpdate();
+  }
+
+  forceUpdate() {
+    this.pwaUpdateService.forceUpdate();
+  }
+
+  clearCache() {
+    this.pwaUpdateService.clearCache();
   }
 
   showInstallInstructions() {
