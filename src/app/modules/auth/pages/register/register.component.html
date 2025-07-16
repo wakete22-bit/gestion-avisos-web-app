@@ -1,3 +1,4 @@
+<ion-content>
   <div class="register-container">
     <div class="register-card">
       <!-- Logo -->
@@ -102,14 +103,15 @@
         </div>
 
         <!-- Botón de Registro -->
-        <ion-button 
+        <button 
           type="submit" 
-          expand="block" 
           class="register-button"
           [disabled]="isLoading || !registerForm.valid">
-          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
-          <span *ngIf="!isLoading">Crear Cuenta</span>
-        </ion-button>
+          <div class="button-content">
+            <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading">Crear Cuenta</span>
+          </div>
+        </button>
 
         <!-- Enlace a Login -->
         <div class="login-link">
@@ -120,3 +122,4 @@
       </form>
     </div>
   </div>
+</ion-content>

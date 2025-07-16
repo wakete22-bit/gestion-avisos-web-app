@@ -151,28 +151,43 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
 }
 
 .login-button {
-  --background: $primary-color;
-  --border-radius: 12px;
-  --padding-top: 16px;
-  --padding-bottom: 16px;
+  width: 100%;
+  background: $primary-color;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
   font-weight: 600;
   font-size: 16px;
   margin-top: 8px;
   transition: all 0.2s ease;
   font-family: 'Inter', sans-serif;
-  --box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
-}
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-.login-button:hover {
-  --background: #4338ca;
-  transform: translateY(-1px);
-  --box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-}
+  &:hover:not(:disabled) {
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  }
 
-.login-button:disabled {
-  --background: $text-muted;
-  transform: none;
-  --box-shadow: none;
+  &:disabled {
+    background: $text-muted;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
 }
 
 .register-link {
@@ -213,7 +228,6 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
     border-radius: 12px;
   }
   
-  
   .app-title {
     font-size: 22px;
   }
@@ -228,6 +242,11 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
   
   .form-control {
     padding: 10px 14px;
+    font-size: 16px;
+  }
+  
+  .login-button {
+    padding: 14px;
     font-size: 16px;
   }
 }
