@@ -226,17 +226,70 @@ export class AvisosService {
     }
 
     /**
-     * Elimina todas las fotos asociadas a un aviso
+     * Elimina todas las fotos asociadas a un aviso (incluyendo archivos del storage)
      */
     private eliminarFotosAviso(avisoId: string): Observable<void> {
+        // Primero obtener todas las fotos del aviso
         return from(
             this.supabase
                 .from('fotos_aviso')
-                .delete()
+                .select('*')
                 .eq('aviso_id', avisoId)
         ).pipe(
-            map(({ error }) => {
-                if (error) throw error;
+            switchMap(({ data: fotos, error: selectError }) => {
+                if (selectError) throw selectError;
+                
+                const fotosData = fotos as FotoAviso[];
+                
+                if (fotosData.length === 0) {
+                    // No hay fotos, solo eliminar registros
+                    return from(
+                        this.supabase
+                            .from('fotos_aviso')
+                            .delete()
+                            .eq('aviso_id', avisoId)
+                    ).pipe(
+                        map(({ error }) => {
+                            if (error) throw error;
+                        })
+                    );
+                }
+                
+                // Preparar rutas de archivos para eliminar del storage
+                const archivosAEliminar = fotosData.map(foto => {
+                    const urlParts = foto.url.split('/');
+                    const fileName = urlParts[urlParts.length - 1];
+                    return `${avisoId}/${fileName}`;
+                });
+                
+                // Eliminar archivos del storage
+                return from(
+                    this.supabase.storage
+                        .from('fotos-avisos')
+                        .remove(archivosAEliminar)
+                ).pipe(
+                    switchMap(({ error: storageError }) => {
+                        if (storageError) {
+                            console.warn('Error al eliminar archivos del storage:', storageError);
+                            // Continuar aunque falle la eliminación del storage
+                        }
+                        
+                        // Eliminar registros de la base de datos
+                        return from(
+                            this.supabase
+                                .from('fotos_aviso')
+                                .delete()
+                                .eq('aviso_id', avisoId)
+                        );
+                    }),
+                    map(({ error: deleteError }) => {
+                        if (deleteError) throw deleteError;
+                    })
+                );
+            }),
+            catchError(error => {
+                console.error('Error al eliminar fotos del aviso:', error);
+                throw error;
             })
         );
     }
@@ -297,14 +350,53 @@ export class AvisosService {
      * Elimina una foto de un aviso
      */
     eliminarFoto(fotoId: string): Observable<void> {
+        // Primero obtener la información de la foto para eliminar el archivo del storage
         return from(
             this.supabase
                 .from('fotos_aviso')
-                .delete()
+                .select('*')
                 .eq('id', fotoId)
+                .single()
         ).pipe(
-            map(({ error }) => {
-                if (error) throw error;
+            switchMap(({ data: foto, error: selectError }) => {
+                if (selectError) throw selectError;
+                
+                const fotoData = foto as FotoAviso;
+                
+                // Extraer el nombre del archivo de la URL
+                const urlParts = fotoData.url.split('/');
+                const fileName = urlParts[urlParts.length - 1];
+                const avisoId = fotoData.aviso_id;
+                const fullPath = `${avisoId}/${fileName}`;
+                
+                // Eliminar el archivo del storage
+                return from(
+                    this.supabase.storage
+                        .from('fotos-avisos')
+                        .remove([fullPath])
+                ).pipe(
+                    switchMap(({ error: storageError }) => {
+                        if (storageError) {
+                            console.warn('Error al eliminar archivo del storage:', storageError);
+                            // Continuar aunque falle la eliminación del storage
+                        }
+                        
+                        // Eliminar el registro de la base de datos
+                        return from(
+                            this.supabase
+                                .from('fotos_aviso')
+                                .delete()
+                                .eq('id', fotoId)
+                        );
+                    }),
+                    map(({ error: deleteError }) => {
+                        if (deleteError) throw deleteError;
+                    })
+                );
+            }),
+            catchError(error => {
+                console.error('Error al eliminar foto:', error);
+                throw error;
             })
         );
     }

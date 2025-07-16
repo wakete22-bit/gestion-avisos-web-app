@@ -1,6 +1,7 @@
 import { Component, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
@@ -57,7 +58,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private modalController: ModalController, 
     private cdr: ChangeDetectorRef,
     private geocodingService: GeocodingService,
-    private avisosService: AvisosService
+    private avisosService: AvisosService,
+    private router: Router
   ) {
     addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
   }
@@ -407,18 +409,42 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         .subscribe({
           next: (avisoCreado) => {
             console.log('Aviso creado exitosamente:', avisoCreado);
-            this.loading = false;
             
             // Subir imágenes si las hay
             if (data.imagenes && data.imagenes.length > 0) {
-              data.imagenes.forEach((file: File) => {
-                this.avisosService.subirFoto(avisoCreado.id, file)
-                  .pipe(takeUntil(this.destroy$))
-                  .subscribe({
-                    next: (foto) => console.log('Foto subida:', foto),
-                    error: (error) => console.error('Error al subir foto:', error)
-                  });
+              const subidasCompletadas = new Promise<void>((resolve) => {
+                let fotosSubidas = 0;
+                const totalFotos = data.imagenes.length;
+                
+                data.imagenes.forEach((file: File) => {
+                  this.avisosService.subirFoto(avisoCreado.id, file)
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe({
+                      next: (foto) => {
+                        console.log('Foto subida:', foto);
+                        fotosSubidas++;
+                        if (fotosSubidas === totalFotos) {
+                          resolve();
+                        }
+                      },
+                      error: (error) => {
+                        console.error('Error al subir foto:', error);
+                        fotosSubidas++;
+                        if (fotosSubidas === totalFotos) {
+                          resolve();
+                        }
+                      }
+                    });
+                });
               });
+              
+              // Esperar a que todas las fotos se suban y luego recargar avisos
+              subidasCompletadas.then(() => {
+                this.loading = false;
+                this.cargarAvisos(); // Recargar la lista para mostrar las fotos
+              });
+            } else {
+              this.loading = false;
             }
           },
           error: (error) => {
@@ -562,6 +588,15 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       if (this.map) {
         setTimeout(() => this.map!.resize(), 100);
       }
+    }
+  }
+
+  /**
+   * Navega al detalle de un aviso
+   */
+  verDetalleAviso(aviso: Aviso) {
+    if (aviso.id) {
+      this.router.navigate(['/ver-aviso', aviso.id]);
     }
   }
 

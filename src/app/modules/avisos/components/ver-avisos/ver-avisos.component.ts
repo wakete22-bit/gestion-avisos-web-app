@@ -1,10 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
+import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
+import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline } from 'ionicons/icons';
+import { AvisosService } from '../../../../core/services/avisos.service';
+import { TrabajosService } from '../../../../core/services/trabajos.service';
+import { Aviso } from '../../models/aviso.model';
+import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
+import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/crear-trabajos-realizados.component';
+import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 
-addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline });
+addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrowBackOutline });
 
 @Component({
   selector: 'app-ver-avisos',
@@ -14,88 +21,271 @@ addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline });
     imports: [CommonModule, IonIcon, IonSegment, IonSegmentButton],
 })
 export class VerAvisosComponent implements OnInit {
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+  
   // Añadir la propiedad para controlar la vista
   vistaGaleria: 'grid' | 'list' = 'grid';
+  
+  // Datos del aviso
+  aviso: Aviso | null = null;
+  loading = false;
+  error: string | null = null;
+  subiendoImagenes = false;
+  
+  private destroy$ = new Subject<void>();  
 
-  // Datos del aviso (estos deberían venir de un servicio)
-  aviso = {
-    numero: '004',
-    estado: 'Pendiente',
-    urgente: 'No es urgente',
-    fechaCreacion: '27/05/2025',
-    cliente: {
-      nombre: 'Comercial Papelera S.L.',
-      direccion: 'C. del Poeta Querol 9, 46002 Valencia',
-      contacto: {
-        nombre: 'Ana García',
-        telefono: '698 25 25 225',
-        email: 'ana.g@papelera.es'
-      }
-    },
-    titulo: 'Fuga de agua importante en baño',
-    descripcion: 'Cliente reporta una fuga persistente en el baño de la planta baja, cerca del inodoro. Sospechan de una tubería rota. Necesario inspeccionar y reparar. Acceso limitado por la tarde.',
-    imagenes: [
-      {
-        nombre: 'ejemplo-imagen.png',
-        tiempo: 'Hace 3 horas',
-        tamano: '929KB'
-      },
-      {
-        nombre: 'ejemplo-imagen.png',
-        tiempo: 'Hace 3 horas',
-        tamano: '929KB'
-      }
-    ]
-  };  
+  // Datos de trabajos realizados
+  trabajosRealizados: TrabajoRealizado[] = [];
+  loadingTrabajos = false;
 
-  // Datos de trabajos realizados (estos deberían venir de un servicio)
-  trabajosRealizados = [
-    {
-      numero: '001',
-      fechaTrabajo: '20/10/2025',
-      horario: '10:00 - 13:52',
-      descripcion: 'Descripción del trabajo realizado',
-      repuestos: [
-        'Válvula de expansión: 1 Unidad',
-        'Gas Refrigerante R410A: 1.5 kg',
-        'Filtro de Aire Hepa (FAH-500): 1 unidad'
-      ],
-      estado: 'Pendiente'
-    }
-  ];
-
-  constructor() {
-    addIcons({close,pencilOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,chevronDownOutline,eyeOutline,add,mapOutline});
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private avisosService: AvisosService,
+    private trabajosService: TrabajosService,
+    private modalController: ModalController
+  ) {
+    addIcons({arrowBackOutline,refreshOutline,alertCircleOutline,close,pencilOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,trashOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.cargarAviso();
+  }
+
+  /**
+   * Carga los trabajos realizados del aviso
+   */
+  cargarTrabajos() {
+    if (!this.aviso?.id) return;
+
+    this.loadingTrabajos = true;
+    this.trabajosService.getTrabajosAviso(this.aviso.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.trabajosRealizados = response.trabajos;
+          this.loadingTrabajos = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar trabajos:', error);
+          this.loadingTrabajos = false;
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga el aviso basado en el ID de la URL
+   */
+  cargarAviso() {
+    this.loading = true;
+    this.error = null;
+
+    this.route.params
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        const avisoId = params['id-aviso'];
+        if (avisoId) {
+          this.avisosService.getAviso(avisoId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (aviso) => {
+                this.aviso = aviso;
+                this.loading = false;
+                // Cargar trabajos realizados después de cargar el aviso
+                this.cargarTrabajos();
+              },
+              error: (error) => {
+                console.error('Error al cargar el aviso:', error);
+                this.error = 'Error al cargar el aviso. Por favor, inténtalo de nuevo.';
+                this.loading = false;
+              }
+            });
+        } else {
+          this.error = 'ID de aviso no válido';
+          this.loading = false;
+        }
+      });
+  }
 
   cambiarVistaGaleria(event: any) {
     this.vistaGaleria = event.detail.value;
   }
 
+  /**
+   * Navega de vuelta a la lista de avisos
+   */
+  volverALista() {
+    this.router.navigate(['/avisos']);
+  }
+
   verCliente() {
-    // Implementar navegación al detalle del cliente
+    if (this.aviso?.cliente?.id) {
+      // Implementar navegación al detalle del cliente
+      console.log('Navegar al cliente:', this.aviso.cliente.id);
+    }
   }
 
   verMapa() {
-    // Implementar apertura del mapa
+    if (this.aviso?.direccion_cliente_aviso) {
+      // Abrir Google Maps con la dirección
+      const direccion = encodeURIComponent(this.aviso.direccion_cliente_aviso);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${direccion}`, '_blank');
+    }
   }
 
   editarAviso() {
-    // Implementar edición del aviso
+    if (this.aviso?.id) {
+      // Implementar edición del aviso
+      console.log('Editar aviso:', this.aviso.id);
+    }
   }
 
   cerrarAlbaran() {
-    // Implementar cierre de albarán
+    if (this.aviso?.id) {
+      // Implementar cierre de albarán
+      console.log('Cerrar albarán para aviso:', this.aviso.id);
+    }
   }
 
-  addImagenes() {
-    // Implementar añadir imágenes
+  /**
+   * Abre el selector de archivos
+   */
+  seleccionarImagenes() {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.click();
+    }
+  }
+
+  /**
+   * Maneja la selección de archivos
+   */
+  onFileSelected(event: any) {
+    const files: FileList = event.target.files;
+    if (files.length > 0 && this.aviso?.id) {
+      this.subirImagenes(Array.from(files));
+    }
+    
+    // Limpiar el input para permitir seleccionar los mismos archivos de nuevo
+    event.target.value = '';
+  }
+
+  /**
+   * Sube múltiples imágenes al aviso
+   */
+  async subirImagenes(files: File[]) {
+    if (!this.aviso?.id) {
+      console.error('No se puede subir imágenes: aviso no válido');
+      return;
+    }
+
+    this.subiendoImagenes = true;
+    this.error = null;
+
+    try {
+      const subidasCompletadas = new Promise<void>((resolve) => {
+        let fotosSubidas = 0;
+        const totalFotos = files.length;
+        
+        files.forEach((file: File) => {
+          this.avisosService.subirFoto(this.aviso!.id!, file)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (foto) => {
+                console.log('Foto subida:', foto);
+                fotosSubidas++;
+                if (fotosSubidas === totalFotos) {
+                  resolve();
+                }
+              },
+              error: (error) => {
+                console.error('Error al subir foto:', error);
+                fotosSubidas++;
+                if (fotosSubidas === totalFotos) {
+                  resolve();
+                }
+              }
+            });
+        });
+      });
+      
+      // Esperar a que todas las fotos se suban
+      await subidasCompletadas;
+      
+      // Recargar el aviso para mostrar las nuevas imágenes
+      this.cargarAviso();
+      
+    } catch (error) {
+      console.error('Error al subir imágenes:', error);
+      this.error = 'Error al subir las imágenes. Por favor, inténtalo de nuevo.';
+    } finally {
+      this.subiendoImagenes = false;
+    }
+  }
+
+  /**
+   * Abre el modal para crear un nuevo trabajo realizado
+   */
+  async crearTrabajoRealizado() {
+    if (!this.aviso?.id) return;
+
+    const modal = await this.modalController.create({
+      component: CrearTrabajosRealizadosComponent,
+      componentProps: {
+        avisoId: this.aviso.id
+      },
+      cssClass: 'modal-crear-trabajo'
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data) {
+      try {
+        await firstValueFrom(this.trabajosService.crearTrabajo(data));
+        console.log('Trabajo creado exitosamente');
+        
+        // Recargar trabajos para mostrar el nuevo
+        this.cargarTrabajos();
+      } catch (error) {
+        console.error('Error al crear trabajo:', error);
+        alert('Error al crear el trabajo. Por favor, inténtalo de nuevo.');
+      }
+    }
   }
 
   realizarOtraVisita(trabajo: any) {
     // Implementar lógica para realizar otra visita
     console.log('Realizar otra visita para el trabajo:', trabajo);
+  }
+
+  /**
+   * Elimina una foto del aviso
+   */
+  async eliminarFoto(foto: any) {
+    if (!this.aviso?.id || !foto?.id) {
+      console.error('No se puede eliminar la foto: faltan datos');
+      return;
+    }
+
+    // Confirmar antes de eliminar
+    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar esta imagen?\n\nEsta acción no se puede deshacer.`);
+    
+    if (confirmacion) {
+      try {
+        await firstValueFrom(this.avisosService.eliminarFoto(foto.id));
+        console.log('Foto eliminada exitosamente');
+        
+        // Recargar el aviso para actualizar la lista de fotos
+        this.cargarAviso();
+      } catch (error) {
+        console.error('Error al eliminar la foto:', error);
+        alert('Error al eliminar la imagen. Por favor, inténtalo de nuevo.');
+      }
+    }
   }
 }

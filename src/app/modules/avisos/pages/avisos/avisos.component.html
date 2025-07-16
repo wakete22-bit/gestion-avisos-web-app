@@ -117,7 +117,7 @@
                 </ion-icon>
               </div>
               <div class="aviso-cell acciones">
-                <button class="btn-ver" title="Ver detalles">
+                <button class="btn-ver" title="Ver detalles" (click)="verDetalleAviso(aviso)">
                   <ion-icon name="eye-outline"></ion-icon>
                 </button>
                 <button class="btn-editar" title="Editar aviso">
@@ -220,7 +220,7 @@
                     <button class="btn-mapa" (click)="centrarAvisoEnMapa(aviso, $event)" title="Ir al punto en el mapa">
                       <ion-icon name="map-outline"></ion-icon>
                     </button>
-                    <button class="btn-ver" (click)="$event.stopPropagation()" title="Ver detalles">
+                    <button class="btn-ver" (click)="$event.stopPropagation(); verDetalleAviso(aviso)" title="Ver detalles">
                       <ion-icon name="eye-outline"></ion-icon>
                     </button>
                     <button class="btn-eliminar" (click)="$event.stopPropagation(); eliminarAviso(aviso)" title="Eliminar aviso">

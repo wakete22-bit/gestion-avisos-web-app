@@ -589,6 +589,159 @@ ion-icon[name="alert-circle"] {
   color: #D92D20;
 }
 
+// Loading State
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  
+  .loading-spinner {
+    text-align: center;
+    
+    ion-icon {
+      font-size: 48px;
+      color: #4F46E5;
+      margin-bottom: 16px;
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    p {
+      color: #64748b;
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Error State
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  
+  .error-message {
+    text-align: center;
+    max-width: 400px;
+    
+    ion-icon {
+      font-size: 48px;
+      color: #D92D20;
+      margin-bottom: 16px;
+    }
+    
+    p {
+      color: #64748b;
+      font-size: 16px;
+      margin: 0 0 20px 0;
+      line-height: 1.5;
+    }
+    
+    .btn-retry {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #4338CA;
+      }
+      
+      ion-icon {
+        font-size: 18px;
+        color: white;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Header Actions
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  min-height: 42px;
+  background-color: #F8FAFC;
+  color: #64748b;
+  border: 1px solid #E2E8F0;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background-color: #F1F5F9;
+    border-color: #CBD5E1;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Action Buttons in Table
+.btn-editar {
+  &:hover {
+    background-color: #F59E0B;
+    ion-icon {
+      color: white;
+    }
+  }
+  
+  &:active {
+    transform: scale(0.9);
+    background-color: #D97706;
+  }
+}
+
+.btn-eliminar {
+  &:hover {
+    background-color: #EF4444;
+    ion-icon {
+      color: white;
+    }
+  }
+  
+  &:active {
+    transform: scale(0.9);
+    background-color: #DC2626;
+  }
+}
+
+// Pagination Styles
 .table-pagination {
   display: flex;
   align-items: center;
@@ -598,30 +751,48 @@ ion-icon[name="alert-circle"] {
   gap: 12px;
 
   .pagination-info {
-      font-size: 14px;
-      color: #64748b;
+    font-size: 14px;
+    color: #64748b;
   }
 
   .pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .pagination-btn {
+      background: #f3f4f6;
+      min-width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      color: #26262A;
+      cursor: pointer;
       display: flex;
-      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
 
-      button {
-          background: #f3f4f6;
-          min-width: 32px;
-          height: 32px;
-          border: none;
-          border-radius: 6px;
-          padding: 4px 8px;
-          font-size: 14px;
-          color: #26262A;
-          cursor: pointer;
-
-          &.active {
-              background: #4F46E5;
-              color: #fff;
-          }
+      &:hover:not(:disabled) {
+        background: #e5e7eb;
       }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &.active {
+        background: #4F46E5;
+        color: #fff;
+      }
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
   }
 }
 

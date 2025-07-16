@@ -1,0 +1,173 @@
+<div class="modal-container">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>Crear parte de trabajo</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="subtitle">Registra el trabajo realizado en este aviso</p>
+  </header>
+
+  <form [formGroup]="trabajoForm" (ngSubmit)="crearTrabajo()" class="modal-body">
+    <div class="modal-content">
+      <div class="modal-grid">
+        <!-- Sección Izquierda - Formulario -->
+        <div class="form-section">
+          <div class="form-group">
+            <label>Fecha del trabajo <span class="required">*</span></label>
+            <input 
+              type="date" 
+              formControlName="fecha_trabajo" 
+              class="form-control">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Hora de inicio <span class="required">*</span></label>
+              <input 
+                type="time" 
+                formControlName="hora_inicio" 
+                class="form-control">
+            </div>
+            <div class="form-group half">
+              <label>Hora de fin <span class="required">*</span></label>
+              <input 
+                type="time" 
+                formControlName="hora_fin" 
+                class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Descripción del trabajo <span class="required">*</span></label>
+            <textarea 
+              formControlName="descripcion" 
+              class="form-control"
+              placeholder="Describe detalladamente el trabajo realizado..."
+              rows="4"
+              maxlength="500">
+            </textarea>
+            <div class="character-count">{{trabajoForm.get('descripcion')?.value?.length || 0}}/500</div>
+          </div>
+
+          <div class="form-group">
+            <label>Estado del trabajo</label>
+            <select formControlName="estado" class="form-control">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En curso">En curso</option>
+              <option value="Completado">Completado</option>
+              <option value="Cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sección Derecha - Repuestos -->
+        <div class="images-section">
+          <div class="repuestos-container">
+            <h3>Repuestos utilizados</h3>
+            
+            <!-- Búsqueda de productos -->
+            <div class="search-container">
+              <div class="search-input">
+                <ion-icon name="search-outline"></ion-icon>
+                <input
+                  type="text"
+                  [(ngModel)]="busquedaProducto"
+                  [ngModelOptions]="{standalone: true}"
+                  placeholder="Buscar productos del inventario..."
+                  class="form-control"
+                  (input)="filtrarProductos($event)">
+              </div>
+            </div>
+
+            <!-- Loading state -->
+            <div *ngIf="loadingProductos" class="loading-indicator">
+              <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+              <span>Cargando productos...</span>
+            </div>
+
+            <!-- Error state -->
+            <div *ngIf="errorProductos" class="error-message">
+              {{ errorProductos }}
+            </div>
+
+            <!-- Lista de productos disponibles -->
+            <div class="productos-disponibles" *ngIf="!loadingProductos && !errorProductos">
+              <h4>Productos disponibles</h4>
+              <div class="productos-list">
+                <div 
+                  class="producto-item" 
+                  *ngFor="let producto of productosFiltrados"
+                  (click)="agregarRepuesto(producto)">
+                  <div class="producto-info">
+                    <div class="producto-header">
+                      <span class="producto-codigo">{{producto.codigo}}</span>
+                      <span class="producto-stock">Stock: {{producto.cantidad_disponible}} {{producto.unidad}}</span>
+                    </div>
+                    <span class="producto-nombre">{{producto.nombre}}</span>
+                    <span class="producto-descripcion" *ngIf="producto.descripcion">{{producto.descripcion}}</span>
+                    <span class="producto-precio">{{producto.precio_neto | currency:'EUR':'symbol':'1.2-2'}}</span>
+                  </div>
+                  <button type="button" class="add-producto-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lista de repuestos añadidos -->
+            <div class="repuestos-list" *ngIf="repuestos.length > 0">
+              <h4>Repuestos añadidos</h4>
+              <div class="repuesto-item" *ngFor="let repuesto of repuestos; let i = index">
+                <div class="repuesto-info">
+                  <div class="repuesto-header">
+                    <span class="repuesto-codigo">{{repuesto.producto.codigo}}</span>
+                    <span class="repuesto-precio">{{repuesto.producto.precio_neto | currency:'EUR':'symbol':'1.2-2'}}</span>
+                  </div>
+                  <span class="repuesto-nombre">{{repuesto.producto.nombre}}</span>
+                  <div class="repuesto-cantidad">
+                    <label>Cantidad:</label>
+                    <input 
+                      type="number" 
+                      [value]="repuesto.cantidad"
+                      [min]="1"
+                      [max]="repuesto.producto.cantidad_disponible"
+                      (change)="actualizarCantidadRepuesto(i, $any($event.target).value)"
+                      class="cantidad-input">
+                    <span class="unidad">{{repuesto.producto.unidad}}</span>
+                  </div>
+                </div>
+                <button type="button" class="remove-repuesto" (click)="eliminarRepuesto(i)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="no-repuestos" *ngIf="repuestos.length === 0 && !loadingProductos && !errorProductos">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <p>No se han añadido repuestos</p>
+              <span>Selecciona productos del inventario para añadirlos como repuestos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <footer class="modal-footer">
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="cerrarModal()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="crearTrabajo()"
+        [disabled]="!trabajoForm.valid">
+        Crear trabajo
+        <ion-icon name="save-outline"></ion-icon>
+      </button>
+    </div>
+  </footer>
+</div> 

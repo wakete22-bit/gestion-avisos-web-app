@@ -1,7 +1,35 @@
+<!-- Botón de volver -->
+<div class="back-button">
+  <button class="btn-back" (click)="volverALista()">
+    <ion-icon name="arrow-back-outline"></ion-icon>
+    Volver a la lista
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="loading-state">
+  <div class="loading-spinner">
+    <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+    <p>Cargando aviso...</p>
+  </div>
+</div>
+
+<!-- Error State -->
+<div *ngIf="error && !loading" class="error-state">
+  <div class="error-message">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="cargarAviso()">
+      <ion-icon name="refresh-outline"></ion-icon>
+      Reintentar
+    </button>
+  </div>
+</div>
+
 <!-- Información General -->
-<div class="info-card">
+<div *ngIf="aviso && !loading" class="info-card">
   <div class="card-header">
-    <h2>Información general del Aviso - #{{aviso.numero}}</h2>
+    <h2>Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</h2>
     <div class="header-actions">
       <button class="btn-secondary" (click)="cerrarAlbaran()">
         <ion-icon name="close"></ion-icon>
@@ -22,18 +50,18 @@
       </div>
       <div class="info-item">
         <label>Urgente</label>
-        <span>{{aviso.urgente}}</span>
+        <span>{{aviso.urgencia === 'Alta' || aviso.es_urgente ? 'Sí' : 'No'}}</span>
       </div>
       <div class="info-item">
         <label>Fecha de creación</label>
-        <span>{{aviso.fechaCreacion}}</span>
+        <span>{{aviso.fecha_creacion | date:'dd/MM/yyyy'}}</span>
       </div>
     </div>
 
     <div class="info-item cliente-section">
       <label>Cliente</label>
       <div class="cliente-info">
-        <span>{{aviso.cliente.nombre}}</span>
+        <span>{{aviso.nombre_cliente_aviso}}</span>
         <a class="ver-cliente" (click)="verCliente()">Ver cliente</a>
       </div>
     </div>
@@ -41,7 +69,7 @@
     <div class="info-item direccion-section">
       <label>Dirección</label>
       <div class="direccion-info">
-        <span>{{aviso.cliente.direccion}}</span>
+        <span>{{aviso.direccion_cliente_aviso}}</span>
         <button class="btn-map" (click)="verMapa()">
           <ion-icon name="navigate"></ion-icon>
         </button>
@@ -53,15 +81,15 @@
       <div class="contacto-items">
         <div class="contacto-item">
           <ion-icon name="person"></ion-icon>
-          <span>{{aviso.cliente.contacto.nombre}}</span>
+          <span>{{aviso.nombre_contacto}}</span>
         </div>
         <div class="contacto-item">
           <ion-icon name="call"></ion-icon>
-          <span>{{aviso.cliente.contacto.telefono}}</span>
+          <span>{{aviso.telefono_cliente_aviso}}</span>
         </div>
-        <div class="contacto-item">
+        <div class="contacto-item" *ngIf="aviso.cliente?.email">
           <ion-icon name="mail"></ion-icon>
-          <span>{{aviso.cliente.contacto.email}}</span>
+          <span>{{aviso.cliente?.email}}</span>
         </div>
       </div>
     </div>
@@ -72,18 +100,18 @@
 <div class="info-card">
   <div class="card-header">
     <h2>Descripción del Aviso</h2>
-    <span class="badge-pendiente">{{aviso.estado}}</span>
+    <span class="badge-pendiente">{{aviso?.estado || 'No especificado'}}</span>
   </div>
 
   <div class="descripcion-content">
     <div class="info-item">
-      <label>Título del Aviso</label>
-      <p>{{aviso.titulo}}</p>
+      <label>Tipo de Aviso</label>
+      <p>{{aviso?.tipo || 'No especificado'}}</p>
     </div>
 
     <div class="info-item">
       <label>Descripción Detallada del Problema/Petición</label>
-      <p>{{aviso.descripcion}}</p>
+      <p>{{aviso?.descripcion_problema}}</p>
     </div>
   </div>
 </div>
@@ -101,22 +129,39 @@
           <ion-icon name="list-outline"></ion-icon>
         </ion-segment-button>
       </ion-segment>
-      <button class="btn-primary" (click)="addImagenes()">
+      <button class="btn-primary" (click)="seleccionarImagenes()" [disabled]="subiendoImagenes">
         <ion-icon name="add-circle"></ion-icon>
-        Añadir imágenes
+        {{ subiendoImagenes ? 'Subiendo...' : 'Añadir imágenes' }}
       </button>
+      <input 
+        #fileInput 
+        type="file" 
+        multiple 
+        accept="image/*" 
+        style="display: none;"
+        (change)="onFileSelected($event)"
+      >
     </div>
   </div>
 
   <div class="gallery-items">
-    <div class="gallery-item" *ngFor="let imagen of aviso.imagenes">
-      <img [src]="imagen.nombre" [alt]="imagen.nombre">
+    <!-- Indicador de carga al subir imágenes -->
+    <div *ngIf="subiendoImagenes" class="uploading-indicator">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Subiendo imágenes...</p>
+    </div>
+    
+    <div *ngIf="!aviso?.fotos || aviso?.fotos?.length === 0" class="no-images">
+      <p>No hay imágenes disponibles para este aviso</p>
+    </div>
+    <div class="gallery-item" *ngFor="let foto of aviso?.fotos">
+      <img [src]="foto.url" [alt]="foto.descripcion || 'Imagen del aviso'">
       <div class="image-info">
-        <span>{{imagen.nombre}}</span>
-        <span class="file-info">{{imagen.tiempo}} · {{imagen.tamano}}</span>
+        <span>{{foto.descripcion || 'Imagen del aviso'}}</span>
+        <span class="file-info">{{foto.fecha_subida | date:'dd/MM/yyyy HH:mm'}}</span>
       </div>
-      <button class="btn-more">
-        <i class="fas fa-ellipsis-v"></i>
+      <button class="btn-delete" (click)="eliminarFoto(foto)" title="Eliminar imagen">
+        <ion-icon name="trash-outline"></ion-icon>
       </button>
     </div>
   </div>
@@ -126,17 +171,30 @@
 <div class="info-card">
   <div class="card-header">
     <h2>Lista de trabajos realizados</h2>
-    <div class="table-search">
-      <input type="text" placeholder="Buscar...">
-      <div class="order-by">
-        Ordenar por: <span>Recientes</span>
-        <ion-icon name="chevron-down-outline"></ion-icon>
-      </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="crearTrabajoRealizado()">
+        <ion-icon name="add-circle"></ion-icon>
+        Crear parte de trabajo
+      </button>
     </div>
   </div>
 
   <div class="table-container">
-    <table class="custom-mat-table">
+    <!-- Loading State -->
+    <div *ngIf="loadingTrabajos" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando trabajos...</p>
+      </div>
+    </div>
+
+    <!-- No hay trabajos -->
+    <div *ngIf="!loadingTrabajos && (!trabajosRealizados || trabajosRealizados.length === 0)" class="no-trabajos">
+      <p>No hay trabajos realizados para este aviso</p>
+    </div>
+
+    <!-- Tabla de trabajos -->
+    <table *ngIf="!loadingTrabajos && trabajosRealizados.length > 0" class="custom-mat-table">
       <thead>
         <tr>
           <th>Número</th>
@@ -148,15 +206,18 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let trabajo of trabajosRealizados">
-          <td>{{trabajo.numero}}</td>
-          <td>{{trabajo.fechaTrabajo}}</td>
-          <td>{{trabajo.horario}}</td>
+        <tr *ngFor="let trabajo of trabajosRealizados; let i = index">
+          <td>#{{i + 1}}</td>
+          <td>{{trabajo.fecha_trabajo | date:'dd/MM/yyyy'}}</td>
+          <td>{{trabajo.hora_inicio}} - {{trabajo.hora_fin}}</td>
           <td>{{trabajo.descripcion}}</td>
           <td>
-            <ul class="repuestos-list">
+            <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
               <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
             </ul>
+            <span *ngIf="!trabajo.repuestos || trabajo.repuestos.length === 0" class="no-repuestos">
+              Sin repuestos
+            </span>
           </td>
           <td>
             <div class="estado-actions">

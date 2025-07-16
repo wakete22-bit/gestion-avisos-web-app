@@ -10,6 +10,100 @@ $border-color: #E5E7EB;
 $pending-color: #F59E0B;
 $text-color: #111827;
 $background-color: #F9FAFB;
+$error-color: #EF4444;
+$success-color: #10B981;
+
+// Botón de volver
+.back-button {
+  margin-bottom: 24px;
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: white;
+    color: $primary-color;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $background-color;
+      border-color: $primary-color;
+    }
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+// Estados de carga y error
+.loading-state,
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  text-align: center;
+
+  .loading-spinner,
+  .error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    ion-icon {
+      font-size: 48px;
+      color: $primary-color;
+
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+
+    p {
+      font-size: 16px;
+      color: $secondary-color;
+      margin: 0;
+    }
+  }
+
+  .error-message {
+    ion-icon {
+      color: $error-color;
+    }
+
+    .btn-retry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background-color: $primary-color;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: darken($primary-color, 5%);
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 // Estilos generales
 .aviso-header {
@@ -23,7 +117,6 @@ $background-color: #F9FAFB;
     font-weight: 600;
     color: $text-color;
   }
-
 }
 
 .header-actions {
@@ -311,6 +404,41 @@ $background-color: #F9FAFB;
   display: grid;
   gap: 16px;
 
+  .uploading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: $primary-color;
+    
+    ion-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    p {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+
+  .no-images {
+    text-align: center;
+    padding: 40px 20px;
+    color: $secondary-color;
+    
+    p {
+      margin: 0;
+      font-size: 16px;
+    }
+  }
+
   .gallery-item {
     display: flex;
     align-items: center;
@@ -343,16 +471,22 @@ $background-color: #F9FAFB;
       }
     }
 
-    .btn-more {
+    .btn-delete {
       background: none;
       border: none;
       padding: 8px;
       cursor: pointer;
-      color: $secondary-color;
+      color: $error-color;
+      border-radius: 4px;
+      transition: all 0.2s ease;
 
       &:hover {
-        background-color: $background-color;
-        border-radius: 4px;
+        background-color: rgba($error-color, 0.1);
+        color: darken($error-color, 10%);
+      }
+
+      ion-icon {
+        font-size: 18px;
       }
     }
   }
@@ -462,4 +596,21 @@ $background-color: #F9FAFB;
     padding: 6px 12px;
     font-size: 13px;
   }
+}
+
+.no-trabajos {
+  text-align: center;
+  padding: 40px 20px;
+  color: $secondary-color;
+  
+  p {
+    margin: 0;
+    font-size: 16px;
+  }
+}
+
+.no-repuestos {
+  color: $secondary-color;
+  font-style: italic;
+  font-size: 14px;
 }

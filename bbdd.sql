@@ -54,10 +54,15 @@ CREATE TABLE public.fotos_aviso (
 );
 CREATE TABLE public.inventario (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  nombre_producto text NOT NULL UNIQUE,
-  unidad text NOT NULL,
+  codigo text NOT NULL UNIQUE,
+  nombre text NOT NULL,
+  descripcion text,
   cantidad_disponible numeric NOT NULL DEFAULT 0 CHECK (cantidad_disponible >= 0::numeric),
-  precio_unitario numeric NOT NULL CHECK (precio_unitario >= 0::numeric),
+  unidad text NOT NULL,
+  precio_neto numeric NOT NULL CHECK (precio_neto >= 0::numeric),
+  pvp numeric NOT NULL CHECK (pvp >= 0::numeric),
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT inventario_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.materiales_parte_trabajo (

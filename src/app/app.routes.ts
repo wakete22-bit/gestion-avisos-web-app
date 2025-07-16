@@ -65,7 +65,7 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/facturas/components/crear-factura/crear-factura.component').then((m) => m.CrearFacturaComponent),
       },
       {
-        path: 'ver-aviso',
+        path: 'ver-aviso/:id-aviso',
         loadComponent: () => import('./modules/avisos/components/ver-avisos/ver-avisos.component').then((m) => m.VerAvisosComponent),
       },
       {

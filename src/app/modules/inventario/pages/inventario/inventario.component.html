@@ -8,93 +8,6 @@
 
 
 <ion-content [fullscreen]="true">  
-    <!-- Resumen de tarjetas -->
-    <!-- <section class="dashboard-summary">
-      <div class="summary-cards-desktop">
-        <div class="summary-card">
-          <div>
-            <div class="summary-title" style="color: #4F46E5;">Categorías</div>
-            <div class="summary-value">4</div>
-            <div class="summary-subtitle">Últimos 7 días</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div>
-            <div class="summary-title" style="color: #DC6803;">Productos totales</div>
-            <div class="summary-container">
-              <div class="value-container">
-                <div class="summary-value">2</div>
-                <div class="summary-subtitle">Últimos 7 días</div>
-              </div>
-              <div class="value-container">
-                <div class="summary-value">14</div>
-                <div class="summary-subtitle">Total</div>
-              </div>  
-            </div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div>
-            <div class="summary-title" style="color: #D92D20;">Sin Stock</div>
-            <div class="summary-value">4</div>
-            <div class="summary-subtitle">Productos</div>
-          </div>
-        </div>
-        <div class="summary-card">
-          <div>
-            <div class="summary-title" style="color: #0F5FC2;">En Stock</div>
-            <div class="summary-value">2</div>
-            <div class="summary-subtitle">Productos</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="summary-cards-mobile">
-        <div class="summary-grid">
-          <div class="summary-card-mobile">
-            <div class="icon purple-bg">
-              <ion-icon name="apps-outline"></ion-icon>
-            </div>
-            <div class="mobile-card-content">
-              <div class="summary-title">Categorías</div>
-              <div class="summary-value">4</div>
-              <div class="summary-subtitle">Últimos 7 días</div>
-            </div>
-          </div>
-          <div class="summary-card-mobile">
-            <div class="icon yellow-bg">
-              <ion-icon name="cube-outline"></ion-icon>
-            </div>
-            <div class="mobile-card-content">
-              <div class="summary-title">Productos totales</div>
-              <div class="summary-value">14</div>
-              <div class="summary-subtitle">Total</div>
-            </div>
-          </div>
-          <div class="summary-card-mobile">
-            <div class="icon red-bg">
-              <ion-icon name="alert-circle-outline"></ion-icon>
-            </div>
-            <div class="mobile-card-content">
-              <div class="summary-title">Sin Stock</div>
-              <div class="summary-value">4</div>
-              <div class="summary-subtitle">Productos</div>
-            </div>
-          </div>
-          <div class="summary-card-mobile">
-            <div class="icon blue-bg">
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
-            </div>
-            <div class="mobile-card-content">
-              <div class="summary-title">En Stock</div>
-              <div class="summary-value">2</div>
-              <div class="summary-subtitle">Productos</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section> -->
-
     <!-- Productos recientes -->
     <section class="dashboard-table">
       <div class="table-header">
@@ -102,10 +15,13 @@
         <div class="table-header-container">
           <div class="table-header-left">
             <div class="table-title">Productos</div>
-            <div class="table-meta">Productos: {{ productos.length }}</div>  
+            <div class="table-meta">Productos: {{ totalProductos }}</div>  
           </div>
     
           <div class="mobile-buttons">
+            <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
+              <ion-icon name="refresh-outline"></ion-icon>
+            </button>
             <button class="btn-add" (click)="abrirModalCrearProducto()">
               <ion-icon name="add-circle"></ion-icon>
             </button>
@@ -117,25 +33,50 @@
         
         <!-- Mobile Search Bar -->
         <div class="mobile-search">
-          <input type="text" placeholder="Buscar producto..." />
+          <input type="text" placeholder="Buscar producto..." [formControl]="searchControl" />
           <ion-icon name="search-outline"></ion-icon>
         </div>
 
         <!-- Desktop Search and Actions -->
         <div class="table-search desktop-only">
-          <input type="text" placeholder="Buscar..." />
+          <input type="text" placeholder="Buscar..." [formControl]="searchControl" />
           <select>
             <option>Ordenar por: Recientes</option>
           </select>
-          <button class="btn-add" (click)="abrirModalCrearProducto()">
-            <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-            Añadir producto
-          </button>
+          <div class="header-actions">
+            <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
+              <ion-icon name="refresh-outline"></ion-icon>
+            </button>
+            <button class="btn-add" (click)="abrirModalCrearProducto()">
+              <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
+              Añadir producto
+            </button>
+          </div>
         </div>
       </div>      
 
+      <!-- Loading State -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="loading-spinner">
+          <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+          <p>Cargando productos...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !loading" class="error-state">
+        <div class="error-message">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>{{ error }}</p>
+          <button class="btn-retry" (click)="refrescarInventario()">
+            <ion-icon name="refresh-outline"></ion-icon>
+            Reintentar
+          </button>
+        </div>
+      </div>
+
       <!-- Compact Table View (grid, igual que avisos) -->
-      <div class="compact-inventario-table">
+      <div *ngIf="!loading && !error" class="compact-inventario-table">
         <div class="inventario-table">
           <div class="table-header">
             <div class="header-row">
@@ -151,26 +92,32 @@
             </div>
           </div>
           <div class="table-body">
-            <div *ngFor="let producto of productos"
+            <div *ngFor="let producto of productosFiltrados"
                  class="aviso-row"
-                 [ngClass]="{ 'no-visitado': !producto.enStock, 'completado': producto.enStock }">
+                 [ngClass]="{ 'no-visitado': !getEnStock(producto.cantidad_disponible), 'completado': getEnStock(producto.cantidad_disponible) }">
               <div class="aviso-cell numero-aviso">{{ producto.codigo }}</div>
               <div class="aviso-cell nombre-cliente">{{ producto.nombre }}</div>
               <div class="aviso-cell detalle-servicio">
-                <div class="detalle-texto" [title]="producto.descripcion">{{ producto.descripcion }}</div>
+                <div class="detalle-texto" [title]="producto.descripcion">{{ producto.descripcion || 'Sin descripción' }}</div>
               </div>
-              <div class="aviso-cell cantidad-aviso">{{ producto.cantidad }}</div>
+              <div class="aviso-cell cantidad-aviso">{{ producto.cantidad_disponible }}</div>
               <div class="aviso-cell unidad-aviso">{{ producto.unidad }}</div>
               <div class="aviso-cell estado-aviso">
-                <span class="badge" [ngClass]="{ 'yellow': producto.enStock, 'red': !producto.enStock }">
-                  {{ producto.enStock ? 'En Stock' : 'Sin Stock' }}
+                <span class="badge" [ngClass]="{ 'yellow': getEnStock(producto.cantidad_disponible), 'red': !getEnStock(producto.cantidad_disponible) }">
+                  {{ getEnStock(producto.cantidad_disponible) ? 'En Stock' : 'Sin Stock' }}
                 </span>
               </div>
-              <div class="aviso-cell precio-neto-aviso">{{ producto.precioNeto }}</div>
-              <div class="aviso-cell pvp-aviso">{{ producto.pvp }}</div>
+              <div class="aviso-cell precio-neto-aviso">{{ getPrecioNetoFormateado(producto.precio_neto) }}</div>
+              <div class="aviso-cell pvp-aviso">{{ getPvpFormateado(producto.pvp) }}</div>
               <div class="aviso-cell acciones">
-                <button class="btn-ver" title="Ver detalles">
+                <button class="btn-ver" title="Ver detalles" (click)="verDetallesProducto(producto)">
                   <ion-icon name="eye-outline"></ion-icon>
+                </button>
+                <button class="btn-editar" title="Editar producto">
+                  <ion-icon name="create-outline"></ion-icon>
+                </button>
+                <button class="btn-eliminar" title="Eliminar producto" (click)="confirmarEliminarProducto(producto)">
+                  <ion-icon name="trash-outline"></ion-icon>
                 </button>
               </div>
             </div>
@@ -179,15 +126,58 @@
       </div>
 
       <!-- Pagination -->
-      <div class="table-pagination">
-        <span class="pagination-info">Mostrando datos 1 a {{ productos.length }} de {{ productos.length }} producto</span>
+      <div *ngIf="totalProductos > 0 && !loading && !error" class="table-pagination">
+        <span class="pagination-info">
+          Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalProductos) }} de {{ totalProductos }} productos
+        </span>
         <div class="pagination">
-          <button class="active">1</button>
-          <button>2</button>
-          <button>3</button>
-          <button class="desktop-only">4</button>
-          <span class="desktop-only">...</span>
-          <button class="desktop-only">40</button>
+          <!-- Botón Primera Página -->
+          <button 
+            class="pagination-btn" 
+            [disabled]="!puedeAnterior()"
+            (click)="primeraPagina()"
+            title="Primera página">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+
+          <!-- Botón Página Anterior -->
+          <button 
+            class="pagination-btn" 
+            [disabled]="!puedeAnterior()"
+            (click)="paginaAnterior()"
+            title="Página anterior">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+          </button>
+
+          <!-- Páginas -->
+          <ng-container *ngFor="let pagina of obtenerRangoPaginas()">
+            <button 
+              class="pagination-btn" 
+              [class.active]="pagina === paginaActual"
+              (click)="cambiarPagina(pagina)">
+              {{ pagina }}
+            </button>
+          </ng-container>
+
+          <!-- Botón Página Siguiente -->
+          <button 
+            class="pagination-btn" 
+            [disabled]="!puedeSiguiente()"
+            (click)="paginaSiguiente()"
+            title="Página siguiente">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+
+          <!-- Botón Última Página -->
+          <button 
+            class="pagination-btn" 
+            [disabled]="!puedeSiguiente()"
+            (click)="ultimaPagina()"
+            title="Última página">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
         </div>
       </div>
     </section>

@@ -1,22 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, receipt, hourglassOutline, warning, document, appsOutline, cubeOutline, alertCircleOutline, checkmarkCircleOutline, searchOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, receipt, hourglassOutline, warning, document, appsOutline, cubeOutline, alertCircleOutline, checkmarkCircleOutline, searchOutline, trashOutline, createOutline, refreshOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { CrearProductoModalComponent } from '../../components/crear-producto-modal/crear-producto-modal.component';
-
-export interface Producto {
-  codigo: string;
-  nombre: string;
-  descripcion: string;
-  cantidad: number;
-  unidad: string;
-  enStock: boolean;
-  precioNeto: string;
-  pvp: string;
-}
+import { InventarioService } from '../../services/inventario.service';
+import { Inventario } from '../../models/inventario.model';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-inventario',
@@ -28,50 +21,198 @@ export interface Producto {
     IonContent,
     IonIcon,
     MatTableModule,
-    MatIconModule
+    MatIconModule,
+    ReactiveFormsModule
   ],
 })
-export class InventarioComponent  implements OnInit {
-
+export class InventarioComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['codigo', 'nombre', 'descripcion', 'cantidad', 'unidad', 'enStock', 'precioNeto', 'pvp'];
-  productos: Producto[] = [
-    {
-      codigo: 'P001',
-      nombre: 'Filtro de aire',
-      descripcion: 'Filtro de aire para sistemas de climatización',
-      cantidad: 15,
-      unidad: 'unidades',
-      enStock: true,
-      precioNeto: '25,00€',
-      pvp: '30,25€'
-    },
-    {
-      codigo: 'P002',
-      nombre: 'Refrigerante R410A',
-      descripcion: 'Gas refrigerante para equipos de aire acondicionado',
-      cantidad: 0,
-      unidad: 'kg',
-      enStock: false,
-      precioNeto: '45,00€',
-      pvp: '54,45€'
-    },
-    {
-      codigo: 'P003',
-      nombre: 'Termostato digital',
-      descripcion: 'Termostato programable con pantalla LCD',
-      cantidad: 8,
-      unidad: 'unidades',
-      enStock: true,
-      precioNeto: '65,00€',
-      pvp: '78,65€'
-    }
-  ];
+  productos: Inventario[] = [];
+  productosFiltrados: Inventario[] = [];
+  loading = false;
+  error: string | null = null;
+  totalProductos = 0;
+  paginaActual = 1;
+  porPagina = 10;
+  busqueda = '';
+  ordenarPor = 'fecha_creacion';
+  orden: 'asc' | 'desc' = 'desc';
+  searchControl = new FormControl('');
+  private destroy$ = new Subject<void>();
 
-  constructor(private modalController: ModalController) { 
-    addIcons({appsOutline,cubeOutline,alertCircleOutline,checkmarkCircleOutline,searchOutline,addCircle,eyeOutline,addCircleOutline,receipt,hourglassOutline,warning,document,alertCircle,close});
+  // Hacer Math disponible en el template
+  Math = Math;
+
+  constructor(
+    private modalController: ModalController,
+    private inventarioService: InventarioService,
+    private alertController: AlertController,
+    private toastController: ToastController
+  ) { 
+    addIcons({
+      appsOutline, cubeOutline, alertCircleOutline, checkmarkCircleOutline, searchOutline, 
+      addCircle, eyeOutline, addCircleOutline, receipt, hourglassOutline, warning, 
+      document, alertCircle, close, trashOutline, createOutline, refreshOutline,
+      chevronBackOutline, chevronForwardOutline
+    });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.cargarInventario();
+    this.configurarBusqueda();
+    this.suscribirseAInventario();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private cargarInventario() {
+    this.loading = true;
+    this.error = null;
+
+    this.inventarioService.getInventario(
+      this.paginaActual,
+      this.porPagina,
+      this.busqueda,
+      this.ordenarPor,
+      this.orden
+    ).pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        this.productos = response.inventario;
+        this.productosFiltrados = response.inventario;
+        this.totalProductos = response.total;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar inventario:', error);
+        this.error = 'Error al cargar el inventario. Por favor, inténtalo de nuevo.';
+        this.loading = false;
+      }
+    });
+  }
+
+  private suscribirseAInventario() {
+    this.inventarioService.inventario$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(productos => {
+        this.productos = productos;
+        this.productosFiltrados = productos;
+      });
+  }
+
+  private configurarBusqueda() {
+    this.searchControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(300),
+        distinctUntilChanged()
+      )
+      .subscribe(termino => {
+        this.busqueda = termino || '';
+        this.paginaActual = 1; // Resetear a la primera página
+        this.cargarInventario();
+      });
+  }
+
+  /**
+   * Refresca la lista de productos
+   */
+  refrescarInventario() {
+    this.cargarInventario();
+  }
+
+  /**
+   * Cambia a la página especificada
+   */
+  cambiarPagina(pagina: number) {
+    if (pagina >= 1 && pagina <= this.obtenerTotalPaginas()) {
+      this.paginaActual = pagina;
+      this.cargarInventario();
+    }
+  }
+
+  /**
+   * Calcula el total de páginas
+   */
+  obtenerTotalPaginas(): number {
+    return Math.ceil(this.totalProductos / this.porPagina);
+  }
+
+  /**
+   * Obtiene el rango de páginas a mostrar
+   */
+  obtenerRangoPaginas(): number[] {
+    const totalPaginas = this.obtenerTotalPaginas();
+    const paginaActual = this.paginaActual;
+    const rango = 2; // Número de páginas a mostrar antes y después de la actual
+
+    let inicio = Math.max(1, paginaActual - rango);
+    let fin = Math.min(totalPaginas, paginaActual + rango);
+
+    // Ajustar para mostrar siempre 5 páginas si es posible
+    if (fin - inicio < 4) {
+      if (inicio === 1) {
+        fin = Math.min(totalPaginas, inicio + 4);
+      } else {
+        inicio = Math.max(1, fin - 4);
+      }
+    }
+
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  }
+
+  /**
+   * Verifica si se puede ir a la página anterior
+   */
+  puedeAnterior(): boolean {
+    return this.paginaActual > 1;
+  }
+
+  /**
+   * Verifica si se puede ir a la página siguiente
+   */
+  puedeSiguiente(): boolean {
+    return this.paginaActual < this.obtenerTotalPaginas();
+  }
+
+  /**
+   * Va a la página anterior
+   */
+  paginaAnterior() {
+    if (this.puedeAnterior()) {
+      this.cambiarPagina(this.paginaActual - 1);
+    }
+  }
+
+  /**
+   * Va a la página siguiente
+   */
+  paginaSiguiente() {
+    if (this.puedeSiguiente()) {
+      this.cambiarPagina(this.paginaActual + 1);
+    }
+  }
+
+  /**
+   * Va a la primera página
+   */
+  primeraPagina() {
+    this.cambiarPagina(1);
+  }
+
+  /**
+   * Va a la última página
+   */
+  ultimaPagina() {
+    this.cambiarPagina(this.obtenerTotalPaginas());
+  }
 
   async abrirModalCrearProducto() {
     const modal = await this.modalController.create({
@@ -80,11 +221,151 @@ export class InventarioComponent  implements OnInit {
       showBackdrop: true,
       backdropDismiss: true
     });
+    
     await modal.present();
     const { data, role } = await modal.onWillDismiss();
+    
     if (role === 'confirm' && data) {
-      console.log('Producto creado:', data);
+      this.crearProducto(data);
     }
   }
 
+  private crearProducto(datosProducto: any) {
+    const producto = {
+      codigo: this.inventarioService.generarCodigoProducto(),
+      nombre: datosProducto.nombre,
+      descripcion: datosProducto.descripcion || '',
+      cantidad_disponible: datosProducto.stock,
+      unidad: datosProducto.unidad,
+      precio_neto: datosProducto.precioNeto,
+      pvp: datosProducto.pvp
+    };
+
+    this.loading = true;
+    this.error = null;
+
+    this.inventarioService.crearProducto(producto)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.mostrarToast('Producto creado exitosamente', 'success');
+          this.loading = false;
+          // Recargar la lista para mostrar el nuevo producto
+          this.cargarInventario();
+        },
+        error: (error) => {
+          console.error('Error al crear producto:', error);
+          this.error = 'Error al crear el producto. Por favor, inténtalo de nuevo.';
+          this.loading = false;
+          this.mostrarToast('Error al crear el producto', 'danger');
+        }
+      });
+  }
+
+  async verDetallesProducto(producto: Inventario) {
+    const alert = await this.alertController.create({
+      header: producto.nombre,
+      subHeader: `Código: ${producto.codigo}`,
+      message: `
+        <p><strong>Descripción:</strong> ${producto.descripcion || 'Sin descripción'}</p>
+        <p><strong>Cantidad:</strong> ${producto.cantidad_disponible} ${producto.unidad}</p>
+        <p><strong>Precio Neto:</strong> ${producto.precio_neto}€</p>
+        <p><strong>PVP:</strong> ${producto.pvp}€</p>
+        <p><strong>Fecha Creación:</strong> ${new Date(producto.fecha_creacion).toLocaleDateString()}</p>
+      `,
+      buttons: [
+        {
+          text: 'Editar',
+          handler: () => {
+            this.editarProducto(producto);
+          }
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.confirmarEliminarProducto(producto);
+          }
+        },
+        {
+          text: 'Cerrar',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private editarProducto(producto: Inventario) {
+    // TODO: Implementar modal de edición
+    console.log('Editar producto:', producto);
+  }
+
+  async confirmarEliminarProducto(producto: Inventario) {
+    const alert = await this.alertController.create({
+      header: 'Confirmar eliminación',
+      message: `¿Estás seguro de que quieres eliminar el producto "${producto.nombre}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.eliminarProducto(producto.id);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private eliminarProducto(id: string) {
+    this.loading = true;
+    this.error = null;
+
+    this.inventarioService.eliminarProducto(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.mostrarToast('Producto eliminado exitosamente', 'success');
+          this.loading = false;
+          // Recargar la lista para actualizar la vista
+          this.cargarInventario();
+        },
+        error: (error) => {
+          console.error('Error al eliminar producto:', error);
+          this.error = 'Error al eliminar el producto. Por favor, inténtalo de nuevo.';
+          this.loading = false;
+          this.mostrarToast('Error al eliminar el producto', 'danger');
+        }
+      });
+  }
+
+  private async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 2000,
+      color: color,
+      position: 'top'
+    });
+    await toast.present();
+  }
+
+  // Métodos auxiliares para el template
+  getEnStock(cantidad: number): boolean {
+    return cantidad > 0;
+  }
+
+  getPrecioNetoFormateado(precio: number): string {
+    return `${precio.toFixed(2)}€`;
+  }
+
+  getPvpFormateado(pvp: number): string {
+    return `${pvp.toFixed(2)}€`;
+  }
 }
