@@ -19,6 +19,7 @@
   <div class="sidebar-footer">
     <a routerLink="/ajustes" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="settings-outline" class="icon"></ion-icon>Ajustes</a>
     <a routerLink="/cuenta" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="person-circle-outline" class="icon"></ion-icon>Mi cuenta</a>
+    <a (click)="onLogout()" class="logout-link"><ion-icon name="log-out-outline" class="icon"></ion-icon>Cerrar Sesión</a>
   </div>
   <div class="sidebar-spacer"></div>
   <div class="sidebar-user">
@@ -26,7 +27,8 @@
       <span class="avatar"></span>
       <div class="user-info-container">
         <span class="welcome">Bienvenido,</span>
-        <span class="username">Juan</span>  
+        <span class="username">{{ currentUser?.nombre_completo || 'Usuario' }}</span>
+        <span class="user-role">{{ getRolDisplayName() }}</span>
       </div>
     </div>  
     <ion-icon name="chevron-forward-outline" class="icon-user"></ion-icon>

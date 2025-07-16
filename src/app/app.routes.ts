@@ -1,9 +1,32 @@
 import { Routes } from '@angular/router';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  // Rutas de autenticación (públicas)
+  {
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./modules/auth/pages/login/login.component').then((m) => m.LoginComponent),
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./modules/auth/pages/register/register.component').then((m) => m.RegisterComponent),
+      },
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full',
+      }
+    ]
+  },
+  
+  // Rutas protegidas de la aplicación
   {
     path: '',
     loadComponent: () => import('./layout/components/main-layout/main-layout.component').then((m) => m.MainLayoutComponent),
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'home',
@@ -50,7 +73,12 @@ export const routes: Routes = [
         redirectTo: 'home',
         pathMatch: 'full',
       }
-      
     ]
+  },
+  
+  // Redirección por defecto
+  {
+    path: '**',
+    redirectTo: 'auth/login',
   }
 ];

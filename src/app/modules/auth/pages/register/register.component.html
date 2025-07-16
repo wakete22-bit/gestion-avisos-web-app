@@ -1,0 +1,122 @@
+  <div class="register-container">
+    <div class="register-card">
+      <!-- Logo -->
+      <div class="logo-container">
+        <img src="assets/icon/LogoGestionAvisos.png" alt="Logo" class="logo">
+        <h1 class="app-title">Gestión de Avisos</h1>
+      </div>
+
+      <!-- Formulario de Registro -->
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+        <h2 class="form-title">Crear Cuenta</h2>
+
+        <!-- Campo Nombre Completo -->
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input 
+            type="text" 
+            formControlName="nombre_completo"
+            class="form-control"
+            placeholder="Tu nombre completo"
+            autocomplete="name">
+        </div>
+        <div class="error-message" *ngIf="getErrorMessage('nombre_completo')">
+          {{ getErrorMessage('nombre_completo') }}
+        </div>
+
+        <!-- Campo Email -->
+        <div class="form-group">
+          <label>Email</label>
+          <input 
+            type="email" 
+            formControlName="email"
+            class="form-control"
+            placeholder="tu@email.com"
+            autocomplete="email">
+        </div>
+        <div class="error-message" *ngIf="getErrorMessage('email')">
+          {{ getErrorMessage('email') }}
+        </div>
+
+        <!-- Campo Teléfono -->
+        <div class="form-group">
+          <label>Teléfono (Opcional)</label>
+          <input 
+            type="tel" 
+            formControlName="telefono"
+            class="form-control"
+            placeholder="+34 600 000 000"
+            autocomplete="tel">
+        </div>
+        <div class="error-message" *ngIf="getErrorMessage('telefono')">
+          {{ getErrorMessage('telefono') }}
+        </div>
+
+        <!-- Campo Contraseña -->
+        <div class="form-group">
+          <label>Contraseña</label>
+          <div class="input-with-button">
+            <input 
+              [type]="showPassword ? 'text' : 'password'" 
+              formControlName="password"
+              class="form-control"
+              placeholder="Mínimo 6 caracteres"
+              autocomplete="new-password">
+            <button 
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="visibility-button">
+              <ion-icon [name]="showPassword ? 'eye-off' : 'eye'"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="error-message" *ngIf="getErrorMessage('password')">
+          {{ getErrorMessage('password') }}
+        </div>
+
+        <!-- Campo Confirmar Contraseña -->
+        <div class="form-group">
+          <label>Confirmar Contraseña</label>
+          <div class="input-with-button">
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'" 
+              formControlName="confirmPassword"
+              class="form-control"
+              placeholder="Repite tu contraseña"
+              autocomplete="new-password">
+            <button 
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()"
+              class="visibility-button">
+              <ion-icon [name]="showConfirmPassword ? 'eye-off' : 'eye'"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="error-message" *ngIf="getErrorMessage('confirmPassword')">
+          {{ getErrorMessage('confirmPassword') }}
+        </div>
+
+        <!-- Mensaje de Error -->
+        <div class="error-message global-error" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Botón de Registro -->
+        <ion-button 
+          type="submit" 
+          expand="block" 
+          class="register-button"
+          [disabled]="isLoading || !registerForm.valid">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          <span *ngIf="!isLoading">Crear Cuenta</span>
+        </ion-button>
+
+        <!-- Enlace a Login -->
+        <div class="login-link">
+          <p>¿Ya tienes cuenta? 
+            <a (click)="goToLogin()" class="link">Inicia sesión aquí</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
