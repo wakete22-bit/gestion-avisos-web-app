@@ -1,10 +1,32 @@
 <ion-content>
-  <section class="dashboard-table">
+  <!-- Estado de carga -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">
+      <ion-icon name="hourglass-outline" class="spinning"></ion-icon>
+      <p>Cargando presupuestos...</p>
+    </div>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="hasError" class="error-container">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <h3>Error al cargar datos</h3>
+      <p>No se pudieron cargar los presupuestos. Inténtalo de nuevo.</p>
+      <button class="btn-retry" (click)="refreshPresupuestos()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <section *ngIf="!isLoading && !hasError" class="dashboard-table">
     <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de presupuestos</div>
-        <div class="table-meta">Presupuestos: {{ presupuestos.length }}</div>
+        <div class="table-meta">Presupuestos: {{ totalPresupuestos }}</div>
       </div>
       
       <!-- Mobile Search Bar -->
@@ -20,7 +42,7 @@
           <option>Ordenar por: Recientes</option>
         </select>
         <div class="header-actions">
-          <button class="btn-add">
+          <button class="btn-add" (click)="crearPresupuesto()">
             <ion-icon name="add-circle"></ion-icon>
             Añadir presupuesto
           </button>
@@ -36,7 +58,7 @@
         <option>Ordenar: Estado</option>
       </select>
       <div class="mobile-buttons">
-        <button class="btn-add">
+        <button class="btn-add" (click)="crearPresupuesto()">
           <ion-icon name="add-circle"></ion-icon>
         </button>
       </div>
@@ -62,7 +84,7 @@
                  'pendiente': presupuesto.estado === 'Pendiente',
                  'completado': presupuesto.estado === 'Completado'
                }">
-            <div class="presupuesto-cell numero-presupuesto">#{{ presupuesto.numero }}</div>
+            <div class="presupuesto-cell numero-presupuesto">#{{ getNumeroPresupuesto(presupuesto) }}</div>
             <div class="presupuesto-cell estado-presupuesto desktop-only">
               <span class="badge" [ngClass]="{
                       'yellow': presupuesto.estado === 'En curso',
@@ -72,17 +94,20 @@
                 {{ presupuesto.estado }}
               </span>
             </div>
-            <div class="presupuesto-cell nombre-cliente">{{ presupuesto.nombre }}</div>
+            <div class="presupuesto-cell nombre-cliente">{{ getNombreCliente(presupuesto) }}</div>
             <div class="presupuesto-cell descripcion-presupuesto">
-              <div class="descripcion-texto" [title]="presupuesto.detalle">
-                {{ presupuesto.detalle }}
+              <div class="descripcion-texto" [title]="presupuesto.aviso?.descripcion_problema || 'Sin descripción'">
+                {{ presupuesto.aviso?.descripcion_problema || 'Sin descripción' }}
               </div>
             </div>
-            <div class="presupuesto-cell fecha-presupuesto desktop-only">{{ presupuesto.fecha }}</div>
-            <div class="presupuesto-cell pvp-presupuesto desktop-only">{{ presupuesto.pvp }}</div>
+            <div class="presupuesto-cell fecha-presupuesto desktop-only">{{ getFechaFormateada(presupuesto) }}</div>
+            <div class="presupuesto-cell pvp-presupuesto desktop-only">{{ getImporteFormateado(presupuesto) }}</div>
             <div class="presupuesto-cell acciones">
-              <button class="btn-ver" title="Ver detalles">
+              <button class="btn-ver" title="Ver detalles" (click)="verPresupuesto(presupuesto)">
                 <ion-icon name="eye-outline"></ion-icon>
+              </button>
+              <button class="btn-editar" title="Editar presupuesto" (click)="editarPresupuesto(presupuesto)">
+                <ion-icon name="create-outline"></ion-icon>
               </button>
             </div>
           </div>
@@ -90,9 +115,22 @@
       </div>
     </div>
 
+    <!-- Estado de datos vacíos -->
+    <div *ngIf="presupuestos.length === 0 && !isLoading && !hasError" class="no-data-container">
+      <div class="no-data-message">
+        <ion-icon name="document-outline"></ion-icon>
+        <h3>No hay presupuestos</h3>
+        <p>Aún no se han creado presupuestos. Crea el primero para comenzar.</p>
+        <button class="btn-create" (click)="crearPresupuesto()">
+          <ion-icon name="add-circle"></ion-icon>
+          Crear presupuesto
+        </button>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <div class="table-pagination">
-      <span class="pagination-info">Mostrando datos 1 a {{ presupuestos.length }} de {{ presupuestos.length }} presupuesto</span>
+    <div *ngIf="presupuestos.length > 0" class="table-pagination">
+      <span class="pagination-info">Mostrando datos 1 a {{ presupuestos.length }} de {{ totalPresupuestos }} presupuesto</span>
       <div class="pagination">
         <button class="active">1</button>
         <button>2</button>

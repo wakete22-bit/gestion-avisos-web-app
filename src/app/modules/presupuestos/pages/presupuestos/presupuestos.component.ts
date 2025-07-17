@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { 
   mapOutline,
@@ -12,17 +14,9 @@ import {
   eyeOutline,
   add,
   addCircleOutline, 
-  searchOutline 
-} from 'ionicons/icons';
+  searchOutline, hourglassOutline, alertCircleOutline, refreshOutline, createOutline, documentOutline } from 'ionicons/icons';
 
-interface Presupuesto {
-  numero: string;
-  estado: string;
-  nombre: string;
-  detalle: string;
-  fecha: string;
-  pvp: string;
-}
+import { PresupuestosService, Presupuesto, PresupuestoResponse } from '../../services/presupuestos.service';
 
 @Component({
   selector: 'app-presupuestos',
@@ -37,65 +31,135 @@ interface Presupuesto {
     MatIconModule
   ],
 })
-export class PresupuestosComponent implements OnInit {
+export class PresupuestosComponent implements OnInit, OnDestroy {
   
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp', 'acciones'];
-  presupuestos: Presupuesto[] = [
-    {
-      numero: 'P001',
-      estado: 'En curso',
-      nombre: 'Restaurante El Sol',   
-      detalle: 'Instalación sistema de climatización',
-      fecha: '2025-01-15',
-      pvp: '2.500,00€'
-    },
-    {
-      numero: 'P002',
-      estado: 'Pendiente',
-      nombre: 'Hotel Marina',   
-      detalle: 'Mantenimiento preventivo calderas',
-      fecha: '2025-01-20',
-      pvp: '1.800,00€'
-    },
-    {
-      numero: 'P003',
-      estado: 'Completado',
-      nombre: 'Oficinas Centrales',   
-      detalle: 'Reparación sistema eléctrico',
-      fecha: '2025-01-10',
-      pvp: '3.200,00€'
-    },
-    {
-      numero: 'P004',
-      estado: 'En curso',
-      nombre: 'Residencia Ancianos',   
-      detalle: 'Instalación sistema de seguridad',
-      fecha: '2025-01-25',
-      pvp: '4.500,00€'
-    },
-    {
-      numero: 'P005',
-      estado: 'Pendiente',
-      nombre: 'Centro Comercial Plaza',   
-      detalle: 'Mantenimiento ascensores',
-      fecha: '2025-01-30',
-      pvp: '2.800,00€'
-    }
-  ];
+  presupuestos: Presupuesto[] = [];
+  loading = false;
+  error = false;
+  totalPresupuestos = 0;
+  paginaActual = 1;
+  porPagina = 10;
 
-  constructor() { 
-    addIcons({
-      searchOutline,
-      addCircle,
-      eyeOutline,
-      mapOutline,
-      alertCircle,
-      close,
-      add,
-      addCircleOutline
-    });
+  // Subject para manejar la destrucción del componente
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private router: Router,
+    private presupuestosService: PresupuestosService
+  ) { 
+    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,searchOutline,addCircle,eyeOutline,createOutline,documentOutline,mapOutline,alertCircle,close,add,addCircleOutline});
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.cargarPresupuestos();
+  }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga los presupuestos desde el backend
+   */
+  cargarPresupuestos() {
+    this.loading = true;
+    this.error = false;
+
+    this.presupuestosService.getPresupuestos(this.paginaActual, this.porPagina)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: PresupuestoResponse) => {
+          this.presupuestos = response.presupuestos;
+          this.totalPresupuestos = response.total;
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar presupuestos:', error);
+          this.error = true;
+          this.loading = false;
+        }
+      });
+  }
+
+  /**
+   * Refresca los presupuestos
+   */
+  refreshPresupuestos() {
+    this.cargarPresupuestos();
+  }
+
+  /**
+   * Navega a crear nuevo presupuesto
+   */
+  crearPresupuesto() {
+    this.router.navigate(['/presupuestos/crear']);
+  }
+
+  /**
+   * Ver detalles de un presupuesto
+   */
+  verPresupuesto(presupuesto: Presupuesto) {
+    this.router.navigate(['/presupuestos'], { queryParams: { id: presupuesto.id } });
+  }
+
+  /**
+   * Editar un presupuesto
+   */
+  editarPresupuesto(presupuesto: Presupuesto) {
+    this.router.navigate(['/presupuestos'], { queryParams: { id: presupuesto.id, edit: 'true' } });
+  }
+
+  /**
+   * Formatea un número como moneda
+   */
+  formatearMoneda(valor: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(valor);
+  }
+
+  /**
+   * Obtiene el estado de carga
+   */
+  get isLoading(): boolean {
+    return this.loading;
+  }
+
+  /**
+   * Obtiene si hay error
+   */
+  get hasError(): boolean {
+    return this.error;
+  }
+
+  /**
+   * Obtiene el número de presupuesto formateado
+   */
+  getNumeroPresupuesto(presupuesto: Presupuesto): string {
+    return presupuesto.id.substring(0, 8).toUpperCase();
+  }
+
+  /**
+   * Obtiene el nombre del cliente del presupuesto
+   */
+  getNombreCliente(presupuesto: Presupuesto): string {
+    return presupuesto.aviso?.nombre_cliente_aviso || 'N/A';
+  }
+
+  /**
+   * Obtiene la fecha formateada
+   */
+  getFechaFormateada(presupuesto: Presupuesto): string {
+    return new Date(presupuesto.fecha_creacion).toLocaleDateString('es-ES');
+  }
+
+  /**
+   * Obtiene el importe formateado
+   */
+  getImporteFormateado(presupuesto: Presupuesto): string {
+    return this.formatearMoneda(presupuesto.total_estimado || 0);
+  }
 }

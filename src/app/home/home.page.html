@@ -7,7 +7,29 @@
 </ion-header> -->
 
 <ion-content [fullscreen]="true">
-  <main class="dashboard-main">
+  <!-- Estado de carga -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">
+      <ion-icon name="hourglass-outline" class="spinning"></ion-icon>
+      <p>Cargando dashboard...</p>
+    </div>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="hasError" class="error-container">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <h3>Error al cargar datos</h3>
+      <p>No se pudieron cargar los datos del dashboard. Inténtalo de nuevo.</p>
+      <button class="btn-retry" (click)="refreshDashboard()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard principal -->
+  <main *ngIf="!isLoading && !hasError" class="dashboard-main">
     <!-- Resumen de tarjetas -->
     <section class="dashboard-summary">
       <!-- Desktop Summary Cards -->
@@ -18,7 +40,7 @@
           </div>
           <div>
             <div class="summary-title">Avisos</div>
-            <div class="summary-value">2</div>
+            <div class="summary-value">{{ stats?.avisosEnCurso || 0 }}</div>
             <div class="summary-subtitle">En curso</div>
           </div>
         </div>
@@ -28,7 +50,7 @@
           </div>
           <div>
             <div class="summary-title">Avisos</div>
-            <div class="summary-value">4</div>
+            <div class="summary-value">{{ stats?.avisosUrgentes || 0 }}</div>
             <div class="summary-subtitle">Urgentes</div>
           </div>
         </div>
@@ -38,7 +60,7 @@
           </div>
           <div>
             <div class="summary-title">Facturas</div>
-            <div class="summary-value">4</div>
+            <div class="summary-value">{{ stats?.facturasPendientes || 0 }}</div>
             <div class="summary-subtitle">Pendientes</div>
           </div>
         </div>
@@ -48,7 +70,7 @@
           </div>
           <div>
             <div class="summary-title">Presupuestos</div>
-            <div class="summary-value">2</div>
+            <div class="summary-value">{{ stats?.presupuestosPendientes || 0 }}</div>
             <div class="summary-subtitle">Pendientes</div>
           </div>
         </div>
@@ -63,7 +85,7 @@
             </div>
             <div class="mobile-card-content">
               <div class="summary-title">Avisos</div>
-              <div class="summary-value">2</div>
+              <div class="summary-value">{{ stats?.avisosEnCurso || 0 }}</div>
               <div class="summary-subtitle">En curso</div>
             </div>
           </div>
@@ -73,7 +95,7 @@
             </div>
             <div class="mobile-card-content">
               <div class="summary-title">Avisos</div>
-              <div class="summary-value">4</div>
+              <div class="summary-value">{{ stats?.avisosUrgentes || 0 }}</div>
               <div class="summary-subtitle">Urgentes</div>
             </div>
           </div>
@@ -83,7 +105,7 @@
             </div>
             <div class="mobile-card-content">
               <div class="summary-title">Facturas</div>
-              <div class="summary-value">4</div>
+              <div class="summary-value">{{ stats?.facturasPendientes || 0 }}</div>
               <div class="summary-subtitle">Pendientes</div>
             </div>
           </div>
@@ -93,7 +115,7 @@
             </div>
             <div class="mobile-card-content">
               <div class="summary-title">Presupuestos</div>
-              <div class="summary-value">2</div>
+              <div class="summary-value">{{ stats?.presupuestosPendientes || 0 }}</div>
               <div class="summary-subtitle">Pendientes</div>
             </div>
           </div>
@@ -109,14 +131,14 @@
           <div class="pending-title">Presupuestos Pendientes</div>
           <div class="pending-details-container">
             <div class="pending-details-title">
-              <div class="pending-amount">5.250,75€</div>
-              <span class="pending-details-subtitle">Presupuestos: 4</span>
+              <div class="pending-amount">{{ formatearMoneda(totalPresupuestosPendientes) }}</div>
+              <span class="pending-details-subtitle">Presupuestos: {{ presupuestosPendientes.length }}</span>
               <div class="pending-status orange">
                 <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
                 Pendientes
               </div>
             </div>
-            <table class="pending-details-table">
+            <table class="pending-details-table" *ngIf="presupuestosPendientes.length > 0">
               <thead>
                 <tr>
                   <th>Cliente</th>
@@ -125,28 +147,31 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Residencia Ancianos Sol</td>
-                  <td>2025-05-20</td>
-                  <td>1.250,00€</td>
+                <tr *ngFor="let presupuesto of presupuestosPendientes.slice(0, 3)">
+                  <td>{{ presupuesto.aviso?.nombre_cliente_aviso || 'N/A' }}</td>
+                  <td>{{ presupuesto.fecha_creacion | date:'shortDate' }}</td>
+                  <td>{{ formatearMoneda(presupuesto.total_estimado || 0) }}</td>
                 </tr>
               </tbody>
             </table>
+            <div *ngIf="presupuestosPendientes.length === 0" class="no-data">
+              <p>No hay presupuestos pendientes</p>
+            </div>
           </div>
-          <a class="pending-more" href="#">Mostrar más &gt;</a>
+          <a class="pending-more" (click)="irAPresupuestos()">Mostrar más &gt;</a>
         </div>
         <div class="pending-card">
           <div class="pending-title">Facturas Pendientes</div>
           <div class="pending-details-container">
             <div class="pending-details-title">
-              <div class="pending-amount">650,75€</div>
-              <span class="pending-details-subtitle">Facturas: 4</span>
+              <div class="pending-amount">{{ formatearMoneda(totalFacturasPendientes) }}</div>
+              <span class="pending-details-subtitle">Facturas: {{ facturasPendientes.length }}</span>
               <div class="pending-status orange">
                 <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
                 Pendientes
               </div>
             </div>
-            <table class="pending-details-table">
+            <table class="pending-details-table" *ngIf="facturasPendientes.length > 0">
               <thead>
                 <tr>
                   <th>Nº Factura</th>
@@ -156,16 +181,19 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>F2025-001</td>
-                  <td>001</td>
-                  <td>2025-05-20</td>
-                  <td>1.250,00€</td>
+                <tr *ngFor="let factura of facturasPendientes.slice(0, 3)">
+                  <td>{{ factura.numero_factura }}</td>
+                  <td>{{ factura.aviso?.id?.substring(0, 8)?.toUpperCase() || 'N/A' }}</td>
+                  <td>{{ factura.fecha_emision | date:'shortDate' }}</td>
+                  <td>{{ formatearMoneda(factura.total || 0) }}</td>
                 </tr>
               </tbody>
             </table>
+            <div *ngIf="facturasPendientes.length === 0" class="no-data">
+              <p>No hay facturas pendientes</p>
+            </div>
           </div>
-          <a class="pending-more" href="#">Mostrar más &gt;</a>
+          <a class="pending-more" (click)="irAFacturas()">Mostrar más &gt;</a>
         </div>
       </div>
 
@@ -180,22 +208,25 @@
             </div>
           </div>
           <div class="mobile-card-body">
-            <div class="mobile-amount">5.250,75€</div>
-            <div class="mobile-subtitle">Presupuestos: 4</div>
-            <div class="mobile-item">
+            <div class="mobile-amount">{{ formatearMoneda(totalPresupuestosPendientes) }}</div>
+            <div class="mobile-subtitle">Presupuestos: {{ presupuestosPendientes.length }}</div>
+            <div *ngIf="presupuestosPendientes.length > 0" class="mobile-item">
               <div class="item-label">Cliente:</div>
-              <div class="item-value">Residencia Ancianos Sol</div>
+              <div class="item-value">{{ presupuestosPendientes[0]?.aviso?.nombre_cliente_aviso || 'N/A' }}</div>
             </div>
-            <div class="mobile-item">
+            <div *ngIf="presupuestosPendientes.length > 0" class="mobile-item">
               <div class="item-label">Fecha:</div>
-              <div class="item-value">2025-05-20</div>
+              <div class="item-value">{{ presupuestosPendientes[0]?.fecha_creacion | date:'shortDate' }}</div>
             </div>
-            <div class="mobile-item">
+            <div *ngIf="presupuestosPendientes.length > 0" class="mobile-item">
               <div class="item-label">Importe:</div>
-              <div class="item-value">1.250,00€</div>
+              <div class="item-value">{{ formatearMoneda(presupuestosPendientes[0]?.total_estimado || 0) }}</div>
+            </div>
+            <div *ngIf="presupuestosPendientes.length === 0" class="no-data-mobile">
+              <p>No hay presupuestos pendientes</p>
             </div>
           </div>
-          <a class="pending-more" href="#">Mostrar más &gt;</a>
+          <a class="pending-more" (click)="irAPresupuestos()">Mostrar más &gt;</a>
         </div>
 
         <div class="pending-card-mobile">
@@ -207,26 +238,25 @@
             </div>
           </div>
           <div class="mobile-card-body">
-            <div class="mobile-amount">650,75€</div>
-            <div class="mobile-subtitle">Facturas: 4</div>
-            <div class="mobile-item">
+            <div class="mobile-amount">{{ formatearMoneda(totalFacturasPendientes) }}</div>
+            <div class="mobile-subtitle">Facturas: {{ facturasPendientes.length }}</div>
+            <div *ngIf="facturasPendientes.length > 0" class="mobile-item">
               <div class="item-label">Nº Factura:</div>
-              <div class="item-value">F2025-001</div>
+              <div class="item-value">{{ facturasPendientes[0]?.numero_factura }}</div>
             </div>
-            <!-- <div class="mobile-item">
-              <div class="item-label">Nº Aviso:</div>
-              <div class="item-value">001</div>
-            </div> -->
-            <div class="mobile-item">
+            <div *ngIf="facturasPendientes.length > 0" class="mobile-item">
               <div class="item-label">Fecha:</div>
-              <div class="item-value">2025-05-20</div>
+              <div class="item-value">{{ facturasPendientes[0]?.fecha_emision | date:'shortDate' }}</div>
             </div>
-            <div class="mobile-item">
+            <div *ngIf="facturasPendientes.length > 0" class="mobile-item">
               <div class="item-label">Importe:</div>
-              <div class="item-value">1.250,00€</div>
+              <div class="item-value">{{ formatearMoneda(facturasPendientes[0]?.total || 0) }}</div>
+            </div>
+            <div *ngIf="facturasPendientes.length === 0" class="no-data-mobile">
+              <p>No hay facturas pendientes</p>
             </div>
           </div>
-          <a class="pending-more" href="#">Mostrar más &gt;</a>
+          <a class="pending-more" (click)="irAFacturas()">Mostrar más &gt;</a>
         </div>
       </div>
     </section>
@@ -314,10 +344,10 @@
                 </ion-icon>
               </div>
               <div class="aviso-cell acciones">
-                <button class="btn-ver" title="Ver detalles">
+                <button class="btn-ver" title="Ver detalles" (click)="verAviso(aviso)">
                   <ion-icon name="eye-outline"></ion-icon>
                 </button>
-                <button class="btn-editar" title="Editar aviso">
+                <button class="btn-editar" title="Editar aviso" (click)="editarAviso(aviso)">
                   <ion-icon name="create-outline"></ion-icon>
                 </button>
               </div>

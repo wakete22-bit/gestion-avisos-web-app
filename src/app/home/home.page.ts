@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { 
   gridOutline, 
   notificationsOutline, 
@@ -24,11 +26,16 @@ import {
   searchOutline,
   locationOutline,
   calendarOutline,
-  createOutline
-} from 'ionicons/icons';
+  createOutline, refreshOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+
+// Importar servicios
+import { DashboardService, DashboardData } from '../core/services/dashboard.service';
+import { AvisosService } from '../core/services/avisos.service';
+import { FacturasService } from '../modules/facturas/services/facturas.service';
+import { PresupuestosService } from '../modules/presupuestos/services/presupuestos.service';
 
 addIcons({
   'grid-outline': gridOutline,
@@ -53,6 +60,7 @@ addIcons({
 });
 
 export interface Aviso {
+  id: string;
   numero: string;
   estado: string;
   nombre: string;
@@ -75,68 +83,171 @@ export interface Aviso {
     MatIconModule
   ],
 })
-export class HomePage {
+export class HomePage implements OnInit, OnDestroy {
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'urgente', 'direccion', 'acciones'];
-  avisos: Aviso[] = [
-    {
-      numero: '001',
-      estado: 'En curso',
-      nombre: 'Restaurante El Sol',
-      detalle: 'Mantenimiento preventivo de 3 equipos A/C.',
-      fecha: '2025-05-27',
-      urgente: false,
-      direccion: 'Pza. de la Virgen 3'
-    },
-    {
-      numero: '002',
-      estado: 'Pendiente',
-      nombre: 'Hotel Marina',
-      detalle: 'Reparación urgente de caldera',
-      fecha: '2025-05-26',
-      urgente: true,
-      direccion: 'Av. del Mar 45'
-    },
-    {
-      numero: '003',
-      estado: 'Completado',
-      nombre: 'Oficinas Centrales',
-      detalle: 'Revisión sistema de climatización',
-      fecha: '2025-05-25',
-      urgente: false,
-      direccion: 'Calle Mayor 12'
-    },
-    {
-      numero: '004',
-      estado: 'En curso',
-      nombre: 'Residencia Ancianos',
-      detalle: 'Instalación nuevo sistema de calefacción',
-      fecha: '2025-05-24',
-      urgente: true,
-      direccion: 'Calle San Juan 8'
-    },
-    {
-      numero: '005',
-      estado: 'Pendiente',
-      nombre: 'Centro Comercial Plaza',
-      detalle: 'Mantenimiento ascensores',
-      fecha: '2025-05-23',
-      urgente: false,
-      direccion: 'Av. Principal 100'
-    }
-  ];
-  constructor() {
-      addIcons({
-        receipt,
-        hourglassOutline,
-        warning,
-        document,
-        alertCircle,
-        close,
-        eyeOutline,
-        searchOutline,
-        locationOutline,
-        calendarOutline,
-        createOutline
+  
+  // Datos del dashboard
+  dashboardData: DashboardData | null = null;
+  loading = true;
+  error = false;
+  
+  // Datos de avisos
+  avisos: Aviso[] = [];
+  
+  // Totales calculados
+  totalFacturasPendientes = 0;
+  totalPresupuestosPendientes = 0;
+  
+  // Subject para manejar la destrucción del componente
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private router: Router,
+    private dashboardService: DashboardService,
+    private avisosService: AvisosService,
+    private facturasService: FacturasService,
+    private presupuestosService: PresupuestosService
+  ) {
+    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,warning,receipt,document,alertCircle,searchOutline,close,eyeOutline,createOutline,locationOutline,calendarOutline});
+  }
+
+  ngOnInit() {
+    this.cargarDashboard();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga los datos del dashboard
+   */
+  cargarDashboard() {
+    this.loading = true;
+    this.error = false;
+
+    this.dashboardService.getDashboardData()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data: DashboardData) => {
+          this.dashboardData = data;
+          this.procesarDatosDashboard(data);
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar dashboard:', error);
+          this.error = true;
+          this.loading = false;
+        }
       });
+  }
+
+  /**
+   * Procesa los datos del dashboard para mostrarlos en la vista
+   */
+  private procesarDatosDashboard(data: DashboardData) {
+    // Procesar avisos recientes
+    this.avisos = data.avisosRecientes.map(aviso => ({
+      id: aviso.id,
+      numero: aviso.id.substring(0, 8).toUpperCase(),
+      estado: aviso.estado,
+      nombre: aviso.nombre_cliente_aviso,
+      detalle: aviso.descripcion_problema,
+      fecha: new Date(aviso.fecha_creacion).toLocaleDateString('es-ES'),
+      urgente: aviso.es_urgente || false,
+      direccion: aviso.direccion_cliente_aviso
+    }));
+
+    // Calcular totales
+    this.totalFacturasPendientes = this.dashboardService.calcularTotalFacturasPendientes(data.facturasPendientes);
+    this.totalPresupuestosPendientes = this.dashboardService.calcularTotalPresupuestosPendientes(data.presupuestosPendientes);
+  }
+
+  /**
+   * Refresca los datos del dashboard
+   */
+  refreshDashboard() {
+    this.cargarDashboard();
+  }
+
+  /**
+   * Navega a la página de avisos
+   */
+  irAAvisos() {
+    this.router.navigate(['/avisos']);
+  }
+
+  /**
+   * Navega a la página de facturas
+   */
+  irAFacturas() {
+    this.router.navigate(['/facturas']);
+  }
+
+  /**
+   * Navega a la página de presupuestos
+   */
+  irAPresupuestos() {
+    this.router.navigate(['/presupuestos']);
+  }
+
+  /**
+   * Ver detalles de un aviso
+   */
+  verAviso(aviso: Aviso) {
+    this.router.navigate(['/avisos'], { queryParams: { id: aviso.id } });
+  }
+
+  /**
+   * Editar un aviso
+   */
+  editarAviso(aviso: Aviso) {
+    this.router.navigate(['/avisos'], { queryParams: { id: aviso.id, edit: 'true' } });
+  }
+
+  /**
+   * Formatea un número como moneda
+   */
+  formatearMoneda(valor: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(valor);
+  }
+
+  /**
+   * Obtiene el estado de carga
+   */
+  get isLoading(): boolean {
+    return this.loading;
+  }
+
+  /**
+   * Obtiene si hay error
+   */
+  get hasError(): boolean {
+    return this.error;
+  }
+
+  /**
+   * Obtiene las estadísticas del dashboard
+   */
+  get stats() {
+    return this.dashboardData?.stats;
+  }
+
+  /**
+   * Obtiene las facturas pendientes
+   */
+  get facturasPendientes() {
+    return this.dashboardData?.facturasPendientes || [];
+  }
+
+  /**
+   * Obtiene los presupuestos pendientes
+   */
+  get presupuestosPendientes() {
+    return this.dashboardData?.presupuestosPendientes || [];
   }
 }
