@@ -1,0 +1,866 @@
+// Variables para reutilización
+$primary-color: #4F46E5;
+$text-primary: #26262A;
+$text-secondary: #64748b;
+$text-muted: #ACACAC;
+$bg-light: #FAFBFF;
+$bg-white: #fff;
+$border-color: #E2E8F0;
+$border-light: #F1F5F9;
+$shadow: 0 2px 8px 0 #e0e7ef33;
+
+ion-content {
+  --background: #FFF;
+}
+
+.dashboard-table {
+  background: #fff;
+  padding: 25px;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.table-title {
+  font-size: 18px;
+  color: #26262A;
+  font-weight: 500;
+}
+
+.table-meta {
+  color: #4F46E5;
+  font-size: 14px;
+}
+
+.table-search {
+  display: flex;
+  gap: 20px;
+
+  input {
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 1rem;
+    border: none;
+    background: #F9FBFF;
+    color: #26262A;
+  }
+
+  select {
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 1rem;
+    background: #F9FBFF;
+    border: none;
+    color: #26262A;
+  }
+
+  .btn-filter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    border: 1px solid #E2E8F0;
+    background: #F9FBFF;
+    color: #26262A;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+
+    &.active {
+      background: #4F46E5;
+      color: white;
+      border-color: #4F46E5;
+
+      &:hover {
+        background: #4338CA;
+      }
+    }
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+.mobile-search {
+  display: none;
+  position: relative;
+  width: 100%;
+  padding: 0px 16px;
+
+  input {
+    width: 100%;
+    padding: 8px 16px;
+    padding-right: 40px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    background: #fff;
+  }
+
+  ion-icon {
+    position: absolute;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #64748b;
+  }
+}
+
+.mobile-actions {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+
+  .mobile-filter {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    font-size: 14px;
+    color: #475569;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    height: 40px;
+
+    &:focus {
+      outline: none;
+      border-color: #CBD5E1;
+      background-color: #fff;
+    }
+  }
+
+  .mobile-buttons {
+    display: flex;
+    gap: 8px;
+
+    button {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: none;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #6B7280;
+    
+    ion-icon {
+      font-size: 32px;
+      color: #4F46E5;
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+.error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  
+  .error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    color: #DC2626;
+    
+    ion-icon {
+      font-size: 32px;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+    
+    .btn-retry {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #DC2626;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #B91C1C;
+      }
+      
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+
+
+.table-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.table-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .pagination-info {
+    font-size: 14px;
+    color: #64748b;
+  }
+
+  .pagination {
+    display: flex;
+    gap: 8px;
+
+    button {
+      background: #f3f4f6;
+      min-width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 14px;
+      color: #26262A;
+      cursor: pointer;
+
+      &.active {
+        background: #4F46E5;
+        color: #fff;
+      }
+    }
+  }
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  min-height: 42px;
+  background-color: #4F46E5;
+  color: white;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.1);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background-color: #4338CA;
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Compact Table View Styles (replaces desktop table and mobile cards)
+.compact-tecnicos-table {
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  margin-bottom: 16px;
+  max-width: 100%;
+  overflow-x: auto;
+
+  .tecnicos-table {
+    width: 100%;
+    display: grid;
+    // Móvil por defecto: Nombre | Acciones
+    grid-template-columns: 1fr 80px;
+    font-size: 12px;
+    min-width: 0;
+
+    .table-header {
+      display: contents;
+      
+      .header-row {
+        display: contents;
+        
+        .header-cell {
+          padding: 12px 8px;
+          background: #F9FAFB;
+          border-bottom: 1px solid #E5E7EB;
+          font-weight: 500;
+          color: #374151;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+        }
+      }
+    }
+
+    .table-body {
+      display: contents;
+      
+      .tecnico-row {
+        display: contents;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+
+        &:hover:not(.activo):not(.inactivo) {
+          .tecnico-cell {
+            background-color: #F9FAFB;
+          }
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+
+        // Estados de color para diferentes tipos de técnicos
+        &.activo {
+          .tecnico-cell:first-child {
+            border-left: 4px solid #10B981;
+          }
+          .tecnico-cell {
+            background-color: #ECFDF5;
+          }
+          &:hover .tecnico-cell {
+            background-color: #D1FAE5;
+          }
+        }
+
+        &.inactivo {
+          .tecnico-cell:first-child {
+            border-left: 4px solid #EF4444;
+          }
+          .tecnico-cell {
+            background-color: #FEF2F2;
+          }
+          &:hover .tecnico-cell {
+            background-color: #FEE2E2;
+          }
+        }
+
+        .tecnico-cell {
+          padding: 12px 8px;
+          border-bottom: 1px solid #F3F4F6;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+
+          &.nombre-tecnico {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+            justify-content: start;
+            flex-shrink: 0;
+          }
+
+          &.email-tecnico {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: start;
+            flex-shrink: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          &.telefono-tecnico {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: start;
+            flex-shrink: 0;
+          }
+
+          &.rol-tecnico {
+            justify-content: start;
+            font-size: 11px;
+            flex-shrink: 0;
+            
+            .badge-rol {
+              padding: 2px 6px;
+              border-radius: 8px;
+              font-size: 10px;
+              font-weight: 500;
+              white-space: nowrap;
+              max-width: 80px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              
+              &.rol-admin {
+                background: #FEE4E2;
+                color: #D92D20;
+              }
+              
+              &.rol-tecnico {
+                background: #E6F4EA;
+                color: #137333;
+              }
+              
+              &.rol-usuario {
+                background: #FEF3C7;
+                color: #B45309;
+              }
+              
+              &.rol-default {
+                background: #F3F4F6;
+                color: #6B7280;
+              }
+            }
+          }
+
+          &.fecha-tecnico {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: start;
+            flex-shrink: 0;
+          }
+
+          &.estado-activo {
+            justify-content: start;
+            font-size: 11px;
+            flex-shrink: 0;
+            
+            .badge-estado {
+              padding: 2px 6px;
+              border-radius: 8px;
+              font-size: 10px;
+              font-weight: 500;
+              white-space: nowrap;
+              max-width: 80px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              
+              &.activo {
+                background: #E6F4EA;
+                color: #137333;
+              }
+              
+              &.inactivo {
+                background: #FEE4E2;
+                color: #D92D20;
+              }
+            }
+          }
+
+          &.acciones {
+            justify-content: start;
+            gap: 4px;
+            flex-shrink: 0;
+
+            button {
+              width: 28px;
+              height: 28px;
+              border: none;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: transparent;
+              -webkit-tap-highlight-color: transparent;
+              touch-action: manipulation;
+
+              ion-icon {
+                font-size: 16px;
+                color: #6B7280;
+              }
+
+              &.btn-ver {
+                &:hover {
+                  background-color: #10B981;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #059669;
+                }
+              }
+
+              &.btn-toggle-estado {
+                &:hover {
+                  ion-icon[name="pause-circle"] {
+                    color: #DC2626;
+                  }
+                  ion-icon[name="play-circle"] {
+                    color: #059669;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Desktop styles - sobrescribir el grid para pantallas grandes
+@media (min-width: 769px) {
+  .compact-tecnicos-table {
+    max-width: 100%;
+    overflow-x: auto;
+    
+    .tecnicos-table {
+      // Desktop: Nombre | Email | Teléfono | Rol | Fecha Creación | Activo | Acciones
+      grid-template-columns: 2fr 180px 140px 120px 140px 80px 120px;
+      font-size: 13px;
+      min-width: 0;
+      
+      .table-header .header-row .header-cell {
+        font-size: 12px;
+        padding: 12px 8px;
+        min-width: 0;
+      }
+      
+      .table-body .tecnico-row .tecnico-cell {
+        padding: 12px 8px;
+        min-width: 0;
+        
+        &.nombre-tecnico {
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+        
+        &.email-tecnico {
+          flex-shrink: 0;
+        }
+        
+        &.telefono-tecnico {
+          flex-shrink: 0;
+        }
+        
+        &.rol-tecnico {
+          flex-shrink: 0;
+        }
+        
+        &.fecha-tecnico {
+          flex-shrink: 0;
+        }
+        
+        &.estado-activo {
+          flex-shrink: 0;
+        }
+        
+        &.acciones {
+          flex-shrink: 0;
+          
+          button {
+            width: 28px;
+            height: 28px;
+            
+            ion-icon {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive Styles
+@media (max-width: 768px) {
+  .dashboard-table {
+    height: 100%;
+    margin: 0;
+    padding: 0px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-search,
+  .mobile-actions {
+    display: flex;
+  }
+
+  .table-header {
+    margin-bottom: 12px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .table-header-left {
+    flex: 1;
+    padding: 0px 16px;
+  }
+
+  .table-pagination {
+    .pagination-info {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .pagination {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  // Mobile styles for compact table
+  .compact-tecnicos-table {
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
+    max-height: none;
+    
+    .tecnicos-table {
+      .table-header .header-row .header-cell {
+        font-size: 11px;
+        padding: 8px 4px;
+      }
+      
+      .table-body .tecnico-row {
+        .tecnico-cell {
+          padding: 8px 4px;
+          
+          &.nombre-tecnico {
+            font-size: 13px;
+          }
+          
+          &.acciones button {
+            width: 24px;
+            height: 24px;
+            
+            ion-icon {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-table {
+    height: 100%;
+    padding: 0px;
+  }
+
+  .mobile-actions {
+    gap: 12px;
+    padding: 0px 16px;
+
+    .mobile-buttons {
+      display: flex;
+      width: 20%;
+      justify-content: stretch;
+      
+      button {
+        flex: 1;
+        height: 40px;
+        
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  .compact-tecnicos-table {
+    border-radius: 0px!important;
+    border-left: none!important;
+    border-right: none!important;
+  }
+  
+  // Estilos específicos para la tabla compacta en móvil pequeño
+  .compact-tecnicos-table .tecnicos-table {
+    grid-template-columns: 1fr 70px; // Móvil pequeño: Nombre | Acciones
+    
+    .table-header .header-row .header-cell {
+      font-size: 10px;
+      padding: 6px 2px;
+    }
+    
+    .table-body .tecnico-row .tecnico-cell {
+      padding: 6px 2px;
+      
+      &.nombre-tecnico {
+        font-size: 12px;
+      }
+      
+      &.acciones button {
+        width: 22px;
+        height: 22px;
+        
+        ion-icon {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+// Mobile only class
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Estado de datos vacíos
+.no-data-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: $bg-white;
+  border-radius: 16px;
+  border: 1px solid $border-color;
+
+  .no-data-message {
+    text-align: center;
+    padding: 40px;
+    max-width: 400px;
+
+    ion-icon {
+      font-size: 64px;
+      color: $text-muted;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      color: $text-primary;
+      font-size: 20px;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      color: $text-secondary;
+      font-size: 14px;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    .btn-create {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: $primary-color;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 18px;
+        color: white;
+        margin: 0;
+      }
+
+      &:hover {
+        background: #4338CA;
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+} 

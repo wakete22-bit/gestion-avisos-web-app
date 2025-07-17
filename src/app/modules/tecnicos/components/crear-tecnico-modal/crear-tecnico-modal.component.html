@@ -1,0 +1,165 @@
+<div class="modal-container">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>{{ modoEdicion ? 'Editar Técnico' : 'Crear Nuevo Técnico' }}</h2>
+      <button class="close-button" (click)="onClose()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="subtitle">{{ modoEdicion ? 'Modifica los datos del técnico' : 'Registra un nuevo técnico en el sistema' }}</p>
+  </header>
+
+  <form (ngSubmit)="crearTecnico()" class="modal-body">
+    <div class="modal-content">
+      <!-- Mensaje de error -->
+      <div *ngIf="error" class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ error }}
+      </div>
+
+      <div class="modal-grid">
+        <!-- Sección Izquierda - Información Personal -->
+        <div class="form-section">
+          <h3>Información Personal</h3>
+          
+          <div class="form-group">
+            <label>Nombre Completo <span class="required">*</span></label>
+            <input 
+              type="text" 
+              [(ngModel)]="tecnicoData.nombre_completo"
+              name="nombre_completo"
+              placeholder="Ingresa el nombre completo"
+              class="form-control"
+              (input)="onInputChange()"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              [(ngModel)]="tecnicoData.email"
+              name="email"
+              placeholder="Ingresa el email"
+              class="form-control"
+              (input)="onInputChange()"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input 
+              type="tel" 
+              [(ngModel)]="tecnicoData.telefono"
+              name="telefono"
+              placeholder="Ingresa el teléfono"
+              class="form-control"
+              (input)="onInputChange()">
+          </div>
+        </div>
+
+        <!-- Sección Derecha - Información de Acceso -->
+        <div class="images-section">
+          <div class="repuestos-container">
+            <h3>Información de Acceso</h3>
+            
+            <!-- Mensaje informativo -->
+            <div class="info-message">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <p>El técnico recibirá un email con sus credenciales de acceso al sistema.</p>
+            </div>
+
+            <div class="form-group">
+              <label>Contraseña <span class="required">*</span></label>
+              <input 
+                type="password" 
+                [(ngModel)]="tecnicoData.password"
+                name="password"
+                placeholder="Ingresa la contraseña"
+                class="form-control"
+                (input)="onInputChange()"
+                required>
+              <div class="password-hint">Mínimo 6 caracteres</div>
+            </div>
+
+            <div class="form-group">
+              <label>Rol <span class="required">*</span></label>
+              <select 
+                [(ngModel)]="tecnicoData.rol_id"
+                name="rol_id"
+                class="form-control"
+                (change)="onInputChange()"
+                required>
+                <option value="">Selecciona el rol</option>
+                <option 
+                  *ngFor="let rol of rolesDisponibles" 
+                  [value]="rol.value">
+                  {{ rol.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Información adicional del rol -->
+            <div class="role-info" *ngIf="tecnicoData.rol_id">
+              <div class="role-card">
+                <div class="role-header">
+                  <ion-icon name="shield-outline"></ion-icon>
+                  <span class="role-title">{{ getRolLabel(tecnicoData.rol_id) }}</span>
+                </div>
+                <div class="role-description">
+                  <p *ngIf="tecnicoData.rol_id === TipoRol.TECNICO">
+                    <strong>Permisos:</strong> Crear y gestionar avisos, ver historial, acceder a inventario básico.
+                  </p>
+                  <p *ngIf="tecnicoData.rol_id === TipoRol.USUARIO">
+                    <strong>Permisos:</strong> Ver avisos asignados, actualizar estado de trabajos, registrar materiales utilizados.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado de validación -->
+            <div class="validation-status">
+              <div class="validation-item" [class.valid]="tecnicoData.nombre_completo.trim()">
+                <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.nombre_completo.trim()"></ion-icon>
+                <ion-icon name="ellipse-outline" *ngIf="!tecnicoData.nombre_completo.trim()"></ion-icon>
+                <span>Nombre completo</span>
+              </div>
+              <div class="validation-item" [class.valid]="validarEmail(tecnicoData.email)">
+                <ion-icon name="checkmark-circle-outline" *ngIf="validarEmail(tecnicoData.email)"></ion-icon>
+                <ion-icon name="ellipse-outline" *ngIf="!validarEmail(tecnicoData.email)"></ion-icon>
+                <span>Email válido</span>
+              </div>
+              <div class="validation-item" [class.valid]="tecnicoData.password.length >= 6">
+                <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.password.length >= 6"></ion-icon>
+                <ion-icon name="ellipse-outline" *ngIf="tecnicoData.password.length < 6"></ion-icon>
+                <span>Contraseña (mín. 6 caracteres)</span>
+              </div>
+              <div class="validation-item" [class.valid]="tecnicoData.rol_id">
+                <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.rol_id"></ion-icon>
+                <ion-icon name="ellipse-outline" *ngIf="!tecnicoData.rol_id"></ion-icon>
+                <span>Rol seleccionado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <footer class="modal-footer">
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="onClose()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="crearTecnico()"
+        [disabled]="loading || !isFormValid()">
+        <ion-icon name="save-outline" *ngIf="!loading"></ion-icon>
+        <ion-icon name="refresh-outline" class="spinning" *ngIf="loading"></ion-icon>
+        {{ loading ? 'Creando...' : (modoEdicion ? 'Actualizar Técnico' : 'Crear Técnico') }}
+      </button>
+    </div>
+  </footer>
+</div> 

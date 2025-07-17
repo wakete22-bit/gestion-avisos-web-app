@@ -5,6 +5,7 @@ import { map, catchError, tap } from 'rxjs/operators';
 import { Usuario, LoginRequest, RegisterRequest, AuthResponse, Rol, TipoRol } from '../models/usuario.model';
 import { environment } from '../../../environments/environment';
 import { createClient, SupabaseClient, User, AuthResponse as SupabaseAuthResponse } from '@supabase/supabase-js';
+import { UsuariosService } from './usuarios.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,10 @@ export class AuthService {
   private readonly USER_KEY = 'current_user';
   private isInitializing = false;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private usuariosService: UsuariosService
+  ) {
     this.supabase = createClient(
       environment.supabaseUrl,
       environment.supabaseAnonKey
@@ -126,32 +130,41 @@ export class AuthService {
     try {
       console.log('🔧 AuthService: Cargando datos del usuario:', userId);
       
-      // Crear usuario básico sin consultar la base de datos
-      const usuario: Usuario = {
-        id: userId,
-        nombre_completo: 'Usuario',
-        email: 'usuario@example.com',
-        telefono: '',
-        rol_id: 'default-role-id',
-        rol: {
-          id: 'default-role-id',
-          nombre_rol: 'Cliente' as TipoRol,
-          descripcion: '',
-          permisos: [],
+      // Intentar obtener el usuario de la base de datos
+      try {
+        const usuario = await this.usuariosService.getUsuario(userId).toPromise();
+        console.log('🔧 AuthService: Usuario encontrado en BD:', usuario);
+        this.currentUserSubject.next(usuario || null);
+        this.isAuthenticatedSubject.next(true);
+        console.log('🔧 AuthService: Usuario cargado exitosamente desde BD');
+      } catch (dbError) {
+        console.warn('⚠️ AuthService: Usuario no encontrado en BD, creando usuario por defecto:', dbError);
+        
+        // Si el usuario no existe en la BD, crear uno por defecto
+        const usuarioDefault: Usuario = {
+          id: userId,
+          nombre_completo: 'Usuario',
+          email: 'usuario@example.com',
+          telefono: '',
+          rol_id: 'default-role-id',
+          rol: {
+            id: 'default-role-id',
+            nombre_rol: 'Cliente' as TipoRol,
+            descripcion: '',
+            permisos: [],
+            es_activo: true,
+            fecha_creacion: new Date(),
+            fecha_actualizacion: new Date()
+          },
           es_activo: true,
-          fecha_creacion: new Date(),
-          fecha_actualizacion: new Date()
-        },
-        es_activo: true,
-        fecha_creacion: new Date()
-      };
+          fecha_creacion: new Date()
+        };
 
-      console.log('🔧 AuthService: Usuario básico creado:', usuario);
-      
-      this.currentUserSubject.next(usuario);
-      this.isAuthenticatedSubject.next(true);
-      
-      console.log('🔧 AuthService: Usuario cargado exitosamente');
+        console.log('🔧 AuthService: Usuario por defecto creado:', usuarioDefault);
+        this.currentUserSubject.next(usuarioDefault);
+        this.isAuthenticatedSubject.next(true);
+        console.log('🔧 AuthService: Usuario por defecto cargado exitosamente');
+      }
     } catch (error) {
       console.error('❌ AuthService: Error loading user data:', error);
       this.clearAuth();
@@ -201,6 +214,20 @@ export class AuthService {
       if (data.user) {
         // Esperar a que se complete el registro
         await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Crear el usuario en la tabla usuarios
+        const userDataWithId = {
+          ...userData,
+          id: data.user.id
+        };
+        
+        try {
+          await this.usuariosService.crearUsuario(userDataWithId).toPromise();
+          console.log('🔧 AuthService: Usuario creado en tabla usuarios');
+        } catch (createError) {
+          console.warn('⚠️ AuthService: Error al crear usuario en tabla usuarios:', createError);
+          // Continuar aunque falle la creación en la tabla usuarios
+        }
         
         // Intentar cargar los datos del usuario
         await this.loadUserData(data.user.id);

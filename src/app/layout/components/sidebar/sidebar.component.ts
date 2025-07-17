@@ -11,10 +11,11 @@ import {
   cashOutline,
   peopleOutline,
   settingsOutline,  
-  personCircleOutline, logOutOutline, chevronForwardOutline, chevronDownOutline, closeOutline } from 'ionicons/icons';
+  personCircleOutline, logOutOutline, chevronForwardOutline, chevronDownOutline, closeOutline, constructOutline } from 'ionicons/icons';
 import { AuthService } from '../../../core/services/auth.service';
 import { RolesService } from '../../../core/services/roles.service';
 import { Usuario, TipoRol } from '../../../core/models/usuario.model';
+import { CommonModule } from '@angular/common';
 
 addIcons({
   'grid-outline': gridOutline,
@@ -37,7 +38,7 @@ addIcons({
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
   standalone: true,
-  imports: [IonIcon, RouterLink, RouterLinkActive],
+  imports: [IonIcon, RouterLink, RouterLinkActive, CommonModule],
 })
 export class SidebarComponent implements OnInit {
   @Input() isOpen: boolean = false;
@@ -45,13 +46,15 @@ export class SidebarComponent implements OnInit {
 
   currentUser: Usuario | null = null;
   rolActual: TipoRol | null = null;
+  TipoRol = TipoRol;
+  isAdmin = false;
 
   constructor(
     private authService: AuthService,
     private rolesService: RolesService,
     private router: Router
   ) {
-      addIcons({gridOutline,notificationsOutline,timeOutline,cubeOutline,documentTextOutline,cashOutline,peopleOutline,settingsOutline,personCircleOutline,chevronDownOutline,chevronForwardOutline,logOutOutline,closeOutline});
+      addIcons({closeOutline,gridOutline,notificationsOutline,timeOutline,cubeOutline,documentTextOutline,cashOutline,peopleOutline,constructOutline,settingsOutline,personCircleOutline,logOutOutline,chevronForwardOutline,chevronDownOutline});
   }
 
   ngOnInit() {
@@ -63,6 +66,12 @@ export class SidebarComponent implements OnInit {
     // Suscribirse al rol actual
     this.rolesService.getRolActual().subscribe(rol => {
       this.rolActual = rol;
+    });
+
+    // Verificar si es administrador
+    this.rolesService.esAdministrador().subscribe(isAdmin => {
+      this.isAdmin = isAdmin;
+      console.log('🔧 SidebarComponent: Rol actual:', this.rolActual);
     });
   }
 

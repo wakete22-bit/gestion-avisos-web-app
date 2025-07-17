@@ -15,6 +15,7 @@
     <a routerLink="/facturas" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="document-text-outline" class="icon"></ion-icon>Facturas</a>
     <a routerLink="/presupuestos" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="cash-outline" class="icon"></ion-icon>Presupuestos</a>
     <a routerLink="/clientes" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="people-outline" class="icon"></ion-icon>Clientes</a>
+    <a *ngIf="this.rolActual === TipoRol.ADMINISTRADOR" routerLink="/tecnicos" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="construct-outline" class="icon"></ion-icon>Técnicos</a>
   </nav>
   <div class="sidebar-footer">
     <a routerLink="/ajustes" routerLinkActive="active" (click)="onNavClick()"><ion-icon name="settings-outline" class="icon"></ion-icon>Ajustes</a>

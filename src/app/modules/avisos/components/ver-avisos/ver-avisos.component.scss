@@ -163,6 +163,29 @@ $success-color: #10B981;
   }
 }
 
+.btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px 15px;
+  background-color: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #DC2626;
+  }
+
+  &.btn-small {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
 // Tarjetas de información
 .info-card {
   background: #fff;
@@ -571,6 +594,75 @@ $success-color: #10B981;
   }
 }
 
+// Estilos para la descripción del trabajo
+.descripcion-trabajo {
+  p {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  small {
+    color: $secondary-color;
+    font-size: 12px;
+  }
+}
+
+// Estilos para materiales
+.materiales-info {
+  .repuestos-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-size: 13px;
+      color: #4B5563;
+      margin-bottom: 2px;
+      padding: 2px 6px;
+      background-color: #F3F4F6;
+      border-radius: 4px;
+      display: inline-block;
+      margin-right: 4px;
+      margin-bottom: 4px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+// Badges de estado
+.badge-estado {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-pendiente {
+    background-color: rgba(#F59E0B, 0.1);
+    color: #F59E0B;
+  }
+
+  &.badge-en-curso {
+    background-color: rgba(#3B82F6, 0.1);
+    color: #3B82F6;
+  }
+
+  &.badge-completado {
+    background-color: rgba(#10B981, 0.1);
+    color: #10B981;
+  }
+
+  &.badge-cancelado {
+    background-color: rgba(#EF4444, 0.1);
+    color: #EF4444;
+  }
+}
+
 .repuestos-list {
   list-style: none;
   padding: 0;
@@ -590,7 +682,7 @@ $success-color: #10B981;
 .estado-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
   .btn-small {
     padding: 6px 12px;

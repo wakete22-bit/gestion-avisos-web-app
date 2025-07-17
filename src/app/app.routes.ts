@@ -57,6 +57,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/clientes/pages/clientes/clientes.component').then((m) => m.ClientesComponent),
       },
       {
+        path: 'tecnicos',
+        loadComponent: () => import('./modules/tecnicos/pages/tecnicos/tecnicos.component').then((m) => m.TecnicosComponent),
+      },
+      {
         path: 'cuenta',
         loadComponent: () => import('./modules/mi-cuenta/pages/mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent),
       },

@@ -1,0 +1,139 @@
+<ion-content>
+  <section class="dashboard-table">
+    <!-- Header Section -->
+    <div class="table-header">
+      <div class="table-header-left">
+        <div class="table-title">Tabla de técnicos</div>
+        <div class="table-meta">Técnicos:</div>  
+      </div>
+      
+      <!-- Mobile Search Bar -->
+      <div class="mobile-search">
+        <input 
+          type="text" 
+          placeholder="Buscar técnico..." 
+          />
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+
+      <!-- Desktop Search and Actions -->
+      <div class="table-search desktop-only">
+        <input 
+          type="text" 
+          placeholder="Buscar..." 
+          />
+        <select>
+          <option value="nombre_completo">Ordenar por: Nombre</option>
+          <option value="fecha_creacion">Ordenar por: Recientes</option>
+          <option value="rol_id">Ordenar por: Rol</option>
+        </select>
+        <button 
+          class="btn-filter" 
+          [title]="'Mostrar todos los técnicos'">
+          <ion-icon name="filter-outline"></ion-icon>
+          Todos
+        </button>
+        <div class="header-actions">
+          <button class="btn-add" (click)="abrirModalCrearTecnico()">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir técnico
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Actions -->
+    <div class="mobile-actions">
+      <select class="mobile-filter">
+        <option value="nombre_completo">Ordenar: Alfabético</option>
+        <option value="fecha_creacion">Ordenar: Recientes</option>
+        <option value="rol_id">Ordenar: Rol</option>
+      </select>
+      <div class="mobile-buttons">
+        <button class="btn-add" (click)="abrirModalCrearTecnico()">
+          <ion-icon name="add-circle"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando técnicos...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error }}</p>
+        <button class="btn-retry">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+    <!-- Compact Table View (replaces desktop table and mobile cards) -->
+    <div *ngIf="!loading && !error" class="compact-tecnicos-table">
+      <div class="tecnicos-table">
+        <div class="table-header">
+          <div class="header-row">
+            <div class="header-cell">Nombre</div>
+            <div class="header-cell desktop-only">Email</div>
+            <div class="header-cell desktop-only">Teléfono</div>
+            <div class="header-cell desktop-only">Rol</div>
+            <div class="header-cell desktop-only">Fecha Creación</div>
+            <div class="header-cell desktop-only">Activo</div>
+            <div class="header-cell">Acciones</div>
+          </div>
+        </div>
+        <div class="table-body">
+          <div class="tecnico-row" *ngFor="let tecnico of tecnicos">
+            <div class="tecnico-cell nombre-tecnico">{{ tecnico.nombre_completo }}</div>
+            <div class="tecnico-cell email-tecnico desktop-only">{{ tecnico.email || 'No especificado' }}</div>
+            <div class="tecnico-cell telefono-tecnico desktop-only">{{ tecnico.telefono || 'No especificado' }}</div>
+            <div class="tecnico-cell rol-tecnico desktop-only">
+              <span class="badge-rol">
+                {{ tecnico.rol?.nombre_rol || '' }}
+              </span>
+            </div>
+            <div class="tecnico-cell fecha-tecnico desktop-only">{{ tecnico.fecha_creacion | date:'dd/MM/yyyy' }}</div>
+            <div class="tecnico-cell estado-activo desktop-only">
+              <span class="badge-estado">
+                {{ tecnico.rol?.nombre_rol !== 'Administrador' ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+            <div class="tecnico-cell acciones">
+              <button class="btn-ver" title="Ver detalles">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+              <button 
+                class="btn-toggle-estado" 
+                [title]="tecnico.rol?.nombre_rol !== 'Administrador' ? 'Desactivar técnico' : 'Activar técnico'"
+                >
+                <ion-icon [name]="tecnico.rol?.nombre_rol !== 'Administrador' ? 'pause-circle' : 'play-circle'"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado de datos vacíos -->
+    <div class="no-data-container">
+      <div class="no-data-message">
+        <ion-icon name="construct-outline"></ion-icon>
+        <h3>No hay técnicos</h3>
+        <p>Aún no se han creado técnicos. Crea el primero para comenzar.</p>
+        <button class="btn-create" (click)="abrirModalCrearTecnico()">
+          <ion-icon name="add-circle"></ion-icon>
+          Crear técnico
+        </button>
+      </div>
+    </div>
+
+  </section>
+</ion-content> 

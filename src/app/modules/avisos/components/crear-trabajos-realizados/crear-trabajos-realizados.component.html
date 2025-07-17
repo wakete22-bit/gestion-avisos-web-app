@@ -1,17 +1,25 @@
 <div class="modal-container">
   <header class="modal-header">
     <div class="header-content">
-      <h2>Crear parte de trabajo</h2>
+      <h2>{{ modoEdicion ? 'Editar parte de trabajo' : 'Crear parte de trabajo' }}</h2>
       <button class="close-button" (click)="cerrarModal()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
-    <p class="subtitle">Registra el trabajo realizado en este aviso</p>
+    <p class="subtitle">{{ modoEdicion ? 'Modifica el trabajo realizado' : 'Registra el trabajo realizado en este aviso' }}</p>
   </header>
 
   <form [formGroup]="trabajoForm" (ngSubmit)="crearTrabajo()" class="modal-body">
     <div class="modal-content">
-      <div class="modal-grid">
+      <!-- Indicador de carga para modo edición -->
+      <div *ngIf="modoEdicion && !trabajoExistente" class="loading-state">
+        <div class="loading-spinner">
+          <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+          <p>Cargando datos del trabajo...</p>
+        </div>
+      </div>
+
+      <div class="modal-grid" *ngIf="!modoEdicion || trabajoExistente">
         <!-- Sección Izquierda - Formulario -->
         <div class="form-section">
           <div class="form-group">
@@ -62,11 +70,17 @@
           </div>
         </div>
 
-        <!-- Sección Derecha - Repuestos -->
+        <!-- Sección Derecha - Materiales -->
         <div class="images-section">
           <div class="repuestos-container">
-            <h3>Repuestos utilizados</h3>
+            <h3>Materiales utilizados</h3>
             
+            <!-- Mensaje informativo para modo edición -->
+            <div *ngIf="modoEdicion" class="info-message">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <p>Al editar el trabajo, los materiales se ajustarán automáticamente en el inventario.</p>
+            </div>
+
             <!-- Búsqueda de productos -->
             <div class="search-container">
               <div class="search-input">
@@ -99,55 +113,66 @@
                 <div 
                   class="producto-item" 
                   *ngFor="let producto of productosFiltrados"
-                  (click)="agregarRepuesto(producto)">
+                  [class.sin-stock]="producto.cantidad_disponible <= 0"
+                  [class.stock-bajo]="producto.cantidad_disponible > 0 && producto.cantidad_disponible <= 5"
+                  (click)="agregarMaterial(producto)">
                   <div class="producto-info">
                     <div class="producto-header">
                       <span class="producto-codigo">{{producto.codigo}}</span>
-                      <span class="producto-stock">Stock: {{producto.cantidad_disponible}} {{producto.unidad}}</span>
+                      <span class="producto-stock" 
+                            [class.stock-bajo]="producto.cantidad_disponible > 0 && producto.cantidad_disponible <= 5"
+                            [class.sin-stock]="producto.cantidad_disponible <= 0">
+                        Stock: {{producto.cantidad_disponible}} {{producto.unidad}}
+                      </span>
                     </div>
                     <span class="producto-nombre">{{producto.nombre}}</span>
                     <span class="producto-descripcion" *ngIf="producto.descripcion">{{producto.descripcion}}</span>
                     <span class="producto-precio">{{producto.precio_neto | currency:'EUR':'symbol':'1.2-2'}}</span>
                   </div>
-                  <button type="button" class="add-producto-btn">
+                  <button type="button" class="add-producto-btn" [disabled]="producto.cantidad_disponible <= 0">
                     <ion-icon name="add-outline"></ion-icon>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Lista de repuestos añadidos -->
-            <div class="repuestos-list" *ngIf="repuestos.length > 0">
-              <h4>Repuestos añadidos</h4>
-              <div class="repuesto-item" *ngFor="let repuesto of repuestos; let i = index">
+            <!-- Lista de materiales añadidos -->
+            <div class="repuestos-list" *ngIf="materiales.length > 0">
+              <h4>Materiales añadidos</h4>
+              <div class="repuesto-item" *ngFor="let material of materiales; let i = index">
                 <div class="repuesto-info">
                   <div class="repuesto-header">
-                    <span class="repuesto-codigo">{{repuesto.producto.codigo}}</span>
-                    <span class="repuesto-precio">{{repuesto.producto.precio_neto | currency:'EUR':'symbol':'1.2-2'}}</span>
+                    <span class="repuesto-codigo">{{material.producto.codigo}}</span>
+                    <span class="repuesto-precio">{{material.producto.precio_neto | currency:'EUR':'symbol':'1.2-2'}}</span>
                   </div>
-                  <span class="repuesto-nombre">{{repuesto.producto.nombre}}</span>
+                  <span class="repuesto-nombre">{{material.producto.nombre}}</span>
                   <div class="repuesto-cantidad">
                     <label>Cantidad:</label>
                     <input 
                       type="number" 
-                      [value]="repuesto.cantidad"
+                      [value]="material.cantidad"
                       [min]="1"
-                      [max]="repuesto.producto.cantidad_disponible"
-                      (change)="actualizarCantidadRepuesto(i, $any($event.target).value)"
+                      [max]="material.producto.cantidad_disponible"
+                      (change)="actualizarCantidadMaterial(i, $any($event.target).value)"
                       class="cantidad-input">
-                    <span class="unidad">{{repuesto.producto.unidad}}</span>
+                    <span class="unidad">{{material.producto.unidad}}</span>
                   </div>
                 </div>
-                <button type="button" class="remove-repuesto" (click)="eliminarRepuesto(i)">
+                <button type="button" class="remove-repuesto" (click)="eliminarMaterial(i)">
                   <ion-icon name="trash-outline"></ion-icon>
                 </button>
               </div>
+
+              <!-- Resumen de costos -->
+              <div class="costo-total">
+                <strong>Costo total de materiales: {{calcularCostoTotal() | currency:'EUR':'symbol':'1.2-2'}}</strong>
+              </div>
             </div>
 
-            <div class="no-repuestos" *ngIf="repuestos.length === 0 && !loadingProductos && !errorProductos">
+            <div class="no-repuestos" *ngIf="materiales.length === 0 && !loadingProductos && !errorProductos">
               <ion-icon name="information-circle-outline"></ion-icon>
-              <p>No se han añadido repuestos</p>
-              <span>Selecciona productos del inventario para añadirlos como repuestos</span>
+              <p>No se han añadido materiales</p>
+              <span>Selecciona productos del inventario para añadirlos como materiales</span>
             </div>
           </div>
         </div>
@@ -165,7 +190,7 @@
         class="btn btn-primary" 
         (click)="crearTrabajo()"
         [disabled]="!trabajoForm.valid">
-        Crear trabajo
+        {{ modoEdicion ? 'Actualizar trabajo' : 'Crear trabajo' }}
         <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>

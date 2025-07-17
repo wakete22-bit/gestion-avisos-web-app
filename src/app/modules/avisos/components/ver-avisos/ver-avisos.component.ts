@@ -230,13 +230,14 @@ export class VerAvisosComponent implements OnInit {
   /**
    * Abre el modal para crear un nuevo trabajo realizado
    */
-  async crearTrabajoRealizado() {
+  async crearTrabajoRealizado(trabajoExistente?: TrabajoRealizado) {
     if (!this.aviso?.id) return;
 
     const modal = await this.modalController.create({
       component: CrearTrabajosRealizadosComponent,
       componentProps: {
-        avisoId: this.aviso.id
+        avisoId: this.aviso.id,
+        trabajoExistente: trabajoExistente // Pasar el trabajo existente si se está editando
       },
       cssClass: 'modal-crear-trabajo'
     });
@@ -246,14 +247,63 @@ export class VerAvisosComponent implements OnInit {
     const { data, role } = await modal.onWillDismiss();
     if (role === 'confirm' && data) {
       try {
-        await firstValueFrom(this.trabajosService.crearTrabajo(data));
-        console.log('Trabajo creado exitosamente');
+        if (trabajoExistente) {
+          // Actualizar trabajo existente
+          const resultado = await firstValueFrom(this.trabajosService.actualizarTrabajo(trabajoExistente.id!, data));
+          console.log('Trabajo actualizado exitosamente:', resultado);
+          alert('Trabajo actualizado exitosamente.');
+        } else {
+          // Crear nuevo trabajo
+          const resultado = await firstValueFrom(this.trabajosService.crearTrabajo(data));
+          console.log('Trabajo creado exitosamente:', resultado);
+          alert('Trabajo creado exitosamente. Los materiales han sido descontados del inventario.');
+        }
         
-        // Recargar trabajos para mostrar el nuevo
+        // Recargar trabajos para mostrar los cambios
         this.cargarTrabajos();
       } catch (error) {
-        console.error('Error al crear trabajo:', error);
-        alert('Error al crear el trabajo. Por favor, inténtalo de nuevo.');
+        console.error('Error al procesar trabajo:', error);
+        alert('Error al procesar el trabajo. Por favor, inténtalo de nuevo.');
+      }
+    }
+  }
+
+  /**
+   * Edita un trabajo existente
+   */
+  async editarTrabajo(trabajo: TrabajoRealizado) {
+    try {
+      // Cargar los datos completos del trabajo con sus materiales
+      const trabajoCompleto = await firstValueFrom(this.trabajosService.getTrabajo(trabajo.id!));
+      await this.crearTrabajoRealizado(trabajoCompleto.trabajo);
+    } catch (error) {
+      console.error('Error al cargar el trabajo para editar:', error);
+      alert('Error al cargar el trabajo para editar. Por favor, inténtalo de nuevo.');
+    }
+  }
+
+  /**
+   * Elimina un trabajo
+   */
+  async eliminarTrabajo(trabajo: TrabajoRealizado) {
+    const confirmacion = confirm(
+      `¿Estás seguro de que quieres eliminar este trabajo?\n\n` +
+      `Fecha: ${trabajo.fecha_trabajo}\n` +
+      `Descripción: ${trabajo.descripcion}\n\n` +
+      `Esta acción no se puede deshacer y los materiales serán devueltos al inventario.`
+    );
+
+    if (confirmacion) {
+      try {
+        await firstValueFrom(this.trabajosService.eliminarTrabajo(trabajo.id!));
+        console.log('Trabajo eliminado exitosamente');
+        alert('Trabajo eliminado exitosamente. Los materiales han sido devueltos al inventario.');
+        
+        // Recargar trabajos para actualizar la lista
+        this.cargarTrabajos();
+      } catch (error) {
+        console.error('Error al eliminar el trabajo:', error);
+        alert('Error al eliminar el trabajo. Por favor, inténtalo de nuevo.');
       }
     }
   }
@@ -287,5 +337,15 @@ export class VerAvisosComponent implements OnInit {
         alert('Error al eliminar la imagen. Por favor, inténtalo de nuevo.');
       }
     }
+  }
+
+  /**
+   * Calcula las horas de trabajo de un trabajo
+   */
+  calcularHorasTrabajo(trabajo: TrabajoRealizado): number {
+    const inicio = new Date(`2000-01-01T${trabajo.hora_inicio}`);
+    const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
+    const horas = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
+    return Math.max(0, horas);
   }
 }

@@ -199,32 +199,48 @@
         <tr>
           <th>Número</th>
           <th>Fecha trabajo</th>
-          <th>Entrada/Salida</th>
+          <th>Horas</th>
           <th>Descripción</th>
-          <th>Repuestos usados</th>
+          <th>Materiales</th>
           <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let trabajo of trabajosRealizados; let i = index">
           <td>#{{i + 1}}</td>
           <td>{{trabajo.fecha_trabajo | date:'dd/MM/yyyy'}}</td>
-          <td>{{trabajo.hora_inicio}} - {{trabajo.hora_fin}}</td>
-          <td>{{trabajo.descripcion}}</td>
+          <td>{{calcularHorasTrabajo(trabajo) | number:'1.1-1'}}h</td>
           <td>
-            <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
-              <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
-            </ul>
-            <span *ngIf="!trabajo.repuestos || trabajo.repuestos.length === 0" class="no-repuestos">
-              Sin repuestos
+            <div class="descripcion-trabajo">
+              <p>{{trabajo.descripcion}}</p>
+              <small>{{trabajo.hora_inicio}} - {{trabajo.hora_fin}}</small>
+            </div>
+          </td>
+          <td>
+            <div class="materiales-info">
+              <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
+                <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
+              </ul>
+              <span *ngIf="!trabajo.repuestos || trabajo.repuestos.length === 0" class="no-repuestos">
+                Sin materiales
+              </span>
+            </div>
+          </td>
+          <td>
+            <span class="badge-estado" [class]="'badge-' + trabajo.estado.toLowerCase().replace(' ', '-')">
+              {{trabajo.estado}}
             </span>
           </td>
           <td>
             <div class="estado-actions">
-              <span class="badge-pendiente">{{trabajo.estado}}</span>
-              <button class="btn-secondary btn-small" (click)="realizarOtraVisita(trabajo)">
-                <ion-icon name="eye-outline"></ion-icon>
-                Realizar otra visita
+              <button class="btn-secondary btn-small" (click)="editarTrabajo(trabajo)" title="Editar trabajo">
+                <ion-icon name="pencil-outline"></ion-icon>
+                Editar
+              </button>
+              <button class="btn-danger btn-small" (click)="eliminarTrabajo(trabajo)" title="Eliminar trabajo">
+                <ion-icon name="trash-outline"></ion-icon>
+                Eliminar
               </button>
             </div>
           </td>
