@@ -907,3 +907,41 @@ ion-content {
     display: flex !important;
   }
 }
+
+// Estados de carga y vacío
+.loading-row, .empty-row {
+  display: contents;
+  
+  .loading-spinner, .empty-message {
+    grid-column: 1 / -1;
+    padding: 40px 20px;
+    text-align: center;
+    color: #6B7280;
+    font-size: 14px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    margin: 8px;
+  }
+  
+  .loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    
+    &::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 2px solid #E5E7EB;
+      border-top: 2px solid #4F46E5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

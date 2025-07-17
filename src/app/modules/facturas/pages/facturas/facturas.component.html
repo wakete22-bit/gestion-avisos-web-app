@@ -4,7 +4,7 @@
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de facturas</div>
-        <div class="table-meta">Facturas: {{ facturas.length }}</div>  
+        <div class="table-meta">Facturas: {{ totalFacturas }}</div>  
       </div>
       
       <!-- Mobile Search Bar -->
@@ -57,12 +57,18 @@
           </div>
         </div>
         <div class="table-body">
+          <div *ngIf="loading" class="loading-row">
+            <div class="loading-spinner">Cargando facturas...</div>
+          </div>
+          <div *ngIf="!loading && facturas.length === 0" class="empty-row">
+            <div class="empty-message">No hay facturas disponibles</div>
+          </div>
           <div *ngFor="let factura of facturas" class="factura-row" [ngClass]="{
                  'en-curso': factura.estado === 'En curso',
                  'pendiente': factura.estado === 'Pendiente',
                  'completado': factura.estado === 'Completado'
                }">
-            <div class="factura-cell numero-factura">#{{ factura.numero }}</div>
+            <div class="factura-cell numero-factura">#{{ factura.numero_factura }}</div>
             <div class="factura-cell estado-factura desktop-only">
               <span class="badge" [ngClass]="{
                       'yellow': factura.estado === 'En curso',
@@ -72,16 +78,16 @@
                 {{ factura.estado }}
               </span>
             </div>
-            <div class="factura-cell nombre-cliente">{{ factura.nombre }}</div>
+            <div class="factura-cell nombre-cliente">{{ factura.nombre_cliente }}</div>
             <div class="factura-cell descripcion-factura">
-              <div class="descripcion-texto" [title]="factura.detalle">
-                {{ factura.detalle }}
+              <div class="descripcion-texto" [title]="factura.notas || 'Sin descripción'">
+                {{ factura.notas || 'Sin descripción' }}
               </div>
             </div>
-            <div class="factura-cell fecha-factura desktop-only">{{ factura.fecha }}</div>
-            <div class="factura-cell pvp-factura desktop-only">{{ factura.pvp }}</div>
+            <div class="factura-cell fecha-factura desktop-only">{{ factura.fecha_emision | date:'dd/MM/yyyy' }}</div>
+            <div class="factura-cell pvp-factura desktop-only">{{ factura.total | currency:'EUR':'symbol':'1.2-2' }}</div>
             <div class="factura-cell acciones">
-              <button class="btn-ver" title="Ver detalles">
+              <button class="btn-ver" title="Ver detalles" (click)="verFactura(factura.id!)">
                 <ion-icon name="eye-outline"></ion-icon>
               </button>
             </div>
@@ -91,16 +97,19 @@
     </div>
 
     <!-- Pagination -->
-    <div class="table-pagination">
-      <span class="pagination-info">Mostrando datos 1 a {{ facturas.length }} de {{ facturas.length }} factura</span>
+    <!-- <div class="table-pagination" *ngIf="totalFacturas > 0">
+      <span class="pagination-info">
+        Mostrando datos {{ (paginaActual - 1) * porPagina + 1 }} a {{ Math.min(paginaActual * porPagina, totalFacturas) }} de {{ totalFacturas }} facturas
+      </span>
       <div class="pagination">
-        <button class="active">1</button>
-        <button>2</button>
-        <button>3</button>
-        <button class="desktop-only">4</button>
-        <span class="desktop-only">...</span>
-        <button class="desktop-only">40</button>
+        <button 
+          *ngFor="let pagina of getPaginas()" 
+          [class.active]="pagina === paginaActual"
+          (click)="cambiarPagina(pagina)"
+          [disabled]="pagina === '...'">
+          {{ pagina }}
+        </button>
       </div>
-    </div>
+    </div> -->
   </section>
 </ion-content>

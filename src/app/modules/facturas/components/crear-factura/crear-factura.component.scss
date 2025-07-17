@@ -884,6 +884,42 @@
   }
 }
 
+// Estilos para inputs en tablas
+.table-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #E5E7EB;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #FAFAFB;
+  color: #111827;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #4F46E5;
+    background: #fff;
+  }
+
+  &::placeholder {
+    color: #9CA3AF;
+  }
+}
+
+// Estilos para filas vacías
+.empty-row {
+  td {
+    color: #6B7280;
+    font-style: italic;
+    text-align: center;
+    padding: 20px !important;
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
 @media (max-width: 480px) {
   .factura-formulario {
     padding: 12px;
@@ -902,6 +938,11 @@
         font-size: 12px;
       }
     }
+  }
+
+  .table-input {
+    font-size: 12px;
+    padding: 4px 6px;
   }
 
   .botones-footer {

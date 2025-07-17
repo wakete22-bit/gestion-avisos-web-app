@@ -5,27 +5,27 @@
       <div class="grid-datos">
         <div class="form-group">
           <label>Número Factura</label>
-          <input type="text" placeholder="#876370A" />
+          <input type="text" formControlName="numeroFactura" placeholder="#876370A" />
         </div>
         <div class="form-group">
           <label>Fecha de emisión</label>
-          <input type="date" />
+          <input type="date" formControlName="fecha" />
         </div>
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" placeholder="Ejemplo" />
+          <input type="text" formControlName="nombre" placeholder="Ejemplo" />
         </div>
         <div class="form-group">
           <label>Dirección</label>
-          <input type="text" placeholder="Calle" />
+          <input type="text" formControlName="direccion" placeholder="Calle" />
         </div>
         <div class="form-group">
           <label>CIF</label>
-          <input type="text" placeholder="12345678A" />
+          <input type="text" formControlName="cif" placeholder="12345678A" />
         </div>
         <div class="form-group">
           <label>Correo electrónico</label>
-          <input type="email" placeholder="ejemplo@gmail.com" />
+          <input type="email" formControlName="email" placeholder="ejemplo@gmail.com" />
         </div>
       </div>
 
@@ -33,7 +33,7 @@
       <section class="tabla-section">
         <div class="tabla-header">
           <span>Repuestos Utilizados</span>
-          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+          <button type="button" class="icon-btn add-btn" (click)="agregarRepuesto()"><span>+</span></button>
         </div>
         <table>
           <thead>
@@ -46,28 +46,32 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><a href="#">Válvula de expansión</a></td>
-              <td>1</td>
-              <td>25.00€</td>
-              <td class="success">35.00€</td>
-              <td class="trash-btn"><button type="button" class="icon-btn danger">
+            <tr *ngFor="let repuesto of repuestos; let i = index">
+              <td>
+                <input type="text" [(ngModel)]="repuesto.nombre" [ngModelOptions]="{standalone: true}" placeholder="Nombre del repuesto" class="table-input">
+              </td>
+              <td>
+                <input type="number" [(ngModel)]="repuesto.cantidad" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input">
+              </td>
+              <td>
+                <input type="number" [(ngModel)]="repuesto.precio_neto" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="0.00">
+              </td>
+              <td class="success">
+                <input type="number" [(ngModel)]="repuesto.precio_pvp" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="0.00">
+              </td>
+              <td class="trash-btn">
+                <button type="button" class="icon-btn danger" (click)="eliminarRepuesto(i)">
                   <ion-icon name="trash"></ion-icon>
-                </button></td>
+                </button>
+              </td>
             </tr>
-            <tr>
-              <td><a href="#">Filtro de Aire Hepa</a></td>
-              <td>2</td>
-              <td>18.00€</td>
-              <td class="success">25.00€</td>
-              <td class="trash-btn"><button type="button" class="icon-btn danger">
-                  <ion-icon name="trash"></ion-icon>
-                </button></td>
+            <tr *ngIf="repuestos.length === 0" class="empty-row">
+              <td colspan="5" class="text-center">No hay repuestos añadidos</td>
             </tr>
-            <tr class="total-row">
+            <tr class="total-row" *ngIf="repuestos.length > 0">
               <td colspan="2">Total</td>
-              <td>43.00€</td>
-              <td class="success">60.00€</td>
+              <td>{{ totalRepuestosNeto | currency:'EUR':'symbol':'1.2-2' }}</td>
+              <td class="success">{{ totalRepuestosPvp | currency:'EUR':'symbol':'1.2-2' }}</td>
               <td></td>
             </tr>
           </tbody>
@@ -78,7 +82,7 @@
       <section class="tabla-section">
         <div class="tabla-header">
           <span>Mano de Obra</span>
-          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+          <button type="button" class="icon-btn add-btn" (click)="agregarManoObra()"><span>+</span></button>
         </div>
         <table>
           <thead>
@@ -90,13 +94,29 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><a href="#">Mano de obra Técnico</a></td>
-              <td>2.25h</td>
-              <td class="success">45.00€</td>
-              <td class="trash-btn"><button type="button" class="icon-btn danger">
+            <tr *ngFor="let mano of manoObra; let i = index">
+              <td>
+                <input type="text" [(ngModel)]="mano.nombre" [ngModelOptions]="{standalone: true}" placeholder="Descripción del trabajo" class="table-input">
+              </td>
+              <td>
+                <input type="number" [(ngModel)]="mano.cantidad" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="Horas">
+              </td>
+              <td class="success">
+                <input type="number" [(ngModel)]="mano.precio_pvp" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="0.00">
+              </td>
+              <td class="trash-btn">
+                <button type="button" class="icon-btn danger" (click)="eliminarManoObra(i)">
                   <ion-icon name="trash"></ion-icon>
-                </button></td>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="manoObra.length === 0" class="empty-row">
+              <td colspan="4" class="text-center">No hay mano de obra añadida</td>
+            </tr>
+            <tr class="total-row" *ngIf="manoObra.length > 0">
+              <td colspan="2">Total</td>
+              <td class="success">{{ totalManoObra | currency:'EUR':'symbol':'1.2-2' }}</td>
+              <td></td>
             </tr>
           </tbody>
         </table>
@@ -106,7 +126,7 @@
       <section class="tabla-section">
         <div class="tabla-header">
           <span>Desplazamiento</span>
-          <button type="button" class="icon-btn add-btn"><span>+</span></button>
+          <button type="button" class="icon-btn add-btn" (click)="agregarDesplazamiento()"><span>+</span></button>
         </div>
         <table>
           <thead>
@@ -118,13 +138,29 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td><a>Kilometraje</a></td>
-              <td>10km</td>
-              <td class="success">3.50€</td>
-              <td class="trash-btn"><button type="button" class="icon-btn danger">
+            <tr *ngFor="let desplazamiento of desplazamientos; let i = index">
+              <td>
+                <input type="text" [(ngModel)]="desplazamiento.nombre" [ngModelOptions]="{standalone: true}" placeholder="Tipo de desplazamiento" class="table-input">
+              </td>
+              <td>
+                <input type="number" [(ngModel)]="desplazamiento.cantidad" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="Cantidad">
+              </td>
+              <td class="success">
+                <input type="number" [(ngModel)]="desplazamiento.precio_pvp" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="table-input" placeholder="0.00">
+              </td>
+              <td class="trash-btn">
+                <button type="button" class="icon-btn danger" (click)="eliminarDesplazamiento(i)">
                   <ion-icon name="trash"></ion-icon>
-                </button></td>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="desplazamientos.length === 0" class="empty-row">
+              <td colspan="4" class="text-center">No hay desplazamientos añadidos</td>
+            </tr>
+            <tr class="total-row" *ngIf="desplazamientos.length > 0">
+              <td colspan="2">Total</td>
+              <td class="success">{{ totalDesplazamiento | currency:'EUR':'symbol':'1.2-2' }}</td>
+              <td></td>
             </tr>
           </tbody>
         </table>
@@ -136,13 +172,23 @@
         </div>
 
         <div class="form-group">
-          <textarea placeholder="Notas"></textarea>
+          <textarea formControlName="notas" placeholder="Notas"></textarea>
         </div>
       </section>
 
       <div class="botones-footer">
-        <button type="button" class="btn-outline">Enviar factura</button>
-        <button type="button" class="btn-primary">Generar factura</button>
+        <button type="button" class="btn-outline" (click)="debugFormulario()">
+          Debug Formulario
+        </button>
+        <button type="button" class="btn-outline" (click)="generarPdfDesdeDatos()">
+          PDF Estilo Básico
+        </button>
+        <button type="button" class="btn-outline" (click)="enviarFactura()" [disabled]="loading || !facturaForm.valid">
+          {{ loading ? 'Enviando...' : 'Enviar factura' }}
+        </button>
+        <button type="button" class="btn-primary" (click)="generarFactura()" [disabled]="loading || !facturaForm.valid">
+          {{ loading ? 'Generando...' : 'Generar factura' }}
+        </button>
       </div>
 
     </form>
@@ -153,11 +199,11 @@
     <div class="header-container">
       <h2>Vista previa</h2>
       <div class="actions-preview">
-        <button type="button" class="btn-outline">
+        <button type="button" class="btn-outline" (click)="descargarFactura()">
           <ion-icon name="download"></ion-icon>
           <span class="button-text">Descargar</span>
         </button>
-        <button type="button" class="btn-primary">
+        <button type="button" class="btn-primary" (click)="imprimirFactura()">
           <ion-icon name="print"></ion-icon>
           <span class="button-text">Imprimir</span>
         </button>
@@ -180,9 +226,9 @@
         <div class="factura-info">
           <label class="factura-label">Factura</label>
           <label style="color: #111827; font-weight: 500;">Nº FACTURA</label>
-          <label>003/2021</label>
+          <label>{{ facturaForm.get('numeroFactura')?.value || 'N/A' }}</label>
           <label style="color: #111827; font-weight: 500;">FECHA DE EMISIÓN</label>
-          <label>Enero 1, 2021</label>
+          <label>{{ facturaForm.get('fecha')?.value ? (facturaForm.get('fecha')?.value | date:'longDate':'':'es') : 'N/A' }}</label>
         </div>
       </div>
     </div>
@@ -198,23 +244,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Válvula de expansión</td>
-            <td>1</td>
-            <td>25.00€</td>
-            <td>35.00€</td>
+          <tr *ngFor="let repuesto of repuestos">
+            <td>{{ repuesto.nombre || 'Sin nombre' }}</td>
+            <td>{{ repuesto.cantidad || 0 }}</td>
+            <td>{{ repuesto.precio_neto || 0 | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td>{{ repuesto.precio_pvp || 0 | currency:'EUR':'symbol':'1.2-2' }}</td>
           </tr>
-          <tr>
-            <td>Filtro de Aire Hepa</td>
-            <td>2</td>
-            <td>18.00€</td>
-            <td>25.00€</td>
+          <tr *ngIf="repuestos.length === 0">
+            <td colspan="4" class="text-center">No hay repuestos</td>
           </tr>
-          <tr class="total-row">
+          <tr class="total-row" *ngIf="repuestos.length > 0">
             <td><b>TOTAL</b></td>
             <td></td>
-            <td class="success">43.00€</td>
-            <td class="success">60.00€</td>
+            <td class="success">{{ totalRepuestosNeto | currency:'EUR':'symbol':'1.2-2' }}</td>
+            <td class="success">{{ totalRepuestosPvp | currency:'EUR':'symbol':'1.2-2' }}</td>
           </tr>
         </tbody>
       </table>
@@ -230,19 +273,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Mano de obra Técnico</td>
-            <td>2.25h</td>
-            <td>87.00€</td>
+          <tr *ngFor="let mano of manoObra">
+            <td>{{ mano.nombre || 'Sin descripción' }}</td>
+            <td>{{ mano.cantidad || 0 }}h</td>
+            <td>{{ mano.precio_pvp || 0 | currency:'EUR':'symbol':'1.2-2' }}</td>
           </tr>
-          <tr>
-            <td>Kilometraje</td>
-            <td>10km</td>
-            <td>3.50€</td>
+          <tr *ngFor="let desplazamiento of desplazamientos">
+            <td>{{ desplazamiento.nombre || 'Sin descripción' }}</td>
+            <td>{{ desplazamiento.cantidad || 0 }}</td>
+            <td>{{ desplazamiento.precio_pvp || 0 | currency:'EUR':'symbol':'1.2-2' }}</td>
           </tr>
-          <tr class="total-row">
+          <tr *ngIf="manoObra.length === 0 && desplazamientos.length === 0">
+            <td colspan="3" class="text-center">No hay mano de obra ni desplazamientos</td>
+          </tr>
+          <tr class="total-row" *ngIf="manoObra.length > 0 || desplazamientos.length > 0">
             <td colspan="2"><b>TOTAL</b></td>
-            <td class="success">90.50€</td>
+            <td class="success">{{ totalManoObra + totalDesplazamiento | currency:'EUR':'symbol':'1.2-2' }}</td>
           </tr>
         </tbody>
       </table>
@@ -251,22 +297,22 @@
     <div class="preview-totales-box">
       <div class="totales-row">
         <span>Subtotal</span>
-        <span>90.50€</span>
+        <span>{{ subtotal | currency:'EUR':'symbol':'1.2-2' }}</span>
       </div>
       <div class="totales-row">
         <span>IVA (21%)</span>
-        <span>18.10€</span>
+        <span>{{ iva | currency:'EUR':'symbol':'1.2-2' }}</span>
       </div>
       <div class="totales-row total-final">
         <span>TOTAL</span>
-        <span>108.60€</span>
+        <span>{{ total | currency:'EUR':'symbol':'1.2-2' }}</span>
       </div>
     </div>
 
     <div class="preview-notas">
       <b>Notas</b>
       <div class="notas-texto">
-        (Campo de texto para añadir notas para el cliente en la factura, como "Condiciones de pago: 30 días")
+        {{ facturaForm.get('notas')?.value || 'Sin notas adicionales' }}
       </div>
     </div>
     <div class="preview-footer">

@@ -268,26 +268,49 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   private plotAvisosOnMap() {
-    if (!this.map) return;
+    if (!this.map) {
+      console.log('Mapa no disponible para pintar marcadores');
+      return;
+    }
 
+    console.log('Pintando marcadores en el mapa...');
+    
+    // Limpiar marcadores existentes
+    this.avisoMarkers.forEach(marker => marker.remove());
     this.avisoMarkers.clear();
 
+    if (!this.avisos || this.avisos.length === 0) {
+      console.log('No hay avisos para mostrar en el mapa');
+      return;
+    }
+
     this.avisos.forEach(aviso => {
+      if (!aviso.direccion_cliente_aviso) {
+        console.log(`Aviso ${aviso.id} no tiene dirección`);
+        return;
+      }
+
       // Añadir "España" para mejorar la precisión de la geocodificación
       const fullAddress = `${aviso.direccion_cliente_aviso}, España`;
 
-      this.geocodingService.geocode(fullAddress).subscribe(coordinates => {
-        if (coordinates && this.map) {
-          const popup = new Popup({ offset: 25 }).setHTML(
-            `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
-          );
+      this.geocodingService.geocode(fullAddress).subscribe({
+        next: (coordinates) => {
+          if (coordinates && this.map) {
+            const popup = new Popup({ offset: 25 }).setHTML(
+              `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
+            );
 
-          const marker = new Marker({color: '#4F46E5'})
-            .setLngLat(coordinates)
-            .setPopup(popup)
-            .addTo(this.map);
+            const marker = new Marker({color: '#4F46E5'})
+              .setLngLat(coordinates)
+              .setPopup(popup)
+              .addTo(this.map);
 
-          this.avisoMarkers.set(aviso.id, marker);
+            this.avisoMarkers.set(aviso.id, marker);
+            console.log(`Marcador añadido para aviso ${aviso.id}`);
+          }
+        },
+        error: (error) => {
+          console.error(`Error al geocodificar dirección para aviso ${aviso.id}:`, error);
         }
       });
     });
@@ -323,35 +346,60 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   private initMap(): void {
-    if (this.isMapView && !this.map && document.getElementById('map')) {
+    if (this.isMapView && !this.map) {
+      // Usar un delay más largo para asegurar que el DOM esté completamente renderizado
       setTimeout(() => {
-        this.map = new MapLibreMap({
-          container: 'map',
-          style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${environment.maptilerApiKey}`,
-          center: [ -3.703790, 40.416775 ], // MapLibre usa [lng, lat]
-          zoom: 12
-        });
+        const mapContainer = document.getElementById('map');
+        if (mapContainer && !this.map) {
+          console.log('Inicializando mapa...');
+          this.map = new MapLibreMap({
+            container: 'map',
+            style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${environment.maptilerApiKey}`,
+            center: [ -3.703790, 40.416775 ], // MapLibre usa [lng, lat]
+            zoom: 12
+          });
 
-        this.map.on('load', () => {
-          this.map!.resize();
-          this.plotAvisosOnMap(); // Llamar a la función para pintar los marcadores
-        });
+          this.map.on('load', () => {
+            console.log('Mapa cargado correctamente');
+            this.map!.resize();
+            this.plotAvisosOnMap(); // Llamar a la función para pintar los marcadores
+          });
 
-      }, 0);
+          this.map.on('error', (error) => {
+            console.error('Error al cargar el mapa:', error);
+          });
+        } else if (this.isMapView && !this.map) {
+          // Si el contenedor no está disponible, reintentar después de un delay
+          console.log('Contenedor del mapa no disponible, reintentando...');
+          setTimeout(() => {
+            this.initMap();
+          }, 200);
+        }
+      }, 100); // Aumentar el delay a 100ms
     }
   }
 
   toggleView() {
     this.isMapView = !this.isMapView;
-    this.cdr.detectChanges();
-
+    
     if (this.isMapView) {
-      this.initMap();
+      // Forzar la detección de cambios y esperar a que se complete
+      this.cdr.detectChanges();
+      
+      // Usar setTimeout para asegurar que el DOM esté completamente actualizado
+      setTimeout(() => {
+        this.initMap();
+      }, 50);
     } else {
       if (this.map) {
+        // Limpiar marcadores antes de remover el mapa
+        this.avisoMarkers.forEach(marker => marker.remove());
+        this.avisoMarkers.clear();
+        
         this.map.remove();
         this.map = null;
       }
+      this.cdr.detectChanges();
     }
   }
 

@@ -946,7 +946,7 @@ ion-content {
       width: 100%;
       display: grid;
       // Móvil por defecto: Número | Cliente | Detalle | Acciones
-      grid-template-columns: 60px 1fr minmax(0, 1.5fr) 80px;
+      grid-template-columns: 80px 1fr minmax(0, 1.5fr) 80px;
       font-size: 12px;
 
       .table-header {
@@ -966,6 +966,11 @@ ion-content {
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
+            
+            &:first-child {
+              justify-content: start;
+              padding-left: 12px;
+            }
           }
         }
       }
@@ -1036,8 +1041,13 @@ ion-content {
             &.numero-aviso {
               font-weight: 600;
               color: #111827;
-              font-size: 14px;
-              justify-content: center;
+              font-size: 13px;
+              justify-content: start;
+              padding-left: 12px;
+              min-width: 0;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             }
 
             &.nombre-cliente {
@@ -1322,6 +1332,15 @@ ion-content {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 0px!important;
+    
+    .avisos-table {
+      grid-template-columns: 70px 1fr minmax(0, 1.5fr) 80px;
+      
+      .aviso-cell.numero-aviso {
+        font-size: 12px;
+        padding-left: 8px;
+      }
+    }
   }
   .map-display-container {
     height: 50vh;
@@ -1341,6 +1360,22 @@ ion-content {
   
   .legend-item {
     font-size: 11px;
+  }
+}
+
+// Desktop styles - mapa con altura 100% y leyenda oculta
+@media (min-width: 769px) {
+  .map-view-container {
+    height: calc(100vh - 200px); // Altura completa menos el header y padding
+  }
+  
+  .map-display-container {
+    height: 100% !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .map-legend {
+    display: none !important; // Ocultar leyenda en desktop
   }
 }
 
