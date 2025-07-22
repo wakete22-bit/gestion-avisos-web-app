@@ -1,0 +1,607 @@
+<div class="ajustes-container">
+  <!-- Header -->
+  <div class="ajustes-header">
+    <div class="header-content">
+      <div class="header-title">
+        <ion-icon name="settings-outline"></ion-icon>
+        <h1>Configuración del Sistema</h1>
+      </div>
+      <p class="header-description">
+        Gestiona todas las configuraciones de tu aplicación desde un solo lugar
+      </p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando configuraciones...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="onReintentar()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error && ajustes" class="ajustes-content">
+    <!-- Tabs Navigation -->
+    <div class="tabs-navigation">
+      <button 
+        class="tab-button active" 
+        data-tab="empresa"
+        (click)="cambiarTab('empresa')">
+        <ion-icon name="business-outline"></ion-icon>
+        Empresa
+      </button>
+      <button 
+        class="tab-button" 
+        data-tab="facturacion"
+        (click)="cambiarTab('facturacion')">
+        <ion-icon name="card-outline"></ion-icon>
+        Facturación
+      </button>
+      <button 
+        class="tab-button" 
+        data-tab="notificaciones"
+        (click)="cambiarTab('notificaciones')">
+        <ion-icon name="notifications-outline"></ion-icon>
+        Notificaciones
+      </button>
+      <button 
+        class="tab-button" 
+        data-tab="avisos"
+        (click)="cambiarTab('avisos')">
+        <ion-icon name="warning-outline"></ion-icon>
+        Avisos
+      </button>
+      <button 
+        class="tab-button" 
+        data-tab="sistema"
+        (click)="cambiarTab('sistema')">
+        <ion-icon name="cog-outline"></ion-icon>
+        Sistema
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      
+      <!-- Pestaña Empresa -->
+      <div id="empresa" class="tab-panel active">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-title">
+              <ion-icon name="business-outline"></ion-icon>
+              Información de la Empresa
+            </div>
+            <p>Configura los datos de tu empresa que aparecerán en facturas y documentos</p>
+          </div>
+          <div class="card-content">
+            <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Nombre de la Empresa *</label>
+                  <div class="input-container">
+                    <ion-icon name="business-outline"></ion-icon>
+                    <input 
+                      type="text" 
+                      formControlName="nombre_empresa" 
+                      placeholder="Ej: Mi Empresa S.L."
+                      [class.error]="empresaFormErrors.nombre_empresa">
+                  </div>
+                  <div *ngIf="empresaFormErrors.nombre_empresa" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El nombre es requerido y debe tener al menos 2 caracteres</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>CIF/NIF *</label>
+                  <div class="input-container">
+                    <ion-icon name="card-outline"></ion-icon>
+                    <input 
+                      type="text" 
+                      formControlName="cif" 
+                      placeholder="Ej: B12345678"
+                      [class.error]="empresaFormErrors.cif">
+                  </div>
+                  <div *ngIf="empresaFormErrors.cif" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El CIF es requerido y debe tener al menos 9 caracteres</span>
+                  </div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label>Dirección *</label>
+                  <div class="input-container">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <textarea 
+                      formControlName="direccion" 
+                      placeholder="Dirección completa de la empresa"
+                      rows="3"
+                      [class.error]="empresaFormErrors.direccion"></textarea>
+                  </div>
+                  <div *ngIf="empresaFormErrors.direccion" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>La dirección es requerida y debe tener al menos 10 caracteres</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Teléfono *</label>
+                  <div class="input-container">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <input 
+                      type="tel" 
+                      formControlName="telefono" 
+                      placeholder="Ej: +34 123 456 789"
+                      [class.error]="empresaFormErrors.telefono">
+                  </div>
+                  <div *ngIf="empresaFormErrors.telefono" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El teléfono es requerido y debe tener un formato válido</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Email *</label>
+                  <div class="input-container">
+                    <ion-icon name="mail-outline"></ion-icon>
+                    <input 
+                      type="email" 
+                      formControlName="email" 
+                      placeholder="info@miempresa.com"
+                      [class.error]="empresaFormErrors.email">
+                  </div>
+                  <div *ngIf="empresaFormErrors.email" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El email es requerido y debe tener un formato válido</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Sitio Web</label>
+                  <div class="input-container">
+                    <ion-icon name="globe-outline"></ion-icon>
+                    <input 
+                      type="url" 
+                      formControlName="web" 
+                      placeholder="https://www.miempresa.com"
+                      [class.error]="empresaFormErrors.web">
+                  </div>
+                  <div *ngIf="empresaFormErrors.web" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>La URL debe comenzar con http:// o https://</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>URL del Logo</label>
+                  <div class="input-container">
+                    <ion-icon name="image-outline"></ion-icon>
+                    <input 
+                      type="url" 
+                      formControlName="logo_url" 
+                      placeholder="https://ejemplo.com/logo.png">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn-save"
+                  [disabled]="empresaForm.invalid || loading">
+                  <ion-icon name="save-outline"></ion-icon>
+                  Guardar Configuración
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestaña Facturación -->
+      <div id="facturacion" class="tab-panel">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-title">
+              <ion-icon name="card-outline"></ion-icon>
+              Configuración de Facturación
+            </div>
+            <p>Personaliza el formato y configuración de tus facturas</p>
+          </div>
+          <div class="card-content">
+            <form [formGroup]="facturacionForm" (ngSubmit)="guardarFacturacion()">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>IVA por Defecto (%) *</label>
+                  <div class="input-container">
+                    <ion-icon name="calculator-outline"></ion-icon>
+                    <input 
+                      type="number" 
+                      formControlName="iva_por_defecto" 
+                      min="0"
+                      max="100"
+                      [class.error]="facturacionFormErrors.iva_por_defecto">
+                  </div>
+                  <div *ngIf="facturacionFormErrors.iva_por_defecto" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El IVA debe estar entre 0 y 100</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Moneda *</label>
+                  <div class="input-container">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    <select formControlName="moneda">
+                      <option *ngFor="let moneda of monedas" [value]="moneda.valor">
+                        {{ moneda.texto }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Formato Número Factura *</label>
+                  <div class="input-container">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <input 
+                      type="text" 
+                      formControlName="formato_numero_factura" 
+                      placeholder="Ej: FAC-YEAR-NUMBER"
+                      [class.error]="facturacionFormErrors.formato_numero_factura">
+                  </div>
+                  <div class="help-text">
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    <span>Usa YEAR para el año y NUMBER para el número secuencial</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Días de Vencimiento *</label>
+                  <div class="input-container">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <input 
+                      type="number" 
+                      formControlName="dias_vencimiento" 
+                      min="1"
+                      max="365"
+                      [class.error]="facturacionFormErrors.dias_vencimiento">
+                  </div>
+                  <div *ngIf="facturacionFormErrors.dias_vencimiento" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>Los días deben estar entre 1 y 365</span>
+                  </div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label>Texto del Pie de Factura</label>
+                  <div class="input-container">
+                    <ion-icon name="document-outline"></ion-icon>
+                    <textarea 
+                      formControlName="texto_pie_factura" 
+                      placeholder="Mensaje que aparecerá al final de las facturas"
+                      rows="3"></textarea>
+                  </div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label>Condiciones de Pago</label>
+                  <div class="input-container">
+                    <ion-icon name="document-outline"></ion-icon>
+                    <textarea 
+                      formControlName="condiciones_pago" 
+                      placeholder="Condiciones de pago por defecto"
+                      rows="2"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn-save"
+                  [disabled]="facturacionForm.invalid || loading">
+                  <ion-icon name="save-outline"></ion-icon>
+                  Guardar Configuración
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestaña Notificaciones -->
+      <div id="notificaciones" class="tab-panel">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-title">
+              <ion-icon name="notifications-outline"></ion-icon>
+              Configuración de Notificaciones
+            </div>
+            <p>Gestiona cómo y cuándo recibir notificaciones</p>
+          </div>
+          <div class="card-content">
+            <form [formGroup]="notificacionesForm" (ngSubmit)="guardarNotificaciones()">
+              <div class="notifications-section">
+                <h3>Notificaciones por Email</h3>
+                <div class="toggle-group">
+                  <div class="toggle-item">
+                    <label>Activar notificaciones por email</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="email_notificaciones">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="toggle-item">
+                    <label>Nuevos avisos</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="email_avisos_nuevos">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="toggle-item">
+                    <label>Facturas generadas</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="email_facturas_generadas">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="toggle-item">
+                    <label>Recordatorios</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="email_recordatorios">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="notifications-section">
+                <h3>Notificaciones por SMS</h3>
+                <div class="toggle-group">
+                  <div class="toggle-item">
+                    <label>Activar notificaciones por SMS</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="sms_notificaciones">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="toggle-item">
+                    <label>Avisos urgentes</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="sms_avisos_urgentes">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn-save"
+                  [disabled]="loading">
+                  <ion-icon name="save-outline"></ion-icon>
+                  Guardar Configuración
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestaña Avisos -->
+      <div id="avisos" class="tab-panel">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-title">
+              <ion-icon name="warning-outline"></ion-icon>
+              Configuración de Avisos
+            </div>
+            <p>Personaliza el comportamiento del sistema de avisos</p>
+          </div>
+          <div class="card-content">
+            <form [formGroup]="avisosForm" (ngSubmit)="guardarAvisos()">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Tipos de Urgencia *</label>
+                  <div class="input-container">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <textarea 
+                      formControlName="tipos_urgencia" 
+                      placeholder="Baja, Media, Alta, Crítica"
+                      rows="2"
+                      [class.error]="avisosFormErrors.tipos_urgencia"></textarea>
+                  </div>
+                  <div class="help-text">
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    <span>Separa los tipos con comas</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Estados Disponibles *</label>
+                  <div class="input-container">
+                    <ion-icon name="list-outline"></ion-icon>
+                    <textarea 
+                      formControlName="estados_disponibles" 
+                      placeholder="Pendiente, En curso, Completado, Cancelado"
+                      rows="2"
+                      [class.error]="avisosFormErrors.estados_disponibles"></textarea>
+                  </div>
+                  <div class="help-text">
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    <span>Separa los estados con comas</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Tiempo Máximo de Respuesta (horas) *</label>
+                  <div class="input-container">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <input 
+                      type="number" 
+                      formControlName="tiempo_maximo_respuesta" 
+                      min="1"
+                      max="168"
+                      [class.error]="avisosFormErrors.tiempo_maximo_respuesta">
+                  </div>
+                  <div *ngIf="avisosFormErrors.tiempo_maximo_respuesta" class="error-message">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>El tiempo debe estar entre 1 y 168 horas</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Asignación Automática de Técnicos</label>
+                  <div class="toggle-switch">
+                    <input type="checkbox" formControlName="asignacion_automatica">
+                    <span class="slider"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn-save"
+                  [disabled]="avisosForm.invalid || loading">
+                  <ion-icon name="save-outline"></ion-icon>
+                  Guardar Configuración
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestaña Sistema -->
+      <div id="sistema" class="tab-panel">
+        <div class="config-card">
+          <div class="card-header">
+            <div class="card-title">
+              <ion-icon name="cog-outline"></ion-icon>
+              Configuración del Sistema
+            </div>
+            <p>Configuraciones avanzadas del sistema</p>
+          </div>
+          <div class="card-content">
+            <form [formGroup]="sistemaForm" (ngSubmit)="guardarSistema()">
+              <div class="form-grid">
+                <div class="backup-section">
+                  <h3>Configuración de Backup</h3>
+                  
+                  <div class="toggle-item">
+                    <label>Backup Automático</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="backup_automatico">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>Frecuencia de Backup *</label>
+                    <div class="input-container">
+                      <ion-icon name="refresh-outline"></ion-icon>
+                      <select formControlName="frecuencia_backup">
+                        <option *ngFor="let frecuencia of frecuenciasBackup" [value]="frecuencia.valor">
+                          {{ frecuencia.texto }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>Retención de Backups (días) *</label>
+                    <div class="input-container">
+                      <ion-icon name="calendar-outline"></ion-icon>
+                      <input 
+                        type="number" 
+                        formControlName="retencion_backup_dias" 
+                        min="1"
+                        max="365"
+                        [class.error]="sistemaFormErrors.retencion_backup_dias">
+                    </div>
+                    <div *ngIf="sistemaFormErrors.retencion_backup_dias" class="error-message">
+                      <ion-icon name="alert-circle-outline"></ion-icon>
+                      <span>Los días deben estar entre 1 y 365</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="maintenance-section">
+                  <h3>Modo Mantenimiento</h3>
+                  
+                  <div class="toggle-item">
+                    <label>Activar Modo Mantenimiento</label>
+                    <div class="toggle-switch">
+                      <input type="checkbox" formControlName="modo_mantenimiento">
+                      <span class="slider"></span>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group full-width">
+                    <label>Mensaje de Mantenimiento</label>
+                    <div class="input-container">
+                      <ion-icon name="construct-outline"></ion-icon>
+                      <textarea 
+                        formControlName="mensaje_mantenimiento" 
+                        placeholder="Mensaje que verán los usuarios durante el mantenimiento"
+                        rows="3"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button 
+                  type="submit" 
+                  class="btn-save"
+                  [disabled]="sistemaForm.invalid || loading">
+                  <ion-icon name="save-outline"></ion-icon>
+                  Guardar Configuración
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast de éxito -->
+<div *ngIf="mostrarExito" class="toast toast-success">
+  <ion-icon name="checkmark-circle-outline"></ion-icon>
+  <span>{{ mensajeExito }}</span>
+  <button class="toast-close" (click)="mostrarExito = false">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</div>
+
+<!-- Toast de error -->
+<div *ngIf="mostrarError" class="toast toast-error">
+  <ion-icon name="alert-circle-outline"></ion-icon>
+  <span>{{ error }}</span>
+  <button class="toast-close" (click)="mostrarError = false">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</div>

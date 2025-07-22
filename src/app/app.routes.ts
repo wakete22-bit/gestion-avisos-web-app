@@ -65,6 +65,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/mi-cuenta/pages/mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent),
       },
       {
+        path: 'ajustes',
+        loadComponent: () => import('./modules/ajustes/pages/ajustes/ajustes.component').then((m) => m.AjustesComponent),
+      },
+      {
         path: 'crear-factura',
         loadComponent: () => import('./modules/facturas/components/crear-factura/crear-factura.component').then((m) => m.CrearFacturaComponent),
       },
