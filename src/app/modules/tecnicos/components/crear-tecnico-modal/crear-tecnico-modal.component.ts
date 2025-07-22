@@ -5,6 +5,8 @@ import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, personOutline, mailOutline, callOutline, shieldOutline, alertCircleOutline, lockClosedOutline, informationCircleOutline, checkmarkCircleOutline, ellipseOutline, refreshOutline } from 'ionicons/icons';
 import { TipoRol } from '../../../../core/models/usuario.model';
+import { TecnicosService } from '../../services/tecnicos.service';
+import { CrearTecnicoRequest } from '../../models/tecnico.model';
 
 addIcons({
   'close-outline': closeOutline,
@@ -36,24 +38,35 @@ export class CrearTecnicoModalComponent {
   modoEdicion = false;
   TipoRol = TipoRol; // Hacer el enum disponible en el template
 
-  tecnicoData = {
+  tecnicoData: CrearTecnicoRequest = {
     nombre_completo: '',
     email: '',
     password: '',
     telefono: '',
-    rol_id: TipoRol.TECNICO
+    rol_id: 'a0472297-ee16-44d8-a434-810a3868a209', // UUID del rol Técnico
+    es_activo: true
   };
 
+  // Roles disponibles con sus UUIDs correspondientes
   rolesDisponibles = [
-    { value: TipoRol.TECNICO, label: 'Técnico' },
-    { value: TipoRol.USUARIO, label: 'Usuario' }
+    { 
+      value: 'a0472297-ee16-44d8-a434-810a3868a209', 
+      label: 'Técnico',
+      descripcion: 'Crear y gestionar avisos, ver historial, acceder a inventario básico.'
+    },
+    { 
+      value: '70c12fd8-92c2-4479-bba0-c7b2e934f48a', 
+      label: 'Usuario',
+      descripcion: 'Ver avisos asignados, actualizar estado de trabajos, registrar materiales utilizados.'
+    }
   ];
 
   loading = false;
   error = '';
 
   constructor(
-    private modalController: ModalController
+    private modalController: ModalController,
+    private tecnicosService: TecnicosService
   ) {
     addIcons({
       personOutline,
@@ -84,12 +97,32 @@ export class CrearTecnicoModalComponent {
     this.error = '';
 
     try {
-      // Dismiss con los datos del técnico
-      await this.modalController.dismiss(this.tecnicoData, 'confirm');
+      // Crear el técnico usando el servicio
+      this.tecnicosService.crearTecnico(this.tecnicoData).subscribe({
+        next: (tecnico) => {
+          console.log('Técnico creado exitosamente:', tecnico);
+          this.modalController.dismiss(tecnico, 'confirm');
+        },
+        error: (error) => {
+          console.error('Error al crear técnico:', error);
+          
+          // Manejar errores específicos
+          if (error.message?.includes('Ya existe un usuario con este email')) {
+            this.error = 'Ya existe un usuario con este email. Por favor, usa un email diferente.';
+          } else if (error.message?.includes('duplicate key value')) {
+            this.error = 'El usuario ya existe en el sistema. Por favor, verifica el email.';
+          } else if (error.message?.includes('Invalid login credentials')) {
+            this.error = 'Error en las credenciales. Por favor, verifica el email y contraseña.';
+          } else {
+            this.error = 'Error al crear el técnico. Por favor, intenta de nuevo.';
+          }
+          
+          this.loading = false;
+        }
+      });
     } catch (error) {
       this.error = 'Error al crear el técnico';
       console.error('Error al crear técnico:', error);
-    } finally {
       this.loading = false;
     }
   }
@@ -120,6 +153,17 @@ export class CrearTecnicoModalComponent {
       return false;
     }
 
+    if (!this.tecnicoData.rol_id) {
+      this.error = 'Debe seleccionar un rol';
+      return false;
+    }
+
+    // Validar que el email no esté vacío y tenga formato válido
+    if (!this.tecnicoData.email || !this.validarEmail(this.tecnicoData.email)) {
+      this.error = 'El email debe tener un formato válido';
+      return false;
+    }
+
     this.error = '';
     return true;
   }
@@ -136,9 +180,14 @@ export class CrearTecnicoModalComponent {
            !!this.tecnicoData.rol_id;
   }
 
-  getRolLabel(rolId: TipoRol): string {
+  getRolLabel(rolId: string): string {
     const rol = this.rolesDisponibles.find(r => r.value === rolId);
     return rol ? rol.label : '';
+  }
+
+  getRolDescripcion(rolId: string): string {
+    const rol = this.rolesDisponibles.find(r => r.value === rolId);
+    return rol ? rol.descripcion : '';
   }
 
   onInputChange() {

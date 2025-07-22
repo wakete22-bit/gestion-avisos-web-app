@@ -107,11 +107,8 @@
                   <span class="role-title">{{ getRolLabel(tecnicoData.rol_id) }}</span>
                 </div>
                 <div class="role-description">
-                  <p *ngIf="tecnicoData.rol_id === TipoRol.TECNICO">
-                    <strong>Permisos:</strong> Crear y gestionar avisos, ver historial, acceder a inventario básico.
-                  </p>
-                  <p *ngIf="tecnicoData.rol_id === TipoRol.USUARIO">
-                    <strong>Permisos:</strong> Ver avisos asignados, actualizar estado de trabajos, registrar materiales utilizados.
+                  <p *ngIf="tecnicoData.rol_id">
+                    <strong>Permisos:</strong> {{ getRolDescripcion(tecnicoData.rol_id) }}
                   </p>
                 </div>
               </div>

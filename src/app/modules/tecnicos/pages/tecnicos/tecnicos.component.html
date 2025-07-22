@@ -4,7 +4,7 @@
     <div class="table-header">
       <div class="table-header-left">
         <div class="table-title">Tabla de técnicos</div>
-        <div class="table-meta">Técnicos:</div>  
+        <div class="table-meta">Técnicos: {{ totalTecnicos }}</div>  
       </div>
       
       <!-- Mobile Search Bar -->
@@ -12,6 +12,8 @@
         <input 
           type="text" 
           placeholder="Buscar técnico..." 
+          [value]="busqueda"
+          (input)="onBusquedaChange($event)"
           />
         <ion-icon name="search-outline"></ion-icon>
       </div>
@@ -21,15 +23,18 @@
         <input 
           type="text" 
           placeholder="Buscar..." 
+          [value]="busqueda"
+          (input)="onBusquedaChange($event)"
           />
-        <select>
+        <select [value]="ordenarPor" (change)="onOrdenarChange($event)">
           <option value="nombre_completo">Ordenar por: Nombre</option>
           <option value="fecha_creacion">Ordenar por: Recientes</option>
           <option value="rol_id">Ordenar por: Rol</option>
         </select>
         <button 
           class="btn-filter" 
-          [title]="'Mostrar todos los técnicos'">
+          [title]="'Mostrar todos los técnicos'"
+          (click)="onFiltrarTodos()">
           <ion-icon name="filter-outline"></ion-icon>
           Todos
         </button>
@@ -44,7 +49,7 @@
 
     <!-- Mobile Actions -->
     <div class="mobile-actions">
-      <select class="mobile-filter">
+      <select class="mobile-filter" [value]="ordenarPor" (change)="onOrdenarChange($event)">
         <option value="nombre_completo">Ordenar: Alfabético</option>
         <option value="fecha_creacion">Ordenar: Recientes</option>
         <option value="rol_id">Ordenar: Rol</option>
@@ -69,7 +74,7 @@
       <div class="error-message">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <p>{{ error }}</p>
-        <button class="btn-retry">
+        <button class="btn-retry" (click)="onReintentar()">
           <ion-icon name="refresh-outline"></ion-icon>
           Reintentar
         </button>
@@ -77,7 +82,7 @@
     </div>
 
     <!-- Compact Table View (replaces desktop table and mobile cards) -->
-    <div *ngIf="!loading && !error" class="compact-tecnicos-table">
+    <div *ngIf="!loading && !error && tecnicos.length > 0" class="compact-tecnicos-table">
       <div class="tecnicos-table">
         <div class="table-header">
           <div class="header-row">
@@ -91,19 +96,21 @@
           </div>
         </div>
         <div class="table-body">
-          <div class="tecnico-row" *ngFor="let tecnico of tecnicos">
+          <div class="tecnico-row" 
+               *ngFor="let tecnico of tecnicos"
+               [class]="getEstadoClass(tecnico)">
             <div class="tecnico-cell nombre-tecnico">{{ tecnico.nombre_completo }}</div>
             <div class="tecnico-cell email-tecnico desktop-only">{{ tecnico.email || 'No especificado' }}</div>
             <div class="tecnico-cell telefono-tecnico desktop-only">{{ tecnico.telefono || 'No especificado' }}</div>
             <div class="tecnico-cell rol-tecnico desktop-only">
-              <span class="badge-rol">
-                {{ tecnico.rol?.nombre_rol || '' }}
+              <span class="badge-rol" [class]="getRolClass(tecnico.rol?.nombre_rol || '')">
+                {{ tecnico.rol?.nombre_rol || 'Sin rol' }}
               </span>
             </div>
             <div class="tecnico-cell fecha-tecnico desktop-only">{{ tecnico.fecha_creacion | date:'dd/MM/yyyy' }}</div>
             <div class="tecnico-cell estado-activo desktop-only">
-              <span class="badge-estado">
-                {{ tecnico.rol?.nombre_rol !== 'Administrador' ? 'Activo' : 'Inactivo' }}
+              <span class="badge-estado" [class]="esTecnicoActivo(tecnico) ? 'activo' : 'inactivo'">
+                {{ esTecnicoActivo(tecnico) ? 'Activo' : 'Inactivo' }}
               </span>
             </div>
             <div class="tecnico-cell acciones">
@@ -112,9 +119,9 @@
               </button>
               <button 
                 class="btn-toggle-estado" 
-                [title]="tecnico.rol?.nombre_rol !== 'Administrador' ? 'Desactivar técnico' : 'Activar técnico'"
-                >
-                <ion-icon [name]="tecnico.rol?.nombre_rol !== 'Administrador' ? 'pause-circle' : 'play-circle'"></ion-icon>
+                [title]="esTecnicoActivo(tecnico) ? 'Desactivar técnico' : 'Activar técnico'"
+                (click)="toggleEstadoTecnico(tecnico)">
+                <ion-icon [name]="esTecnicoActivo(tecnico) ? 'pause-circle' : 'play-circle'"></ion-icon>
               </button>
             </div>
           </div>
@@ -122,8 +129,33 @@
       </div>
     </div>
 
+    <!-- Paginación -->
+    <div *ngIf="!loading && !error && tecnicos.length > 0" class="table-pagination">
+      <div class="pagination-info">
+        Mostrando {{ (paginaActual - 1) * porPagina + 1 }} - {{ Math.min(paginaActual * porPagina, totalTecnicos) }} de {{ totalTecnicos }} técnicos
+      </div>
+      <div class="pagination">
+        <button 
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)">
+          Anterior
+        </button>
+        <button 
+          *ngFor="let pagina of getPaginas()"
+          [class.active]="pagina === paginaActual"
+          (click)="cambiarPagina(pagina)">
+          {{ pagina }}
+        </button>
+        <button 
+          [disabled]="paginaActual === getTotalPaginas()"
+          (click)="cambiarPagina(paginaActual + 1)">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
     <!-- Estado de datos vacíos -->
-    <div class="no-data-container">
+    <div *ngIf="!loading && !error && tecnicos.length === 0" class="no-data-container">
       <div class="no-data-message">
         <ion-icon name="construct-outline"></ion-icon>
         <h3>No hay técnicos</h3>

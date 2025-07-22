@@ -138,32 +138,46 @@ export class AuthService {
         this.isAuthenticatedSubject.next(true);
         console.log('🔧 AuthService: Usuario cargado exitosamente desde BD');
       } catch (dbError) {
-        console.warn('⚠️ AuthService: Usuario no encontrado en BD, creando usuario por defecto:', dbError);
+        console.warn('⚠️ AuthService: Usuario no encontrado en BD, esperando a que se complete la creación:', dbError);
         
-        // Si el usuario no existe en la BD, crear uno por defecto
-        const usuarioDefault: Usuario = {
-          id: userId,
-          nombre_completo: 'Usuario',
-          email: 'usuario@example.com',
-          telefono: '',
-          rol_id: 'default-role-id',
-          rol: {
-            id: 'default-role-id',
-            nombre_rol: 'Cliente' as TipoRol,
-            descripcion: '',
-            permisos: [],
+        // En lugar de crear un usuario por defecto, esperar un poco más
+        // para que se complete la creación del usuario en la BD
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        try {
+          const usuario = await this.usuariosService.getUsuario(userId).toPromise();
+          console.log('🔧 AuthService: Usuario encontrado después de esperar:', usuario);
+          this.currentUserSubject.next(usuario || null);
+          this.isAuthenticatedSubject.next(true);
+          console.log('🔧 AuthService: Usuario cargado exitosamente después de esperar');
+        } catch (finalError) {
+          console.error('❌ AuthService: Usuario no encontrado después de esperar, creando usuario por defecto:', finalError);
+          
+          // Solo crear usuario por defecto si realmente no existe
+          const usuarioDefault: Usuario = {
+            id: userId,
+            nombre_completo: 'Usuario',
+            email: 'usuario@example.com',
+            telefono: '',
+            rol_id: 'default-role-id',
+            rol: {
+              id: 'default-role-id',
+              nombre_rol: 'Cliente' as TipoRol,
+              descripcion: '',
+              permisos: [],
+              es_activo: true,
+              fecha_creacion: new Date(),
+              fecha_actualizacion: new Date()
+            },
             es_activo: true,
-            fecha_creacion: new Date(),
-            fecha_actualizacion: new Date()
-          },
-          es_activo: true,
-          fecha_creacion: new Date()
-        };
+            fecha_creacion: new Date()
+          };
 
-        console.log('🔧 AuthService: Usuario por defecto creado:', usuarioDefault);
-        this.currentUserSubject.next(usuarioDefault);
-        this.isAuthenticatedSubject.next(true);
-        console.log('🔧 AuthService: Usuario por defecto cargado exitosamente');
+          console.log('🔧 AuthService: Usuario por defecto creado:', usuarioDefault);
+          this.currentUserSubject.next(usuarioDefault);
+          this.isAuthenticatedSubject.next(true);
+          console.log('🔧 AuthService: Usuario por defecto cargado exitosamente');
+        }
       }
     } catch (error) {
       console.error('❌ AuthService: Error loading user data:', error);
