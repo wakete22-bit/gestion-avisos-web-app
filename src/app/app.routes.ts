@@ -49,8 +49,20 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/facturas/pages/facturas/facturas.component').then((m) => m.FacturasComponent),
       },
       {
+        path: 'facturas/:id',
+        loadComponent: () => import('./modules/facturas/components/ver-factura/ver-factura.component').then((m) => m.VerFacturaComponent),
+      },
+      {
         path: 'presupuestos',
         loadComponent: () => import('./modules/presupuestos/pages/presupuestos/presupuestos.component').then((m) => m.PresupuestosComponent),
+      },
+      {
+        path: 'presupuestos/crear',
+        loadComponent: () => import('./modules/presupuestos/components/crear-presupuesto/crear-presupuesto.component').then((m) => m.CrearPresupuestoComponent),
+      },
+      {
+        path: 'presupuestos/:id',
+        loadComponent: () => import('./modules/presupuestos/components/ver-presupuesto/ver-presupuesto.component').then((m) => m.VerPresupuestoComponent),
       },
       {
         path: 'clientes',

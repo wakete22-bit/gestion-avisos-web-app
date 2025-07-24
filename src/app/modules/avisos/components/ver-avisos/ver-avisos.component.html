@@ -167,10 +167,14 @@
   </div>
 </div>
 
-<!-- Tabla de trabajos realizados -->
+<!-- ================================= -->
+<!-- SECCIÓN REORGANIZADA: TRABAJOS Y FLUJO JUNTOS -->
+<!-- ================================= -->
+
+<!-- Trabajos Realizados y Gestión del Flujo -->
 <div class="info-card">
   <div class="card-header">
-    <h2>Lista de trabajos realizados</h2>
+    <h2>Trabajos Realizados y Gestión del Flujo</h2>
     <div class="header-actions">
       <button class="btn-primary" (click)="crearTrabajoRealizado()">
         <ion-icon name="add-circle"></ion-icon>
@@ -179,6 +183,22 @@
     </div>
   </div>
 
+  <!-- Gestión del Flujo Automático - MOVIDO AQUÍ -->
+  <div class="flujo-section" *ngIf="aviso?.id">    
+    <div class="flujo-container">
+      <app-flujo-estado 
+        [avisoId]="aviso?.id || ''" 
+        (accionEjecutada)="onAccionFlujoEjecutada($event)">
+      </app-flujo-estado>
+    </div>
+  </div>
+
+  <!-- Separador visual -->
+  <div class="section-divider">
+    <span>Lista de Trabajos Registrados</span>
+  </div>
+
+  <!-- Tabla de trabajos realizados -->
   <div class="table-container">
     <!-- Loading State -->
     <div *ngIf="loadingTrabajos" class="loading-state">
@@ -190,7 +210,11 @@
 
     <!-- No hay trabajos -->
     <div *ngIf="!loadingTrabajos && (!trabajosRealizados || trabajosRealizados.length === 0)" class="no-trabajos">
-      <p>No hay trabajos realizados para este aviso</p>
+      <div class="empty-state">
+        <ion-icon name="construct-outline"></ion-icon>
+        <p>No hay trabajos realizados para este aviso</p>
+        <small>Crea el primer parte de trabajo para comenzar</small>
+      </div>
     </div>
 
     <!-- Tabla de trabajos -->

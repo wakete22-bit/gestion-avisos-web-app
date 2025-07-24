@@ -1,0 +1,445 @@
+// Importar y reutilizar estilos de crear-factura
+.factura-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  gap: 0;
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #4a5568;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+  }
+  
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.btn-secondary {
+  background: white;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  
+  &:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+}
+
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+  border: 1px solid #4f46e5;
+  
+  &:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+  }
+}
+
+// Estados de carga y error
+.loading-state, .error-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  
+  .loading-spinner, .error-message {
+    text-align: center;
+    color: #64748b;
+    
+    ion-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #cbd5e0;
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+  
+  .btn-retry {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Estilos de la vista previa (reutilizados de crear-factura)
+.factura-preview {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border: 1px solid #e2e8f0;
+
+  &.active {
+    display: flex;
+  }
+
+  .header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+    
+    .estado-badge {
+      .badge {
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        
+        &.estado-pendiente {
+          background: #fef3c7;
+          color: #92400e;
+        }
+        
+        &.estado-en-curso {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+        
+        &.estado-completado {
+          background: #d1fae5;
+          color: #065f46;
+        }
+      }
+    }
+  }
+
+  .preview-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+
+    .logo-box {
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        max-width: 44px;
+      }
+    }
+
+    .empresa-datos {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+
+      span,
+      address {
+        display: block;
+        color: #6B7280;
+        font-size: 13px;
+        margin-bottom: 2px;
+        font-style: normal;
+      }
+
+      .empresa-nombre {
+        color: #4F46E5;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        text-transform: capitalize;
+      }
+    }
+
+    .factura-info {
+      text-align: right;
+
+      label {
+        display: block;
+        font-size: 13px;
+        color: #6B7280;
+        margin-bottom: 2px;
+      }
+
+      .factura-label {
+        color: #4F46E5;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+    }
+  }
+
+  .cliente-datos {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+    
+    h3 {
+      color: #4F46E5;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+    
+    .cliente-info p {
+      margin: 8px 0;
+      color: #4a5568;
+      
+      strong {
+        color: #2d3748;
+      }
+    }
+  }
+
+  .preview-tabla {
+    .tabla-titulo {
+      font-weight: 600;
+      color: #6B7280;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+
+      th,
+      td {
+        padding: 8px 12px;
+        font-size: 13px;
+        text-align: left;
+      }
+
+      th {
+        color: #9CA3AF;
+        font-weight: 400;
+        background: none;
+        border-bottom: 1px solid #E5E7EB;
+      }
+
+      td {
+        color: #111827;
+        border-bottom: 1px solid #F3F4F6;
+      }
+
+      .success {
+        color: #27C26C;
+        font-weight: 600;
+      }
+
+      .total-row td {
+        font-weight: 700;
+        color: #4F46E5;
+        border-bottom: none;
+      }
+    }
+  }
+
+  .preview-totales-box {
+    margin: 24px 0 0 0;
+    background: #EEF2FF;
+    border-radius: 16px;
+    padding: 15px 15px;
+    width: 300px;
+    align-self: flex-end;
+
+    span {
+      color: #4F46E5;
+    }
+
+    .totales-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 8px;
+
+      &.total-final {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        background: #4F46E5;
+        border-radius: 12px;
+        padding: 10px 16px;
+        margin-top: 12px;
+        margin-bottom: 0;
+
+        span {
+          color: #fff !important;
+        }
+      }
+    }
+  }
+
+  .preview-notas {
+    margin-top: 24px;
+
+    b {
+      color: #4F46E5;
+      font-size: 1rem;
+    }
+
+    .notas-texto {
+      color: #6B7280;
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+  }
+
+  .preview-footer {
+    margin-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    color: #6B7280;
+    font-size: 0.95rem;
+    border-top: 1px solid #E5E7EB;
+    padding-top: 12px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .factura-container {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    
+    .header-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+  
+  .factura-preview {
+    padding: 16px;
+    border-radius: 12px;
+    
+    .header-container {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      
+      h2 {
+        font-size: 20px;
+      }
+    }
+    
+    .preview-header {
+      flex-direction: column;
+      gap: 16px;
+      
+      .empresa-datos {
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+    
+    .preview-totales-box {
+      width: 100%;
+    }
+    
+    .preview-tabla table {
+      font-size: 12px;
+      
+      th, td {
+        padding: 6px 8px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header .header-actions {
+    flex-direction: column;
+    gap: 8px;
+    
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  
+  .factura-preview {
+    padding: 12px;
+    
+    .preview-tabla table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+} 

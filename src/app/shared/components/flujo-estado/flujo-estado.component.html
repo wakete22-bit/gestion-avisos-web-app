@@ -1,0 +1,108 @@
+<div class="flujo-estado-container">
+  <!-- Estado de carga -->
+  <div *ngIf="loading" class="loading-state">
+    <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+    <span>Cargando estado del flujo...</span>
+  </div>
+
+  <!-- Estado de error -->
+  <div *ngIf="error && !loading" class="error-state">
+    <ion-icon name="warning-outline"></ion-icon>
+    <span>{{ error }}</span>
+    <button (click)="recargar()" class="btn-retry">
+      <ion-icon name="refresh-outline"></ion-icon>
+      Reintentar
+    </button>
+  </div>
+
+  <!-- Estado del flujo normal -->
+  <div *ngIf="estadoFlujo && !loading && !error" class="flujo-content">
+    
+    <!-- Estado actual -->
+    <div class="estado-actual">
+      <div class="estado-header">
+        <div class="estado-badge" [ngClass]="getEstadoClass()">
+          <ion-icon [name]="getEstadoIcon()"></ion-icon>
+          <span>{{ estadoFlujo.estadoActual }}</span>
+        </div>
+        <button (click)="recargar()" class="btn-refresh">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+      </div>
+      
+      <!-- Información del resumen -->
+      <div class="resumen-info" *ngIf="estadoFlujo.resumen">
+        <div class="info-grid">
+          <div class="info-item" *ngIf="estadoFlujo.resumen.estadisticas">
+            <span class="label">Trabajos completados:</span>
+            <span class="value">{{ estadoFlujo.resumen.estadisticas.trabajosCompletados }}</span>
+          </div>
+          <div class="info-item" *ngIf="estadoFlujo.resumen.estadisticas">
+            <span class="label">Tiene presupuesto:</span>
+            <span class="value" [ngClass]="estadoFlujo.resumen.estadisticas.tienePresupuesto ? 'si' : 'no'">
+              {{ estadoFlujo.resumen.estadisticas.tienePresupuesto ? 'Sí' : 'No' }}
+            </span>
+          </div>
+          <div class="info-item" *ngIf="estadoFlujo.resumen.estadisticas && estadoFlujo.resumen.estadisticas.tienePresupuesto">
+            <span class="label">Estado presupuesto:</span>
+            <span class="value">{{ estadoFlujo.resumen.estadisticas.estadoPresupuesto }}</span>
+          </div>
+          <div class="info-item" *ngIf="estadoFlujo.resumen.estadisticas">
+            <span class="label">Total facturas:</span>
+            <span class="value">{{ estadoFlujo.resumen.estadisticas.totalFacturas }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones disponibles -->
+    <div class="acciones-disponibles" *ngIf="accionesDisponibles.length > 0">
+      <h4>Acciones disponibles:</h4>
+      <div class="acciones-grid">
+        <button 
+          *ngFor="let accion of accionesDisponibles" 
+          (click)="ejecutarAccion(accion)"
+          class="btn-accion"
+          [disabled]="loading">
+          <ion-icon [name]="getAccionIcon(accion)"></ion-icon>
+          <span>{{ getAccionTexto(accion) }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Opciones de flujo inicial -->
+    <div class="flujo-inicial" *ngIf="estadoFlujo.puedeCrearPresupuesto">
+      <h4>Iniciar flujo:</h4>
+      <div class="flujo-options">
+        <button 
+          (click)="ejecutarAccion('crear_presupuesto')"
+          class="btn-flujo presupuesto"
+          [disabled]="loading">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <div class="flujo-content">
+            <span class="title">Con Presupuesto</span>
+            <span class="description">Crear presupuesto → Aprobación → Trabajos → Factura</span>
+          </div>
+        </button>
+        
+        <button 
+          (click)="iniciarFlujoDirecto()"
+          class="btn-flujo directo"
+          [disabled]="loading">
+          <ion-icon name="create-outline"></ion-icon>
+          <div class="flujo-content">
+            <span class="title">Trabajo Directo</span>
+            <span class="description">Trabajos inmediatos → Factura</span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Sin acciones disponibles -->
+    <div class="sin-acciones" *ngIf="accionesDisponibles.length === 0 && !estadoFlujo.puedeCrearPresupuesto">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <span>No hay acciones pendientes</span>
+    </div>
+
+  </div>
+</div> 

@@ -706,3 +706,129 @@ $success-color: #10B981;
   font-style: italic;
   font-size: 14px;
 }
+
+// =========================================
+// ESTILOS PARA LA SECCIÓN DE FLUJO
+// =========================================
+.flujo-container {
+  padding: 0px 25px;
+}
+
+.flujo-subtitle {
+  font-size: 14px;
+  color: $secondary-color;
+  font-weight: 400;
+  margin-left: 12px;
+}
+
+.card-header {
+  .flujo-subtitle {
+    display: block;
+    margin-top: 4px;
+    margin-left: 0;
+  }
+}
+
+// Nuevos estilos para la sección reorganizada
+.flujo-section {
+  margin-top: 25px;
+  margin-bottom: 5px;
+
+  .flujo-header {
+    margin-bottom: 16px;
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a202c;
+      margin: 0 0 4px 0;
+    }
+    
+    .flujo-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 400;
+    }
+  }
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 20px 0;
+  
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+  
+  span {
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    background: white;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+  
+  ion-icon {
+    font-size: 48px;
+    color: #cbd5e0;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    color: #4a5568;
+  }
+  
+  small {
+    font-size: 14px;
+    color: #a0aec0;
+  }
+}
+
+// Responsive para la sección de flujo
+@media (max-width: 768px) {
+  .flujo-container {
+    padding: 0 16px 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    
+    .flujo-subtitle {
+      margin-top: 0;
+    }
+  }
+  
+  .flujo-section {
+    padding: 16px;
+    margin-bottom: 16px;
+    
+    .flujo-header h3 {
+      font-size: 16px;
+    }
+  }
+  
+  .section-divider {
+    margin: 20px 0 16px 0;
+    
+    span {
+      font-size: 13px;
+      padding: 0 12px;
+    }
+  }
+}

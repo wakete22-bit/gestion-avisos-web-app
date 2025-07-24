@@ -1,0 +1,405 @@
+.flujo-estado-container {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+// Estados de carga y error
+.loading-state, .error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  color: #64748B;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 20px;
+    color: #4F46E5;
+  }
+
+  &.error-state {
+    color: #DC2626;
+    
+    ion-icon {
+      color: #DC2626;
+    }
+  }
+}
+
+.btn-retry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #E2E8F0;
+    border-color: #94A3B8;
+  }
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Contenido principal del flujo
+.flujo-content {
+  padding: 20px;
+}
+
+.estado-actual {
+  margin-bottom: 24px;
+  
+  .estado-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .estado-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    
+    &.pendiente {
+      background: #FEF3C7;
+      color: #92400E;
+      
+      ion-icon {
+        color: #D97706;
+      }
+    }
+    
+    &.presupuesto {
+      background: #DBEAFE;
+      color: #1E40AF;
+      
+      ion-icon {
+        color: #3B82F6;
+      }
+    }
+    
+    &.en-curso {
+      background: #DCFCE7;
+      color: #166534;
+      
+      ion-icon {
+        color: #22C55E;
+      }
+    }
+    
+    &.completado {
+      background: #ECFDF5;
+      color: #14532D;
+      
+      ion-icon {
+        color: #10B981;
+      }
+    }
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+
+  .btn-refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+
+    ion-icon {
+      font-size: 16px;
+      color: #64748B;
+    }
+  }
+}
+
+.resumen-info {
+  background: #F8FAFC;
+  border-radius: 8px;
+  padding: 16px;
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .label {
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 500;
+    }
+
+    .value {
+      font-size: 13px;
+      color: #1E293B;
+      font-weight: 600;
+      
+      &.si {
+        color: #059669;
+      }
+      
+      &.no {
+        color: #DC2626;
+      }
+    }
+  }
+}
+
+// Sección de acciones disponibles
+.acciones-disponibles {
+  margin-bottom: 24px;
+
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #1E293B;
+    font-weight: 600;
+  }
+
+  .acciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .btn-accion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #4F46E5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+      background: #4338CA;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    ion-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+    }
+  }
+}
+
+// Sección de flujo inicial
+.flujo-inicial {
+  margin-bottom: 24px;
+
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #1E293B;
+    font-weight: 600;
+  }
+
+  .flujo-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .btn-flujo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #F8FAFC;
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+
+    &:hover:not(:disabled) {
+      border-color: #4F46E5;
+      background: #F8FAFC;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.presupuesto {
+      &:hover:not(:disabled) {
+        border-color: #3B82F6;
+        
+        ion-icon {
+          color: #3B82F6;
+        }
+      }
+    }
+
+    &.directo {
+      &:hover:not(:disabled) {
+        border-color: #10B981;
+        
+        ion-icon {
+          color: #10B981;
+        }
+      }
+    }
+
+    ion-icon {
+      font-size: 24px;
+      color: #64748B;
+      flex-shrink: 0;
+      transition: color 0.2s ease;
+    }
+
+    .flujo-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      padding: 0;
+
+      .title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1E293B;
+      }
+
+      .description {
+        font-size: 12px;
+        color: #64748B;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
+// Sin acciones disponibles
+.sin-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  color: #64748B;
+  font-size: 14px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 20px;
+    color: #10B981;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .flujo-content {
+    padding: 16px;
+  }
+
+  .resumen-info .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-disponibles .acciones-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flujo-inicial .flujo-options {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-flujo {
+    padding: 12px;
+    
+    ion-icon {
+      font-size: 20px;
+    }
+    
+    .flujo-content {
+      .title {
+        font-size: 13px;
+      }
+      
+      .description {
+        font-size: 11px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .estado-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .estado-badge {
+    justify-content: center;
+  }
+
+  .btn-refresh {
+    align-self: center;
+  }
+} 

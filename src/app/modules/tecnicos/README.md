@@ -1,104 +1,144 @@
 # Módulo de Técnicos
 
-## Descripción
+## 📋 Descripción
 
-El módulo de técnicos permite a los administradores gestionar los técnicos y usuarios del sistema. Solo los usuarios con rol de administrador pueden acceder a esta funcionalidad.
+El módulo de técnicos permite la gestión completa de técnicos en el sistema, incluyendo la creación, visualización, edición y administración de estados.
 
-## Características
+## ✨ Nuevas Mejoras (2024)
 
-- **Gestión completa de técnicos**: Crear, editar, eliminar y desactivar técnicos
-- **Filtrado por rol**: Filtrar técnicos por tipo de rol (Técnico, Usuario)
-- **Búsqueda**: Buscar técnicos por nombre, email o teléfono
-- **Vista responsive**: Tabla y vista de tarjetas adaptadas a móvil y desktop
-- **Control de acceso**: Solo administradores pueden acceder
+### 🔧 Flujo Mejorado de Creación
+- **Roles Dinámicos**: Los roles se cargan automáticamente desde la base de datos
+- **Validación Mejorada**: Validaciones tanto en frontend como backend
+- **Manejo de Errores Avanzado**: Mensajes de error específicos y descriptivos
+- **Rol de Administrador**: Soporte completo para crear usuarios con rol de Administrador
+- **Reintentos Inteligentes**: Sistema de reintentos con delay progresivo para mayor fiabilidad
 
-## Estructura de Archivos
-
-```
-src/app/modules/tecnicos/
-├── components/
-│   └── crear-tecnico-modal/
-│       ├── crear-tecnico-modal.component.ts
-│       ├── crear-tecnico-modal.component.html
-│       └── crear-tecnico-modal.component.scss
-├── pages/
-│   └── tecnicos/
-│       ├── tecnicos.component.ts
-│       ├── tecnicos.component.html
-│       └── tecnicos.component.scss
-└── index.ts
-```
-
-## Componentes
-
-### TecnicosComponent
-
-Componente principal que muestra la lista de técnicos con funcionalidades de:
-- Listado de técnicos en tabla o tarjetas
-- Búsqueda y filtrado
-- Acciones de editar y eliminar
-- Estados de carga y error
-
-### CrearTecnicoModalComponent
-
-Modal para crear nuevos técnicos con:
-- Formulario de registro
-- Validación de campos
-- Selección de rol
-- Integración con Supabase Auth
-
-## Servicios
-
-### TecnicosService
-
-Servicio que maneja todas las operaciones CRUD:
-- `getTecnicos()`: Obtener lista de técnicos
-- `crearTecnico()`: Crear nuevo técnico
-- `actualizarTecnico()`: Actualizar técnico existente
-- `desactivarTecnico()`: Desactivar técnico
-- `eliminarTecnico()`: Eliminar técnico permanentemente
-- `buscarTecnicos()`: Buscar técnicos por término
-- `filtrarTecnicosPorRol()`: Filtrar por rol específico
-
-## Rutas
-
-- **Ruta**: `/tecnicos`
-- **Componente**: `TecnicosComponent`
-- **Acceso**: Solo administradores
-
-## Integración con el Sistema
-
-### Sidebar
-El enlace a técnicos se muestra automáticamente en el sidebar solo para usuarios administradores.
-
-### Autenticación
-Los técnicos creados se registran tanto en Supabase Auth como en la tabla `usuarios` de la base de datos.
-
-### Roles
-Los técnicos pueden tener los siguientes roles:
-- **Técnico**: Acceso completo a avisos, facturas y presupuestos
+### 🛡️ Roles Soportados
+- **Administrador**: Acceso completo al sistema
+- **Técnico**: Gestión de avisos, facturas y presupuestos
 - **Usuario**: Acceso básico limitado
 
-## Estilos
+## 🚀 Configuración Inicial
 
-El módulo utiliza los estilos consistentes de la plataforma:
-- Colores corporativos (#4F46E5, #111827, etc.)
-- Diseño responsive
-- Estados visuales (activo/inactivo)
-- Iconografía de Ionic
+### 1. Configurar Roles en Base de Datos
 
-## Uso
+Si los roles no existen en tu base de datos, ejecuta este script SQL:
 
-1. **Acceder**: Solo administradores pueden ver el enlace "Técnicos" en el sidebar
-2. **Ver técnicos**: La página muestra todos los técnicos en una tabla o vista de tarjetas
-3. **Crear técnico**: Usar el botón flotante (+) para abrir el modal de creación
-4. **Editar/Eliminar**: Usar los botones de acción en cada fila de técnico
-5. **Filtrar**: Usar los controles de búsqueda y filtro en la parte superior
+```sql
+-- Insertar roles básicos si no existen
+INSERT INTO public.roles (id, nombre_rol) VALUES 
+  ('550e8400-e29b-41d4-a716-446655440001', 'Administrador'),
+  ('550e8400-e29b-41d4-a716-446655440002', 'Técnico'),
+  ('550e8400-e29b-41d4-a716-446655440003', 'Usuario')
+ON CONFLICT (nombre_rol) DO NOTHING;
+```
 
-## Dependencias
+### 2. Obtener UUIDs de Roles
 
-- Angular Core
-- Ionic Framework
-- Supabase Client
-- RxJS
-- Modelos de usuario y roles 
+Para obtener los UUIDs reales de tu base de datos, ejecuta en la consola del navegador:
+
+```javascript
+// En la consola del navegador (F12)
+const tecnicosService = angular.element(document.body).injector().get('TecnicosService');
+await tecnicosService.mostrarUUIDsRoles();
+```
+
+### 3. Verificar Configuración
+
+El sistema ahora carga los roles dinámicamente, pero si hay problemas, verificar:
+- Los roles existen en la tabla `roles`
+- Supabase RLS está configurado correctamente
+- El usuario tiene permisos para leer la tabla `roles`
+
+## 🎯 Funcionalidades
+
+### Crear Técnico
+- Formulario con validación completa
+- Soporte para todos los roles disponibles
+- Validación de email único
+- Creación en Supabase Auth + Base de datos
+- Manejo robusto de errores
+
+### Gestionar Técnicos
+- Vista en tabla responsive
+- Filtros y búsqueda
+- Activar/Desactivar técnicos
+- Paginación
+
+### Estados Visuales
+- **Activo**: Usuario activo y operativo
+- **Inactivo**: Usuario desactivado
+- **Roles**: Códigos de colores por tipo de rol
+
+## 🔍 Debugging
+
+### Logs de Desarrollo
+El sistema incluye logs detallados para debugging:
+- ✅ Operaciones exitosas
+- ❌ Errores con contexto
+- 🔧 Pasos del proceso
+- ⚠️ Advertencias importantes
+
+### Resolución de Problemas Comunes
+
+1. **"No se pudieron cargar los roles"**
+   - Verificar que la tabla `roles` tiene datos
+   - Comprobar permisos RLS en Supabase
+
+2. **"Ya existe un usuario con este email"**
+   - El email ya está registrado en Supabase Auth
+   - Usar email diferente o revisar usuarios existentes
+
+3. **"Rol de Administrador requiere configuración"**
+   - Ejecutar el script SQL de configuración de roles
+   - Verificar UUIDs con `mostrarUUIDsRoles()`
+
+4. **Timeouts en creación**
+   - El sistema incluye reintentos automáticos
+   - Verificar conexión a Supabase
+   - Revisar logs en consola para detalles
+
+## 📊 Arquitectura
+
+### Componentes
+- `TecnicosComponent`: Vista principal con tabla
+- `CrearTecnicoModalComponent`: Modal de creación/edición
+
+### Servicios
+- `TecnicosService`: Lógica de negocio y comunicación con BD
+- `RolesService`: Gestión de permisos y roles
+- `AuthService`: Autenticación con Supabase
+
+### Modelos
+- `Tecnico`: Modelo principal del técnico
+- `CrearTecnicoRequest`: DTO para creación
+- `TecnicoResponse`: Respuesta paginada
+
+## 🔐 Seguridad
+
+### Validaciones
+- **Frontend**: Validación inmediata de formularios
+- **Backend**: Validación antes de insertar en BD
+- **Supabase**: RLS para control de acceso
+
+### Permisos
+- Solo administradores pueden gestionar técnicos
+- Verificación de roles en tiempo real
+- Tokens JWT para autenticación
+
+## 📱 Responsive Design
+
+- **Desktop**: Tabla completa con todas las columnas
+- **Tablet**: Vista adaptada con columnas esenciales  
+- **Mobile**: Vista compacta optimizada
+
+## 🚀 Uso Rápido
+
+1. **Acceder**: Solo administradores ven el enlace "Técnicos"
+2. **Crear**: Botón (+) → Llenar formulario → Crear
+3. **Gestionar**: Usar filtros, búsqueda y acciones de la tabla
+4. **Configurar**: Ejecutar scripts SQL si es primera vez
+
+---
+
+💡 **Consejo**: Para desarrollo, mantén abierta la consola del navegador para ver los logs detallados del proceso de creación. 

@@ -4,8 +4,9 @@ import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Usuario, LoginRequest, RegisterRequest, AuthResponse, Rol, TipoRol } from '../models/usuario.model';
 import { environment } from '../../../environments/environment';
-import { createClient, SupabaseClient, User, AuthResponse as SupabaseAuthResponse } from '@supabase/supabase-js';
+import { SupabaseClient, User, AuthResponse as SupabaseAuthResponse } from '@supabase/supabase-js';
 import { UsuariosService } from './usuarios.service';
+import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,12 +25,10 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private usuariosService: UsuariosService
+    private usuariosService: UsuariosService,
+    private supabaseClientService: SupabaseClientService
   ) {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+    this.supabase = this.supabaseClientService.getClient();
     this.initializeAuth();
   }
 

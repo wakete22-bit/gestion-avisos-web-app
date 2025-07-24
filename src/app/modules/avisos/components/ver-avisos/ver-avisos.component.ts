@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { TrabajosService } from '../../../../core/services/trabajos.service';
 import { Aviso } from '../../models/aviso.model';
 import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
 import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/crear-trabajos-realizados.component';
+import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
 import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 
 addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrowBackOutline });
@@ -18,7 +19,7 @@ addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrow
   templateUrl: './ver-avisos.component.html',
   styleUrls: ['./ver-avisos.component.scss'],
   standalone: true, 
-    imports: [CommonModule, IonIcon, IonSegment, IonSegmentButton],
+    imports: [CommonModule, IonIcon, IonSegment, IonSegmentButton, FlujoEstadoComponent],
 })
 export class VerAvisosComponent implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
@@ -45,7 +46,7 @@ export class VerAvisosComponent implements OnInit {
     private trabajosService: TrabajosService,
     private modalController: ModalController
   ) {
-    addIcons({arrowBackOutline,refreshOutline,alertCircleOutline,close,pencilOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,trashOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({arrowBackOutline,refreshOutline,alertCircleOutline,close,pencilOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,trashOutline,constructOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
@@ -347,5 +348,30 @@ export class VerAvisosComponent implements OnInit {
     const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
     const horas = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
     return Math.max(0, horas);
+  }
+
+  /**
+   * Maneja las acciones ejecutadas desde el componente de flujo
+   */
+  onAccionFlujoEjecutada(resultado: any) {
+    console.log('Acción de flujo ejecutada:', resultado);
+    
+    // Recargar aviso para reflejar cambios
+    this.cargarAviso();
+    
+    // Mostrar mensaje de éxito (opcional)
+    if (resultado.mensaje) {
+      console.log('Mensaje de éxito:', resultado.mensaje);
+      // Aquí puedes implementar un toast o notificación
+      alert(resultado.mensaje);
+    }
+    
+    // Navegar si se creó una factura
+    if (resultado.facturaId) {
+      const navegarFactura = confirm('Se ha generado una factura. ¿Deseas ver la factura creada?');
+      if (navegarFactura) {
+        this.router.navigate(['/facturas', resultado.facturaId]);
+      }
+    }
   }
 }

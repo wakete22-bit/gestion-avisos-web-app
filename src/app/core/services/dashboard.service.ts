@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, BehaviorSubject, from, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { AvisosService } from './avisos.service';
 import { FacturasService } from '../../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../../modules/presupuestos/services/presupuestos.service';
+import { SupabaseClientService } from './supabase-client.service';
 
 export interface DashboardStats {
   avisosEnCurso: number;
@@ -34,12 +35,10 @@ export class DashboardService {
   constructor(
     private avisosService: AvisosService,
     private facturasService: FacturasService,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private supabaseClientService: SupabaseClientService
   ) {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClientService } from './supabase-client.service';
 import { Observable, BehaviorSubject, from, forkJoin } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -14,11 +15,11 @@ export class MaterialesTrabajoService {
   private materialesSubject = new BehaviorSubject<MaterialTrabajo[]>([]);
   public materiales$ = this.materialesSubject.asObservable();
 
-  constructor(private inventarioService: InventarioService) {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(
+    private inventarioService: InventarioService,
+    private supabaseClientService: SupabaseClientService
+  ) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**

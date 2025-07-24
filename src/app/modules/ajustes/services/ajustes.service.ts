@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 import { Observable, BehaviorSubject, from, forkJoin } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -25,11 +26,8 @@ export class AjustesService {
   private ajustesSubject = new BehaviorSubject<AjustesCompletos | null>(null);
   public ajustes$ = this.ajustesSubject.asObservable();
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(private supabaseClientService: SupabaseClientService) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**

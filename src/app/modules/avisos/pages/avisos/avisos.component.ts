@@ -648,6 +648,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+
+
   /**
    * Elimina un aviso con confirmación
    */

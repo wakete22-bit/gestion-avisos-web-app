@@ -473,6 +473,51 @@ input.form-control {
   animation: spin 1s linear infinite;
 }
 
+// Estado de carga de roles
+.loading-roles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  color: #64748B;
+  font-size: 14px;
+
+  ion-icon {
+    color: #4F46E5;
+    font-size: 18px;
+    animation: spin 1s linear infinite;
+  }
+}
+
+// Mensaje de advertencia
+.warning-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: #FEF3C7;
+  border: 1px solid #F59E0B;
+  border-radius: 6px;
+  margin-top: 8px;
+
+  ion-icon {
+    color: #D97706;
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #92400E;
+    line-height: 1.4;
+  }
+}
+
 @media (max-width: 768px) {
   .modal-container {
     height: 100vh;

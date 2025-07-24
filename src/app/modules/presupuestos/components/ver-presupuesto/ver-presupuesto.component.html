@@ -1,0 +1,186 @@
+<ion-content>
+  <div class="presupuesto-container">
+    <!-- Header -->
+    <div class="page-header">
+      <button class="btn-back" (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver a Presupuestos
+      </button>
+      
+      <div class="header-actions" *ngIf="presupuesto">
+        <button class="btn-secondary" (click)="editarPresupuesto()">
+          <ion-icon name="edit-outline"></ion-icon>
+          Editar
+        </button>
+        <button class="btn-secondary" (click)="imprimirPresupuesto()">
+          <ion-icon name="print-outline"></ion-icon>
+          Imprimir
+        </button>
+        <button class="btn-primary" (click)="descargarPresupuesto()">
+          <ion-icon name="download-outline"></ion-icon>
+          Descargar PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando presupuesto...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="cargarPresupuesto()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+    <!-- Presupuesto Content -->
+    <div *ngIf="presupuesto && !loading" class="presupuesto-content">
+      <!-- Header del Presupuesto -->
+      <div class="presupuesto-header">
+        <div class="logo-section">
+          <img src="assets/icon/favicon.png" alt="Logo empresa" class="company-logo">
+          <div class="company-info">
+            <h3>Tu Empresa</h3>
+            <p>Dirección de la empresa</p>
+            <p>Teléfono: +34 123 456 789</p>
+            <p>Email: info&#64;tuempresa.com</p>
+          </div>
+        </div>
+        
+        <div class="presupuesto-info">
+          <h1>PRESUPUESTO</h1>
+          <div class="presupuesto-details">
+            <div class="detail-row">
+              <span class="label">Número:</span>
+              <span class="value">#{{ presupuesto.id?.substring(0, 8) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Fecha:</span>
+              <span class="value">{{ formatearFecha(presupuesto.fecha_creacion) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Estado:</span>
+              <span class="badge" [class]="getEstadoClass(presupuesto.estado)">
+                {{ presupuesto.estado }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información del Cliente -->
+      <div class="cliente-section" *ngIf="presupuesto.aviso">
+        <h3>Datos del Cliente</h3>
+        <div class="cliente-info">
+          <p><strong>Nombre:</strong> {{ presupuesto.aviso.nombre_cliente_aviso }}</p>
+          <p><strong>Dirección:</strong> {{ presupuesto.aviso.direccion_cliente_aviso }}</p>
+          <p><strong>Teléfono:</strong> {{ presupuesto.aviso.telefono_cliente_aviso }}</p>
+          <p *ngIf="presupuesto.aviso.cliente?.email">
+            <strong>Email:</strong> {{ presupuesto.aviso.cliente.email }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Descripción del Trabajo -->
+      <div class="trabajo-section" *ngIf="presupuesto.aviso">
+        <h3>Descripción del Trabajo</h3>
+        <p>{{ presupuesto.aviso.descripcion_problema }}</p>
+      </div>
+
+      <!-- Detalle de Materiales -->
+      <div class="materiales-section" *ngIf="presupuesto.materiales && presupuesto.materiales.length > 0">
+        <h3>Materiales Estimados</h3>
+        <table class="materiales-table">
+          <thead>
+            <tr>
+              <th>Material</th>
+              <th>Cantidad</th>
+              <th>Precio Unit.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let material of presupuesto.materiales">
+              <td>{{ material.material?.nombre || 'Material sin nombre' }}</td>
+              <td>{{ material.cantidad_estimada }}</td>
+              <td>{{ formatearMoneda(material.precio_unitario_al_momento) }}</td>
+              <td>{{ formatearMoneda(material.cantidad_estimada * material.precio_unitario_al_momento) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mano de Obra -->
+      <div class="mano-obra-section" *ngIf="presupuesto.horas_estimadas">
+        <h3>Mano de Obra</h3>
+        <table class="mano-obra-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Horas</th>
+              <th>Precio/Hora</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Trabajo técnico especializado</td>
+              <td>{{ presupuesto.horas_estimadas }}h</td>
+              <td>{{ formatearMoneda(50) }}</td>
+              <td>{{ formatearMoneda((presupuesto.horas_estimadas || 0) * 50) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="totales-section">
+        <div class="totales-container">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>{{ formatearMoneda(presupuesto.total_estimado || 0) }}</span>
+          </div>
+          <div class="total-row">
+            <span>IVA (21%):</span>
+            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * 0.21) }}</span>
+          </div>
+          <div class="total-row total-final">
+            <span>TOTAL:</span>
+            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * 1.21) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condiciones -->
+      <div class="condiciones-section">
+        <h3>Condiciones</h3>
+        <ul>
+          <li>Este presupuesto tiene una validez de 30 días desde su emisión.</li>
+          <li>Los precios incluyen IVA.</li>
+          <li>El pago se realizará según las condiciones acordadas.</li>
+          <li>Los materiales podrán variar según disponibilidad.</li>
+        </ul>
+      </div>
+
+      <!-- Footer -->
+      <div class="presupuesto-footer">
+        <p>Gracias por confiar en nuestros servicios</p>
+        <div class="footer-contact">
+          <span>Tu Empresa</span>
+          <span>+34 123 456 789</span>
+          <span>info&#64;tuempresa.com</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content> 

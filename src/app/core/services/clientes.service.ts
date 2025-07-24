@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, BehaviorSubject, from } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -9,6 +9,7 @@ import {
   CrearClienteRequest, 
   ActualizarClienteRequest 
 } from '../../modules/clientes/models/cliente.model';
+import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,11 +19,8 @@ export class ClientesService {
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   public clientes$ = this.clientesSubject.asObservable();
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(private supabaseClientService: SupabaseClientService) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**

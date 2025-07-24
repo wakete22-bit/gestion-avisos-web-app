@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
@@ -7,6 +7,8 @@ import { closeOutline, saveOutline, personOutline, mailOutline, callOutline, shi
 import { TipoRol } from '../../../../core/models/usuario.model';
 import { TecnicosService } from '../../services/tecnicos.service';
 import { CrearTecnicoRequest } from '../../models/tecnico.model';
+import { RolesService } from '../../../../core/services/roles.service';
+import { Subject, takeUntil, from } from 'rxjs';
 
 addIcons({
   'close-outline': closeOutline,
@@ -34,39 +36,31 @@ addIcons({
     IonIcon
   ]
 })
-export class CrearTecnicoModalComponent {
+export class CrearTecnicoModalComponent implements OnInit {
   modoEdicion = false;
   TipoRol = TipoRol; // Hacer el enum disponible en el template
+  private destroy$ = new Subject<void>();
 
   tecnicoData: CrearTecnicoRequest = {
     nombre_completo: '',
     email: '',
     password: '',
     telefono: '',
-    rol_id: 'a0472297-ee16-44d8-a434-810a3868a209', // UUID del rol Técnico
+    rol_id: '', // Se asignará dinámicamente
     es_activo: true
   };
 
-  // Roles disponibles con sus UUIDs correspondientes
-  rolesDisponibles = [
-    { 
-      value: 'a0472297-ee16-44d8-a434-810a3868a209', 
-      label: 'Técnico',
-      descripcion: 'Crear y gestionar avisos, ver historial, acceder a inventario básico.'
-    },
-    { 
-      value: '70c12fd8-92c2-4479-bba0-c7b2e934f48a', 
-      label: 'Usuario',
-      descripcion: 'Ver avisos asignados, actualizar estado de trabajos, registrar materiales utilizados.'
-    }
-  ];
+  // Roles disponibles - se cargarán dinámicamente
+  rolesDisponibles: Array<{value: string, label: string, descripcion: string}> = [];
 
   loading = false;
+  loadingRoles = true;
   error = '';
 
   constructor(
     private modalController: ModalController,
-    private tecnicosService: TecnicosService
+    private tecnicosService: TecnicosService,
+    private rolesService: RolesService
   ) {
     addIcons({
       personOutline,
@@ -84,6 +78,71 @@ export class CrearTecnicoModalComponent {
     });
   }
 
+  ngOnInit() {
+    this.cargarRolesDisponibles();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Carga los roles disponibles desde la base de datos
+   */
+  cargarRolesDisponibles() {
+    this.loadingRoles = true;
+    
+    // Usar el servicio de técnicos para obtener roles desde la BD
+    from(this.tecnicosService.obtenerRolesDisponibles()).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (roles) => {
+        this.rolesDisponibles = roles.map(rol => ({
+          value: rol.id,
+          label: rol.nombre_rol,
+          descripcion: this.rolesService.getDescripcionRol(rol.nombre_rol as TipoRol)
+        }));
+        
+        // Establecer rol por defecto (Técnico si existe)
+        const rolTecnico = this.rolesDisponibles.find(r => r.label === 'Técnico');
+        if (rolTecnico) {
+          this.tecnicoData.rol_id = rolTecnico.value;
+        }
+        
+        this.loadingRoles = false;
+        console.log('✅ Roles cargados:', this.rolesDisponibles);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar roles:', error);
+        this.loadingRoles = false;
+        
+        // Roles por defecto como fallback (con UUIDs placeholders)
+        this.rolesDisponibles = [
+          { 
+            value: 'admin-uuid-placeholder', 
+            label: 'Administrador',
+            descripcion: this.rolesService.getDescripcionRol(TipoRol.ADMINISTRADOR)
+          },
+          { 
+            value: 'a0472297-ee16-44d8-a434-810a3868a209', 
+            label: 'Técnico',
+            descripcion: this.rolesService.getDescripcionRol(TipoRol.TECNICO)
+          },
+          { 
+            value: '70c12fd8-92c2-4479-bba0-c7b2e934f48a', 
+            label: 'Usuario',
+            descripcion: this.rolesService.getDescripcionRol(TipoRol.USUARIO)
+          }
+        ];
+        
+        // Establecer rol por defecto
+        this.tecnicoData.rol_id = this.rolesDisponibles[1].value; // Técnico por defecto
+        this.error = 'No se pudieron cargar los roles desde la base de datos. Usando valores por defecto.';
+      }
+    });
+  }
+
   async onClose() {
     await this.modalController.dismiss(null, 'cancel');
   }
@@ -93,37 +152,66 @@ export class CrearTecnicoModalComponent {
       return;
     }
 
+    // Validar que el rol seleccionado no sea un placeholder
+    if (this.tecnicoData.rol_id === 'admin-uuid-placeholder') {
+      this.error = 'Por favor, contacta al administrador para configurar correctamente el UUID del rol Administrador en la base de datos.';
+      return;
+    }
+
     this.loading = true;
     this.error = '';
 
     try {
       // Crear el técnico usando el servicio
-      this.tecnicosService.crearTecnico(this.tecnicoData).subscribe({
+      this.tecnicosService.crearTecnico(this.tecnicoData).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
         next: (tecnico) => {
-          console.log('Técnico creado exitosamente:', tecnico);
+          console.log('✅ Técnico creado exitosamente:', tecnico);
           this.modalController.dismiss(tecnico, 'confirm');
         },
         error: (error) => {
-          console.error('Error al crear técnico:', error);
-          
-          // Manejar errores específicos
-          if (error.message?.includes('Ya existe un usuario con este email')) {
-            this.error = 'Ya existe un usuario con este email. Por favor, usa un email diferente.';
-          } else if (error.message?.includes('duplicate key value')) {
-            this.error = 'El usuario ya existe en el sistema. Por favor, verifica el email.';
-          } else if (error.message?.includes('Invalid login credentials')) {
-            this.error = 'Error en las credenciales. Por favor, verifica el email y contraseña.';
-          } else {
-            this.error = 'Error al crear el técnico. Por favor, intenta de nuevo.';
-          }
-          
+          console.error('❌ Error al crear técnico:', error);
+          this.manejarErrorCreacion(error);
           this.loading = false;
         }
       });
     } catch (error) {
-      this.error = 'Error al crear el técnico';
-      console.error('Error al crear técnico:', error);
+      this.error = 'Error inesperado al crear el técnico';
+      console.error('❌ Error inesperado:', error);
       this.loading = false;
+    }
+  }
+
+  /**
+   * Maneja los errores de creación de técnico de forma más detallada
+   */
+  private manejarErrorCreacion(error: any) {
+    console.log('🔍 Analizando error:', error);
+    
+    if (typeof error === 'string') {
+      this.error = error;
+    } else if (error?.message) {
+      // Errores específicos con mensajes más claros
+      if (error.message.includes('Ya existe un usuario con este email')) {
+        this.error = '📧 Ya existe un usuario registrado con este email. Por favor, usa un email diferente.';
+      } else if (error.message.includes('duplicate key value') || error.code === '23505') {
+        this.error = '⚠️ El usuario ya existe en el sistema. Por favor, verifica el email ingresado.';
+      } else if (error.message.includes('Invalid login credentials')) {
+        this.error = '🔐 Error en las credenciales. Por favor, verifica el email y contraseña.';
+      } else if (error.message.includes('Email not confirmed')) {
+        this.error = '📧 El email necesita ser confirmado. Revisa la bandeja de entrada.';
+      } else if (error.message.includes('Password should be at least 6 characters')) {
+        this.error = '🔒 La contraseña debe tener al menos 6 caracteres.';
+      } else if (error.message.includes('Unable to validate email address')) {
+        this.error = '📧 El formato del email no es válido.';
+      } else if (error.message.includes('Network request failed')) {
+        this.error = '🌐 Error de conexión. Por favor, verifica tu conexión a internet.';
+      } else {
+        this.error = `❌ Error: ${error.message}`;
+      }
+    } else {
+      this.error = '❌ Error desconocido al crear el técnico. Por favor, intenta de nuevo.';
     }
   }
 

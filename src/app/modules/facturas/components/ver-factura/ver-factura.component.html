@@ -1,0 +1,190 @@
+<ion-content>
+  <div class="factura-container">
+    <!-- Header -->
+    <div class="page-header">
+      <button class="btn-back" (click)="volver()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+        Volver a Facturas
+      </button>
+      
+      <div class="header-actions" *ngIf="factura">
+        <button class="btn-secondary" (click)="editarFactura()">
+          <ion-icon name="edit-outline"></ion-icon>
+          Editar
+        </button>
+        <button class="btn-secondary" (click)="imprimirFactura()">
+          <ion-icon name="print-outline"></ion-icon>
+          Imprimir
+        </button>
+        <button class="btn-primary" (click)="descargarFactura()">
+          <ion-icon name="download-outline"></ion-icon>
+          Descargar PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando factura...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-state">
+      <div class="error-message">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ error }}</p>
+        <button class="btn-retry" (click)="cargarFactura()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista previa de la factura -->
+    <div *ngIf="factura && !loading" class="factura-preview active">
+      <div class="header-container">
+        <h2>Factura {{ factura.factura.numero_factura }}</h2>
+        <div class="estado-badge">
+          <span class="badge" [class]="getEstadoClass(factura.factura.estado)">
+            {{ factura.factura.estado }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Header de la factura -->
+      <div class="preview-header">
+        <div class="logo-box">
+          <img src="assets/icon/favicon.png" alt="Logo" />
+        </div>
+        <div class="empresa-datos">
+          <div>
+            <span class="empresa-nombre">Datos de empresa</span>
+            <span>Nombre de empresa</span>
+            <address>Dirección de empresa</address>
+            <span>Ciudad de empresa</span>
+            <span>CIF de empresa</span>
+            <span style="margin-top: 20px;">ejemplodominio.es</span>
+            <span>+34 123 45 56 65</span>
+          </div>
+          <div class="factura-info">
+            <label class="factura-label">Factura</label>
+            <label style="color: #111827; font-weight: 500;">Nº FACTURA</label>
+            <label>{{ factura.factura.numero_factura }}</label>
+            <label style="color: #111827; font-weight: 500;">FECHA DE EMISIÓN</label>
+            <label>{{ formatearFecha(factura.factura.fecha_emision) }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos del cliente -->
+      <div class="cliente-datos">
+        <h3>Datos del Cliente</h3>
+        <div class="cliente-info">
+          <p><strong>Nombre:</strong> {{ factura.factura.nombre_cliente }}</p>
+          <p><strong>Dirección:</strong> {{ factura.factura.direccion_cliente }}</p>
+          <p><strong>CIF:</strong> {{ factura.factura.cif_cliente }}</p>
+          <p><strong>Email:</strong> {{ factura.factura.email_cliente }}</p>
+        </div>
+      </div>
+
+      <!-- Tabla de repuestos -->
+      <div class="preview-tabla" *ngIf="repuestos.length > 0">
+        <div class="tabla-titulo">Repuestos utilizados</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Repuestos utilizados</th>
+              <th>CANTIDAD</th>
+              <th>NETO</th>
+              <th>PVP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let repuesto of repuestos">
+              <td>{{ repuesto.nombre }}</td>
+              <td>{{ repuesto.cantidad }}</td>
+              <td>{{ repuesto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</td>
+              <td>{{ repuesto.precio_pvp | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr class="total-row">
+              <td><b>TOTAL</b></td>
+              <td></td>
+              <td class="success">
+                {{ totalRepuestosNeto | currency:'EUR':'symbol':'1.2-2' }}
+              </td>
+              <td class="success">
+                {{ totalRepuestosPvp | currency:'EUR':'symbol':'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tabla de mano de obra y desplazamientos -->
+      <div class="preview-tabla" *ngIf="manoObra.length > 0 || desplazamientos.length > 0">
+        <div class="tabla-titulo">Mano de obra/Kilometraje</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Mano de obra/Kilometraje</th>
+              <th>CANTIDAD</th>
+              <th>PVP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mano of manoObra">
+              <td>{{ mano.nombre }}</td>
+              <td>{{ mano.cantidad }}h</td>
+              <td>{{ mano.precio_pvp | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr *ngFor="let desplazamiento of desplazamientos">
+              <td>{{ desplazamiento.nombre }}</td>
+              <td>{{ desplazamiento.cantidad }}</td>
+              <td>{{ desplazamiento.precio_pvp | currency:'EUR':'symbol':'1.2-2' }}</td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="2"><b>TOTAL</b></td>
+              <td class="success">
+                {{ totalManoObraDesplazamiento | currency:'EUR':'symbol':'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales -->
+      <div class="preview-totales-box">
+        <div class="totales-row">
+          <span>Subtotal</span>
+          <span>{{ factura.factura.subtotal | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="totales-row">
+          <span>IVA (21%)</span>
+          <span>{{ factura.factura.iva | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="totales-row total-final">
+          <span>TOTAL</span>
+          <span>{{ factura.factura.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="preview-notas" *ngIf="factura.factura.notas">
+        <b>Notas</b>
+        <div class="notas-texto">
+          {{ factura.factura.notas }}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="preview-footer">
+        <span>Nombre de empresa</span>
+        <span>+34 698 12 12 12</span>
+        <span>ejemploemail.com</span>
+      </div>
+    </div>
+  </div>
+</ion-content> 

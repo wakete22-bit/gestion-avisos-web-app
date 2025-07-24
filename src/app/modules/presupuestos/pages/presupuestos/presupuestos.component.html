@@ -103,6 +103,14 @@
             <div class="presupuesto-cell fecha-presupuesto desktop-only">{{ getFechaFormateada(presupuesto) }}</div>
             <div class="presupuesto-cell pvp-presupuesto desktop-only">{{ getImporteFormateado(presupuesto) }}</div>
             <div class="presupuesto-cell acciones">
+              <!-- Botón de flujo rápido (para el aviso asociado) -->
+              <app-flujo-boton 
+                *ngIf="presupuesto.aviso_id"
+                [avisoId]="presupuesto.aviso_id"
+                size="small"
+                (accionEjecutada)="onAccionFlujoEjecutada($event)">
+              </app-flujo-boton>
+              
               <button class="btn-ver" title="Ver detalles" (click)="verPresupuesto(presupuesto)">
                 <ion-icon name="eye-outline"></ion-icon>
               </button>

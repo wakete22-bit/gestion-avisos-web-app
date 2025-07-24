@@ -1,17 +1,19 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, BehaviorSubject, from } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 
 export interface Presupuesto {
   id: string;
   aviso_id: string;
   fecha_creacion: Date;
+  fecha_actualizacion?: Date;
   horas_estimadas?: number;
   total_estimado?: number;
   pdf_url?: string;
-  estado: 'Pendiente' | 'En curso' | 'Completado';
+  estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
   // Relaciones
   aviso?: any;
   materiales?: MaterialPresupuesto[];
@@ -44,7 +46,7 @@ export interface CrearPresupuestoRequest {
 export interface ActualizarPresupuestoRequest {
   horas_estimadas?: number;
   total_estimado?: number;
-  estado?: 'Pendiente' | 'En curso' | 'Completado';
+  estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
   pdf_url?: string;
 }
 
@@ -56,11 +58,8 @@ export class PresupuestosService {
   private presupuestosSubject = new BehaviorSubject<Presupuesto[]>([]);
   public presupuestos$ = this.presupuestosSubject.asObservable();
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(private supabaseClientService: SupabaseClientService) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**
@@ -353,7 +352,7 @@ export class PresupuestosService {
   /**
    * Cambia el estado de un presupuesto
    */
-  cambiarEstado(id: string, estado: 'Pendiente' | 'En curso' | 'Completado'): Observable<Presupuesto> {
+  cambiarEstado(id: string, estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado'): Observable<Presupuesto> {
     return from(
       this.supabase
         .from('presupuestos')

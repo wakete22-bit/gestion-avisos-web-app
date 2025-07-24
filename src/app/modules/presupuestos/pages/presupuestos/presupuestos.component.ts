@@ -17,6 +17,7 @@ import {
   searchOutline, hourglassOutline, alertCircleOutline, refreshOutline, createOutline, documentOutline } from 'ionicons/icons';
 
 import { PresupuestosService, Presupuesto, PresupuestoResponse } from '../../services/presupuestos.service';
+import { FlujoBotonComponent } from '../../../../shared/components/flujo-boton/flujo-boton.component';
 
 @Component({
   selector: 'app-presupuestos',
@@ -28,7 +29,8 @@ import { PresupuestosService, Presupuesto, PresupuestoResponse } from '../../ser
     IonContent,
     IonIcon,
     MatTableModule,
-    MatIconModule
+    MatIconModule,
+    FlujoBotonComponent
   ],
 })
 export class PresupuestosComponent implements OnInit, OnDestroy {
@@ -161,5 +163,21 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
    */
   getImporteFormateado(presupuesto: Presupuesto): string {
     return this.formatearMoneda(presupuesto.total_estimado || 0);
+  }
+
+  /**
+   * Maneja las acciones ejecutadas desde el botón de flujo
+   */
+  onAccionFlujoEjecutada(resultado: any) {
+    console.log('Acción de flujo ejecutada desde presupuestos:', resultado);
+    
+    // Recargar presupuestos para reflejar cambios
+    this.cargarPresupuestos();
+    
+    // Mostrar mensaje de éxito (opcional)
+    if (resultado.mensaje) {
+      console.log('Mensaje de éxito:', resultado.mensaje);
+      // Aquí puedes implementar un toast o notificación
+    }
   }
 }

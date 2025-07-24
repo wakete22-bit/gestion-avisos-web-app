@@ -37,6 +37,64 @@ CREATE TABLE public.clientes (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT clientes_pkey PRIMARY KEY (id)
 );
+CREATE TABLE public.configuracion_avisos (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  tipos_urgencia ARRAY NOT NULL DEFAULT ARRAY['Baja'::text, 'Media'::text, 'Alta'::text, 'Crítica'::text],
+  estados_disponibles ARRAY NOT NULL DEFAULT ARRAY['Pendiente'::text, 'En curso'::text, 'Completado'::text, 'Cancelado'::text],
+  tiempo_maximo_respuesta integer NOT NULL DEFAULT 24 CHECK (tiempo_maximo_respuesta >= 1 AND tiempo_maximo_respuesta <= 168),
+  asignacion_automatica boolean NOT NULL DEFAULT false,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT configuracion_avisos_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.configuracion_empresa (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  nombre_empresa text NOT NULL,
+  cif text NOT NULL,
+  direccion text NOT NULL,
+  telefono text NOT NULL,
+  email text NOT NULL,
+  web text,
+  logo_url text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT configuracion_empresa_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.configuracion_facturacion (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  iva_por_defecto numeric NOT NULL DEFAULT 21 CHECK (iva_por_defecto >= 0::numeric AND iva_por_defecto <= 100::numeric),
+  moneda text NOT NULL DEFAULT 'EUR'::text,
+  formato_numero_factura text NOT NULL DEFAULT 'FAC-{YEAR}-{NUMBER}'::text,
+  dias_vencimiento integer NOT NULL DEFAULT 30 CHECK (dias_vencimiento >= 1 AND dias_vencimiento <= 365),
+  texto_pie_factura text,
+  condiciones_pago text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT configuracion_facturacion_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.configuracion_notificaciones (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  email_notificaciones boolean NOT NULL DEFAULT true,
+  email_avisos_nuevos boolean NOT NULL DEFAULT true,
+  email_facturas_generadas boolean NOT NULL DEFAULT true,
+  email_recordatorios boolean NOT NULL DEFAULT false,
+  sms_notificaciones boolean NOT NULL DEFAULT false,
+  sms_avisos_urgentes boolean NOT NULL DEFAULT false,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT configuracion_notificaciones_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.configuracion_sistema (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  backup_automatico boolean NOT NULL DEFAULT true,
+  frecuencia_backup text NOT NULL DEFAULT 'diario'::text CHECK (frecuencia_backup = ANY (ARRAY['diario'::text, 'semanal'::text, 'mensual'::text])),
+  retencion_backup_dias integer NOT NULL DEFAULT 30 CHECK (retencion_backup_dias >= 1 AND retencion_backup_dias <= 365),
+  modo_mantenimiento boolean NOT NULL DEFAULT false,
+  mensaje_mantenimiento text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT configuracion_sistema_pkey PRIMARY KEY (id)
+);
 CREATE TABLE public.facturas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   numero_factura text NOT NULL UNIQUE,
@@ -94,16 +152,6 @@ CREATE TABLE public.lineas_factura (
   CONSTRAINT lineas_factura_pkey PRIMARY KEY (id),
   CONSTRAINT lineas_factura_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id)
 );
-CREATE TABLE public.materiales_parte_trabajo (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  parte_trabajo_id uuid NOT NULL,
-  material_id uuid NOT NULL,
-  cantidad_utilizada numeric NOT NULL CHECK (cantidad_utilizada > 0::numeric),
-  precio_neto_al_momento numeric NOT NULL,
-  CONSTRAINT materiales_parte_trabajo_pkey PRIMARY KEY (id),
-  CONSTRAINT materiales_parte_trabajo_parte_trabajo_id_fkey FOREIGN KEY (parte_trabajo_id) REFERENCES public.partes_trabajo(id),
-  CONSTRAINT materiales_parte_trabajo_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id)
-);
 CREATE TABLE public.materiales_presupuesto (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   presupuesto_id uuid NOT NULL,
@@ -114,27 +162,25 @@ CREATE TABLE public.materiales_presupuesto (
   CONSTRAINT materiales_presupuesto_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id),
   CONSTRAINT materiales_presupuesto_presupuesto_id_fkey FOREIGN KEY (presupuesto_id) REFERENCES public.presupuestos(id)
 );
-CREATE TABLE public.partes_trabajo (
+CREATE TABLE public.materiales_trabajo (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  aviso_id uuid NOT NULL UNIQUE,
-  tecnico_id uuid NOT NULL,
-  hora_entrada timestamp with time zone NOT NULL,
-  hora_salida timestamp with time zone NOT NULL,
-  descripcion_intervencion text NOT NULL,
-  firma_cliente_url text,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT partes_trabajo_pkey PRIMARY KEY (id),
-  CONSTRAINT partes_trabajo_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id),
-  CONSTRAINT partes_trabajo_tecnico_id_fkey FOREIGN KEY (tecnico_id) REFERENCES public.usuarios(id)
+  trabajo_id uuid NOT NULL,
+  material_id uuid NOT NULL,
+  cantidad_utilizada numeric NOT NULL CHECK (cantidad_utilizada > 0::numeric),
+  precio_neto_al_momento numeric NOT NULL,
+  CONSTRAINT materiales_trabajo_pkey PRIMARY KEY (id),
+  CONSTRAINT materiales_trabajo_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id),
+  CONSTRAINT materiales_trabajo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id)
 );
 CREATE TABLE public.presupuestos (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   aviso_id uuid NOT NULL UNIQUE,
   fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
   horas_estimadas numeric,
   total_estimado numeric,
   pdf_url text,
-  estado text NOT NULL DEFAULT 'Pendiente'::text,
+  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'En curso'::text, 'Completado'::text, 'Facturado'::text, 'Cancelado'::text])),
   CONSTRAINT presupuestos_pkey PRIMARY KEY (id),
   CONSTRAINT presupuestos_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );
@@ -142,6 +188,20 @@ CREATE TABLE public.roles (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   nombre_rol text NOT NULL UNIQUE,
   CONSTRAINT roles_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.trabajos_realizados (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  aviso_id uuid NOT NULL,
+  fecha_trabajo date NOT NULL,
+  hora_inicio time without time zone NOT NULL,
+  hora_fin time without time zone NOT NULL,
+  descripcion text NOT NULL,
+  repuestos ARRAY DEFAULT '{}'::text[],
+  estado text NOT NULL DEFAULT 'Pendiente'::text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT trabajos_realizados_pkey PRIMARY KEY (id),
+  CONSTRAINT trabajos_realizados_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );
 CREATE TABLE public.usuarios (
   id uuid NOT NULL,
@@ -151,6 +211,8 @@ CREATE TABLE public.usuarios (
   rol_id uuid NOT NULL,
   fecha_creacion timestamp with time zone DEFAULT now(),
   fecha_actualizacion timestamp with time zone DEFAULT now(),
+  es_activo boolean NOT NULL DEFAULT true,
+  fecha_ultimo_acceso timestamp with time zone,
   CONSTRAINT usuarios_pkey PRIMARY KEY (id),
   CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id),
   CONSTRAINT usuarios_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)

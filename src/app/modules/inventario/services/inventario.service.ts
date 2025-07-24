@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, BehaviorSubject, from } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -9,6 +9,7 @@ import {
   ActualizarInventarioRequest, 
   InventarioResponse 
 } from '../models/inventario.model';
+import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,11 +19,8 @@ export class InventarioService {
   private inventarioSubject = new BehaviorSubject<Inventario[]>([]);
   public inventario$ = this.inventarioSubject.asObservable();
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(private supabaseClientService: SupabaseClientService) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**

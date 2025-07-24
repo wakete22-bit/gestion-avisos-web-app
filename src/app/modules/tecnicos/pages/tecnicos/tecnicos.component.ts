@@ -136,10 +136,15 @@ export class TecnicosComponent implements OnInit, OnDestroy {
     const { data, role } = await modal.onWillDismiss();
     
     if (role === 'confirm' && data) {
-      this.crearTecnico(data);
+      // El técnico ya fue creado exitosamente en el modal
+      // Solo necesitamos recargar la lista y mostrar confirmación
+      console.log('✅ Técnico creado desde modal, recargando lista...');
+      this.cargarTecnicos();
     }
   }
 
+  // Método ya no es necesario para creación desde modal
+  // Se mantiene solo para compatibilidad futura si se necesita
   private crearTecnico(tecnicoData: any) {
     this.loading = true;
     this.error = '';
@@ -148,12 +153,12 @@ export class TecnicosComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (tecnico) => {
-        console.log('Técnico creado exitosamente:', tecnico);
+        console.log('✅ Técnico creado exitosamente desde componente padre:', tecnico);
         this.cargarTecnicos(); // Recargar la lista
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al crear técnico:', error);
+        console.error('❌ Error al crear técnico desde componente padre:', error);
         this.error = 'Error al crear el técnico. Por favor, intenta de nuevo.';
         this.loading = false;
       }

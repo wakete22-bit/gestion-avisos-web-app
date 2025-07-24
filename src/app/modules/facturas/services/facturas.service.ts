@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, BehaviorSubject, from } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -12,6 +12,7 @@ import {
   ActualizarFacturaRequest,
   FacturaLista
 } from '../models/factura.model';
+import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,11 +22,8 @@ export class FacturasService {
   private facturasSubject = new BehaviorSubject<Factura[]>([]);
   public facturas$ = this.facturasSubject.asObservable();
 
-  constructor() {
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+  constructor(private supabaseClientService: SupabaseClientService) {
+    this.supabase = this.supabaseClientService.getClient();
   }
 
   /**
@@ -482,5 +480,145 @@ export class FacturasService {
    */
   limpiarFacturas(): void {
     this.facturasSubject.next([]);
+  }
+
+  /**
+   * Crea una factura automáticamente desde un presupuesto aprobado
+   */
+  crearFacturaDesdePresupuesto(presupuestoId: string): Observable<FacturaCompleta> {
+    // Primero obtener el presupuesto completo con materiales
+    return from(
+      this.supabase
+        .from('presupuestos')
+        .select(`
+          *,
+          aviso:avisos(
+            *,
+            cliente:clientes(*)
+          ),
+          materiales:materiales_presupuesto(
+            *,
+            material:inventario(*)
+          )
+        `)
+        .eq('id', presupuestoId)
+        .single()
+    ).pipe(
+      switchMap(({ data: presupuesto, error: presupuestoError }) => {
+        if (presupuestoError) throw presupuestoError;
+
+        const presupuestoData = presupuesto as any;
+        
+        // Validar que el presupuesto esté aprobado
+        if (presupuestoData.estado !== 'Completado') {
+          throw new Error('Solo se pueden facturar presupuestos aprobados');
+        }
+        
+        // Validar que el presupuesto tenga un aviso asociado
+        if (!presupuestoData.aviso) {
+          throw new Error('El presupuesto no tiene un aviso asociado');
+        }
+
+        // Generar número de factura
+        return this.getSiguienteNumero().pipe(
+          switchMap(numeroFactura => {
+            // Preparar datos de la factura
+            const cliente = presupuestoData.aviso.cliente;
+            const facturaData: CrearFacturaRequest = {
+              numero_factura: numeroFactura,
+              fecha_emision: new Date().toISOString().split('T')[0],
+              cliente_id: cliente?.id,
+              nombre_cliente: cliente?.nombre_completo || presupuestoData.aviso.nombre_cliente_aviso,
+              direccion_cliente: cliente?.direccion || presupuestoData.aviso.direccion_cliente_aviso,
+              cif_cliente: cliente?.cif || 'Sin CIF',
+              email_cliente: cliente?.email || 'sin-email@ejemplo.com',
+              aviso_id: presupuestoData.aviso_id,
+              subtotal: 0,
+              iva: 0,
+              total: 0,
+              estado: 'Pendiente',
+              notas: `Factura generada desde presupuesto ${presupuestoId}`,
+              lineas: []
+            };
+
+            // Convertir materiales del presupuesto en líneas de factura
+            const lineasMateriales: LineaFactura[] = presupuestoData.materiales?.map((material: any) => ({
+              tipo: 'repuesto' as const,
+              nombre: material.material?.nombre || 'Material desconocido',
+              cantidad: material.cantidad_estimada,
+              precio_neto: material.material?.precio_neto || 0,
+              precio_pvp: material.precio_unitario_al_momento,
+              descripcion: `Material del presupuesto: ${material.material?.descripcion || ''}`
+            })) || [];
+
+            // Agregar línea de mano de obra si hay horas estimadas
+            if (presupuestoData.horas_estimadas && presupuestoData.horas_estimadas > 0) {
+              const precioHora = 50; // Esto debería venir de configuración
+              lineasMateriales.push({
+                tipo: 'mano_obra',
+                nombre: 'Mano de obra',
+                cantidad: presupuestoData.horas_estimadas,
+                precio_pvp: precioHora,
+                descripcion: `${presupuestoData.horas_estimadas} horas de trabajo técnico`
+              });
+            }
+
+            facturaData.lineas = lineasMateriales;
+
+            // Calcular totales
+            const totales = this.calcularTotales(lineasMateriales);
+            facturaData.subtotal = totales.subtotal;
+            facturaData.iva = totales.iva;
+            facturaData.total = totales.total;
+
+            // Crear la factura
+            return this.crearFactura(facturaData).pipe(
+              switchMap(facturaCreada => {
+                // Actualizar el presupuesto para marcar que ya fue facturado
+                return from(
+                  this.supabase
+                    .from('presupuestos')
+                    .update({ 
+                      estado: 'Facturado', // Nuevo estado
+                      fecha_actualizacion: new Date().toISOString() 
+                    })
+                    .eq('id', presupuestoId)
+                ).pipe(
+                  map(() => facturaCreada)
+                );
+              })
+            );
+          })
+        );
+      }),
+      catchError(error => {
+        console.error('Error al crear factura desde presupuesto:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtiene presupuestos listos para facturar
+   */
+  getPresupuestosListosParaFacturar(): Observable<any[]> {
+    return from(
+      this.supabase
+        .from('presupuestos')
+        .select(`
+          *,
+          aviso:avisos(
+            *,
+            cliente:clientes(*)
+          )
+        `)
+        .eq('estado', 'Completado')
+        .order('fecha_creacion', { ascending: false })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data || [];
+      })
+    );
   }
 } 
