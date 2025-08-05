@@ -4,6 +4,7 @@ import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone'
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, trashOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
@@ -13,6 +14,8 @@ import { environment } from 'src/environments/environment';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { CacheService } from '../../../../core/services/cache.service';
+import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
+import { PrefetchService } from '../../../../core/services/prefetch.service';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -27,6 +30,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
     IonIcon,
     MatTableModule,
     MatIconModule,
+    ScrollingModule,
     CrearAvisosModalComponent
   ],
 })
@@ -59,6 +63,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private geocodingService: GeocodingService,
     private avisosService: AvisosService,
     private cacheService: CacheService,
+    private imageOptimizationService: ImageOptimizationService,
+    private prefetchService: PrefetchService,
     private router: Router
   ) {
     addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
@@ -71,6 +77,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     // Cargar avisos al inicializar
     this.cargarAvisos();
     this.suscribirseAAvisos();
+    
+    // Prefetch de datos críticos en segundo plano
+    this.prefetchService.prefetchCriticalData();
     
     // Listener para detectar cambios en pantalla completa
     document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));

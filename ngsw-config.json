@@ -50,6 +50,31 @@
         "maxAge": "1h",
         "timeout": "10s"
       }
+    },
+    {
+      "name": "supabase-cache",
+      "urls": [
+        "https://qqoxlnkfcstqfigjjygf.supabase.co/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "30m",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "static-assets",
+      "urls": [
+        "https://api.maptiler.com/**",
+        "https://fonts.googleapis.com/**",
+        "https://fonts.gstatic.com/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 100,
+        "maxAge": "7d"
+      }
     }
   ]
 }
