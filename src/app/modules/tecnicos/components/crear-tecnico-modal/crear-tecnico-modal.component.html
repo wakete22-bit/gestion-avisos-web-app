@@ -1,12 +1,12 @@
 <div class="modal-container">
   <header class="modal-header">
     <div class="header-content">
-      <h2>{{ modoEdicion ? 'Editar Técnico' : 'Crear Nuevo Técnico' }}</h2>
+      <h2>{{ tituloModal }}</h2>
       <button class="close-button" (click)="onClose()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
-    <p class="subtitle">{{ modoEdicion ? 'Modifica los datos del técnico' : 'Registra un nuevo técnico en el sistema' }}</p>
+    <p class="subtitle">{{ subtituloModal }}</p>
   </header>
 
   <form (ngSubmit)="crearTecnico()" class="modal-body">
@@ -56,64 +56,38 @@
               class="form-control"
               (input)="onInputChange()">
           </div>
-        </div>
 
-        <!-- Sección Derecha - Información de Acceso -->
-        <div class="images-section">
-          <div class="repuestos-container">
-            <h3>Información de Acceso</h3>
+          <div class="form-group">
+            <label>Rol <span class="required">*</span></label>
             
-            <!-- Mensaje informativo -->
-            <div class="info-message">
-              <ion-icon name="information-circle-outline"></ion-icon>
-              <p>El técnico recibirá un email con sus credenciales de acceso al sistema.</p>
+            <!-- Estado de carga de roles -->
+            <div *ngIf="loadingRoles" class="loading-roles">
+              <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+              <span>Cargando roles disponibles...</span>
             </div>
-
-            <div class="form-group">
-              <label>Contraseña <span class="required">*</span></label>
-              <input 
-                type="password" 
-                [(ngModel)]="tecnicoData.password"
-                name="password"
-                placeholder="Ingresa la contraseña"
-                class="form-control"
-                (input)="onInputChange()"
-                required>
-              <div class="password-hint">Mínimo 6 caracteres</div>
-            </div>
-
-            <div class="form-group">
-              <label>Rol <span class="required">*</span></label>
-              
-              <!-- Estado de carga de roles -->
-              <div *ngIf="loadingRoles" class="loading-roles">
-                <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-                <span>Cargando roles disponibles...</span>
-              </div>
-              
-              <!-- Selector de rol -->
-              <select 
-                *ngIf="!loadingRoles"
-                [(ngModel)]="tecnicoData.rol_id"
-                name="rol_id"
-                class="form-control"
-                (change)="onInputChange()"
-                required>
-                <option value="">Selecciona el rol</option>
-                <option 
-                  *ngFor="let rol of rolesDisponibles" 
-                  [value]="rol.value"
-                  [disabled]="rol.value === 'admin-uuid-placeholder'">
-                  {{ rol.label }}
-                  <span *ngIf="rol.value === 'admin-uuid-placeholder'"> (Requiere configuración)</span>
-                </option>
-              </select>
-              
-              <!-- Mensaje de advertencia para rol de administrador no configurado -->
-              <div *ngIf="!loadingRoles && tecnicoData.rol_id === 'admin-uuid-placeholder'" class="warning-message">
-                <ion-icon name="alert-circle-outline"></ion-icon>
-                <p>El rol de Administrador requiere configuración adicional en la base de datos. Contacta al administrador del sistema.</p>
-              </div>
+            
+            <!-- Selector de rol -->
+            <select 
+              *ngIf="!loadingRoles"
+              [(ngModel)]="tecnicoData.rol_id"
+              name="rol_id"
+              class="form-control"
+              (change)="onInputChange()"
+              required>
+              <option value="">Selecciona el rol</option>
+              <option 
+                *ngFor="let rol of rolesDisponibles" 
+                [value]="rol.value"
+                [disabled]="rol.value === 'admin-uuid-placeholder'">
+                {{ rol.label }}
+                <span *ngIf="rol.value === 'admin-uuid-placeholder'"> (Requiere configuración)</span>
+              </option>
+            </select>
+            
+            <!-- Mensaje de advertencia para rol de administrador no configurado -->
+            <div *ngIf="!loadingRoles && tecnicoData.rol_id === 'admin-uuid-placeholder'" class="warning-message">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>El rol de Administrador requiere configuración adicional en la base de datos. Contacta al administrador del sistema.</p>
             </div>
 
             <!-- Información adicional del rol -->
@@ -130,6 +104,34 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Sección Derecha - Información de Acceso -->
+        <div class="images-section">
+          <div class="repuestos-container">
+            <h3>Credenciales de Acceso</h3>
+            
+            <!-- Mensaje informativo -->
+            <div class="info-message" *ngIf="!modoEdicion">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              <p>El técnico recibirá un email con sus credenciales de acceso al sistema.</p>
+            </div>
+
+            <div class="form-group" *ngIf="!modoEdicion">
+              <label>Contraseña <span class="required">*</span></label>
+              <input 
+                type="password" 
+                [(ngModel)]="tecnicoData.password"
+                name="password"
+                placeholder="Ingresa la contraseña"
+                class="form-control"
+                (input)="onInputChange()"
+                required>
+              <div class="password-hint">Mínimo 6 caracteres</div>
+            </div>
+
+
 
             <!-- Estado de validación -->
             <div class="validation-status">
@@ -143,11 +145,11 @@
                 <ion-icon name="ellipse-outline" *ngIf="!validarEmail(tecnicoData.email)"></ion-icon>
                 <span>Email válido</span>
               </div>
-              <div class="validation-item" [class.valid]="tecnicoData.password.length >= 6">
-                <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.password.length >= 6"></ion-icon>
-                <ion-icon name="ellipse-outline" *ngIf="tecnicoData.password.length < 6"></ion-icon>
-                <span>Contraseña (mín. 6 caracteres)</span>
-              </div>
+                          <div class="validation-item" [class.valid]="modoEdicion || tecnicoData.password.length >= 6" *ngIf="!modoEdicion">
+              <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.password.length >= 6"></ion-icon>
+              <ion-icon name="ellipse-outline" *ngIf="tecnicoData.password.length < 6"></ion-icon>
+              <span>Contraseña (mín. 6 caracteres)</span>
+            </div>
               <div class="validation-item" [class.valid]="tecnicoData.rol_id">
                 <ion-icon name="checkmark-circle-outline" *ngIf="tecnicoData.rol_id"></ion-icon>
                 <ion-icon name="ellipse-outline" *ngIf="!tecnicoData.rol_id"></ion-icon>
@@ -172,7 +174,7 @@
         [disabled]="loading || !isFormValid()">
         <ion-icon name="save-outline" *ngIf="!loading"></ion-icon>
         <ion-icon name="refresh-outline" class="spinning" *ngIf="loading"></ion-icon>
-        {{ loading ? 'Creando...' : (modoEdicion ? 'Actualizar Técnico' : 'Crear Técnico') }}
+        {{ textoBotonGuardar }}
       </button>
     </div>
   </footer>

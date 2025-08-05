@@ -127,7 +127,8 @@ export class TecnicosComponent implements OnInit, OnDestroy {
     const modal = await this.modalController.create({
       component: CrearTecnicoModalComponent,
       componentProps: {
-        tecnico: null
+        tecnico: null,
+        modo: 'crear'
       }
     });
 
@@ -139,6 +140,25 @@ export class TecnicosComponent implements OnInit, OnDestroy {
       // El técnico ya fue creado exitosamente en el modal
       // Solo necesitamos recargar la lista y mostrar confirmación
       console.log('✅ Técnico creado desde modal, recargando lista...');
+      this.cargarTecnicos();
+    }
+  }
+
+  async abrirModalEditarTecnico(tecnico: Tecnico) {
+    const modal = await this.modalController.create({
+      component: CrearTecnicoModalComponent,
+      componentProps: {
+        tecnico: tecnico,
+        modo: 'editar'
+      }
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+    
+    if (role === 'confirm' && data) {
+      console.log('✅ Técnico actualizado desde modal, recargando lista...');
       this.cargarTecnicos();
     }
   }

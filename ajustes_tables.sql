@@ -103,3 +103,9 @@ COMMENT ON TABLE public.configuracion_facturacion IS 'Configuración de parámet
 COMMENT ON TABLE public.configuracion_notificaciones IS 'Configuración de notificaciones por email y SMS';
 COMMENT ON TABLE public.configuracion_avisos IS 'Configuración del sistema de avisos';
 COMMENT ON TABLE public.configuracion_sistema IS 'Configuración avanzada del sistema'; 
+
+-- Agregar campo notas_importantes a la tabla clientes
+ALTER TABLE public.clientes ADD COLUMN IF NOT EXISTS notas_importantes text;
+
+-- Comentario sobre el campo
+COMMENT ON COLUMN public.clientes.notas_importantes IS 'Notas importantes sobre el cliente para el equipo técnico'; 

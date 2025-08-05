@@ -1,10 +1,11 @@
-import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { closeOutline } from 'ionicons/icons';
 import { ViewportService } from 'src/app/core/services/viewport.service';
+import { Cliente } from '../../models/cliente.model';
 
 @Component({
   selector: 'app-crear-cliente-modal',
@@ -14,6 +15,9 @@ import { ViewportService } from 'src/app/core/services/viewport.service';
   imports: [IonicModule, CommonModule, ReactiveFormsModule]
 })
 export class CrearClienteModalComponent implements OnInit, AfterViewInit {
+  @Input() modo: 'crear' | 'editar' = 'crear';
+  @Input() cliente?: Cliente;
+  
   clienteForm: FormGroup;
 
   constructor(
@@ -36,6 +40,11 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     addIcons({ closeOutline });
+    
+    // Si estamos en modo editar y tenemos datos del cliente, cargar los datos
+    if (this.modo === 'editar' && this.cliente) {
+      this.cargarDatosCliente();
+    }
   }
 
   ngAfterViewInit() {
@@ -48,6 +57,43 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
     }, 100);
   }
 
+  private cargarDatosCliente() {
+    if (!this.cliente) return;
+
+    // Separar la dirección en sus componentes
+    const direccionCompleta = this.cliente.direccion || '';
+    const partes = direccionCompleta.split(', ');
+    
+    let direccionLocal = '';
+    let codigoPostal = '';
+    let localidad = '';
+    
+    if (partes.length >= 2) {
+      direccionLocal = partes[0];
+      const ultimaParte = partes[partes.length - 1];
+      const codigoLocalidad = ultimaParte.split(' ');
+      if (codigoLocalidad.length >= 2) {
+        codigoPostal = codigoLocalidad[0];
+        localidad = codigoLocalidad.slice(1).join(' ');
+      } else {
+        localidad = ultimaParte;
+      }
+    } else {
+      direccionLocal = direccionCompleta;
+    }
+
+    this.clienteForm.patchValue({
+      nombreContacto: this.cliente.nombre_completo || '',
+      telefono: this.cliente.telefono_contacto || '',
+      email: this.cliente.email || '',
+      notasImportantes: this.cliente.notas_importantes || '',
+      direccionLocal: direccionLocal,
+      codigoPostal: codigoPostal,
+      localidad: localidad,
+      esActivo: this.cliente.es_activo ?? true
+    });
+  }
+
   async guardarCliente() {
     if (this.clienteForm.valid) {
       const clienteData = {
@@ -55,8 +101,9 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
         telefono_contacto: this.clienteForm.value.telefono,
         email: this.clienteForm.value.correoElectronico,
         direccion: `${this.clienteForm.value.direccionLocal}, ${this.clienteForm.value.codigoPostal} ${this.clienteForm.value.localidad}`,
-        nivel_urgencia_habitual: 'Media', // Valor por defecto
-        es_activo: this.clienteForm.value.esActivo
+        nivel_urgencia_habitual: this.cliente?.nivel_urgencia_habitual || 'Media',
+        es_activo: this.clienteForm.value.esActivo,
+        notas_importantes: this.clienteForm.value.notasImportantes
       };
       await this.modalController.dismiss(clienteData, 'confirm');
     }
@@ -64,5 +111,17 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
 
   async cerrarModal() {
     await this.modalController.dismiss(null, 'cancel');
+  }
+
+  get tituloModal(): string {
+    return this.modo === 'editar' ? 'Editar cliente' : 'Añadir nuevo cliente';
+  }
+
+  get subtituloModal(): string {
+    return this.modo === 'editar' ? 'Modifica los datos del cliente' : 'Añade un nuevo cliente';
+  }
+
+  get textoBotonGuardar(): string {
+    return this.modo === 'editar' ? 'Guardar cambios' : 'Guardar cliente';
   }
 }

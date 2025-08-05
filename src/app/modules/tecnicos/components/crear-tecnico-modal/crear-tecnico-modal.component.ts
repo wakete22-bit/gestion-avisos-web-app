@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
@@ -6,7 +6,7 @@ import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, personOutline, mailOutline, callOutline, shieldOutline, alertCircleOutline, lockClosedOutline, informationCircleOutline, checkmarkCircleOutline, ellipseOutline, refreshOutline } from 'ionicons/icons';
 import { TipoRol } from '../../../../core/models/usuario.model';
 import { TecnicosService } from '../../services/tecnicos.service';
-import { CrearTecnicoRequest } from '../../models/tecnico.model';
+import { CrearTecnicoRequest, Tecnico } from '../../models/tecnico.model';
 import { RolesService } from '../../../../core/services/roles.service';
 import { Subject, takeUntil, from } from 'rxjs';
 
@@ -37,6 +37,9 @@ addIcons({
   ]
 })
 export class CrearTecnicoModalComponent implements OnInit {
+  @Input() modo: 'crear' | 'editar' = 'crear';
+  @Input() tecnico?: Tecnico;
+  
   modoEdicion = false;
   TipoRol = TipoRol; // Hacer el enum disponible en el template
   private destroy$ = new Subject<void>();
@@ -79,12 +82,31 @@ export class CrearTecnicoModalComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.modoEdicion = this.modo === 'editar';
     this.cargarRolesDisponibles();
+    
+    // Si estamos en modo editar y tenemos datos del técnico, cargar los datos
+    if (this.modoEdicion && this.tecnico) {
+      this.cargarDatosTecnico();
+    }
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private cargarDatosTecnico() {
+    if (!this.tecnico) return;
+
+    this.tecnicoData = {
+      nombre_completo: this.tecnico.nombre_completo || '',
+      email: this.tecnico.email || '',
+      password: '', // No cargar contraseña por seguridad
+      telefono: this.tecnico.telefono || '',
+      rol_id: this.tecnico.rol?.id || '',
+      es_activo: this.tecnico.es_activo ?? true
+    };
   }
 
   /**
@@ -104,10 +126,12 @@ export class CrearTecnicoModalComponent implements OnInit {
           descripcion: this.rolesService.getDescripcionRol(rol.nombre_rol as TipoRol)
         }));
         
-        // Establecer rol por defecto (Técnico si existe)
-        const rolTecnico = this.rolesDisponibles.find(r => r.label === 'Técnico');
-        if (rolTecnico) {
-          this.tecnicoData.rol_id = rolTecnico.value;
+        // Establecer rol por defecto (Técnico si existe) solo si no estamos editando
+        if (!this.modoEdicion) {
+          const rolTecnico = this.rolesDisponibles.find(r => r.label === 'Técnico');
+          if (rolTecnico) {
+            this.tecnicoData.rol_id = rolTecnico.value;
+          }
         }
         
         this.loadingRoles = false;
@@ -136,8 +160,10 @@ export class CrearTecnicoModalComponent implements OnInit {
           }
         ];
         
-        // Establecer rol por defecto
-        this.tecnicoData.rol_id = this.rolesDisponibles[1].value; // Técnico por defecto
+        // Establecer rol por defecto solo si no estamos editando
+        if (!this.modoEdicion) {
+          this.tecnicoData.rol_id = this.rolesDisponibles[1].value; // Técnico por defecto
+        }
         this.error = 'No se pudieron cargar los roles desde la base de datos. Usando valores por defecto.';
       }
     });
@@ -162,29 +188,46 @@ export class CrearTecnicoModalComponent implements OnInit {
     this.error = '';
 
     try {
-      // Crear el técnico usando el servicio
-      this.tecnicosService.crearTecnico(this.tecnicoData).pipe(
-        takeUntil(this.destroy$)
-      ).subscribe({
-        next: (tecnico) => {
-          console.log('✅ Técnico creado exitosamente:', tecnico);
-          this.modalController.dismiss(tecnico, 'confirm');
-        },
-        error: (error) => {
-          console.error('❌ Error al crear técnico:', error);
-          this.manejarErrorCreacion(error);
-          this.loading = false;
-        }
-      });
+      if (this.modoEdicion && this.tecnico) {
+        // Actualizar técnico existente
+        this.tecnicosService.actualizarTecnico(this.tecnico.id, this.tecnicoData).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: (tecnico) => {
+            console.log('✅ Técnico actualizado exitosamente:', tecnico);
+            this.modalController.dismiss(tecnico, 'confirm');
+          },
+          error: (error) => {
+            console.error('❌ Error al actualizar técnico:', error);
+            this.manejarErrorCreacion(error);
+            this.loading = false;
+          }
+        });
+      } else {
+        // Crear nuevo técnico
+        this.tecnicosService.crearTecnico(this.tecnicoData).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe({
+          next: (tecnico) => {
+            console.log('✅ Técnico creado exitosamente:', tecnico);
+            this.modalController.dismiss(tecnico, 'confirm');
+          },
+          error: (error) => {
+            console.error('❌ Error al crear técnico:', error);
+            this.manejarErrorCreacion(error);
+            this.loading = false;
+          }
+        });
+      }
     } catch (error) {
-      this.error = 'Error inesperado al crear el técnico';
+      this.error = 'Error inesperado al procesar el técnico';
       console.error('❌ Error inesperado:', error);
       this.loading = false;
     }
   }
 
   /**
-   * Maneja los errores de creación de técnico de forma más detallada
+   * Maneja los errores de creación/actualización de técnico de forma más detallada
    */
   private manejarErrorCreacion(error: any) {
     console.log('🔍 Analizando error:', error);
@@ -211,7 +254,7 @@ export class CrearTecnicoModalComponent implements OnInit {
         this.error = `❌ Error: ${error.message}`;
       }
     } else {
-      this.error = '❌ Error desconocido al crear el técnico. Por favor, intenta de nuevo.';
+      this.error = '❌ Error desconocido al procesar el técnico. Por favor, intenta de nuevo.';
     }
   }
 
@@ -231,14 +274,17 @@ export class CrearTecnicoModalComponent implements OnInit {
       return false;
     }
 
-    if (!this.tecnicoData.password.trim()) {
-      this.error = 'La contraseña es obligatoria';
-      return false;
-    }
+    // Solo validar contraseña si estamos creando un nuevo técnico
+    if (!this.modoEdicion) {
+      if (!this.tecnicoData.password.trim()) {
+        this.error = 'La contraseña es obligatoria';
+        return false;
+      }
 
-    if (this.tecnicoData.password.length < 6) {
-      this.error = 'La contraseña debe tener al menos 6 caracteres';
-      return false;
+      if (this.tecnicoData.password.length < 6) {
+        this.error = 'La contraseña debe tener al menos 6 caracteres';
+        return false;
+      }
     }
 
     if (!this.tecnicoData.rol_id) {
@@ -262,10 +308,16 @@ export class CrearTecnicoModalComponent implements OnInit {
   }
 
   isFormValid(): boolean {
-    return !!this.tecnicoData.nombre_completo.trim() &&
+    const baseValidation = !!this.tecnicoData.nombre_completo.trim() &&
            this.validarEmail(this.tecnicoData.email) &&
-           this.tecnicoData.password.length >= 6 &&
            !!this.tecnicoData.rol_id;
+    
+    // Solo validar contraseña si estamos creando un nuevo técnico
+    if (this.modoEdicion) {
+      return baseValidation;
+    } else {
+      return baseValidation && this.tecnicoData.password.length >= 6;
+    }
   }
 
   getRolLabel(rolId: string): string {
@@ -282,5 +334,17 @@ export class CrearTecnicoModalComponent implements OnInit {
     if (this.error) {
       this.error = '';
     }
+  }
+
+  get tituloModal(): string {
+    return this.modoEdicion ? 'Editar Técnico' : 'Crear Nuevo Técnico';
+  }
+
+  get subtituloModal(): string {
+    return this.modoEdicion ? 'Modifica los datos del técnico' : 'Registra un nuevo técnico en el sistema';
+  }
+
+  get textoBotonGuardar(): string {
+    return this.loading ? 'Procesando...' : (this.modoEdicion ? 'Actualizar Técnico' : 'Crear Técnico');
   }
 } 

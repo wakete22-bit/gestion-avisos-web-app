@@ -246,7 +246,10 @@ export class ClientesComponent implements OnInit, OnDestroy {
       component: CrearClienteModalComponent,
       cssClass: 'modal-crear-cliente',
       showBackdrop: true,
-      backdropDismiss: true
+      backdropDismiss: true,
+      componentProps: {
+        modo: 'crear'
+      }
     });
     await modal.present();
     const { data, role } = await modal.onWillDismiss();
@@ -268,6 +271,43 @@ export class ClientesComponent implements OnInit, OnDestroy {
           error: (error) => {
             console.error('Error al crear cliente:', error);
             this.error = 'Error al crear el cliente. Por favor, inténtalo de nuevo.';
+            this.loading = false;
+          }
+        });
+    }
+  }
+
+  async abrirModalEditarCliente(cliente: Cliente) {
+    const modal = await this.modalController.create({
+      component: CrearClienteModalComponent,
+      cssClass: 'modal-crear-cliente',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        modo: 'editar',
+        cliente: cliente
+      }
+    });
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data) {
+      console.log('Datos actualizados del cliente:', data);
+      
+      // Actualizar el cliente en Supabase
+      this.loading = true;
+      this.error = null;
+      
+      this.clientesService.actualizarCliente(cliente.id, data)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (clienteActualizado) => {
+            console.log('Cliente actualizado exitosamente:', clienteActualizado);
+            this.loading = false;
+            // La lista se actualiza automáticamente a través del BehaviorSubject
+          },
+          error: (error) => {
+            console.error('Error al actualizar cliente:', error);
+            this.error = 'Error al actualizar el cliente. Por favor, inténtalo de nuevo.';
             this.loading = false;
           }
         });

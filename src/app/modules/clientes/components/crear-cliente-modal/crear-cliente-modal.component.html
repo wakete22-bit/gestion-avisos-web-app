@@ -1,12 +1,12 @@
 <div class="modal-container">
   <header class="modal-header">
     <div class="header-content">
-      <h2>Añadir nuevo cliente</h2>
+      <h2>{{ tituloModal }}</h2>
       <button class="close-button" (click)="cerrarModal()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
-    <p class="subtitle">Añade un nuevo cliente</p>
+    <p class="subtitle">{{ subtituloModal }}</p>
   </header>
 
   <div class="modal-content">
@@ -105,7 +105,7 @@
         class="btn btn-primary" 
         (click)="guardarCliente()"
         [disabled]="!clienteForm.valid">
-        Guardar cliente
+        {{ textoBotonGuardar }}
       </button>
     </div>
   </footer>

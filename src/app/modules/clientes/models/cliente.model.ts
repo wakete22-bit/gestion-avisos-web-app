@@ -8,6 +8,7 @@ export interface Cliente {
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;
   es_activo: boolean;
+  notas_importantes?: string;
 }
 
 export interface CrearClienteRequest {
@@ -17,6 +18,7 @@ export interface CrearClienteRequest {
   email?: string;
   nivel_urgencia_habitual?: string;
   es_activo?: boolean;
+  notas_importantes?: string;
 }
 
 export interface ActualizarClienteRequest {
@@ -26,6 +28,7 @@ export interface ActualizarClienteRequest {
   email?: string;
   nivel_urgencia_habitual?: string;
   es_activo?: boolean;
+  notas_importantes?: string;
 }
 
 export interface ClienteResponse {
