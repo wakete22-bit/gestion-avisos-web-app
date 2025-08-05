@@ -1,10 +1,14 @@
 // Importar y reutilizar estilos de crear-factura
+ion-content {
+  --background: #fff;
+}
+
 .factura-container {
-  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
   gap: 0;
   display: block;
+  background-color: white;
 }
 
 .page-header {
@@ -163,18 +167,18 @@
         text-transform: uppercase;
         
         &.estado-pendiente {
-          background: #fef3c7;
-          color: #92400e;
+          background: var(--estado-pendiente-bg);
+          color: var(--estado-pendiente-color);
         }
         
         &.estado-en-curso {
-          background: #dbeafe;
-          color: #1e40af;
+          background: var(--estado-en-curso-bg);
+          color: var(--estado-en-curso-color);
         }
         
         &.estado-completado {
-          background: #d1fae5;
-          color: #065f46;
+          background: var(--estado-completado-bg);
+          color: var(--estado-completado-color);
         }
       }
     }

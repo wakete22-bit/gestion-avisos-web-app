@@ -1,11 +1,3 @@
-<!-- Botón de volver -->
-<div class="back-button">
-  <button class="btn-back" (click)="volverALista()">
-    <ion-icon name="arrow-back-outline"></ion-icon>
-    Volver a la lista
-  </button>
-</div>
-
 <!-- Loading State -->
 <div *ngIf="loading" class="loading-state">
   <div class="loading-spinner">
@@ -29,7 +21,15 @@
 <!-- Información General -->
 <div *ngIf="aviso && !loading" class="info-card">
   <div class="card-header">
-    <h2>Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</h2>
+    <div class="header-container" style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+      <!-- Botón de volver -->
+      <div class="back-button" style="margin-bottom: 0px;">
+        <button class="btn-back" (click)="volverALista()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Volver
+        </button>
+      </div>
+    </div>
     <div class="header-actions">
       <button class="btn-secondary" (click)="cerrarAlbaran()">
         <ion-icon name="close"></ion-icon>
@@ -41,6 +41,8 @@
       </button>
     </div>
   </div>
+
+  <h2 class="title">Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</h2>
 
   <div class="info-grid">
     <div class="info-row">
@@ -133,14 +135,7 @@
         <ion-icon name="add-circle"></ion-icon>
         {{ subiendoImagenes ? 'Subiendo...' : 'Añadir imágenes' }}
       </button>
-      <input 
-        #fileInput 
-        type="file" 
-        multiple 
-        accept="image/*" 
-        style="display: none;"
-        (change)="onFileSelected($event)"
-      >
+      <input #fileInput type="file" multiple accept="image/*" style="display: none;" (change)="onFileSelected($event)">
     </div>
   </div>
 
@@ -150,7 +145,7 @@
       <ion-icon name="refresh-outline" class="spinning"></ion-icon>
       <p>Subiendo imágenes...</p>
     </div>
-    
+
     <div *ngIf="!aviso?.fotos || aviso?.fotos?.length === 0" class="no-images">
       <p>No hay imágenes disponibles para este aviso</p>
     </div>
@@ -184,11 +179,9 @@
   </div>
 
   <!-- Gestión del Flujo Automático - MOVIDO AQUÍ -->
-  <div class="flujo-section" *ngIf="aviso?.id">    
+  <div class="flujo-section" *ngIf="aviso?.id">
     <div class="flujo-container">
-      <app-flujo-estado 
-        [avisoId]="aviso?.id || ''" 
-        (accionEjecutada)="onAccionFlujoEjecutada($event)">
+      <app-flujo-estado [avisoId]="aviso?.id || ''" (accionEjecutada)="onAccionFlujoEjecutada($event)">
       </app-flujo-estado>
     </div>
   </div>

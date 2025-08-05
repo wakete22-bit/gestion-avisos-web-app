@@ -121,7 +121,13 @@ export class VerAvisosComponent implements OnInit {
    * Navega de vuelta a la lista de avisos
    */
   volverALista() {
-    this.router.navigate(['/avisos']);
+    // Verificar si vino desde el historial
+    const referrer = document.referrer;
+    if (referrer && referrer.includes('/historial')) {
+      this.router.navigate(['/historial']);
+    } else {
+      this.router.navigate(['/avisos']);
+    }
   }
 
   verCliente() {

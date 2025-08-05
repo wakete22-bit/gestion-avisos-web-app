@@ -780,18 +780,18 @@ ion-content {
   gap: 4px;
 
   &.yellow {
-    background: #FFF7E6;
-    color: #B25E02;
+    background: var(--estado-en-curso-bg);
+    color: var(--estado-en-curso-color);
   }
 
   &.red {
-    background: #FEE4E2;
-    color: #D92D20;
+    background: var(--estado-pendiente-bg);
+    color: var(--estado-pendiente-color);
   }
 
   &.green {
-    background: #E6F4EA;
-    color: #137333;
+    background: var(--estado-completado-bg);
+    color: var(--estado-completado-color);
   }
 }
 
@@ -1175,33 +1175,33 @@ ion-icon[name="alert-circle"] {
               text-overflow: ellipsis;
               
               &.yellow {
-                background: #FFF7E6;
-                color: #B25E02;
+                background: var(--estado-en-curso-bg);
+                color: var(--estado-en-curso-color);
               }
               
               &.red {
-                background: #FEE4E2;
-                color: #D92D20;
+                background: var(--estado-pendiente-bg);
+                color: var(--estado-pendiente-color);
               }
               
               &.green {
-                background: #E6F4EA;
-                color: #137333;
+                background: var(--estado-completado-bg);
+                color: var(--estado-completado-color);
               }
               
               &.no-visitado {
-                background: #FEE2E2;
-                color: #DC2626;
+                background: var(--estado-no-visitado-bg);
+                color: var(--estado-no-visitado-color);
               }
               
               &.visitado-pendiente {
-                background: #FEF3C7;
-                color: #D97706;
+                background: var(--estado-visitado-pendiente-bg);
+                color: var(--estado-visitado-pendiente-color);
               }
               
               &.pendiente-presupuesto {
-                background: #DBEAFE;
-                color: #2563EB;
+                background: var(--estado-pendiente-presupuesto-bg);
+                color: var(--estado-pendiente-presupuesto-color);
               }
             }
           }

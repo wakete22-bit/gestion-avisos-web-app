@@ -25,27 +25,45 @@ export class AvisosService {
     }
 
     /**
-     * Obtiene la lista de avisos con paginación y filtros
+     * Obtiene la lista de avisos con paginación y filtros - VERSIÓN OPTIMIZADA
      */
     getAvisos(
         pagina: number = 1,
-        porPagina: number = 10,
+        porPagina: number = 20, // Aumentado de 10 a 20
         busqueda?: string,
         ordenarPor?: string,
         orden?: 'asc' | 'desc',
         estado?: string,
         incluirCompletados: boolean = false
     ): Observable<AvisoResponse> {
+        // Consulta optimizada - incluir campos requeridos por el tipo Aviso
         let query = this.supabase
             .from('avisos')
             .select(`
-        *,
-        cliente:clientes(*),
-        tecnico_asignado:usuarios(*),
-        fotos:fotos_aviso(*)
-      `, { count: 'exact' });
+                id,
+                cliente_id,
+                tecnico_asignado_id,
+                fecha_creacion,
+                fecha_actualizacion,
+                nombre_cliente_aviso,
+                direccion_cliente_aviso,
+                telefono_cliente_aviso,
+                nombre_contacto,
+                tipo,
+                descripcion_problema,
+                estado,
+                urgencia,
+                es_urgente,
+                latitud,
+                longitud,
+                fecha_finalizacion,
+                requiere_presupuesto,
+                requiere_nueva_visita,
+                cliente:clientes!inner(id, nombre_completo, direccion, telefono_contacto, email, nivel_urgencia_habitual, es_activo, fecha_creacion, fecha_actualizacion),
+                tecnico_asignado:usuarios(id, nombre_completo, email, telefono, rol_id, fecha_creacion, fecha_actualizacion)
+            `, { count: 'exact' });
 
-        // Aplicar filtros
+        // Aplicar filtros de manera más eficiente
         if (busqueda) {
             query = query.or(`nombre_cliente_aviso.ilike.%${busqueda}%,descripcion_problema.ilike.%${busqueda}%`);
         }
@@ -53,7 +71,6 @@ export class AvisosService {
         if (estado) {
             query = query.eq('estado', estado);
         } else if (!incluirCompletados) {
-            // Por defecto, excluir avisos completados si no se especifica estado
             query = query.neq('estado', 'Completado');
         }
 
@@ -67,7 +84,7 @@ export class AvisosService {
             map(({ data, error, count }) => {
                 if (error) throw error;
 
-                const avisos = data as Aviso[];
+                const avisos = data as unknown as Aviso[];
                 this.avisosSubject.next(avisos);
 
                 return {
@@ -85,24 +102,28 @@ export class AvisosService {
     }
 
     /**
-     * Obtiene un aviso por su ID
+     * Obtiene un aviso por su ID - VERSIÓN OPTIMIZADA
      */
     getAviso(id: string): Observable<Aviso> {
         return from(
             this.supabase
                 .from('avisos')
                 .select(`
-          *,
-          cliente:clientes(*),
-          tecnico_asignado:usuarios(*),
-          fotos:fotos_aviso(*)
-        `)
+                    *,
+                    cliente:clientes!inner(*),
+                    tecnico_asignado:usuarios(*),
+                    fotos:fotos_aviso(id, url, descripcion, fecha_subida)
+                `)
                 .eq('id', id)
                 .single()
         ).pipe(
             map(({ data, error }) => {
                 if (error) throw error;
                 return data as Aviso;
+            }),
+            catchError(error => {
+                console.error('Error al obtener aviso:', error);
+                throw error;
             })
         );
     }

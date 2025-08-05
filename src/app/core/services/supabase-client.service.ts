@@ -52,11 +52,21 @@ export class SupabaseClientService {
             headers: {
               'X-Client-Info': 'gestion-avisos-app'
             }
+          },
+          // Configuración de rendimiento optimizada
+          db: {
+            schema: 'public'
+          },
+          // Configuración de realtime optimizada
+          realtime: {
+            params: {
+              eventsPerSecond: 10 // Limitar eventos por segundo
+            }
           }
         }
       );
       
-      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado');
+      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado con optimizaciones');
     }
     
     return SupabaseClientService.instance;

@@ -299,19 +299,19 @@ ion-content {
     align-items: center;
     gap: 4px;
   
-    &.yellow {
-      background: #FFF7E6;
-      color: #B25E02;
+        &.yellow {
+      background: var(--estado-en-curso-bg);
+      color: var(--estado-en-curso-color);
     }
-  
+
     &.red {
-      background: #FEE4E2;
-      color: #D92D20;
+      background: var(--estado-pendiente-bg);
+      color: var(--estado-pendiente-color);
     }
-  
+
     &.green {
-      background: #E6F4EA;
-      color: #137333;
+      background: var(--estado-completado-bg);
+      color: var(--estado-completado-color);
     }
   }
   

@@ -12,10 +12,9 @@ import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
 import { environment } from 'src/environments/environment';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { CacheService } from '../../../../core/services/cache.service';
 import { Aviso } from '../../models/aviso.model';
-import { Subject, takeUntil } from 'rxjs';
-
-
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-avisos',
@@ -36,22 +35,22 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   isMapView = false;
   private map: MapLibreMap | null = null;
   private avisoMarkers: Map<string, Marker> = new Map();
-  selectedAviso: string | null = null; // Para rastrear el aviso seleccionado
+  selectedAviso: string | null = null;
 
   avisos: Aviso[] = [];
   loading = false;
   error: string | null = null;
   totalAvisos = 0;
   paginaActual = 1;
-  porPagina = 10;
+  porPagina = 20; // Aumentado de 10 a 20
   busqueda = '';
   ordenarPor = 'fecha_creacion';
   orden: 'asc' | 'desc' = 'desc';
   estadoFiltro = '';
 
   private destroy$ = new Subject<void>();
+  private busquedaSubject = new Subject<string>();
   
-  // Hacer Math disponible en el template
   Math = Math;
 
   constructor(
@@ -59,17 +58,19 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private geocodingService: GeocodingService,
     private avisosService: AvisosService,
+    private cacheService: CacheService,
     private router: Router
   ) {
     addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    
+    // Configurar debounce para búsqueda
+    this.configurarBusqueda();
   }
 
   ngAfterViewInit() {
     // Cargar avisos al inicializar
     this.cargarAvisos();
     this.suscribirseAAvisos();
-    
-    // No inicializamos el mapa aquí para evitar que se cargue innecesariamente
     
     // Listener para detectar cambios en pantalla completa
     document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
@@ -80,12 +81,6 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     // Listener para ajustar posición del botón en resize
     window.addEventListener('resize', this.handleResize.bind(this));
   }
-
-  // ngAfterViewChecked() {
-  //   if (this.isMapView && this.map) {
-  //     this.map.resize();
-  //   }
-  // }
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -103,6 +98,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', this.handleResize.bind(this));
   }
 
+  /**
+   * Maneja los cambios en pantalla completa
+   */
   private handleFullscreenChange() {
     // Si salimos de pantalla completa, restaurar el estado normal
     const isFullscreen = !!(document.fullscreenElement || 
@@ -116,19 +114,54 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Carga la lista de avisos desde el servicio
+   * Configura la búsqueda con debounce para optimizar rendimiento
+   */
+  private configurarBusqueda() {
+    this.busquedaSubject.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(500), // Aumentado de 300ms a 500ms para reducir consultas
+      distinctUntilChanged()
+    ).subscribe(termino => {
+      this.busqueda = termino;
+      this.paginaActual = 1; // Resetear a la primera página
+      this.cargarAvisos();
+    });
+  }
+
+  /**
+   * Maneja la búsqueda de avisos con debounce
+   */
+  onBuscar(termino: string) {
+    this.busquedaSubject.next(termino);
+  }
+
+  /**
+   * Carga avisos con caché y optimizaciones
    */
   cargarAvisos() {
     this.loading = true;
     this.error = null;
 
-    this.avisosService.getAvisosActivos(
-      this.paginaActual,
-      this.porPagina,
-      this.busqueda,
-      this.ordenarPor,
-      this.orden,
-      this.estadoFiltro
+    const cacheKey = this.cacheService.generateKey('avisos', {
+      pagina: this.paginaActual,
+      porPagina: this.porPagina,
+      busqueda: this.busqueda,
+      ordenarPor: this.ordenarPor,
+      orden: this.orden,
+      estadoFiltro: this.estadoFiltro
+    });
+
+    this.cacheService.getOrSet(
+      cacheKey,
+      () => this.avisosService.getAvisosActivos(
+        this.paginaActual,
+        this.porPagina,
+        this.busqueda,
+        this.ordenarPor,
+        this.orden,
+        this.estadoFiltro
+      ),
+      2 * 60 * 1000 // 2 minutos de caché
     ).pipe(
       takeUntil(this.destroy$)
     ).subscribe({

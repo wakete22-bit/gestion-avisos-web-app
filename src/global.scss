@@ -537,3 +537,28 @@ section {
     }
   }
 }
+
+// Variables globales para colores de estados
+:root {
+  // Estados de avisos, facturas, presupuestos, etc.
+  --estado-pendiente-bg: #FEE4E2;
+  --estado-pendiente-color: #D92D20;
+  
+  --estado-en-curso-bg: #FFF7E6;
+  --estado-en-curso-color: #B25E02;
+  
+  --estado-completado-bg: #E6F4EA;
+  --estado-completado-color: #137333;
+  
+  --estado-cancelado-bg: #FEE2E2;
+  --estado-cancelado-color: #DC2626;
+  
+  --estado-no-visitado-bg: #FEE2E2;
+  --estado-no-visitado-color: #DC2626;
+  
+  --estado-visitado-pendiente-bg: #FEF3C7;
+  --estado-visitado-pendiente-color: #D97706;
+  
+  --estado-pendiente-presupuesto-bg: #DBEAFE;
+  --estado-pendiente-presupuesto-color: #2563EB;
+}

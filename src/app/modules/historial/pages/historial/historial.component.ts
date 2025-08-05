@@ -19,6 +19,7 @@ import {
 import { Aviso } from 'src/app/modules/avisos/models/aviso.model';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { Subject, takeUntil } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-historial',
@@ -51,7 +52,10 @@ export class HistorialComponent implements OnInit, OnDestroy {
   // Hacer Math disponible en el template
   Math = Math;
 
-  constructor(private avisosService: AvisosService) { 
+  constructor(
+    private avisosService: AvisosService,
+    private router: Router
+  ) { 
     addIcons({searchOutline,eyeOutline,refreshOutline,alertCircleOutline,alertCircle,close,chevronBackOutline,chevronForwardOutline,mapOutline,addCircle,add,addCircleOutline,locationOutline,calendarOutline});
   }
 
@@ -188,6 +192,15 @@ export class HistorialComponent implements OnInit, OnDestroy {
    */
   ultimaPagina() {
     this.cambiarPagina(this.obtenerTotalPaginas());
+  }
+
+  /**
+   * Navega al detalle de un aviso
+   */
+  verDetalleAviso(aviso: Aviso) {
+    if (aviso.id) {
+      this.router.navigate(['/ver-aviso', aviso.id]);
+    }
   }
 
 }
