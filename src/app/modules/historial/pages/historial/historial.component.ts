@@ -15,7 +15,7 @@ import {
   searchOutline,
   locationOutline,
   calendarOutline,
-  refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+  refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, timeOutline } from 'ionicons/icons';
 import { Aviso } from 'src/app/modules/avisos/models/aviso.model';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -38,7 +38,7 @@ export class HistorialComponent implements OnInit, OnDestroy {
 
   displayedColumns: string[] = ['id', 'estado', 'nombre_cliente_aviso', 'descripcion_problema', 'fecha_creacion', 'es_urgente', 'direccion', 'acciones'];
   avisos: Aviso[] = [];
-  loading = false;
+  loading = true; // Cambiar a true para mostrar carga inicial
   error: string | null = null;
   totalAvisos = 0;
   paginaActual = 1;
@@ -56,7 +56,7 @@ export class HistorialComponent implements OnInit, OnDestroy {
     private avisosService: AvisosService,
     private router: Router
   ) { 
-    addIcons({searchOutline,eyeOutline,refreshOutline,alertCircleOutline,alertCircle,close,chevronBackOutline,chevronForwardOutline,mapOutline,addCircle,add,addCircleOutline,locationOutline,calendarOutline});
+    addIcons({searchOutline,eyeOutline,refreshOutline,alertCircleOutline,alertCircle,close,timeOutline,chevronBackOutline,chevronForwardOutline,mapOutline,addCircle,add,addCircleOutline,locationOutline,calendarOutline});
   }
 
   ngOnInit() {

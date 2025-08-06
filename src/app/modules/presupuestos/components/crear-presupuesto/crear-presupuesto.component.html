@@ -6,11 +6,19 @@
         <ion-icon name="arrow-back-outline"></ion-icon>
         Volver
       </button>
-      <h1>Crear Presupuesto</h1>
+      <h1>{{ modoEdicion ? 'Editar Presupuesto' : 'Crear Presupuesto' }}</h1>
+    </div>
+
+    <!-- Estado de carga -->
+    <div *ngIf="loading && modoEdicion" class="loading-state">
+      <div class="loading-spinner">
+        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+        <p>Cargando presupuesto...</p>
+      </div>
     </div>
 
     <!-- Información del Aviso -->
-    <div class="aviso-info" *ngIf="aviso">
+    <div class="aviso-info" *ngIf="aviso && !loading">
       <h2>Aviso: #{{ aviso.id?.substring(0, 8) }}</h2>
       <p><strong>Cliente:</strong> {{ aviso.nombre_cliente_aviso }}</p>
       <p><strong>Descripción:</strong> {{ aviso.descripcion_problema }}</p>
@@ -98,7 +106,7 @@
         </button>
         <button type="submit" class="btn-primary" [disabled]="!presupuestoForm.valid || loading">
           <ion-icon name="save-outline"></ion-icon>
-          {{ loading ? 'Guardando...' : 'Guardar Presupuesto' }}
+          {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
         </button>
       </div>
     </form>

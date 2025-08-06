@@ -1,32 +1,3 @@
--- WARNING: This schema is for context only and is not meant to be run.
--- Table order and constraints may not be valid for execution.
-
--- Extensión necesaria para UUID
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Tabla de roles (necesaria para usuarios)
-CREATE TABLE public.roles (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  nombre_rol text NOT NULL UNIQUE,
-  CONSTRAINT roles_pkey PRIMARY KEY (id)
-);
-
--- Tabla de usuarios
-CREATE TABLE public.usuarios (
-  id uuid NOT NULL,
-  nombre_completo text NOT NULL,
-  email text NOT NULL UNIQUE,
-  telefono text,
-  rol_id uuid NOT NULL,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  es_activo boolean NOT NULL DEFAULT true,
-  fecha_ultimo_acceso timestamp with time zone,
-  CONSTRAINT usuarios_pkey PRIMARY KEY (id),
-  CONSTRAINT usuarios_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
-  CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id)
-);
-
 -- ===========================================
 -- COMANDOS PARA ELIMINAR EL CONTENIDO DE TODAS LAS TABLAS EXCEPTO USUARIOS Y ROLES
 -- ===========================================
@@ -54,4 +25,4 @@ TRUNCATE TABLE public.configuracion_sistema CASCADE;
 
 -- NOTA: Las tablas usuarios y roles mantienen su contenido
 -- TRUNCATE TABLE public.usuarios CASCADE;  -- NO EJECUTAR
--- TRUNCATE TABLE public.roles CASCADE;     -- NO EJECUTAR
+-- TRUNCATE TABLE public.roles CASCADE;     -- NO EJECUTAR 

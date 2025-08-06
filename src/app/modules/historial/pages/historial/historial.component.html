@@ -1,5 +1,26 @@
 <ion-content>  
-  <section class="dashboard-table">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando historial...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="refrescarHistorial()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <section *ngIf="!loading && !error" class="dashboard-table">
     <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
@@ -42,28 +63,8 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-state">
-      <div class="loading-spinner">
-        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-        <p>Cargando historial...</p>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="error-state">
-      <div class="error-message">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <p>{{ error }}</p>
-        <button class="btn-retry" (click)="refrescarHistorial()">
-          <ion-icon name="refresh-outline"></ion-icon>
-          Reintentar
-        </button>
-      </div>
-    </div>
-
     <!-- Compact Table View (grid, igual que avisos) -->
-    <div *ngIf="!loading && !error" class="compact-historial-table">
+    <div *ngIf="avisos.length > 0" class="compact-historial-table">
       <div class="historial-table">
         <div class="table-header">
           <div class="header-row">
@@ -104,8 +105,21 @@
       </div>
     </div>
 
+    <!-- Estado de datos vacíos -->
+    <div *ngIf="avisos.length === 0 && !loading && !error" class="no-data-container">
+      <div class="no-data-message">
+        <ion-icon name="time-outline"></ion-icon>
+        <h3>No hay servicios completados</h3>
+        <p>Aún no se han completado servicios. Los servicios completados aparecerán aquí.</p>
+        <button class="btn-create" (click)="refrescarHistorial()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Actualizar historial
+        </button>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <div *ngIf="totalAvisos > 0" class="table-pagination">
+    <div *ngIf="avisos.length > 0 && totalAvisos > 0" class="table-pagination">
       <span class="pagination-info">
         Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalAvisos) }} de {{ totalAvisos }} servicios
       </span>

@@ -1,5 +1,26 @@
 <ion-content>
-  <section class="dashboard-table">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando avisos...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="refrescarAvisos()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <section *ngIf="!loading && !error" class="dashboard-table">
     <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-container">
@@ -47,28 +68,8 @@
     </div>
 
     <ng-container *ngIf="!isMapView">
-      <!-- Loading State -->
-      <div *ngIf="loading" class="loading-state">
-        <div class="loading-spinner">
-          <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-          <p>Cargando avisos...</p>
-        </div>
-      </div>
-
-      <!-- Error State -->
-      <div *ngIf="error && !loading" class="error-state">
-        <div class="error-message">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <p>{{ error }}</p>
-          <button class="btn-retry" (click)="refrescarAvisos()">
-            <ion-icon name="refresh-outline"></ion-icon>
-            Reintentar
-          </button>
-        </div>
-      </div>
-
       <!-- Compact Table View (replaces desktop table and mobile cards) -->
-      <div *ngIf="!loading && !error" class="compact-avisos-table">
+      <div *ngIf="avisos.length > 0" class="compact-avisos-table">
         <div class="avisos-table">
           <div class="table-header">
             <div class="header-row">
@@ -132,8 +133,21 @@
         </div>
       </div>
 
+      <!-- Estado de datos vacíos -->
+      <div *ngIf="avisos.length === 0 && !loading && !error" class="no-data-container">
+        <div class="no-data-message">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <h3>No hay avisos</h3>
+          <p>Aún no se han creado avisos. Crea el primero para comenzar.</p>
+          <button class="btn-create" (click)="abrirModalCrearAviso()">
+            <ion-icon name="add-circle"></ion-icon>
+            Crear aviso
+          </button>
+        </div>
+      </div>
+
       <!-- Pagination -->
-      <div *ngIf="totalAvisos > 0" class="table-pagination">
+      <div *ngIf="avisos.length > 0 && totalAvisos > 0" class="table-pagination">
         <span class="pagination-info">
           Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalAvisos) }} de {{ totalAvisos }} avisos
         </span>
@@ -190,7 +204,21 @@
     </ng-container>
 
     <ng-container *ngIf="isMapView">
-      <div class="map-view-container">
+      <!-- Estado de datos vacíos para vista de mapa -->
+      <div *ngIf="avisos.length === 0 && !loading && !error" class="no-data-container">
+        <div class="no-data-message">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <h3>No hay avisos</h3>
+          <p>Aún no se han creado avisos. Crea el primero para comenzar.</p>
+          <button class="btn-create" (click)="abrirModalCrearAviso()">
+            <ion-icon name="add-circle"></ion-icon>
+            Crear aviso
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista de mapa con datos -->
+      <div *ngIf="avisos.length > 0" class="map-view-container">
         <div class="map-list-container">
 
           <div class="map-avisos-table">

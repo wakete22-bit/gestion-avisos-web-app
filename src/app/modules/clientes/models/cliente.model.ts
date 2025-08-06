@@ -8,7 +8,7 @@ export interface Cliente {
   fecha_creacion?: Date;
   fecha_actualizacion?: Date;
   es_activo: boolean;
-  notas_importantes?: string;
+  // notas_importantes?: string; // Comentado temporalmente hasta que se ejecute la migración SQL
 }
 
 export interface CrearClienteRequest {
@@ -18,7 +18,7 @@ export interface CrearClienteRequest {
   email?: string;
   nivel_urgencia_habitual?: string;
   es_activo?: boolean;
-  notas_importantes?: string;
+  // notas_importantes?: string; // Comentado temporalmente hasta que se ejecute la migración SQL
 }
 
 export interface ActualizarClienteRequest {
@@ -28,7 +28,7 @@ export interface ActualizarClienteRequest {
   email?: string;
   nivel_urgencia_habitual?: string;
   es_activo?: boolean;
-  notas_importantes?: string;
+  // notas_importantes?: string; // Comentado temporalmente hasta que se ejecute la migración SQL
 }
 
 export interface ClienteResponse {

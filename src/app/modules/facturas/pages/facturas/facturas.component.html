@@ -1,5 +1,26 @@
 <ion-content>
-  <section class="dashboard-table">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando facturas...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="cargarFacturas()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <section *ngIf="!loading && !error" class="dashboard-table">
     <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
@@ -43,7 +64,7 @@
     </div>
 
     <!-- Compact Table View (replaces desktop table and mobile cards) -->
-    <div class="compact-facturas-table">
+    <div *ngIf="!loading && facturas.length > 0" class="compact-facturas-table">
       <div class="facturas-table">
         <div class="table-header">
           <div class="header-row">
@@ -57,12 +78,6 @@
           </div>
         </div>
         <div class="table-body">
-          <div *ngIf="loading" class="loading-row">
-            <div class="loading-spinner">Cargando facturas...</div>
-          </div>
-          <div *ngIf="!loading && facturas.length === 0" class="empty-row">
-            <div class="empty-message">No hay facturas disponibles</div>
-          </div>
           <div *ngFor="let factura of facturas" class="factura-row" [ngClass]="{
                  'en-curso': factura.estado === 'En curso',
                  'pendiente': factura.estado === 'Pendiente',
@@ -96,8 +111,21 @@
       </div>
     </div>
 
+    <!-- Estado de datos vacíos -->
+    <div *ngIf="facturas.length === 0 && !loading" class="no-data-container">
+      <div class="no-data-message">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <h3>No hay facturas</h3>
+        <p>Aún no se han creado facturas. Crea la primera para comenzar.</p>
+        <button class="btn-create" (click)="abrirCrearFactura()">
+          <ion-icon name="add-circle"></ion-icon>
+          Crear factura
+        </button>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <!-- <div class="table-pagination" *ngIf="totalFacturas > 0">
+    <div *ngIf="facturas.length > 0 && totalFacturas > 0" class="table-pagination">
       <span class="pagination-info">
         Mostrando datos {{ (paginaActual - 1) * porPagina + 1 }} a {{ Math.min(paginaActual * porPagina, totalFacturas) }} de {{ totalFacturas }} facturas
       </span>
@@ -105,11 +133,11 @@
         <button 
           *ngFor="let pagina of getPaginas()" 
           [class.active]="pagina === paginaActual"
-          (click)="cambiarPagina(pagina)"
+          (click)="onCambiarPagina(pagina)"
           [disabled]="pagina === '...'">
           {{ pagina }}
         </button>
       </div>
-    </div> -->
+    </div>
   </section>
 </ion-content>

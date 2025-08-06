@@ -30,7 +30,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
       nombreContacto: ['', Validators.required],
       telefono: ['', Validators.required],
       correoElectronico: ['', [Validators.required, Validators.email]],
-      notasImportantes: ['', Validators.maxLength(200)],
+      // notasImportantes: ['', Validators.maxLength(200)], // Comentado temporalmente
       direccionLocal: ['', Validators.required],
       codigoPostal: ['', Validators.required],
       localidad: ['', Validators.required],
@@ -86,7 +86,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
       nombreContacto: this.cliente.nombre_completo || '',
       telefono: this.cliente.telefono_contacto || '',
       email: this.cliente.email || '',
-      notasImportantes: this.cliente.notas_importantes || '',
+      // notasImportantes: this.cliente.notas_importantes || '', // Comentado temporalmente
       direccionLocal: direccionLocal,
       codigoPostal: codigoPostal,
       localidad: localidad,
@@ -103,7 +103,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
         direccion: `${this.clienteForm.value.direccionLocal}, ${this.clienteForm.value.codigoPostal} ${this.clienteForm.value.localidad}`,
         nivel_urgencia_habitual: this.cliente?.nivel_urgencia_habitual || 'Media',
         es_activo: this.clienteForm.value.esActivo,
-        notas_importantes: this.clienteForm.value.notasImportantes
+        // notas_importantes: this.clienteForm.value.notasImportantes // Comentado temporalmente
       };
       await this.modalController.dismiss(clienteData, 'confirm');
     }

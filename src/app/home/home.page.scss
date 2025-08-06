@@ -121,6 +121,7 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
 
 // Estados de datos vacíos
 .no-data {
+  width: 100%;
   text-align: center;
   padding: 24px;
   color: $text-secondary;
@@ -328,7 +329,6 @@ ion-content {
 
 .pending-cards-desktop {
   display: flex;
-  gap: 24px;
 }
 
 .pending-card {

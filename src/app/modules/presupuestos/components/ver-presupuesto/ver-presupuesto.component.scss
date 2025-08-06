@@ -1,8 +1,12 @@
+ion-content {
+  --background: #fff;
+}
+
 // Reutilizar estilos similares a ver-factura y crear-presupuesto
 .presupuesto-container {
-  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #fff;
 }
 
 .page-header {

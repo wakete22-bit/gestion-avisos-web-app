@@ -46,7 +46,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 export class ClientesComponent implements OnInit, OnDestroy {
 
   clientes: Cliente[] = [];
-  loading = false;
+  loading = true; // Cambiar a true para mostrar carga inicial
   error: string | null = null;
   totalClientes = 0;
   paginaActual = 1;

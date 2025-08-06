@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline } from 'ionicons/icons';
+import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline } from 'ionicons/icons';
 
 import { FacturasService } from '../../services/facturas.service';
 import { FacturaCompleta } from '../../models/factura.model';
@@ -27,7 +27,7 @@ export class VerFacturaComponent implements OnInit {
     private router: Router,
     private facturasService: FacturasService
   ) {
-    addIcons({arrowBackOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
+    addIcons({arrowBackOutline,createOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
   }
 
   ngOnInit() {

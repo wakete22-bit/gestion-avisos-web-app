@@ -42,7 +42,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   selectedAviso: string | null = null;
 
   avisos: Aviso[] = [];
-  loading = false;
+  loading = true; // Cambiar a true para mostrar carga inicial
   error: string | null = null;
   totalAvisos = 0;
   paginaActual = 1;
@@ -208,6 +208,44 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    */
   refrescarAvisos() {
     this.cargarAvisos();
+  }
+
+  /**
+   * Recarga avisos sin caché (útil después de crear/editar)
+   */
+  recargarAvisosSinCache() {
+    this.loading = true;
+    this.error = null;
+
+    // Limpiar caché antes de cargar
+    this.cacheService.clearCache('avisos');
+
+    this.avisosService.getAvisosActivos(
+      this.paginaActual,
+      this.porPagina,
+      this.busqueda,
+      this.ordenarPor,
+      this.orden,
+      this.estadoFiltro
+    ).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.avisos = response.avisos;
+        this.totalAvisos = response.total;
+        this.loading = false;
+        
+        // Actualizar marcadores del mapa si está en vista de mapa
+        if (this.isMapView && this.map) {
+          this.plotAvisosOnMap();
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar avisos:', error);
+        this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
+        this.loading = false;
+      }
+    });
   }
 
   /**
@@ -531,10 +569,11 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
               // Esperar a que todas las fotos se suban y luego recargar avisos
               subidasCompletadas.then(() => {
                 this.loading = false;
-                this.cargarAvisos(); // Recargar la lista para mostrar las fotos
+                this.recargarAvisosSinCache(); // Usar método sin caché
               });
             } else {
               this.loading = false;
+              this.recargarAvisosSinCache(); // Usar método sin caché
             }
           },
           error: (error) => {
@@ -710,8 +749,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
             console.log('Aviso eliminado exitosamente');
             this.loading = false;
             
-            // Recargar la lista de avisos
-            this.cargarAvisos();
+            // Recargar la lista de avisos sin caché
+            this.recargarAvisosSinCache();
             
             // Mostrar mensaje de éxito (opcional)
             // Puedes implementar un toast o notificación aquí

@@ -103,14 +103,15 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
    * Ver detalles de un presupuesto
    */
   verPresupuesto(presupuesto: Presupuesto) {
-    this.router.navigate(['/presupuestos'], { queryParams: { id: presupuesto.id } });
+    console.log('Navegando a presupuesto:', presupuesto.id);
+    this.router.navigate(['/presupuestos', presupuesto.id]);
   }
 
   /**
    * Editar un presupuesto
    */
   editarPresupuesto(presupuesto: Presupuesto) {
-    this.router.navigate(['/presupuestos'], { queryParams: { id: presupuesto.id, edit: 'true' } });
+    this.router.navigate(['/presupuestos/crear'], { queryParams: { id: presupuesto.id, edit: 'true' } });
   }
 
   /**

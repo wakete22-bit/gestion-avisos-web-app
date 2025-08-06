@@ -1,7 +1,44 @@
+ion-content {
+  --background: #fff;
+}
+
+// Estado de carga
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  
+  .loading-spinner {
+    text-align: center;
+    color: #64748b;
+    
+    ion-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #cbd5e0;
+      
+      &.spinning {
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    p {
+      font-size: 16px;
+      margin: 0;
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .presupuesto-container {
-  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #fff;
 }
 
 .page-header {

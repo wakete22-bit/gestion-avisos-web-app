@@ -16,8 +16,7 @@ import {
   receipt,
   hourglassOutline,
   warning,
-  document
-} from 'ionicons/icons';
+  document, receiptOutline, refreshOutline, alertCircleOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import { FacturasService } from '../../services/facturas.service';
 import { Factura, FacturaResponse } from '../../models/factura.model';
@@ -39,7 +38,8 @@ export class FacturasComponent implements OnInit {
 
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp'];
   facturas: Factura[] = [];
-  loading = false;
+  loading = true; // Cambiar a true para mostrar carga inicial
+  error: string | null = null;
   totalFacturas = 0;
   paginaActual = 1;
   porPagina = 10;
@@ -48,7 +48,7 @@ export class FacturasComponent implements OnInit {
     private router: Router,
     private facturasService: FacturasService
   ) { 
-    addIcons({searchOutline,addCircle,eyeOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document});
+    addIcons({refreshOutline,alertCircleOutline,searchOutline,addCircle,eyeOutline,receiptOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document});
   }
 
   ngOnInit() {
@@ -57,6 +57,7 @@ export class FacturasComponent implements OnInit {
 
   cargarFacturas() {
     this.loading = true;
+    this.error = null;
     this.facturasService.getFacturas(this.paginaActual, this.porPagina)
       .subscribe({
         next: (response: FacturaResponse) => {
@@ -66,6 +67,7 @@ export class FacturasComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al cargar facturas:', error);
+          this.error = 'Error al cargar las facturas. Por favor, inténtalo de nuevo.';
           this.loading = false;
         }
       });
@@ -83,6 +85,13 @@ export class FacturasComponent implements OnInit {
     if (pagina !== this.paginaActual) {
       this.paginaActual = pagina;
       this.cargarFacturas();
+    }
+  }
+
+  // Función helper para manejar el cambio de página de forma segura
+  onCambiarPagina(pagina: number | string) {
+    if (typeof pagina === 'number') {
+      this.cambiarPagina(pagina);
     }
   }
 

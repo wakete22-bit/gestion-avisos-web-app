@@ -123,6 +123,7 @@ export class PresupuestosService {
    * Obtiene un presupuesto por su ID
    */
   getPresupuesto(id: string): Observable<Presupuesto> {
+    console.log('Servicio: Buscando presupuesto con ID:', id);
     return from(
       this.supabase
         .from('presupuestos')
@@ -141,6 +142,7 @@ export class PresupuestosService {
         .single()
     ).pipe(
       map(({ data, error }) => {
+        console.log('Servicio: Respuesta de Supabase:', { data, error });
         if (error) throw error;
         return data as Presupuesto;
       })

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline } from 'ionicons/icons';
+import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline } from 'ionicons/icons';
 
 import { PresupuestosService, Presupuesto } from '../../services/presupuestos.service';
 
@@ -25,12 +25,15 @@ export class VerPresupuestoComponent implements OnInit {
     private router: Router,
     private presupuestosService: PresupuestosService
   ) {
-    addIcons({arrowBackOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
+    console.log('VerPresupuestoComponent constructor');
+    addIcons({arrowBackOutline,createOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
   }
 
   ngOnInit() {
+    console.log('VerPresupuestoComponent ngOnInit');
     this.route.params.subscribe(params => {
       this.presupuestoId = params['id'];
+      console.log('ID del presupuesto recibido:', this.presupuestoId);
       if (this.presupuestoId) {
         this.cargarPresupuesto();
       }
@@ -40,17 +43,19 @@ export class VerPresupuestoComponent implements OnInit {
   cargarPresupuesto() {
     if (!this.presupuestoId) return;
     
+    console.log('Cargando presupuesto con ID:', this.presupuestoId);
     this.loading = true;
     this.error = null;
     
     this.presupuestosService.getPresupuesto(this.presupuestoId).subscribe({
       next: (presupuesto) => {
+        console.log('Presupuesto cargado:', presupuesto);
         this.presupuesto = presupuesto;
         this.loading = false;
       },
       error: (error) => {
         console.error('Error al cargar presupuesto:', error);
-        this.error = 'Error al cargar el presupuesto';
+        this.error = `Error al cargar el presupuesto: ${error.message || error}`;
         this.loading = false;
       }
     });

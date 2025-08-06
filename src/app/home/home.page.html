@@ -128,15 +128,14 @@
       <!-- Desktop Cards -->
       <div class="pending-cards-desktop">
         <div class="pending-card">
-          <div class="pending-title">Presupuestos Pendientes</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="pending-title">Presupuestos Pendientes</div>
+            <a class="pending-more" (click)="irAPresupuestos()">Mostrar más &gt;</a>  
+          </div>
           <div class="pending-details-container">
             <div class="pending-details-title">
               <div class="pending-amount">{{ formatearMoneda(totalPresupuestosPendientes) }}</div>
               <span class="pending-details-subtitle">Presupuestos: {{ presupuestosPendientes.length }}</span>
-              <div class="pending-status orange">
-                <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
-                Pendientes
-              </div>
             </div>
             <table class="pending-details-table" *ngIf="presupuestosPendientes.length > 0">
               <thead>
@@ -158,18 +157,16 @@
               <p>No hay presupuestos pendientes</p>
             </div>
           </div>
-          <a class="pending-more" (click)="irAPresupuestos()">Mostrar más &gt;</a>
         </div>
         <div class="pending-card">
-          <div class="pending-title">Facturas Pendientes</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="pending-title">Facturas Pendientes</div>
+            <a class="pending-more" (click)="irAFacturas()">Mostrar más &gt;</a>  
+          </div>
           <div class="pending-details-container">
             <div class="pending-details-title">
               <div class="pending-amount">{{ formatearMoneda(totalFacturasPendientes) }}</div>
               <span class="pending-details-subtitle">Facturas: {{ facturasPendientes.length }}</span>
-              <div class="pending-status orange">
-                <ion-icon name="alert-circle" style="font-size: 15px;"></ion-icon>
-                Pendientes
-              </div>
             </div>
             <table class="pending-details-table" *ngIf="facturasPendientes.length > 0">
               <thead>
@@ -193,7 +190,6 @@
               <p>No hay facturas pendientes</p>
             </div>
           </div>
-          <a class="pending-more" (click)="irAFacturas()">Mostrar más &gt;</a>
         </div>
       </div>
 
@@ -256,7 +252,6 @@
               <p>No hay facturas pendientes</p>
             </div>
           </div>
-          <a class="pending-more" (click)="irAFacturas()">Mostrar más &gt;</a>
         </div>
       </div>
     </section>

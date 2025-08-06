@@ -7,76 +7,79 @@
 </ion-header> -->
 
 
-<ion-content [fullscreen]="true">  
-    <!-- Productos recientes -->
-    <section class="dashboard-table">
-      <div class="table-header">
+<ion-content>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando productos...</p>
+    </div>
+  </div>
 
-        <div class="table-header-container">
-          <div class="table-header-left">
-            <div class="table-title">Productos</div>
-            <div class="table-meta">Productos: {{ totalProductos }}</div>  
-          </div>
-    
-          <div class="mobile-buttons">
-            <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
-              <ion-icon name="refresh-outline"></ion-icon>
-            </button>
-            <button class="btn-add" (click)="abrirModalCrearProducto()">
-              <ion-icon name="add-circle"></ion-icon>
-            </button>
-          </div>
-  
-  
-        </div>
-  
-        
-        <!-- Mobile Search Bar -->
-        <div class="mobile-search">
-          <input type="text" placeholder="Buscar producto..." [formControl]="searchControl" />
-          <ion-icon name="search-outline"></ion-icon>
-        </div>
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="refrescarInventario()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
 
-        <!-- Desktop Search and Actions -->
-        <div class="table-search desktop-only">
-          <input type="text" placeholder="Buscar..." [formControl]="searchControl" />
-          <select>
-            <option>Ordenar por: Recientes</option>
-          </select>
-          <div class="header-actions">
-            <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
-              <ion-icon name="refresh-outline"></ion-icon>
-            </button>
-            <button class="btn-add" (click)="abrirModalCrearProducto()">
-              <ion-icon name="add-circle" style="font-size: 18px;"></ion-icon>
-              Añadir producto
-            </button>
-          </div>
-        </div>
-      </div>      
-
-      <!-- Loading State -->
-      <div *ngIf="loading" class="loading-state">
-        <div class="loading-spinner">
-          <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-          <p>Cargando productos...</p>
-        </div>
+  <!-- Contenido principal -->
+  <section *ngIf="!loading && !error" class="dashboard-table">
+    <!-- Header Section -->
+    <div class="table-header">
+      <div class="table-header-left">
+        <div class="table-title">Tabla de inventario</div>
+        <div class="table-meta">Productos: {{ totalProductos }}</div>
+      </div>
+      
+      <!-- Mobile Search Bar -->
+      <div class="mobile-search">
+        <input type="text" placeholder="Buscar producto..." [formControl]="searchControl" />
+        <ion-icon name="search-outline"></ion-icon>
       </div>
 
-      <!-- Error State -->
-      <div *ngIf="error && !loading" class="error-state">
-        <div class="error-message">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <p>{{ error }}</p>
-          <button class="btn-retry" (click)="refrescarInventario()">
+      <!-- Desktop Search and Actions -->
+      <div class="table-search desktop-only">
+        <input type="text" placeholder="Buscar..." [formControl]="searchControl" />
+        <select>
+          <option>Ordenar por: Recientes</option>
+        </select>
+        <div class="header-actions">
+          <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
             <ion-icon name="refresh-outline"></ion-icon>
-            Reintentar
+          </button>
+          <button class="btn-add" (click)="abrirModalCrearProducto()">
+            <ion-icon name="add-circle"></ion-icon>
+            Añadir producto
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Mobile Actions -->
+    <div class="mobile-actions">
+      <select class="mobile-filter">
+        <option>Ordenar: Recientes</option>
+        <option>Ordenar: Antiguos</option>
+        <option>Ordenar: Stock</option>
+      </select>
+      <div class="mobile-buttons">
+        <button class="btn-refresh" (click)="refrescarInventario()" title="Refrescar">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </button>
+        <button class="btn-add" (click)="abrirModalCrearProducto()">
+          <ion-icon name="add-circle"></ion-icon>
+        </button>
+      </div>
+    </div>
 
       <!-- Compact Table View (grid, igual que avisos) -->
-      <div *ngIf="!loading && !error" class="compact-inventario-table">
+      <div *ngIf="!loading && !error && productosFiltrados.length > 0" class="compact-inventario-table">
         <div class="inventario-table">
           <div class="table-header">
             <div class="header-row">
@@ -125,8 +128,21 @@
         </div>
       </div>
 
+      <!-- Estado de datos vacíos -->
+      <div *ngIf="productosFiltrados.length === 0 && !loading && !error" class="no-data-container">
+        <div class="no-data-message">
+          <ion-icon name="cube-outline"></ion-icon>
+          <h3>No hay productos</h3>
+          <p>Aún no se han creado productos en el inventario. Crea el primero para comenzar.</p>
+          <button class="btn-create" (click)="abrirModalCrearProducto()">
+            <ion-icon name="add-circle"></ion-icon>
+            Crear producto
+          </button>
+        </div>
+      </div>
+
       <!-- Pagination -->
-      <div *ngIf="totalProductos > 0 && !loading && !error" class="table-pagination">
+      <div *ngIf="productosFiltrados.length > 0 && totalProductos > 0 && !loading && !error" class="table-pagination">
         <span class="pagination-info">
           Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalProductos) }} de {{ totalProductos }} productos
         </span>

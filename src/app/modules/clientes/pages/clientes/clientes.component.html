@@ -1,5 +1,26 @@
 <ion-content>
-  <section class="dashboard-table">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando clientes...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-message">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button class="btn-retry" (click)="refrescarClientes()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <section *ngIf="!loading && !error" class="dashboard-table">
     <!-- Header Section -->
     <div class="table-header">
       <div class="table-header-left">
@@ -60,28 +81,8 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="loading-state">
-      <div class="loading-spinner">
-        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-        <p>Cargando clientes...</p>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div *ngIf="error && !loading" class="error-state">
-      <div class="error-message">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <p>{{ error }}</p>
-        <button class="btn-retry" (click)="refrescarClientes()">
-          <ion-icon name="refresh-outline"></ion-icon>
-          Reintentar
-        </button>
-      </div>
-    </div>
-
     <!-- Compact Table View (replaces desktop table and mobile cards) -->
-    <div *ngIf="!loading && !error" class="compact-clientes-table">
+    <div *ngIf="!loading && !error && clientesFiltrados.length > 0" class="compact-clientes-table">
       <div class="clientes-table">
         <div class="table-header">
           <div class="header-row">
@@ -95,15 +96,6 @@
           </div>
         </div>
         <div class="table-body">
-          <!-- Mensaje cuando no hay clientes -->
-          <div *ngIf="clientesFiltrados.length === 0 && !loading" class="no-clientes">
-            <div class="no-clientes-message">
-              <ion-icon name="people-outline"></ion-icon>
-              <p>No se encontraron clientes</p>
-              <p *ngIf="busqueda">Intenta con otros términos de búsqueda</p>
-            </div>
-          </div>
-          
           <div *ngFor="let cliente of clientesFiltrados" class="cliente-row" [ngClass]="{
                  'activo': cliente.es_activo,
                  'inactivo': !cliente.es_activo
@@ -141,8 +133,21 @@
       </div>
     </div>
 
+    <!-- Estado de datos vacíos -->
+    <div *ngIf="clientesFiltrados.length === 0 && !loading && !error" class="no-data-container">
+      <div class="no-data-message">
+        <ion-icon name="people-outline"></ion-icon>
+        <h3>No hay clientes</h3>
+        <p>Aún no se han creado clientes. Crea el primero para comenzar.</p>
+        <button class="btn-create" (click)="abrirModalCrearCliente()">
+          <ion-icon name="add-circle"></ion-icon>
+          Crear cliente
+        </button>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <div *ngIf="totalClientes > 0" class="table-pagination">
+    <div *ngIf="clientesFiltrados.length > 0 && totalClientes > 0" class="table-pagination">
       <span class="pagination-info">
         Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalClientes) }} de {{ totalClientes }} clientes
       </span>

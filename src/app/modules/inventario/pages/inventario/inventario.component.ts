@@ -29,7 +29,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['codigo', 'nombre', 'descripcion', 'cantidad', 'unidad', 'enStock', 'precioNeto', 'pvp'];
   productos: Inventario[] = [];
   productosFiltrados: Inventario[] = [];
-  loading = false;
+  loading = true; // Cambiar a true para mostrar carga inicial
   error: string | null = null;
   totalProductos = 0;
   paginaActual = 1;

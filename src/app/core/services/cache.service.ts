@@ -79,6 +79,20 @@ export class CacheService {
   }
 
   /**
+   * Limpia elementos del caché que coincidan con un prefijo
+   */
+  clearCache(prefix: string): void {
+    const keysToDelete: string[] = [];
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach(key => this.cache.delete(key));
+    console.log(`🗑️ Cleared cache for prefix: ${prefix} (${keysToDelete.length} items)`);
+  }
+
+  /**
    * Limpia elementos expirados del caché
    */
   cleanup(): void {
