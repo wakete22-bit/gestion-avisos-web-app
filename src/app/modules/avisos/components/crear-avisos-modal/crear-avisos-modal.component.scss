@@ -222,6 +222,10 @@ select.form-control {
   &::placeholder {
     color: #9ca3af;
   }
+
+  option[value=""] {
+    color: #9ca3af;
+  }
 }
 
 select.form-control {
