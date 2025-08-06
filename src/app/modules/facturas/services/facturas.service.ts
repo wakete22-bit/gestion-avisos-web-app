@@ -144,43 +144,82 @@ export class FacturasService {
         .single()
     ).pipe(
       switchMap(({ data: factura, error: facturaError }) => {
-        if (facturaError) throw facturaError;
-
-        const facturaCreada = factura as Factura;
-
-        // Si no hay líneas, devolver solo la factura
-        if (!lineas || lineas.length === 0) {
-          return from([{
-            factura: facturaCreada,
-            lineas: []
-          }]);
+        if (facturaError) {
+          // Si es un error de duplicación, intentar con un nuevo número
+          if (facturaError.code === '23505' && facturaError.message.includes('numero_factura')) {
+            console.warn('Número de factura duplicado, generando nuevo número...');
+            return this.getSiguienteNumero().pipe(
+              switchMap(nuevoNumero => {
+                const facturaRetry = {
+                  ...facturaInsert,
+                  numero_factura: nuevoNumero
+                };
+                
+                return from(
+                  this.supabase
+                    .from('facturas')
+                    .insert([facturaRetry])
+                    .select(`
+                      *,
+                      cliente:clientes(*),
+                      aviso:avisos(*)
+                    `)
+                    .single()
+                ).pipe(
+                  switchMap(({ data: facturaRetryData, error: retryError }) => {
+                    if (retryError) throw retryError;
+                    return this.procesarLineasFactura(facturaRetryData as Factura, lineas);
+                  })
+                );
+              })
+            );
+          }
+          throw facturaError;
         }
 
-        // Insertar las líneas de la factura
-        const lineasInsert = lineas.map(linea => ({
-          ...linea,
-          factura_id: facturaCreada.id,
-          fecha_creacion: new Date().toISOString()
-        }));
+        return this.procesarLineasFactura(factura as Factura, lineas);
+      })
+    );
+  }
 
-        return from(
-          this.supabase
-            .from('lineas_factura')
-            .insert(lineasInsert)
-            .select()
-        ).pipe(
-          map(({ data: lineasCreadas, error: lineasError }) => {
-            if (lineasError) throw lineasError;
+  /**
+   * Procesa las líneas de factura después de crear la factura
+   */
+  private procesarLineasFactura(factura: Factura, lineas: LineaFactura[]): Observable<FacturaCompleta> {
+    // Si no hay líneas, devolver solo la factura
+    if (!lineas || lineas.length === 0) {
+      const facturasActuales = this.facturasSubject.value;
+      this.facturasSubject.next([factura, ...facturasActuales]);
+      
+      return from([{
+        factura,
+        lineas: []
+      }]);
+    }
 
-            const facturasActuales = this.facturasSubject.value;
-            this.facturasSubject.next([facturaCreada, ...facturasActuales]);
+    // Insertar las líneas de la factura
+    const lineasInsert = lineas.map(linea => ({
+      ...linea,
+      factura_id: factura.id,
+      fecha_creacion: new Date().toISOString()
+    }));
 
-            return {
-              factura: facturaCreada,
-              lineas: lineasCreadas as LineaFactura[]
-            };
-          })
-        );
+    return from(
+      this.supabase
+        .from('lineas_factura')
+        .insert(lineasInsert)
+        .select()
+    ).pipe(
+      map(({ data: lineasCreadas, error: lineasError }) => {
+        if (lineasError) throw lineasError;
+
+        const facturasActuales = this.facturasSubject.value;
+        this.facturasSubject.next([factura, ...facturasActuales]);
+
+        return {
+          factura,
+          lineas: lineasCreadas as LineaFactura[]
+        };
       })
     );
   }
@@ -424,9 +463,32 @@ export class FacturasService {
   }
 
   /**
-   * Genera el siguiente número de factura
+   * Obtiene el siguiente número de factura de forma atómica
    */
   getSiguienteNumero(): Observable<string> {
+    return from(
+      this.supabase
+        .rpc('obtener_siguiente_numero_factura')
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) {
+          console.error('Error al obtener número de factura:', error);
+          // Fallback al método anterior si la función no existe
+          return this.getSiguienteNumeroFallback();
+        }
+        return data;
+      }),
+      catchError(error => {
+        console.error('Error en RPC, usando fallback:', error);
+        return this.getSiguienteNumeroFallback();
+      })
+    );
+  }
+
+  /**
+   * Método fallback para obtener el siguiente número de factura con retry
+   */
+  private getSiguienteNumeroFallback(): Observable<string> {
     const año = new Date().getFullYear();
     
     return from(
@@ -453,7 +515,9 @@ export class FacturasService {
         }
 
         return `F${año}-001`;
-      })
+      }),
+      // Agregar un pequeño delay para evitar conflictos de concurrencia
+      tap(() => new Promise(resolve => setTimeout(resolve, 100)))
     );
   }
 

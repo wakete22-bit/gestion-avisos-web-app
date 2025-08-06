@@ -55,42 +55,119 @@
       <div class="form-section">
         <div class="section-header">
           <h3>Materiales Estimados</h3>
-          <button type="button" class="btn-add" (click)="agregarMaterial()">
-            <ion-icon name="add-circle-outline"></ion-icon>
-            Agregar Material
-          </button>
+          <div class="header-actions">
+            <button type="button" class="btn-select-inventory" (click)="abrirSelectorMateriales()">
+              <ion-icon name="list-outline"></ion-icon>
+              Seleccionar del Inventario
+            </button>
+            <button type="button" class="btn-add" (click)="agregarMaterial()">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              Agregar Manualmente
+            </button>
+          </div>
         </div>
 
+        <!-- Selector de materiales del inventario -->
+        <div *ngIf="mostrarSelectorMateriales" class="inventory-selector">
+          <div class="selector-header">
+            <h4>Seleccionar Materiales del Inventario</h4>
+            <button type="button" class="btn-close" (click)="cerrarSelectorMateriales()">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+          
+          <!-- Búsqueda de productos -->
+          <div class="search-container">
+            <input 
+              type="text" 
+              [(ngModel)]="busquedaProducto"
+              (input)="filtrarProductos($any($event.target).value)"
+              placeholder="Buscar productos..."
+              class="search-input">
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
+
+          <!-- Estado de carga de productos -->
+          <div *ngIf="loadingProductos" class="loading-products">
+            <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+            <span>Cargando productos...</span>
+          </div>
+
+          <!-- Error al cargar productos -->
+          <div *ngIf="errorProductos" class="error-products">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>{{ errorProductos }}</span>
+          </div>
+
+          <!-- Lista de productos -->
+          <div *ngIf="!loadingProductos && !errorProductos" class="products-list">
+            <div 
+              *ngFor="let producto of productosFiltrados" 
+              class="product-item"
+              (click)="agregarMaterialDelInventario(producto)">
+              <div class="product-info">
+                <div class="product-header">
+                  <span class="product-code">{{ producto.codigo }}</span>
+                  <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+                <span class="product-name">{{ producto.nombre }}</span>
+                <div class="product-details">
+                  <span class="product-stock">Stock: {{ producto.cantidad_disponible }} {{ producto.unidad }}</span>
+                  <span class="product-description">{{ producto.descripcion }}</span>
+                </div>
+              </div>
+              <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
+            </div>
+          </div>
+
+          <!-- Sin productos -->
+          <div *ngIf="!loadingProductos && !errorProductos && productosFiltrados.length === 0" class="no-products">
+            <ion-icon name="cube-outline"></ion-icon>
+            <p>No se encontraron productos</p>
+          </div>
+        </div>
+
+        <!-- Lista de materiales añadidos -->
         <div class="materiales-list" *ngIf="materiales.length > 0">
+          <h4>Materiales añadidos</h4>
           <div class="material-item" *ngFor="let material of materiales; let i = index">
-            <div class="material-fields">
-              <input 
-                type="text" 
-                [(ngModel)]="material.material_id"
-                [ngModelOptions]="{standalone: true}"
-                placeholder="ID del material">
-              
-              <input 
-                type="number" 
-                [(ngModel)]="material.cantidad_estimada"
-                [ngModelOptions]="{standalone: true}"
-                (input)="calcularTotal()"
-                min="1"
-                placeholder="Cantidad">
-              
-              <input 
-                type="number" 
-                [(ngModel)]="material.precio_unitario_al_momento"
-                [ngModelOptions]="{standalone: true}"
-                (input)="calcularTotal()"
-                min="0"
-                step="0.01"
-                placeholder="Precio unitario">
+            <div class="material-info">
+              <div class="material-header">
+                <span class="material-name">{{ getNombreProducto(material.material_id) }}</span>
+                <span class="material-price">{{ material.precio_unitario_al_momento | currency:'EUR':'symbol':'1.2-2' }}</span>
+              </div>
+              <div class="material-fields">
+                <div class="field-group">
+                  <label>Cantidad:</label>
+                  <input 
+                    type="number" 
+                    [value]="material.cantidad_estimada"
+                    (change)="actualizarCantidadMaterial(i, $any($event.target).value)"
+                    min="1"
+                    class="quantity-input">
+                </div>
+                
+                <div class="field-group">
+                  <label>Precio unitario:</label>
+                  <input 
+                    type="number" 
+                    [value]="material.precio_unitario_al_momento"
+                    (change)="actualizarPrecioMaterial(i, $any($event.target).value)"
+                    min="0"
+                    step="0.01"
+                    class="price-input">
+                </div>
+              </div>
             </div>
             
             <button type="button" class="btn-remove" (click)="eliminarMaterial(i)">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
+          </div>
+
+          <!-- Resumen de costos -->
+          <div class="costo-total">
+            <strong>Costo total de materiales: {{ calcularCostoTotalMateriales() | currency:'EUR':'symbol':'1.2-2' }}</strong>
           </div>
         </div>
 
