@@ -4,7 +4,10 @@
   <!-- Estado sin acciones -->
   <div *ngIf="!tieneAcciones && !loading && !error" class="sin-acciones">
     <ion-icon name="checkmark-circle-outline" class="complete-icon"></ion-icon>
-    <span *ngIf="showText" class="complete-text">Completo</span>
+    <span *ngIf="showText" class="complete-text">
+      <span class="desktop-only">Completo</span>
+      <span class="mobile-only">✓</span>
+    </span>
   </div>
 
   <!-- Estado de carga -->
@@ -25,13 +28,14 @@
     [color]="getAccionColor(accionPrimaria)"
     (click)="ejecutarAccionPrimaria()"
     [disabled]="loading"
-    class="accion-primaria">
+    class="accion-primaria"
+    [title]="getAccionTexto(accionPrimaria)">
     
     <ion-icon [name]="getAccionIcon(accionPrimaria)" slot="icon-only" *ngIf="!showText"></ion-icon>
     
     <ng-container *ngIf="showText">
       <ion-icon [name]="getAccionIcon(accionPrimaria)" slot="start"></ion-icon>
-      {{ getAccionTexto(accionPrimaria) }}
+      <span class="accion-text">{{ getAccionTexto(accionPrimaria) }}</span>
     </ng-container>
   </ion-button>
 
@@ -41,7 +45,8 @@
     fill="clear"
     size="small"
     color="medium"
-    class="mas-acciones">
+    class="mas-acciones"
+    title="Más acciones disponibles">
     <ion-icon name="ellipsis-horizontal-outline" slot="icon-only"></ion-icon>
   </ion-button>
 

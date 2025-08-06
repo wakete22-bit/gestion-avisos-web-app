@@ -6,6 +6,15 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+// Clases para mostrar/ocultar elementos según el dispositivo
+.desktop-only {
+  display: inline;
+}
+
+.mobile-only {
+  display: none;
+}
+
 // Estados de carga y error
 .loading-state, .error-state {
   display: flex;
@@ -29,6 +38,11 @@
       color: #DC2626;
     }
   }
+}
+
+.error-text {
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .btn-retry {
@@ -128,6 +142,10 @@
     }
   }
 
+  .estado-text {
+    font-weight: 500;
+  }
+
   .btn-refresh {
     display: flex;
     align-items: center;
@@ -194,7 +212,7 @@
 .acciones-disponibles {
   margin-bottom: 24px;
 
-  h4 {
+  .section-title {
     margin: 0 0 12px 0;
     font-size: 16px;
     color: #1E293B;
@@ -238,7 +256,7 @@
       flex-shrink: 0;
     }
 
-    span {
+    .accion-text {
       flex: 1;
     }
   }
@@ -248,7 +266,7 @@
 .flujo-inicial {
   margin-bottom: 24px;
 
-  h4 {
+  .section-title {
     margin: 0 0 12px 0;
     font-size: 16px;
     color: #1E293B;
@@ -345,61 +363,302 @@
   font-size: 14px;
   text-align: center;
 
-  ion-icon {
+  .complete-icon {
     font-size: 20px;
     color: #10B981;
+  }
+
+  .complete-text {
+    font-weight: 500;
   }
 }
 
 // Responsive design
 @media (max-width: 768px) {
+  // Mostrar/ocultar elementos según dispositivo
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: inline;
+  }
+
   .flujo-content {
     padding: 16px;
   }
 
-  .resumen-info .info-grid {
-    grid-template-columns: 1fr;
+  .estado-actual {
+    margin-bottom: 20px;
+    
+    .estado-header {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .estado-badge {
+      padding: 6px 12px;
+      font-size: 13px;
+      
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+
+    .btn-refresh {
+      width: 28px;
+      height: 28px;
+      
+      ion-icon {
+        font-size: 14px;
+      }
+    }
   }
 
-  .acciones-disponibles .acciones-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .flujo-inicial .flujo-options {
-    grid-template-columns: 1fr;
-  }
-
-  .btn-flujo {
+  .resumen-info {
     padding: 12px;
     
-    ion-icon {
-      font-size: 20px;
+    .info-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
     }
-    
-    .flujo-content {
-      .title {
-        font-size: 13px;
+
+    .info-item {
+      .label {
+        font-size: 12px;
+      }
+
+      .value {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .acciones-disponibles {
+    margin-bottom: 20px;
+
+    .section-title {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .acciones-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .btn-accion {
+      padding: 10px 12px;
+      font-size: 13px;
+      
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .flujo-inicial {
+    margin-bottom: 20px;
+
+    .section-title {
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+
+    .flujo-options {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .btn-flujo {
+      padding: 12px;
+      
+      ion-icon {
+        font-size: 20px;
       }
       
-      .description {
-        font-size: 11px;
+      .flujo-content {
+        .title {
+          font-size: 13px;
+        }
+        
+        .description {
+          font-size: 11px;
+        }
       }
+    }
+  }
+
+  .sin-acciones {
+    padding: 16px;
+    
+    .complete-icon {
+      font-size: 18px;
+    }
+    
+    .complete-text {
+      font-size: 13px;
+    }
+  }
+
+  .loading-state, .error-state {
+    padding: 20px;
+    font-size: 13px;
+    
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .btn-retry {
+    padding: 6px 12px;
+    font-size: 11px;
+    
+    ion-icon {
+      font-size: 12px;
     }
   }
 }
 
 @media (max-width: 480px) {
-  .estado-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
+  .flujo-content {
+    padding: 12px;
   }
 
-  .estado-badge {
-    justify-content: center;
+  .estado-actual {
+    margin-bottom: 16px;
+    
+    .estado-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .estado-badge {
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      
+      ion-icon {
+        font-size: 12px;
+      }
+    }
+
+    .btn-refresh {
+      align-self: center;
+      width: 24px;
+      height: 24px;
+      
+      ion-icon {
+        font-size: 12px;
+      }
+    }
   }
 
-  .btn-refresh {
-    align-self: center;
+  .resumen-info {
+    padding: 10px;
+    
+    .info-grid {
+      gap: 6px;
+    }
+
+    .info-item {
+      .label {
+        font-size: 11px;
+      }
+
+      .value {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .acciones-disponibles {
+    margin-bottom: 16px;
+
+    .section-title {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .acciones-grid {
+      gap: 6px;
+    }
+
+    .btn-accion {
+      padding: 8px 10px;
+      font-size: 12px;
+      
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .flujo-inicial {
+    margin-bottom: 16px;
+
+    .section-title {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .flujo-options {
+      gap: 6px;
+    }
+
+    .btn-flujo {
+      padding: 10px;
+      
+      ion-icon {
+        font-size: 18px;
+      }
+      
+      .flujo-content {
+        .title {
+          font-size: 12px;
+        }
+        
+        .description {
+          font-size: 10px;
+        }
+      }
+    }
+  }
+
+  .sin-acciones {
+    padding: 12px;
+    gap: 8px;
+    
+    .complete-icon {
+      font-size: 16px;
+    }
+    
+    .complete-text {
+      font-size: 12px;
+    }
+  }
+
+  .loading-state, .error-state {
+    padding: 16px;
+    font-size: 12px;
+    gap: 8px;
+    
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+
+  .btn-retry {
+    padding: 4px 8px;
+    font-size: 10px;
+    
+    ion-icon {
+      font-size: 10px;
+    }
   }
 } 

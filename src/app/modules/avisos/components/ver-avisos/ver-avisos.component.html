@@ -21,28 +21,34 @@
 <!-- Información General -->
 <div *ngIf="aviso && !loading" class="info-card">
   <div class="card-header">
-    <div class="header-container" style="display: flex; justify-content: center; align-items: center; gap: 20px;">
+    <div class="header-container">
       <!-- Botón de volver -->
-      <div class="back-button" style="margin-bottom: 0px;">
+      <div class="back-button">
         <button class="btn-back" (click)="volverALista()">
           <ion-icon name="arrow-back-outline"></ion-icon>
-          Volver
+          <span class="desktop-only">Volver</span>
+          <span class="mobile-only">Volver</span>
         </button>
       </div>
     </div>
     <div class="header-actions">
       <button class="btn-secondary" (click)="cerrarAlbaran()">
         <ion-icon name="close"></ion-icon>
-        Cerrar Albarán
+        <span class="desktop-only">Cerrar Albarán</span>
+        <span class="mobile-only">Cerrar</span>
       </button>
       <button class="btn-primary" (click)="editarAviso()">
         <ion-icon name="pencil-outline"></ion-icon>
-        Editar aviso
+        <span class="desktop-only">Editar aviso</span>
+        <span class="mobile-only">Editar</span>
       </button>
     </div>
+    <span class="mobile-only title">Aviso #{{aviso.id?.substring(0, 8)}}</span>
   </div>
 
-  <h2 class="title">Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</h2>
+  <h2 class="title">
+    <span class="desktop-only">Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</span>
+  </h2>
 
   <div class="info-grid">
     <div class="info-row">
@@ -52,7 +58,9 @@
       </div>
       <div class="info-item">
         <label>Urgente</label>
-        <span>{{aviso.urgencia === 'Alta' || aviso.es_urgente ? 'Sí' : 'No'}}</span>
+        <span class="urgent-badge" [class.urgent]="aviso.urgencia === 'Alta' || aviso.es_urgente">
+          {{aviso.urgencia === 'Alta' || aviso.es_urgente ? 'Sí' : 'No'}}
+        </span>
       </div>
       <div class="info-item">
         <label>Fecha de creación</label>
@@ -63,16 +71,18 @@
     <div class="info-item cliente-section">
       <label>Cliente</label>
       <div class="cliente-info">
-        <span>{{aviso.nombre_cliente_aviso}}</span>
-        <a class="ver-cliente" (click)="verCliente()">Ver cliente</a>
+        <span class="cliente-nombre">{{aviso.nombre_cliente_aviso}}</span>
+        <a class="ver-cliente" (click)="verCliente()">
+          <span class="desktop-only">Ver cliente</span>
+        </a>
       </div>
     </div>
 
     <div class="info-item direccion-section">
       <label>Dirección</label>
       <div class="direccion-info">
-        <span>{{aviso.direccion_cliente_aviso}}</span>
-        <button class="btn-map" (click)="verMapa()">
+        <span class="direccion-texto">{{aviso.direccion_cliente_aviso}}</span>
+        <button class="btn-map" (click)="verMapa()" title="Ver en mapa">
           <ion-icon name="navigate"></ion-icon>
         </button>
       </div>
@@ -81,11 +91,11 @@
     <div class="contacto-section">
       <label>Contacto Cliente</label>
       <div class="contacto-items">
-        <div class="contacto-item">
+        <div class="contacto-item nombre-contacto" *ngIf="aviso.nombre_contacto">
           <ion-icon name="person"></ion-icon>
           <span>{{aviso.nombre_contacto}}</span>
         </div>
-        <div class="contacto-item">
+        <div class="contacto-item" *ngIf="aviso.telefono_cliente_aviso">
           <ion-icon name="call"></ion-icon>
           <span>{{aviso.telefono_cliente_aviso}}</span>
         </div>
@@ -100,7 +110,7 @@
 
 <!-- Descripción del Aviso -->
 <div class="info-card">
-  <div class="card-header">
+  <div class="card-header" style="justify-content: space-between!important;">
     <h2>Descripción del Aviso</h2>
     <span class="badge-pendiente">{{aviso?.estado || 'No especificado'}}</span>
   </div>
@@ -108,56 +118,12 @@
   <div class="descripcion-content">
     <div class="info-item">
       <label>Tipo de Aviso</label>
-      <p>{{aviso?.tipo || 'No especificado'}}</p>
+      <p class="tipo-aviso">{{aviso?.tipo || 'No especificado'}}</p>
     </div>
 
     <div class="info-item">
       <label>Descripción Detallada del Problema/Petición</label>
-      <p>{{aviso?.descripcion_problema}}</p>
-    </div>
-  </div>
-</div>
-
-<!-- Galería de imágenes -->
-<div class="info-card">
-  <div class="card-header">
-    <h2>Galería de imágenes</h2>
-    <div class="gallery-actions">
-      <ion-segment [value]="vistaGaleria" (ionChange)="cambiarVistaGaleria($event)" mode="ios">
-        <ion-segment-button value="grid">
-          <ion-icon name="grid-outline"></ion-icon>
-        </ion-segment-button>
-        <ion-segment-button value="list">
-          <ion-icon name="list-outline"></ion-icon>
-        </ion-segment-button>
-      </ion-segment>
-      <button class="btn-primary" (click)="seleccionarImagenes()" [disabled]="subiendoImagenes">
-        <ion-icon name="add-circle"></ion-icon>
-        {{ subiendoImagenes ? 'Subiendo...' : 'Añadir imágenes' }}
-      </button>
-      <input #fileInput type="file" multiple accept="image/*" style="display: none;" (change)="onFileSelected($event)">
-    </div>
-  </div>
-
-  <div class="gallery-items">
-    <!-- Indicador de carga al subir imágenes -->
-    <div *ngIf="subiendoImagenes" class="uploading-indicator">
-      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-      <p>Subiendo imágenes...</p>
-    </div>
-
-    <div *ngIf="!aviso?.fotos || aviso?.fotos?.length === 0" class="no-images">
-      <p>No hay imágenes disponibles para este aviso</p>
-    </div>
-    <div class="gallery-item" *ngFor="let foto of aviso?.fotos">
-      <img [src]="foto.url" [alt]="foto.descripcion || 'Imagen del aviso'">
-      <div class="image-info">
-        <span>{{foto.descripcion || 'Imagen del aviso'}}</span>
-        <span class="file-info">{{foto.fecha_subida | date:'dd/MM/yyyy HH:mm'}}</span>
-      </div>
-      <button class="btn-delete" (click)="eliminarFoto(foto)" title="Eliminar imagen">
-        <ion-icon name="trash-outline"></ion-icon>
-      </button>
+      <p class="descripcion-texto">{{aviso?.descripcion_problema}}</p>
     </div>
   </div>
 </div>
@@ -169,11 +135,12 @@
 <!-- Trabajos Realizados y Gestión del Flujo -->
 <div class="info-card">
   <div class="card-header">
-    <h2>Trabajos Realizados y Gestión del Flujo</h2>
-    <div class="header-actions">
+    <h2 style="text-wrap: nowrap;">Gestión de Albaranes</h2>
+    <div class="header-actions-jobs">
       <button class="btn-primary" (click)="crearTrabajoRealizado()">
         <ion-icon name="add-circle"></ion-icon>
-        Crear parte de trabajo
+        <span class="desktop-only">Crear parte de trabajo</span>
+        <span class="mobile-only">Crear trabajo</span>
       </button>
     </div>
   </div>
@@ -225,16 +192,16 @@
       </thead>
       <tbody>
         <tr *ngFor="let trabajo of trabajosRealizados; let i = index">
-          <td>#{{i + 1}}</td>
-          <td>{{trabajo.fecha_trabajo | date:'dd/MM/yyyy'}}</td>
-          <td>{{calcularHorasTrabajo(trabajo) | number:'1.1-1'}}h</td>
-          <td>
+          <td data-label="Número">#{{i + 1}}</td>
+          <td data-label="Fecha trabajo">{{trabajo.fecha_trabajo | date:'dd/MM/yyyy'}}</td>
+          <td data-label="Horas">{{calcularHorasTrabajo(trabajo) | number:'1.1-1'}}h</td>
+          <td data-label="Descripción">
             <div class="descripcion-trabajo">
               <p>{{trabajo.descripcion}}</p>
               <small>{{trabajo.hora_inicio}} - {{trabajo.hora_fin}}</small>
             </div>
           </td>
-          <td>
+          <td data-label="Materiales">
             <div class="materiales-info">
               <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
                 <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
@@ -244,25 +211,74 @@
               </span>
             </div>
           </td>
-          <td>
+          <td data-label="Estado">
             <span class="badge-estado" [class]="'badge-' + trabajo.estado.toLowerCase().replace(' ', '-')">
               {{trabajo.estado}}
             </span>
           </td>
-          <td>
+          <td data-label="Acciones">
             <div class="estado-actions">
               <button class="btn-secondary btn-small" (click)="editarTrabajo(trabajo)" title="Editar trabajo">
                 <ion-icon name="pencil-outline"></ion-icon>
-                Editar
+                <span class="desktop-only">Editar</span>
+                <span class="mobile-only">Editar</span>
               </button>
               <button class="btn-danger btn-small" (click)="eliminarTrabajo(trabajo)" title="Eliminar trabajo">
                 <ion-icon name="trash-outline"></ion-icon>
-                Eliminar
+                <span class="desktop-only">Eliminar</span>
+                <span class="mobile-only">Eliminar</span>
               </button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+
+<!-- Galería de imágenes -->
+<div class="info-card">
+  <div class="card-header" style="justify-content: space-between!important;">
+    <h2>Galería de imágenes</h2>
+    <div class="gallery-actions">
+      <!-- <ion-segment [value]="vistaGaleria" (ionChange)="cambiarVistaGaleria($event)" mode="ios">
+        <ion-segment-button value="grid">
+          <ion-icon name="grid-outline"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="list">
+          <ion-icon name="list-outline"></ion-icon>
+        </ion-segment-button>
+      </ion-segment> -->
+      <button class="btn-primary" (click)="seleccionarImagenes()" [disabled]="subiendoImagenes">
+        <ion-icon name="add-circle"></ion-icon>
+        <span class="desktop-only">{{ subiendoImagenes ? 'Subiendo...' : 'Añadir imágenes' }}</span>
+        <span class="mobile-only">{{ subiendoImagenes ? 'Subiendo...' : 'Añadir' }}</span>
+      </button>
+      <input #fileInput type="file" multiple accept="image/*" style="display: none;" (change)="onFileSelected($event)">
+    </div>
+  </div>
+
+  <div class="gallery-items">
+    <!-- Indicador de carga al subir imágenes -->
+    <div *ngIf="subiendoImagenes" class="uploading-indicator">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Subiendo imágenes...</p>
+    </div>
+
+    <div *ngIf="!aviso?.fotos || aviso?.fotos?.length === 0" class="no-images">
+      <ion-icon name="images-outline"></ion-icon>
+      <p>No hay imágenes disponibles para este aviso</p>
+    </div>
+    <div class="gallery-item" *ngFor="let foto of aviso?.fotos">
+      <img [src]="foto.url" [alt]="foto.descripcion || 'Imagen del aviso'">
+      <div class="image-info">
+        <span class="image-title">{{foto.descripcion || 'Imagen del aviso'}}</span>
+        <span class="file-info">{{foto.fecha_subida | date:'dd/MM/yyyy HH:mm'}}</span>
+      </div>
+      <button class="btn-delete" (click)="eliminarFoto(foto)" title="Eliminar imagen">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
   </div>
 </div>

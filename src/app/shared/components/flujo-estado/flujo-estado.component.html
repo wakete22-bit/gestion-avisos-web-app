@@ -2,16 +2,18 @@
   <!-- Estado de carga -->
   <div *ngIf="loading" class="loading-state">
     <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-    <span>Cargando estado del flujo...</span>
+    <span class="desktop-only">Cargando estado del flujo...</span>
+    <span class="mobile-only">Cargando...</span>
   </div>
 
   <!-- Estado de error -->
   <div *ngIf="error && !loading" class="error-state">
     <ion-icon name="warning-outline"></ion-icon>
-    <span>{{ error }}</span>
+    <span class="error-text">{{ error }}</span>
     <button (click)="recargar()" class="btn-retry">
       <ion-icon name="refresh-outline"></ion-icon>
-      Reintentar
+      <span class="desktop-only">Reintentar</span>
+      <span class="mobile-only">Reintentar</span>
     </button>
   </div>
 
@@ -23,9 +25,9 @@
       <div class="estado-header">
         <div class="estado-badge" [ngClass]="getEstadoClass()">
           <ion-icon [name]="getEstadoIcon()"></ion-icon>
-          <span>{{ estadoFlujo.estadoActual }}</span>
+          <span class="estado-text">{{ estadoFlujo.estadoActual }}</span>
         </div>
-        <button (click)="recargar()" class="btn-refresh">
+        <button (click)="recargar()" class="btn-refresh" title="Actualizar estado">
           <ion-icon name="refresh-outline"></ion-icon>
         </button>
       </div>
@@ -57,42 +59,47 @@
 
     <!-- Acciones disponibles -->
     <div class="acciones-disponibles" *ngIf="accionesDisponibles.length > 0">
-      <h4>Acciones disponibles:</h4>
+      <h4 class="section-title">Acciones disponibles:</h4>
       <div class="acciones-grid">
         <button 
           *ngFor="let accion of accionesDisponibles" 
           (click)="ejecutarAccion(accion)"
           class="btn-accion"
-          [disabled]="loading">
+          [disabled]="loading"
+          [title]="getAccionTexto(accion)">
           <ion-icon [name]="getAccionIcon(accion)"></ion-icon>
-          <span>{{ getAccionTexto(accion) }}</span>
+          <span class="accion-text">{{ getAccionTexto(accion) }}</span>
         </button>
       </div>
     </div>
 
     <!-- Opciones de flujo inicial -->
     <div class="flujo-inicial" *ngIf="estadoFlujo.puedeCrearPresupuesto">
-      <h4>Iniciar flujo:</h4>
+      <h4 class="section-title">Iniciar flujo:</h4>
       <div class="flujo-options">
         <button 
           (click)="ejecutarAccion('crear_presupuesto')"
           class="btn-flujo presupuesto"
-          [disabled]="loading">
+          [disabled]="loading"
+          title="Crear presupuesto y seguir flujo completo">
           <ion-icon name="document-text-outline"></ion-icon>
           <div class="flujo-content">
             <span class="title">Con Presupuesto</span>
-            <span class="description">Crear presupuesto → Aprobación → Trabajos → Factura</span>
+            <span class="description desktop-only">Crear presupuesto → Aprobación → Trabajos → Factura</span>
+            <span class="description mobile-only">Presupuesto → Aprobación → Trabajos → Factura</span>
           </div>
         </button>
         
         <button 
           (click)="iniciarFlujoDirecto()"
           class="btn-flujo directo"
-          [disabled]="loading">
+          [disabled]="loading"
+          title="Iniciar trabajos directos sin presupuesto">
           <ion-icon name="create-outline"></ion-icon>
           <div class="flujo-content">
             <span class="title">Trabajo Directo</span>
-            <span class="description">Trabajos inmediatos → Factura</span>
+            <span class="description desktop-only">Trabajos inmediatos → Factura</span>
+            <span class="description mobile-only">Trabajos → Factura</span>
           </div>
         </button>
       </div>
@@ -100,8 +107,8 @@
 
     <!-- Sin acciones disponibles -->
     <div class="sin-acciones" *ngIf="accionesDisponibles.length === 0 && !estadoFlujo.puedeCrearPresupuesto">
-      <ion-icon name="checkmark-circle-outline"></ion-icon>
-      <span>No hay acciones pendientes</span>
+      <ion-icon name="checkmark-circle-outline" class="complete-icon"></ion-icon>
+      <span class="complete-text">No hay acciones pendientes</span>
     </div>
 
   </div>

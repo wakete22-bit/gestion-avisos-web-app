@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { TrabajosService } from '../../../../core/services/trabajos.service';
 import { Aviso } from '../../models/aviso.model';
@@ -46,7 +46,7 @@ export class VerAvisosComponent implements OnInit {
     private trabajosService: TrabajosService,
     private modalController: ModalController
   ) {
-    addIcons({arrowBackOutline,refreshOutline,alertCircleOutline,close,pencilOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,trashOutline,constructOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,personOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,imagesOutline,trashOutline,constructOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
