@@ -113,8 +113,8 @@
             <tr *ngFor="let material of presupuesto.materiales">
               <td>{{ material.material?.nombre || 'Material sin nombre' }}</td>
               <td>{{ material.cantidad_estimada }}</td>
-              <td>{{ formatearMoneda(material.precio_unitario_al_momento) }}</td>
-              <td>{{ formatearMoneda(material.cantidad_estimada * material.precio_unitario_al_momento) }}</td>
+              <td>{{ formatearMoneda(material.precio_neto_al_momento) }}</td>
+              <td>{{ formatearMoneda(material.cantidad_estimada * material.precio_neto_al_momento) }}</td>
             </tr>
           </tbody>
         </table>

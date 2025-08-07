@@ -25,7 +25,7 @@ export interface MaterialPresupuesto {
   presupuesto_id: string;
   material_id: string;
   cantidad_estimada: number;
-  precio_unitario_al_momento: number;
+  precio_neto_al_momento: number;
   // Relaciones
   material?: any;
 }
@@ -52,6 +52,7 @@ export interface ActualizarPresupuestoRequest {
   total_estimado?: number;
   estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
   pdf_url?: string;
+  materiales?: any[];
 }
 
 @Injectable({
@@ -197,9 +198,10 @@ export class PresupuestosService {
 
       // Insertar los materiales del presupuesto
       const materialesInsert = presupuestoData.materiales.map(material => ({
-        ...material,
         presupuesto_id: presupuesto.id,
-        fecha_creacion: new Date().toISOString()
+        material_id: material.material_id,
+        cantidad_estimada: material.cantidad_estimada,
+        precio_neto_al_momento: material.precio_neto_al_momento
       }));
 
       return from(
@@ -228,15 +230,24 @@ export class PresupuestosService {
    * Actualiza un presupuesto existente
    */
   actualizarPresupuesto(id: string, presupuesto: ActualizarPresupuestoRequest): Observable<Presupuesto> {
+    console.log('Servicio: Actualizando presupuesto con ID:', id);
+    console.log('Servicio: Datos recibidos:', presupuesto);
+    
     const datosActualizados = {
       ...presupuesto,
       fecha_actualizacion: new Date().toISOString()
     };
 
+    // Remover materiales de los datos del presupuesto para no incluirlos en la actualización
+    const { materiales, ...datosPresupuesto } = datosActualizados;
+    
+    console.log('Servicio: Materiales a procesar:', materiales);
+    console.log('Servicio: Datos del presupuesto:', datosPresupuesto);
+
     return from(
       this.supabase
         .from('presupuestos')
-        .update(datosActualizados)
+        .update(datosPresupuesto)
         .eq('id', id)
         .select(`
           *,
@@ -247,21 +258,74 @@ export class PresupuestosService {
         `)
         .single()
     ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
+      switchMap(({ data: presupuestoActualizado, error: presupuestoError }) => {
+        if (presupuestoError) throw presupuestoError;
 
-        const presupuestoActualizado = data as Presupuesto;
-        const presupuestosActuales = this.presupuestosSubject.value;
-        const index = presupuestosActuales.findIndex(p => p.id === id);
-        if (index !== -1) {
-          presupuestosActuales[index] = presupuestoActualizado;
-          this.presupuestosSubject.next([...presupuestosActuales]);
-        }
+        const presupuesto = presupuestoActualizado as Presupuesto;
+        console.log('Servicio: Presupuesto actualizado:', presupuesto);
 
-        // Notificar actualización y limpiar cache
-        this.dataUpdateService.notifyUpdated('presupuestos');
+        console.log('Servicio: Procesando materiales...');
+        // Siempre eliminar materiales existentes primero
+        return from(
+          this.supabase
+            .from('materiales_presupuesto')
+            .delete()
+            .eq('presupuesto_id', id)
+        ).pipe(
+          switchMap(({ error: deleteError }) => {
+            if (deleteError) throw deleteError;
+            console.log('Servicio: Materiales existentes eliminados');
 
-        return presupuestoActualizado;
+            // Si no hay materiales para insertar, devolver solo el presupuesto
+            if (!materiales || materiales.length === 0) {
+              console.log('Servicio: No hay materiales para insertar');
+              const presupuestosActuales = this.presupuestosSubject.value;
+              const index = presupuestosActuales.findIndex(p => p.id === id);
+              if (index !== -1) {
+                presupuestosActuales[index] = presupuesto;
+                this.presupuestosSubject.next([...presupuestosActuales]);
+              }
+
+              // Notificar actualización y limpiar cache
+              this.dataUpdateService.notifyUpdated('presupuestos');
+
+              return from([presupuesto]);
+            }
+
+            // Insertar los nuevos materiales (sin fecha_creacion)
+            const materialesInsert = materiales.map(material => ({
+              presupuesto_id: id,
+              material_id: material.material_id,
+              cantidad_estimada: material.cantidad_estimada,
+              precio_neto_al_momento: material.precio_neto_al_momento
+            }));
+            
+            console.log('Servicio: Materiales a insertar:', materialesInsert);
+
+            return from(
+              this.supabase
+                .from('materiales_presupuesto')
+                .insert(materialesInsert)
+                .select()
+            );
+          }),
+          map(({ data: materialesCreados, error: materialesError }) => {
+            if (materialesError) throw materialesError;
+            console.log('Servicio: Materiales insertados correctamente:', materialesCreados);
+
+            const presupuestosActuales = this.presupuestosSubject.value;
+            const index = presupuestosActuales.findIndex(p => p.id === id);
+            if (index !== -1) {
+              presupuestosActuales[index] = presupuesto;
+              this.presupuestosSubject.next([...presupuestosActuales]);
+            }
+
+            // Notificar actualización y limpiar cache
+            this.dataUpdateService.notifyUpdated('presupuestos');
+
+            return presupuesto;
+          })
+        );
       })
     );
   }

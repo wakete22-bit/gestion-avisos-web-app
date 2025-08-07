@@ -38,6 +38,11 @@
             min="0"
             step="0.5"
             placeholder="0.0">
+          <div *ngIf="presupuestoForm.get('horas_estimadas')?.invalid && presupuestoForm.get('horas_estimadas')?.touched" class="error-message">
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['required']">Las horas estimadas son requeridas</span>
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['min']">Las horas deben ser mayor o igual a 0</span>
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['max']">Las horas no pueden exceder 1000</span>
+          </div>
         </div>
 
         <div class="form-group">
@@ -48,6 +53,11 @@
             min="0"
             step="0.01"
             placeholder="0.00">
+          <div *ngIf="presupuestoForm.get('total_estimado')?.invalid && presupuestoForm.get('total_estimado')?.touched" class="error-message">
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['required']">El total estimado es requerido</span>
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['min']">El total debe ser mayor o igual a 0</span>
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['max']">El total no puede exceder 1,000,000</span>
+          </div>
         </div>
       </div>
 
@@ -81,7 +91,7 @@
             <input 
               type="text" 
               [(ngModel)]="busquedaProducto"
-              (input)="filtrarProductos($any($event.target).value)"
+              (input)="filtrarProductos($event)"
               placeholder="Buscar productos..."
               class="search-input">
             <ion-icon name="search-outline"></ion-icon>
@@ -134,7 +144,7 @@
             <div class="material-info">
               <div class="material-header">
                 <span class="material-name">{{ getNombreProducto(material.material_id) }}</span>
-                <span class="material-price">{{ material.precio_unitario_al_momento | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <span class="material-price">{{ material.precio_neto_al_momento | currency:'EUR':'symbol':'1.2-2' }}</span>
               </div>
               <div class="material-fields">
                 <div class="field-group">
@@ -142,7 +152,7 @@
                   <input 
                     type="number" 
                     [value]="material.cantidad_estimada"
-                    (change)="actualizarCantidadMaterial(i, $any($event.target).value)"
+                    (change)="actualizarCantidadMaterial(i, $event)"
                     min="1"
                     class="quantity-input">
                 </div>
@@ -151,11 +161,11 @@
                   <label>Precio unitario:</label>
                   <input 
                     type="number" 
-                    [value]="material.precio_unitario_al_momento"
-                    (change)="actualizarPrecioMaterial(i, $any($event.target).value)"
+                    [value]="material.precio_neto_al_momento"
+                    (input)="actualizarPrecioMaterial(i, $event)"
                     min="0"
                     step="0.01"
-                    class="price-input">
+                    placeholder="0.00">
                 </div>
               </div>
             </div>
@@ -181,10 +191,22 @@
         <button type="button" class="btn-secondary" (click)="volver()">
           Cancelar
         </button>
-        <button type="submit" class="btn-primary" [disabled]="!presupuestoForm.valid || loading">
+        <button 
+          type="submit" 
+          class="btn-primary" 
+          [disabled]="!presupuestoForm.valid || loading || !avisoId"
+          [class.btn-disabled]="!presupuestoForm.valid || loading || !avisoId">
           <ion-icon name="save-outline"></ion-icon>
           {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
         </button>
+      </div>
+      
+      <!-- Información de estado -->
+      <div *ngIf="!presupuestoForm.valid && presupuestoForm.touched" class="form-status">
+        <p class="status-error">Por favor, complete todos los campos requeridos correctamente</p>
+      </div>
+      <div *ngIf="!avisoId" class="form-status">
+        <p class="status-error">No se ha seleccionado un aviso</p>
       </div>
     </form>
   </div>
