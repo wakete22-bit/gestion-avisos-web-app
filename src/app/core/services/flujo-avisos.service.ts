@@ -148,29 +148,58 @@ export class FlujoAvisosService {
   }
 
   /**
-   * Crea una factura desde trabajos realizados
+   * Factura trabajos realizados sin presupuesto
    */
   facturarTrabajos(avisoId: string): Observable<any> {
-    return this.avisosService.crearFacturaDesdeTrabajos(avisoId).pipe(
-      switchMap(datosFactura => {
-        // Usar el servicio de facturas para crear la factura
-        const facturaRequest = this.convertirDatosAFactura(datosFactura);
-        return this.facturasService.crearFactura(facturaRequest).pipe(
-          map(factura => ({ datosFactura, factura }))
-        );
+    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+      switchMap(resumen => {
+        if (!resumen.estadisticas.trabajosCompletados) {
+          throw new Error('No hay trabajos completados para facturar');
+        }
+
+        const datosFactura = this.convertirDatosAFactura({
+          avisoId,
+          cliente: resumen.cliente,
+          resumen: resumen.estadisticas
+        });
+
+        return this.facturasService.crearFactura(datosFactura);
       }),
-      tap(() => console.log('✅ Factura creada desde trabajos')),
-      switchMap(({ factura }) => 
-        this.avisosService.actualizarEstadoAutomatico(avisoId).pipe(
-          map(() => factura)
-        )
-      ),
-      map(factura => ({
-        paso: 'factura_desde_trabajos',
+      tap(() => console.log('✅ Factura creada desde trabajos realizados')),
+      switchMap(() => this.avisosService.getResumenCompletoAviso(avisoId)),
+      map(resumen => ({
+        paso: 'factura_creada_desde_trabajos',
         avisoId,
-        facturaId: factura.factura.id,
-        mensaje: 'Factura generada automáticamente desde trabajos realizados.',
-        factura
+        mensaje: 'Factura creada exitosamente desde trabajos realizados',
+        resumen
+      }))
+    );
+  }
+
+  /**
+   * Completa un aviso marcándolo como finalizado
+   */
+  completarAviso(avisoId: string): Observable<any> {
+    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+      switchMap(resumen => {
+        // Validar que se puede completar el aviso
+        if (!this.puedeCompletarAviso(resumen)) {
+          throw new Error('No se puede completar el aviso. Verifica que haya trabajos realizados y facturas generadas.');
+        }
+
+        // Actualizar el aviso a estado "Completado"
+        return this.avisosService.actualizarAviso(avisoId, {
+          estado: 'Completado',
+          fecha_finalizacion: new Date()
+        });
+      }),
+      tap(() => console.log('✅ Aviso completado exitosamente')),
+      switchMap(() => this.avisosService.getResumenCompletoAviso(avisoId)),
+      map(resumen => ({
+        paso: 'aviso_completado',
+        avisoId,
+        mensaje: 'Aviso marcado como completado',
+        resumen
       }))
     );
   }
@@ -191,11 +220,11 @@ export class FlujoAvisosService {
           acciones.push('aprobar_presupuesto');
         }
         
+        // Priorizar "Generar Factura" sobre "Facturar Trabajos"
         if (estado.puedeFacturarPresupuesto) {
           acciones.push('facturar_presupuesto');
-        }
-        
-        if (estado.puedeFacturarTrabajos) {
+        } else if (estado.puedeFacturarTrabajos) {
+          // Solo mostrar "Facturar Trabajos" si NO hay presupuesto aprobado
           acciones.push('facturar_trabajos');
         }
         

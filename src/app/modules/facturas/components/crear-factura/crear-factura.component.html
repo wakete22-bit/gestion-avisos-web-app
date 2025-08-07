@@ -1,6 +1,14 @@
 <div class="factura-container">
-  <div class="factura-formulario">
-    <h2>Crear Factura</h2>
+  <!-- Loading State para edición -->
+  <div *ngIf="loading && isEditing" class="loading-state">
+    <div class="loading-spinner">
+      <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+      <p>Cargando factura para editar...</p>
+    </div>
+  </div>
+
+  <div class="factura-formulario" *ngIf="!loading || !isEditing">
+    <h2>{{ isEditing ? 'Editar Factura' : 'Crear Factura' }}</h2>
     <form [formGroup]="facturaForm">
       <div class="grid-datos">
         <div class="form-group">
@@ -177,17 +185,11 @@
       </section>
 
       <div class="botones-footer">
-        <button type="button" class="btn-outline" (click)="debugFormulario()">
-          Debug Formulario
-        </button>
-        <button type="button" class="btn-outline" (click)="generarPdfDesdeDatos()">
-          PDF Estilo Básico
-        </button>
         <button type="button" class="btn-outline" (click)="enviarFactura()" [disabled]="loading || !facturaForm.valid">
-          {{ loading ? 'Enviando...' : 'Enviar factura' }}
+          {{ loading ? 'Enviando...' : (isEditing ? 'Actualizar factura' : 'Enviar factura') }}
         </button>
         <button type="button" class="btn-primary" (click)="generarFactura()" [disabled]="loading || !facturaForm.valid">
-          {{ loading ? 'Generando...' : 'Generar factura' }}
+          {{ loading ? 'Generando...' : (isEditing ? 'Guardar cambios' : 'Generar factura') }}
         </button>
       </div>
 

@@ -133,6 +133,7 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
         break;
       case 'completar_aviso':
         // Implementar completar aviso
+        this.completarAviso();
         break;
       default:
         this.loading = false;
@@ -178,6 +179,54 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
           this.loading = false;
         }
       });
+  }
+
+  /**
+   * Completa el aviso actual
+   */
+  completarAviso() {
+    if (!this.avisoId) {
+      console.error('No hay aviso seleccionado para completar');
+      return;
+    }
+
+    console.log('🔄 Completando aviso:', this.avisoId);
+    this.loading = true;
+
+    this.flujoService.completarAviso(this.avisoId).subscribe({
+      next: (resultado) => {
+        console.log('✅ Aviso completado exitosamente:', resultado);
+        this.loading = false;
+        
+        // Mostrar mensaje de éxito
+        this.mostrarMensaje('Aviso completado exitosamente', 'success');
+        
+        // Recargar el estado del flujo
+        this.cargarEstadoFlujo();
+      },
+      error: (error) => {
+        console.error('❌ Error al completar aviso:', error);
+        this.loading = false;
+        
+        // Mostrar mensaje de error
+        this.mostrarMensaje(
+          error.message || 'Error al completar el aviso. Verifica que haya trabajos realizados y facturas generadas.',
+          'error'
+        );
+      }
+    });
+  }
+
+  /**
+   * Muestra un mensaje al usuario
+   */
+  private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info') {
+    // Aquí podrías implementar un sistema de notificaciones
+    // Por ahora, usamos console.log
+    console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+    
+    // Si tienes un servicio de notificaciones, lo usarías aquí
+    // this.notificationService.show(mensaje, tipo);
   }
 
   /**
@@ -233,9 +282,9 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
       case 'aprobar_presupuesto':
         return 'Aprobar Presupuesto';
       case 'facturar_presupuesto':
-        return 'Generar Factura';
+        return 'Generar Factura desde Presupuesto';
       case 'facturar_trabajos':
-        return 'Facturar Trabajos';
+        return 'Facturar Trabajos Realizados';
       case 'completar_aviso':
         return 'Completar Aviso';
       default:

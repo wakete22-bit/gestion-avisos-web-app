@@ -11,6 +11,7 @@ import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
 import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/crear-trabajos-realizados.component';
 import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
 import { Subject, takeUntil, firstValueFrom } from 'rxjs';
+import { FlujoAvisosService } from '../../../../core/services/flujo-avisos.service';
 
 addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrowBackOutline });
 
@@ -44,7 +45,8 @@ export class VerAvisosComponent implements OnInit {
     private router: Router,
     private avisosService: AvisosService,
     private trabajosService: TrabajosService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private flujoAvisosService: FlujoAvisosService
   ) {
     addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,personOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,imagesOutline,trashOutline,constructOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
@@ -379,5 +381,58 @@ export class VerAvisosComponent implements OnInit {
         this.router.navigate(['/facturas', resultado.facturaId]);
       }
     }
+  }
+
+  completarAviso() {
+    if (this.aviso?.id) {
+      console.log('🔄 Completando aviso:', this.aviso.id);
+      
+      // Mostrar confirmación antes de completar
+      if (confirm('¿Estás seguro de que quieres marcar este aviso como completado? Esta acción no se puede deshacer.')) {
+        this.loading = true;
+        
+        this.flujoAvisosService.completarAviso(this.aviso.id).subscribe({
+          next: (resultado) => {
+            console.log('✅ Aviso completado exitosamente:', resultado);
+            this.loading = false;
+            
+            // Mostrar mensaje de éxito
+            this.mostrarMensaje('Aviso completado exitosamente', 'success');
+            
+            // Recargar los datos del aviso
+            this.cargarAviso();
+          },
+          error: (error) => {
+            console.error('❌ Error al completar aviso:', error);
+            this.loading = false;
+            
+            // Mostrar mensaje de error
+            this.mostrarMensaje(
+              error.message || 'Error al completar el aviso. Verifica que haya trabajos realizados y facturas generadas.',
+              'error'
+            );
+          }
+        });
+      }
+    } else {
+      console.error('No hay aviso seleccionado para completar');
+      this.mostrarMensaje('No hay aviso seleccionado para completar', 'error');
+    }
+  }
+
+  /**
+   * Muestra un mensaje al usuario
+   */
+  private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'info' = 'info') {
+    // Aquí podrías implementar un sistema de notificaciones
+    // Por ahora, usamos console.log y alert para errores
+    console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+    
+    if (tipo === 'error') {
+      alert(mensaje);
+    }
+    
+    // Si tienes un servicio de notificaciones, lo usarías aquí
+    // this.notificationService.show(mensaje, tipo);
   }
 }

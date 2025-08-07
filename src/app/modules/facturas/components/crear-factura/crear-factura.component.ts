@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from "@ionic/angular/standalone";
 import { IonIcon } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
-import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print } from 'ionicons/icons';
+import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print, refreshOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { 
   eyeOutline, 
@@ -15,7 +15,7 @@ import {
   createOutline
 } from 'ionicons/icons';
 import { FacturasService } from '../../services/facturas.service';
-import { LineaFactura, CrearFacturaRequest } from '../../models/factura.model';
+import { LineaFactura, CrearFacturaRequest, FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
 import jsPDF from 'jspdf';
 
@@ -27,17 +27,22 @@ import jsPDF from 'jspdf';
     imports: [IonContent, CommonModule, ReactiveFormsModule, FormsModule, IonIcon]
 })
 export class CrearFacturaComponent implements OnInit {
+  @Input() facturaId?: string; // Para editar factura existente
+  
   facturaForm: FormGroup;
   repuestos: LineaFactura[] = [];
   manoObra: LineaFactura[] = [];
   desplazamientos: LineaFactura[] = [];
   mostrarVistaPrevia: boolean = false;
   loading = false;
+  isEditing = false;
+  facturaOriginal?: FacturaCompleta;
 
   constructor(
     private fb: FormBuilder,
     private facturasService: FacturasService,
     private router: Router,
+    private route: ActivatedRoute,
     private pdfService: PdfService
   ) {
     this.facturaForm = this.fb.group({
@@ -49,66 +54,93 @@ export class CrearFacturaComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       notas: ['']
     });
-    addIcons({trash,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
+    addIcons({refreshOutline,trash,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
   }
 
   ngOnInit() {
     addIcons({ trash, closeOutline, download, print });
-    this.generarNumeroFactura();
     
-    // Agregar algunos datos de ejemplo para mostrar la funcionalidad
-    this.agregarDatosEjemplo();
-  }
-
-  private agregarDatosEjemplo() {
-    // Llenar formulario con datos de ejemplo
-    this.facturaForm.patchValue({
-      nombre: 'Restaurante El Sol',
-      direccion: 'Calle Mayor 123, Madrid',
-      cif: 'B12345678',
-      email: 'info@restauranteelsol.com',
-      notas: 'Mantenimiento preventivo de equipos de climatización'
-    });
-
-    // Agregar un repuesto de ejemplo
-    this.repuestos.push({
-      tipo: 'repuesto',
-      nombre: 'Válvula de expansión',
-      cantidad: 1,
-      precio_neto: 25.00,
-      precio_pvp: 35.00
-    });
-
-    // Agregar mano de obra de ejemplo
-    this.manoObra.push({
-      tipo: 'mano_obra',
-      nombre: 'Mano de obra Técnico',
-      cantidad: 2.25,
-      precio_pvp: 45.00
-    });
-
-    // Agregar desplazamiento de ejemplo
-    this.desplazamientos.push({
-      tipo: 'desplazamiento',
-      nombre: 'Kilometraje',
-      cantidad: 10,
-      precio_pvp: 3.50
-    });
-  } 
-
-  // Generar número de factura automáticamente
-  generarNumeroFactura() {
-    this.facturasService.getSiguienteNumero().subscribe({
-      next: (numero) => {
-        this.facturaForm.patchValue({ numeroFactura: numero });
-      },
-      error: (error) => {
-        console.error('Error al generar número de factura:', error);
-        // Fallback: generar número manual
-        const año = new Date().getFullYear();
-        this.facturaForm.patchValue({ numeroFactura: `F${año}-001` });
+    // Verificar si estamos editando una factura existente
+    this.route.params.subscribe(params => {
+      const facturaId = params['id'];
+      if (facturaId) {
+        this.facturaId = facturaId;
+        this.isEditing = true;
+        this.cargarFacturaParaEditar(facturaId);
+      } else {
+        // Solo generar número automático si es nueva factura
+        this.generarNumeroFactura();
       }
     });
+  }
+
+  /**
+   * Carga una factura existente para editar
+   */
+  private cargarFacturaParaEditar(facturaId: string) {
+    this.loading = true;
+    this.facturasService.getFactura(facturaId).subscribe({
+      next: (facturaCompleta) => {
+        this.facturaOriginal = facturaCompleta;
+        this.cargarDatosFactura(facturaCompleta);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar factura para editar:', error);
+        this.loading = false;
+        // Redirigir a lista de facturas si hay error
+        this.router.navigate(['/facturas']);
+      }
+    });
+  }
+
+  /**
+   * Carga los datos de la factura en el formulario
+   */
+  private cargarDatosFactura(facturaCompleta: FacturaCompleta) {
+    const factura = facturaCompleta.factura;
+    const lineas = facturaCompleta.lineas;
+
+    // Cargar datos básicos de la factura
+    this.facturaForm.patchValue({
+      numeroFactura: factura.numero_factura,
+      fecha: factura.fecha_emision,
+      nombre: factura.nombre_cliente,
+      direccion: factura.direccion_cliente,
+      cif: factura.cif_cliente,
+      email: factura.email_cliente,
+      notas: factura.notas || ''
+    });
+
+    // Separar líneas por tipo
+    this.repuestos = lineas.filter(linea => linea.tipo === 'repuesto');
+    this.manoObra = lineas.filter(linea => linea.tipo === 'mano_obra');
+    this.desplazamientos = lineas.filter(linea => linea.tipo === 'desplazamiento');
+
+    console.log('✅ Factura cargada para edición:', {
+      factura,
+      lineas,
+      repuestos: this.repuestos,
+      manoObra: this.manoObra,
+      desplazamientos: this.desplazamientos
+    });
+  }
+
+  // Generar número de factura automáticamente (solo para nuevas facturas)
+  generarNumeroFactura() {
+    if (!this.isEditing) {
+      this.facturasService.getSiguienteNumero().subscribe({
+        next: (numero) => {
+          this.facturaForm.patchValue({ numeroFactura: numero });
+        },
+        error: (error) => {
+          console.error('Error al generar número de factura:', error);
+          // Fallback: generar número manual
+          const año = new Date().getFullYear();
+          this.facturaForm.patchValue({ numeroFactura: `F${año}-001` });
+        }
+      });
+    }
   }
 
   // Repuestos
@@ -188,19 +220,37 @@ export class CrearFacturaComponent implements OnInit {
       
       console.log('Datos de factura a enviar:', facturaData);
       
-      this.facturasService.crearFactura(facturaData).subscribe({
-        next: (response) => {
-          console.log('Factura creada exitosamente:', response);
-          this.loading = false;
-          // Aquí podrías mostrar un mensaje de éxito
-          this.router.navigate(['/facturas']);
-        },
-        error: (error) => {
-          console.error('Error al crear factura:', error);
-          this.loading = false;
-          // Aquí podrías mostrar un mensaje de error
-        }
-      });
+      if (this.isEditing && this.facturaId) {
+        // Actualizar factura existente
+        this.facturasService.actualizarFactura(this.facturaId, facturaData).subscribe({
+          next: (response) => {
+            console.log('Factura actualizada exitosamente:', response);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de éxito
+            this.router.navigate(['/facturas']);
+          },
+          error: (error) => {
+            console.error('Error al actualizar factura:', error);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de error
+          }
+        });
+      } else {
+        // Crear nueva factura
+        this.facturasService.crearFactura(facturaData).subscribe({
+          next: (response) => {
+            console.log('Factura creada exitosamente:', response);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de éxito
+            this.router.navigate(['/facturas']);
+          },
+          error: (error) => {
+            console.error('Error al crear factura:', error);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de error
+          }
+        });
+      }
     } else {
       console.log('Formulario no es válido');
       // Mostrar errores específicos
@@ -225,19 +275,37 @@ export class CrearFacturaComponent implements OnInit {
       
       console.log('Datos de factura a generar:', facturaData);
       
-      this.facturasService.crearFactura(facturaData).subscribe({
-        next: (response) => {
-          console.log('Factura generada exitosamente:', response);
-          this.loading = false;
-          // Aquí podrías mostrar un mensaje de éxito
-          this.router.navigate(['/facturas']);
-        },
-        error: (error) => {
-          console.error('Error al generar factura:', error);
-          this.loading = false;
-          // Aquí podrías mostrar un mensaje de error
-        }
-      });
+      if (this.isEditing && this.facturaId) {
+        // Actualizar factura existente
+        this.facturasService.actualizarFactura(this.facturaId, facturaData).subscribe({
+          next: (response) => {
+            console.log('Factura actualizada exitosamente:', response);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de éxito
+            this.router.navigate(['/facturas']);
+          },
+          error: (error) => {
+            console.error('Error al actualizar factura:', error);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de error
+          }
+        });
+      } else {
+        // Crear nueva factura
+        this.facturasService.crearFactura(facturaData).subscribe({
+          next: (response) => {
+            console.log('Factura generada exitosamente:', response);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de éxito
+            this.router.navigate(['/facturas']);
+          },
+          error: (error) => {
+            console.error('Error al generar factura:', error);
+            this.loading = false;
+            // Aquí podrías mostrar un mensaje de error
+          }
+        });
+      }
     } else {
       console.log('Formulario no es válido');
       // Mostrar errores específicos

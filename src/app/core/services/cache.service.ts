@@ -14,6 +14,32 @@ export interface CacheItem<T> {
 export class CacheService {
   private cache = new Map<string, CacheItem<any>>();
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutos por defecto
+  private cleanupInterval: any;
+
+  constructor() {
+    // Iniciar limpieza automática cada 2 minutos
+    this.startAutoCleanup();
+  }
+
+  /**
+   * Inicia la limpieza automática del cache
+   */
+  private startAutoCleanup(): void {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup();
+      console.log('🧹 Limpieza automática de cache completada');
+    }, 2 * 60 * 1000); // Cada 2 minutos
+  }
+
+  /**
+   * Detiene la limpieza automática
+   */
+  private stopAutoCleanup(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
 
   /**
    * Obtiene datos del caché o los obtiene de la función de fetch si no están en caché
@@ -48,6 +74,12 @@ export class CacheService {
    * Establece un valor en el caché
    */
   set<T>(key: string, data: T, ttl: number = this.DEFAULT_TTL): void {
+    // Verificar si el cache está muy lleno
+    if (this.cache.size > 100) {
+      console.warn('⚠️ Cache muy lleno, limpiando elementos antiguos...');
+      this.cleanup();
+    }
+
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -78,6 +110,7 @@ export class CacheService {
    */
   clear(): void {
     this.cache.clear();
+    console.log('🗑️ Cache completamente limpiado');
   }
 
   /**
@@ -123,10 +156,17 @@ export class CacheService {
    */
   cleanup(): void {
     const now = Date.now();
+    let expiredCount = 0;
+    
     for (const [key, item] of this.cache.entries()) {
       if (this.isExpired(item)) {
         this.cache.delete(key);
+        expiredCount++;
       }
+    }
+    
+    if (expiredCount > 0) {
+      console.log(`🧹 Limpiados ${expiredCount} elementos expirados del cache`);
     }
   }
 
@@ -153,5 +193,13 @@ export class CacheService {
   generateKey(prefix: string, params: any): string {
     const paramString = JSON.stringify(params);
     return `${prefix}:${paramString}`;
+  }
+
+  /**
+   * Limpia recursos al destruir el servicio
+   */
+  ngOnDestroy(): void {
+    this.stopAutoCleanup();
+    this.clear();
   }
 } 

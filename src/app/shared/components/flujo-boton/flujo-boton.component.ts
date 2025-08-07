@@ -189,7 +189,7 @@ export class FlujoBotonComponent implements OnInit, OnDestroy {
       case 'aprobar_presupuesto':
         return 'Aprobar';
       case 'facturar_presupuesto':
-        return 'Facturar';
+        return 'Generar Factura';
       case 'facturar_trabajos':
         return 'Facturar Trabajos';
       default:

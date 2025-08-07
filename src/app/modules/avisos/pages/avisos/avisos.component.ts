@@ -95,16 +95,28 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     
+    // Limpiar mapa y marcadores
     if (this.map) {
+      this.avisoMarkers.forEach(marker => marker.remove());
+      this.avisoMarkers.clear();
       this.map.remove();
+      this.map = null;
     }
     
-    // Remover listeners
+    // Remover listeners de eventos
     document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
     document.removeEventListener('webkitfullscreenchange', this.handleFullscreenChange.bind(this));
     document.removeEventListener('mozfullscreenchange', this.handleFullscreenChange.bind(this));
     document.removeEventListener('MSFullscreenChange', this.handleFullscreenChange.bind(this));
     window.removeEventListener('resize', this.handleResize.bind(this));
+    
+    // Limpiar cache específico de este componente
+    this.cacheService.clearCache('avisos');
+    
+    // Limpiar subscripciones pendientes
+    this.busquedaSubject.complete();
+    
+    console.log('🧹 Componente AvisosComponent destruido y recursos limpiados');
   }
 
   /**
@@ -364,36 +376,67 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    this.avisos.forEach(aviso => {
+    // Cache local para geocodificación
+    const geocodeCache = new Map<string, [number, number]>();
+    let processedCount = 0;
+    const totalAvisos = this.avisos.length;
+
+    this.avisos.forEach((aviso, index) => {
       if (!aviso.direccion_cliente_aviso) {
         console.log(`Aviso ${aviso.id} no tiene dirección`);
+        processedCount++;
         return;
       }
 
       // Añadir "España" para mejorar la precisión de la geocodificación
       const fullAddress = `${aviso.direccion_cliente_aviso}, España`;
 
-      this.geocodingService.geocode(fullAddress).subscribe({
-        next: (coordinates) => {
-          if (coordinates && this.map) {
-            const popup = new Popup({ offset: 25 }).setHTML(
-              `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
-            );
+      // Verificar cache primero
+      if (geocodeCache.has(fullAddress)) {
+        const coordinates = geocodeCache.get(fullAddress)!;
+        this.addMarkerToMap(aviso, coordinates);
+        processedCount++;
+        return;
+      }
 
-            const marker = new Marker({color: '#4F46E5'})
-              .setLngLat(coordinates)
-              .setPopup(popup)
-              .addTo(this.map);
-
-            this.avisoMarkers.set(aviso.id, marker);
-            console.log(`Marcador añadido para aviso ${aviso.id}`);
+      // Delay progresivo para evitar sobrecarga de la API
+      setTimeout(() => {
+        this.geocodingService.geocode(fullAddress).subscribe({
+          next: (coordinates) => {
+            if (coordinates && this.map) {
+              // Guardar en cache
+              geocodeCache.set(fullAddress, coordinates);
+              
+              this.addMarkerToMap(aviso, coordinates);
+              console.log(`Marcador añadido para aviso ${aviso.id}`);
+            }
+            processedCount++;
+          },
+          error: (error) => {
+            console.error(`Error al geocodificar dirección para aviso ${aviso.id}:`, error);
+            processedCount++;
           }
-        },
-        error: (error) => {
-          console.error(`Error al geocodificar dirección para aviso ${aviso.id}:`, error);
-        }
-      });
+        });
+      }, index * 200); // Delay de 200ms entre requests
     });
+  }
+
+  /**
+   * Añade un marcador al mapa
+   */
+  private addMarkerToMap(aviso: Aviso, coordinates: [number, number]): void {
+    if (!this.map) return;
+
+    const popup = new Popup({ offset: 25 }).setHTML(
+      `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
+    );
+
+    const marker = new Marker({color: '#4F46E5'})
+      .setLngLat(coordinates)
+      .setPopup(popup)
+      .addTo(this.map);
+
+    this.avisoMarkers.set(aviso.id, marker);
   }
 
   centrarAvisoEnMapa(aviso: Aviso, event?: Event) {

@@ -130,11 +130,31 @@ export class FacturasService {
   crearFactura(facturaCompleta: CrearFacturaRequest): Observable<FacturaCompleta> {
     const { lineas, ...facturaData } = facturaCompleta;
     
+    // Validar y asegurar que los campos numéricos tengan valores válidos
     const facturaInsert = {
       ...facturaData,
+      subtotal: facturaData.subtotal || 0,
+      iva: facturaData.iva || 0,
+      total: facturaData.total || 0,
       fecha_creacion: new Date().toISOString(),
       fecha_actualizacion: new Date().toISOString()
     };
+
+    // Validar que los valores numéricos sean válidos
+    if (isNaN(facturaInsert.subtotal) || !isFinite(facturaInsert.subtotal)) {
+      console.error('❌ Subtotal inválido:', facturaInsert.subtotal);
+      facturaInsert.subtotal = 0;
+    }
+    if (isNaN(facturaInsert.iva) || !isFinite(facturaInsert.iva)) {
+      console.error('❌ IVA inválido:', facturaInsert.iva);
+      facturaInsert.iva = 0;
+    }
+    if (isNaN(facturaInsert.total) || !isFinite(facturaInsert.total)) {
+      console.error('❌ Total inválido:', facturaInsert.total);
+      facturaInsert.total = 0;
+    }
+
+    console.log('📋 Insertando factura con datos:', facturaInsert);
 
     return from(
       this.supabase
@@ -544,9 +564,45 @@ export class FacturasService {
    * Calcula los totales de las líneas de factura
    */
   calcularTotales(lineas: LineaFactura[]): { subtotal: number; iva: number; total: number } {
-    const subtotal = lineas.reduce((acc, linea) => acc + (linea.cantidad * linea.precio_pvp), 0);
+    // Validar que lineas sea un array válido
+    if (!lineas || !Array.isArray(lineas) || lineas.length === 0) {
+      console.warn('⚠️ No hay líneas de factura para calcular totales');
+      return { subtotal: 0, iva: 0, total: 0 };
+    }
+
+    // Calcular subtotal con validación de valores
+    const subtotal = lineas.reduce((acc, linea) => {
+      const cantidad = linea.cantidad || 0;
+      const precio = linea.precio_pvp || 0;
+      const subtotalLinea = cantidad * precio;
+      
+      // Validar que el resultado sea un número válido
+      if (isNaN(subtotalLinea) || !isFinite(subtotalLinea)) {
+        console.warn(`⚠️ Línea con valores inválidos:`, linea);
+        return acc;
+      }
+      
+      return acc + subtotalLinea;
+    }, 0);
+
+    // Validar subtotal
+    if (isNaN(subtotal) || !isFinite(subtotal)) {
+      console.warn('⚠️ Subtotal calculado es inválido, usando 0');
+      return { subtotal: 0, iva: 0, total: 0 };
+    }
+
+    // Calcular IVA (21%)
     const iva = +(subtotal * 0.21).toFixed(2);
+    
+    // Calcular total
     const total = +(subtotal + iva).toFixed(2);
+
+    console.log('🧮 Cálculo de totales:', {
+      lineas: lineas.length,
+      subtotal,
+      iva,
+      total
+    });
 
     return { subtotal, iva, total };
   }
@@ -605,32 +661,13 @@ export class FacturasService {
         // Generar número de factura
         return this.getSiguienteNumero().pipe(
           switchMap(numeroFactura => {
-            // Preparar datos de la factura
-            const cliente = presupuestoData.aviso.cliente;
-            const facturaData: CrearFacturaRequest = {
-              numero_factura: numeroFactura,
-              fecha_emision: new Date().toISOString().split('T')[0],
-              cliente_id: cliente?.id,
-              nombre_cliente: cliente?.nombre_completo || presupuestoData.aviso.nombre_cliente_aviso,
-              direccion_cliente: cliente?.direccion || presupuestoData.aviso.direccion_cliente_aviso,
-              cif_cliente: cliente?.cif || 'Sin CIF',
-              email_cliente: cliente?.email || 'sin-email@ejemplo.com',
-              aviso_id: presupuestoData.aviso_id,
-              subtotal: 0,
-              iva: 0,
-              total: 0,
-              estado: 'Pendiente',
-              notas: `Factura generada desde presupuesto ${presupuestoId}`,
-              lineas: []
-            };
-
             // Convertir materiales del presupuesto en líneas de factura
             const lineasMateriales: LineaFactura[] = presupuestoData.materiales?.map((material: any) => ({
               tipo: 'repuesto' as const,
               nombre: material.material?.nombre || 'Material desconocido',
-              cantidad: material.cantidad_estimada,
+              cantidad: material.cantidad_estimada || 0,
               precio_neto: material.material?.precio_neto || 0,
-              precio_pvp: material.precio_unitario_al_momento,
+              precio_pvp: material.precio_unitario_al_momento || 0,
               descripcion: `Material del presupuesto: ${material.material?.descripcion || ''}`
             })) || [];
 
@@ -646,13 +683,36 @@ export class FacturasService {
               });
             }
 
-            facturaData.lineas = lineasMateriales;
-
-            // Calcular totales
+            // Calcular totales ANTES de crear la factura
             const totales = this.calcularTotales(lineasMateriales);
-            facturaData.subtotal = totales.subtotal;
-            facturaData.iva = totales.iva;
-            facturaData.total = totales.total;
+            
+            // Validar que los totales sean números válidos
+            const subtotal = totales.subtotal || 0;
+            const iva = totales.iva || 0;
+            const total = totales.total || 0;
+
+            console.log('📊 Totales calculados:', { subtotal, iva, total });
+
+            // Preparar datos de la factura con valores validados
+            const cliente = presupuestoData.aviso.cliente;
+            const facturaData: CrearFacturaRequest = {
+              numero_factura: numeroFactura,
+              fecha_emision: new Date().toISOString().split('T')[0],
+              cliente_id: cliente?.id,
+              nombre_cliente: cliente?.nombre_completo || presupuestoData.aviso.nombre_cliente_aviso || 'Cliente',
+              direccion_cliente: cliente?.direccion || presupuestoData.aviso.direccion_cliente_aviso || 'Sin dirección',
+              cif_cliente: cliente?.cif || 'Sin CIF',
+              email_cliente: cliente?.email || 'sin-email@ejemplo.com',
+              aviso_id: presupuestoData.aviso_id,
+              subtotal: subtotal, // Valor validado
+              iva: iva, // Valor validado
+              total: total, // Valor validado
+              estado: 'Pendiente',
+              notas: `Factura generada desde presupuesto ${presupuestoId}`,
+              lineas: lineasMateriales
+            };
+
+            console.log('📋 Datos de factura a crear:', facturaData);
 
             // Crear la factura
             return this.crearFactura(facturaData).pipe(

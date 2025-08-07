@@ -7,6 +7,7 @@ import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOut
 
 import { FacturasService } from '../../services/facturas.service';
 import { FacturaCompleta } from '../../models/factura.model';
+import { PdfService } from '../../../../core/services/pdf.service';
 
 @Component({
   selector: 'app-ver-factura',
@@ -25,7 +26,8 @@ export class VerFacturaComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private facturasService: FacturasService
+    private facturasService: FacturasService,
+    private pdfService: PdfService
   ) {
     addIcons({arrowBackOutline,createOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
   }
@@ -70,12 +72,7 @@ export class VerFacturaComponent implements OnInit {
   editarFactura() {
     if (this.facturaId) {
       // Redirigir al componente crear-factura en modo edición
-      this.router.navigate(['/crear-factura'], { 
-        queryParams: { 
-          id: this.facturaId,
-          edit: 'true' 
-        } 
-      });
+      this.router.navigate(['/facturas/editar', this.facturaId]);
     }
   }
 
@@ -84,8 +81,42 @@ export class VerFacturaComponent implements OnInit {
   }
 
   descargarFactura() {
-    // Implementar descarga de PDF usando el servicio existente
-    console.log('Descargar factura como PDF');
+    if (!this.factura) {
+      console.error('No hay factura para descargar');
+      return;
+    }
+
+    try {
+      console.log('🔧 Iniciando descarga de factura...');
+      
+      // Generar nombre del archivo
+      const numeroFactura = this.factura.factura.numero_factura || 'factura';
+      const nombreArchivo = `factura_${numeroFactura}.pdf`;
+
+      // Preparar datos de la factura para el PDF
+      const datosFactura = {
+        numero_factura: this.factura.factura.numero_factura,
+        fecha_emision: this.factura.factura.fecha_emision,
+        nombre_cliente: this.factura.factura.nombre_cliente,
+        direccion_cliente: this.factura.factura.direccion_cliente,
+        cif_cliente: this.factura.factura.cif_cliente,
+        email_cliente: this.factura.factura.email_cliente,
+        subtotal: this.factura.factura.subtotal,
+        iva: this.factura.factura.iva,
+        total: this.factura.factura.total,
+        estado: this.factura.factura.estado,
+        notas: this.factura.factura.notas,
+        lineas: this.factura.lineas
+      };
+
+      // Generar PDF nativo con estilos
+      this.pdfService.generarPdfNativo(datosFactura, nombreArchivo);
+      
+      console.log('✅ Factura descargada exitosamente');
+    } catch (error) {
+      console.error('❌ Error al descargar factura:', error);
+      // Aquí podrías mostrar un mensaje de error al usuario
+    }
   }
 
   formatearMoneda(valor: number): string {
