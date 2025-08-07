@@ -43,6 +43,11 @@
                 "glob": "**/*",
                 "input": "public",
                 "output": "."
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "public",
+                "output": "."
               }
             ],
             "styles": [
