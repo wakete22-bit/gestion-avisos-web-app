@@ -55,6 +55,13 @@ export class AuthGuard implements CanActivate {
         return true;
       }
 
+      // Asegurar que el token sea válido antes de continuar
+      const isTokenValid = await this.authService.ensureValidToken();
+      if (!isTokenValid) {
+        console.log('🔍 AuthGuard: Token no válido, redirigiendo a login');
+        return false;
+      }
+
       // Cargar usuario básico de forma rápida
       console.log('🔍 AuthGuard: Cargando usuario básico...');
       const { data: { session } } = await this.authService.getCurrentSession();
@@ -69,6 +76,26 @@ export class AuthGuard implements CanActivate {
       
     } catch (error) {
       console.error('❌ AuthGuard: Error en verificación rápida:', error);
+      
+      // Si es un error de lock, intentar limpiar y reintentar una vez
+      if (error instanceof Error && error.message.includes('NavigatorLockAcquireTimeoutError')) {
+        console.log('🔍 AuthGuard: Error de lock detectado, intentando limpiar...');
+        try {
+          // Forzar limpieza de locks
+          localStorage.setItem('supabase_lock_issue', 'true');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Reintentar una vez
+          const retryResult = await this.checkAuthStatus();
+          if (retryResult) {
+            console.log('🔍 AuthGuard: Reintento exitoso después de limpiar locks');
+            return true;
+          }
+        } catch (retryError) {
+          console.error('❌ AuthGuard: Error en reintento:', retryError);
+        }
+      }
+      
       return false;
     }
   }

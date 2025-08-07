@@ -19,7 +19,7 @@ export class SupabaseClientService {
           auth: {
             // Configuración para evitar conflictos de locks
             persistSession: true,
-            autoRefreshToken: true,
+            autoRefreshToken: false, // ❌ DESHABILITADO para evitar NavigatorLockAcquireTimeoutError
             detectSessionInUrl: false,
             // Configurar storage personalizado para evitar locks
             storage: {
@@ -45,7 +45,10 @@ export class SupabaseClientService {
                   console.warn('Error removing from localStorage:', error);
                 }
               }
-            }
+            },
+            // Configuración adicional para evitar locks
+            flowType: 'pkce',
+            debug: false
           },
           // Configuración global para reducir conflictos
           global: {
@@ -66,7 +69,7 @@ export class SupabaseClientService {
         }
       );
       
-      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado con optimizaciones');
+      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado con autoRefreshToken DESHABILITADO');
     }
     
     return SupabaseClientService.instance;

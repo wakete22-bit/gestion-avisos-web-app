@@ -57,29 +57,6 @@ export class AuthService {
     }
   }
 
-  private async clearProblematicLocks(): Promise<void> {
-    try {
-      // Limpiar localStorage si hay problemas de locks
-      const hasLockIssues = localStorage.getItem('supabase_lock_issue');
-      if (hasLockIssues) {
-        console.log('🔧 AuthService: Detectados problemas de locks, limpiando...');
-        localStorage.removeItem('supabase_lock_issue');
-        
-        // Limpiar datos de Supabase del localStorage
-        const keysToRemove = Object.keys(localStorage).filter(key => 
-          key.includes('supabase') || key.includes('sb-')
-        );
-        
-        keysToRemove.forEach(key => {
-          localStorage.removeItem(key);
-          console.log(`🔧 AuthService: Eliminado ${key}`);
-        });
-      }
-    } catch (error) {
-      console.warn('⚠️ AuthService: Error al limpiar locks:', error);
-    }
-  }
-
   private async loadStoredAuth(): Promise<void> {
     try {
       console.log('🔧 AuthService: Cargando autenticación almacenada...');
@@ -326,5 +303,212 @@ export class AuthService {
   // Método público para obtener la sesión actual
   async getCurrentSession() {
     return await this.supabase.auth.getSession();
+  }
+
+  // Método para refresh manual de token (solución para NavigatorLockAcquireTimeoutError)
+  async manualRefreshToken(): Promise<boolean> {
+    try {
+      console.log('🔄 AuthService: Iniciando refresh manual de token...');
+      
+      // Verificar si hay una sesión activa
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) {
+        console.log('🔄 AuthService: No hay sesión activa para refrescar');
+        return false;
+      }
+
+      // Verificar si el token está próximo a expirar (menos de 5 minutos)
+      const expiresAt = session.expires_at! * 1000; // Convertir a milisegundos
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (timeUntilExpiry > fiveMinutes) {
+        console.log('🔄 AuthService: Token aún válido, no es necesario refrescar');
+        return true;
+      }
+
+      console.log('🔄 AuthService: Token próximo a expirar, refrescando...');
+      
+      // Intentar refresh con timeout para evitar bloqueos
+      const refreshPromise = this.supabase.auth.refreshSession();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Refresh timeout')), 10000)
+      );
+      
+      const { data, error } = await Promise.race([refreshPromise, timeoutPromise]) as any;
+      
+      if (error) {
+        console.error('❌ AuthService: Error en refresh manual:', error);
+        return false;
+      }
+
+      if (data.session) {
+        console.log('🔄 AuthService: Token refrescado exitosamente');
+        // Recargar datos del usuario si es necesario
+        if (data.user) {
+          await this.loadUserData(data.user.id);
+        }
+        return true;
+      }
+
+      console.log('🔄 AuthService: No se pudo refrescar el token');
+      return false;
+      
+    } catch (error) {
+      console.error('❌ AuthService: Error en refresh manual:', error);
+      
+      // Si es un error de lock, limpiar y reintentar
+      if (error instanceof Error && error.message.includes('NavigatorLockAcquireTimeoutError')) {
+        console.log('🔄 AuthService: Error de lock detectado, limpiando...');
+        await this.clearProblematicLocks();
+        localStorage.setItem('supabase_lock_issue', 'true');
+      }
+      
+      return false;
+    }
+  }
+
+  // Método para asegurar que el token sea válido
+  async ensureValidToken(): Promise<boolean> {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) {
+        return false;
+      }
+
+      const expiresAt = session.expires_at! * 1000;
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      if (timeUntilExpiry <= fiveMinutes) {
+        return await this.manualRefreshToken();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ AuthService: Error verificando validez del token:', error);
+      return false;
+    }
+  }
+
+  // Método para limpiar locks problemáticos de forma más agresiva
+  private async clearProblematicLocks(): Promise<void> {
+    try {
+      console.log('🔧 AuthService: Limpiando locks problemáticos...');
+      
+      // Limpiar localStorage si hay problemas de locks
+      const hasLockIssues = localStorage.getItem('supabase_lock_issue');
+      if (hasLockIssues) {
+        console.log('🔧 AuthService: Detectados problemas de locks, limpiando...');
+        localStorage.removeItem('supabase_lock_issue');
+        
+        // Limpiar datos de Supabase del localStorage de forma más agresiva
+        const keysToRemove = Object.keys(localStorage).filter(key => 
+          key.includes('supabase') || 
+          key.includes('sb-') || 
+          key.includes('auth') ||
+          key.includes('token')
+        );
+        
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            console.log(`🔧 AuthService: Eliminado ${key}`);
+          } catch (error) {
+            console.warn(`⚠️ AuthService: Error eliminando ${key}:`, error);
+          }
+        });
+
+        // Esperar un poco para que se liberen los locks
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      console.warn('⚠️ AuthService: Error al limpiar locks:', error);
+    }
+  }
+
+  // Métodos de debug para diagnóstico
+  async debugTokenStatus(): Promise<any> {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) {
+        return {
+          hasSession: false,
+          message: 'No hay sesión activa'
+        };
+      }
+
+      const expiresAt = session.expires_at! * 1000;
+      const now = Date.now();
+      const timeUntilExpiry = expiresAt - now;
+      const fiveMinutes = 5 * 60 * 1000;
+
+      return {
+        hasSession: true,
+        userId: session.user.id,
+        expiresAt: new Date(expiresAt).toISOString(),
+        timeUntilExpiry: Math.floor(timeUntilExpiry / 1000), // en segundos
+        needsRefresh: timeUntilExpiry <= fiveMinutes,
+        isExpired: timeUntilExpiry <= 0
+      };
+    } catch (error) {
+      return {
+        hasSession: false,
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      };
+    }
+  }
+
+  async debugLocalStorage(): Promise<any> {
+    try {
+      const supabaseKeys = Object.keys(localStorage).filter(key => 
+        key.includes('supabase') || key.includes('sb-') || key.includes('auth')
+      );
+
+      return {
+        totalKeys: Object.keys(localStorage).length,
+        supabaseKeys: supabaseKeys,
+        hasLockIssue: localStorage.getItem('supabase_lock_issue') !== null
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      };
+    }
+  }
+
+  async forceClearLocks(): Promise<void> {
+    try {
+      console.log('🔧 AuthService: Forzando limpieza de locks...');
+      
+      // Limpiar todos los datos de Supabase
+      const keysToRemove = Object.keys(localStorage).filter(key => 
+        key.includes('supabase') || 
+        key.includes('sb-') || 
+        key.includes('auth') ||
+        key.includes('token')
+      );
+      
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+          console.log(`🔧 AuthService: Eliminado ${key}`);
+        } catch (error) {
+          console.warn(`⚠️ AuthService: Error eliminando ${key}:`, error);
+        }
+      });
+
+      // Marcar problema de locks para futuras limpiezas
+      localStorage.setItem('supabase_lock_issue', 'true');
+      
+      // Esperar para que se liberen los locks
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      console.log('🔧 AuthService: Limpieza de locks completada');
+    } catch (error) {
+      console.error('❌ AuthService: Error en limpieza forzada:', error);
+    }
   }
 } 
