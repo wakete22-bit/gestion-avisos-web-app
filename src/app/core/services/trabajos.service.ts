@@ -13,6 +13,7 @@ import {
 } from '../../modules/avisos/models/trabajo-realizado.model';
 import { MaterialesTrabajoService } from './materiales-trabajo.service';
 import { SupabaseClientService } from './supabase-client.service';
+import { DataUpdateService } from './data-update.service';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +25,8 @@ export class TrabajosService {
 
     constructor(
         private materialesTrabajoService: MaterialesTrabajoService,
-        private supabaseClientService: SupabaseClientService
+        private supabaseClientService: SupabaseClientService,
+        private dataUpdateService: DataUpdateService
     ) {
         this.supabase = this.supabaseClientService.getClient();
     }
@@ -126,6 +128,9 @@ export class TrabajosService {
                 const trabajosActuales = this.trabajosSubject.value;
                 this.trabajosSubject.next([nuevoTrabajo, ...trabajosActuales]);
 
+                // Notificar creación y limpiar cache
+                this.dataUpdateService.notifyCreated('trabajos');
+
                 // Si no hay materiales, devolver solo el trabajo
                 if (!materiales || materiales.length === 0) {
                     return from([{
@@ -181,6 +186,9 @@ export class TrabajosService {
                     this.trabajosSubject.next([...trabajosActuales]);
                 }
 
+                // Notificar actualización y limpiar cache
+                this.dataUpdateService.notifyUpdated('trabajos');
+
                 // Si no hay materiales para actualizar, devolver solo el trabajo
                 if (!materiales) {
                     return this.getTrabajo(id);
@@ -233,6 +241,9 @@ export class TrabajosService {
                 const trabajosActuales = this.trabajosSubject.value;
                 const trabajosFiltrados = trabajosActuales.filter(t => t.id !== id);
                 this.trabajosSubject.next(trabajosFiltrados);
+
+                // Notificar eliminación y limpiar cache
+                this.dataUpdateService.notifyDeleted('trabajos');
             }),
             catchError(error => {
                 console.error('Error al eliminar trabajo:', error);

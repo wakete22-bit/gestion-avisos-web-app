@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, of, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 
 export interface CacheItem<T> {
@@ -16,18 +16,20 @@ export class CacheService {
   private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutos por defecto
 
   /**
-   * Obtiene datos del caché o ejecuta la función si no existe
+   * Obtiene datos del caché o los obtiene de la función de fetch si no están en caché
    */
   getOrSet<T>(
     key: string, 
     fetchFunction: () => Observable<T>, 
     ttl: number = this.DEFAULT_TTL
   ): Observable<T> {
-    const cached = this.cache.get(key);
-    
-    if (cached && !this.isExpired(cached)) {
-      console.log(`📦 Cache hit: ${key}`);
-      return of(cached.data);
+    const cached = this.get<T>(key);
+    if (cached) {
+      console.log(`✅ Cache hit: ${key}`);
+      return new Observable(observer => {
+        observer.next(cached);
+        observer.complete();
+      });
     }
 
     console.log(`🔄 Cache miss: ${key}`);
@@ -90,6 +92,30 @@ export class CacheService {
     }
     keysToDelete.forEach(key => this.cache.delete(key));
     console.log(`🗑️ Cleared cache for prefix: ${prefix} (${keysToDelete.length} items)`);
+  }
+
+  /**
+   * Limpia cache de múltiples módulos a la vez
+   */
+  clearMultipleCaches(prefixes: string[]): void {
+    prefixes.forEach(prefix => this.clearCache(prefix));
+    console.log(`🗑️ Cleared multiple caches: ${prefixes.join(', ')}`);
+  }
+
+  /**
+   * Limpia todo el cache relacionado con datos dinámicos
+   */
+  clearAllDataCache(): void {
+    const dataPrefixes = [
+      'avisos',
+      'presupuestos', 
+      'facturas',
+      'inventario',
+      'clientes',
+      'tecnicos',
+      'dashboard'
+    ];
+    this.clearMultipleCaches(dataPrefixes);
   }
 
   /**

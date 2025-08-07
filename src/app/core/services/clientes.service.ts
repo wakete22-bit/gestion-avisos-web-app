@@ -10,6 +10,7 @@ import {
   ActualizarClienteRequest 
 } from '../../modules/clientes/models/cliente.model';
 import { SupabaseClientService } from './supabase-client.service';
+import { DataUpdateService } from './data-update.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,10 @@ export class ClientesService {
   private clientesSubject = new BehaviorSubject<Cliente[]>([]);
   public clientes$ = this.clientesSubject.asObservable();
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -117,6 +121,9 @@ export class ClientesService {
         const clientesActuales = this.clientesSubject.value;
         this.clientesSubject.next([nuevoCliente, ...clientesActuales]);
         
+        // Notificar creación y limpiar cache
+        this.dataUpdateService.notifyCreated('clientes');
+        
         return nuevoCliente;
       })
     );
@@ -150,6 +157,9 @@ export class ClientesService {
           this.clientesSubject.next([...clientesActuales]);
         }
         
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('clientes');
+        
         return clienteActualizado;
       })
     );
@@ -177,6 +187,9 @@ export class ClientesService {
           clientesActuales[index].es_activo = false;
           this.clientesSubject.next([...clientesActuales]);
         }
+
+        // Notificar eliminación y limpiar cache
+        this.dataUpdateService.notifyDeleted('clientes');
       })
     );
   }

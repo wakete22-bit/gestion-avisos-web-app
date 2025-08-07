@@ -7,6 +7,7 @@ import { AvisosService } from './avisos.service';
 import { FacturasService } from '../../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../../modules/presupuestos/services/presupuestos.service';
 import { SupabaseClientService } from './supabase-client.service';
+import { DataUpdateService } from './data-update.service';
 
 export interface DashboardStats {
   avisosEnCurso: number;
@@ -36,7 +37,8 @@ export class DashboardService {
     private avisosService: AvisosService,
     private facturasService: FacturasService,
     private presupuestosService: PresupuestosService,
-    private supabaseClientService: SupabaseClientService
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
   ) {
     this.supabase = this.supabaseClientService.getClient();
   }
@@ -249,6 +251,22 @@ export class DashboardService {
    */
   refreshDashboard(): Observable<DashboardData> {
     return this.getDashboardData();
+  }
+
+  /**
+   * Limpia el cache del dashboard cuando se actualizan datos
+   */
+  clearDashboardCache(): void {
+    console.log('🧹 Clearing dashboard cache');
+    this.dashboardSubject.next(null);
+  }
+
+  /**
+   * Suscribe a las actualizaciones de datos para refrescar el dashboard
+   */
+  subscribeToDataUpdates(): void {
+    // El dashboard se actualizará automáticamente cuando se limpien los caches
+    // de avisos, facturas, presupuestos, etc.
   }
 
   /**

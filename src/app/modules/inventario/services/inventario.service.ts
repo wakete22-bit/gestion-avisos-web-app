@@ -10,6 +10,7 @@ import {
   InventarioResponse 
 } from '../models/inventario.model';
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
+import { DataUpdateService } from '../../../core/services/data-update.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,10 @@ export class InventarioService {
   private inventarioSubject = new BehaviorSubject<Inventario[]>([]);
   public inventario$ = this.inventarioSubject.asObservable();
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -135,6 +139,9 @@ export class InventarioService {
         const inventarioActual = this.inventarioSubject.value;
         this.inventarioSubject.next([nuevoProducto, ...inventarioActual]);
         
+        // Notificar creación y limpiar cache
+        this.dataUpdateService.notifyCreated('inventario');
+        
         return nuevoProducto;
       })
     );
@@ -168,6 +175,9 @@ export class InventarioService {
           this.inventarioSubject.next([...inventarioActual]);
         }
         
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('inventario');
+        
         return productoActualizado;
       })
     );
@@ -189,6 +199,9 @@ export class InventarioService {
         const inventarioActual = this.inventarioSubject.value;
         const inventarioFiltrado = inventarioActual.filter(p => p.id !== id);
         this.inventarioSubject.next(inventarioFiltrado);
+
+        // Notificar eliminación y limpiar cache
+        this.dataUpdateService.notifyDeleted('inventario');
       })
     );
   }

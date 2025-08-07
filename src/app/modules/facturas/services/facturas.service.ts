@@ -13,6 +13,7 @@ import {
   FacturaLista
 } from '../models/factura.model';
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
+import { DataUpdateService } from '../../../core/services/data-update.service';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,10 @@ export class FacturasService {
   private facturasSubject = new BehaviorSubject<Factura[]>([]);
   public facturas$ = this.facturasSubject.asObservable();
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -191,6 +195,9 @@ export class FacturasService {
       const facturasActuales = this.facturasSubject.value;
       this.facturasSubject.next([factura, ...facturasActuales]);
       
+      // Notificar creación y limpiar cache
+      this.dataUpdateService.notifyCreated('facturas');
+      
       return from([{
         factura,
         lineas: []
@@ -215,6 +222,9 @@ export class FacturasService {
 
         const facturasActuales = this.facturasSubject.value;
         this.facturasSubject.next([factura, ...facturasActuales]);
+
+        // Notificar creación y limpiar cache
+        this.dataUpdateService.notifyCreated('facturas');
 
         return {
           factura,
@@ -297,6 +307,9 @@ export class FacturasService {
                   this.facturasSubject.next([...facturasActuales]);
                 }
 
+                // Notificar actualización y limpiar cache
+                this.dataUpdateService.notifyUpdated('facturas');
+
                 return {
                   factura: facturaActualizada,
                   lineas: lineasCreadas as LineaFactura[]
@@ -335,6 +348,9 @@ export class FacturasService {
         const facturasActuales = this.facturasSubject.value;
         const facturasFiltradas = facturasActuales.filter(f => f.id !== id);
         this.facturasSubject.next(facturasFiltradas);
+
+        // Notificar eliminación y limpiar cache
+        this.dataUpdateService.notifyDeleted('facturas');
       })
     );
   }
@@ -456,6 +472,9 @@ export class FacturasService {
           facturasActuales[index] = facturaActualizada;
           this.facturasSubject.next([...facturasActuales]);
         }
+
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('facturas');
 
         return facturaActualizada;
       })

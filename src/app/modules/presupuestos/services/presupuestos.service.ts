@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, from } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
+import { DataUpdateService } from '../../../core/services/data-update.service';
 
 export interface Presupuesto {
   id: string;
@@ -16,7 +17,7 @@ export interface Presupuesto {
   estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
   // Relaciones
   aviso?: any;
-  materiales?: MaterialPresupuesto[];
+  materiales?: any;
 }
 
 export interface MaterialPresupuesto {
@@ -40,10 +41,13 @@ export interface CrearPresupuestoRequest {
   aviso_id: string;
   horas_estimadas?: number;
   total_estimado?: number;
-  materiales?: Omit<MaterialPresupuesto, 'id' | 'presupuesto_id'>[];
+  estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
+  pdf_url?: string;
+  materiales?: any[];
 }
 
 export interface ActualizarPresupuestoRequest {
+  aviso_id?: string;
   horas_estimadas?: number;
   total_estimado?: number;
   estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
@@ -58,7 +62,10 @@ export class PresupuestosService {
   private presupuestosSubject = new BehaviorSubject<Presupuesto[]>([]);
   public presupuestos$ = this.presupuestosSubject.asObservable();
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -177,38 +184,45 @@ export class PresupuestosService {
 
         const presupuesto = presupuestoCreado as Presupuesto;
 
-        // Si no hay materiales, devolver solo el presupuesto
+                // Si no hay materiales, devolver solo el presupuesto
         if (!presupuestoData.materiales || presupuestoData.materiales.length === 0) {
           const presupuestosActuales = this.presupuestosSubject.value;
           this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
+          
+          // Notificar creación y limpiar cache
+          this.dataUpdateService.notifyCreated('presupuestos');
+          
           return from([presupuesto]);
         }
 
-        // Insertar los materiales del presupuesto
-        const materialesInsert = presupuestoData.materiales.map(material => ({
-          ...material,
-          presupuesto_id: presupuesto.id,
-          fecha_creacion: new Date().toISOString()
-        }));
+      // Insertar los materiales del presupuesto
+      const materialesInsert = presupuestoData.materiales.map(material => ({
+        ...material,
+        presupuesto_id: presupuesto.id,
+        fecha_creacion: new Date().toISOString()
+      }));
 
-        return from(
-          this.supabase
-            .from('materiales_presupuesto')
-            .insert(materialesInsert)
-            .select()
-        ).pipe(
-          map(({ data: materialesCreados, error: materialesError }) => {
-            if (materialesError) throw materialesError;
+      return from(
+        this.supabase
+          .from('materiales_presupuesto')
+          .insert(materialesInsert)
+          .select()
+      ).pipe(
+        map(({ data: materialesCreados, error: materialesError }) => {
+          if (materialesError) throw materialesError;
 
-            const presupuestosActuales = this.presupuestosSubject.value;
-            this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
+          const presupuestosActuales = this.presupuestosSubject.value;
+          this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
 
-            return presupuesto;
-          })
-        );
-      })
-    );
-  }
+          // Notificar creación y limpiar cache
+          this.dataUpdateService.notifyCreated('presupuestos');
+
+          return presupuesto;
+        })
+      );
+    })
+  );
+}
 
   /**
    * Actualiza un presupuesto existente
@@ -244,6 +258,9 @@ export class PresupuestosService {
           this.presupuestosSubject.next([...presupuestosActuales]);
         }
 
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('presupuestos');
+
         return presupuestoActualizado;
       })
     );
@@ -275,6 +292,9 @@ export class PresupuestosService {
         const presupuestosActuales = this.presupuestosSubject.value;
         const presupuestosFiltrados = presupuestosActuales.filter(p => p.id !== id);
         this.presupuestosSubject.next(presupuestosFiltrados);
+
+        // Notificar eliminación y limpiar cache
+        this.dataUpdateService.notifyDeleted('presupuestos');
       })
     );
   }

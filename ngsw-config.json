@@ -57,9 +57,9 @@
         "https://qqoxlnkfcstqfigjjygf.supabase.co/**"
       ],
       "cacheConfig": {
-        "strategy": "performance",
+        "strategy": "freshness",
         "maxSize": 50,
-        "maxAge": "30m",
+        "maxAge": "5m",
         "timeout": "5s"
       }
     },

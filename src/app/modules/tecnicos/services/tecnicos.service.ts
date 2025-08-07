@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
+import { DataUpdateService } from '../../../core/services/data-update.service';
 import { Observable, BehaviorSubject, from, throwError, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -19,7 +20,10 @@ export class TecnicosService {
   private tecnicosSubject = new BehaviorSubject<Tecnico[]>([]);
   public tecnicos$ = this.tecnicosSubject.asObservable();
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private dataUpdateService: DataUpdateService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -155,6 +159,9 @@ export class TecnicosService {
         const nuevoTecnico = data as Tecnico;
         const tecnicosActuales = this.tecnicosSubject.value;
         this.tecnicosSubject.next([nuevoTecnico, ...tecnicosActuales]);
+        
+        // Notificar creación y limpiar cache
+        this.dataUpdateService.notifyCreated('tecnicos');
         
         return nuevoTecnico;
       }),
@@ -463,6 +470,9 @@ export class TecnicosService {
           this.tecnicosSubject.next([...tecnicosActuales]);
         }
         
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
+        
         return tecnicoActualizado;
       })
     );
@@ -490,6 +500,9 @@ export class TecnicosService {
           tecnicosActuales[index].es_activo = false;
           this.tecnicosSubject.next([...tecnicosActuales]);
         }
+
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
       })
     );
   }
@@ -516,6 +529,9 @@ export class TecnicosService {
           tecnicosActuales[index].es_activo = true;
           this.tecnicosSubject.next([...tecnicosActuales]);
         }
+
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
       })
     );
   }

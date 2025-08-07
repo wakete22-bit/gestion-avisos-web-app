@@ -11,6 +11,7 @@ import {
     FotoAviso
 } from '../../modules/avisos/models/aviso.model';
 import { SupabaseClientService } from './supabase-client.service';
+import { CacheService } from './cache.service';
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +21,10 @@ export class AvisosService {
     private avisosSubject = new BehaviorSubject<Aviso[]>([]);
     public avisos$ = this.avisosSubject.asObservable();
 
-    constructor(private supabaseClientService: SupabaseClientService) {
+    constructor(
+        private supabaseClientService: SupabaseClientService,
+        private cacheService: CacheService
+    ) {
         this.supabase = this.supabaseClientService.getClient();
     }
 
@@ -160,6 +164,9 @@ export class AvisosService {
                 const avisosActuales = this.avisosSubject.value;
                 this.avisosSubject.next([nuevoAviso, ...avisosActuales]);
 
+                // Limpiar cache de avisos para forzar recarga
+                this.cacheService.clearCache('avisos');
+
                 return nuevoAviso;
             })
         );
@@ -198,6 +205,9 @@ export class AvisosService {
                     this.avisosSubject.next([...avisosActuales]);
                 }
 
+                // Limpiar cache de avisos para forzar recarga
+                this.cacheService.clearCache('avisos');
+
                 return avisoActualizado;
             })
         );
@@ -219,6 +229,9 @@ export class AvisosService {
                 const avisosActuales = this.avisosSubject.value;
                 const avisosFiltrados = avisosActuales.filter(a => a.id !== id);
                 this.avisosSubject.next(avisosFiltrados);
+
+                // Limpiar cache de avisos para forzar recarga
+                this.cacheService.clearCache('avisos');
             }),
             catchError(error => {
                 // Si hay error de clave foránea, intentar eliminar fotos primero
@@ -236,6 +249,9 @@ export class AvisosService {
                             const avisosActuales = this.avisosSubject.value;
                             const avisosFiltrados = avisosActuales.filter(a => a.id !== id);
                             this.avisosSubject.next(avisosFiltrados);
+
+                            // Limpiar cache de avisos para forzar recarga
+                            this.cacheService.clearCache('avisos');
                         })
                     );
                 }
