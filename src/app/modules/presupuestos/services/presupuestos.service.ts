@@ -309,7 +309,14 @@ export class PresupuestosService {
                 .select()
             );
           }),
-          map(({ data: materialesCreados, error: materialesError }) => {
+          switchMap((result) => {
+            // Si result es un Presupuesto, significa que no había materiales
+            if ('id' in result) {
+              return from([result]);
+            }
+            
+            // Si es PostgrestSingleResponse, procesar materiales
+            const { data: materialesCreados, error: materialesError } = result;
             if (materialesError) throw materialesError;
             console.log('Servicio: Materiales insertados correctamente:', materialesCreados);
 
@@ -320,10 +327,10 @@ export class PresupuestosService {
               this.presupuestosSubject.next([...presupuestosActuales]);
             }
 
-            // Notificar actualización y limpiar cache
-            this.dataUpdateService.notifyUpdated('presupuestos');
+                         // Notificar actualización y limpiar cache
+             this.dataUpdateService.notifyUpdated('presupuestos');
 
-            return presupuesto;
+             return from([presupuesto]);
           })
         );
       })
