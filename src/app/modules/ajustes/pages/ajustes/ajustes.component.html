@@ -1,6 +1,6 @@
 <div class="ajustes-container">
   <!-- Header -->
-  <div class="ajustes-header">
+  <!-- <div class="ajustes-header">
     <div class="header-content">
       <div class="header-title">
         <ion-icon name="settings-outline"></ion-icon>
@@ -10,7 +10,7 @@
         Gestiona todas las configuraciones de tu aplicación desde un solo lugar
       </p>
     </div>
-  </div>
+  </div> -->
 
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-state">
@@ -214,13 +214,6 @@
       <!-- Pestaña Facturación -->
       <div id="facturacion" class="tab-panel">
         <div class="config-card">
-          <div class="card-header">
-            <div class="card-title">
-              <ion-icon name="card-outline"></ion-icon>
-              Configuración de Facturación
-            </div>
-            <p>Personaliza el formato y configuración de tus facturas</p>
-          </div>
           <div class="card-content">
             <form [formGroup]="facturacionForm" (ngSubmit)="guardarFacturacion()">
               <div class="form-grid">
@@ -410,13 +403,6 @@
       <!-- Pestaña Avisos -->
       <div id="avisos" class="tab-panel">
         <div class="config-card">
-          <div class="card-header">
-            <div class="card-title">
-              <ion-icon name="warning-outline"></ion-icon>
-              Configuración de Avisos
-            </div>
-            <p>Personaliza el comportamiento del sistema de avisos</p>
-          </div>
           <div class="card-content">
             <form [formGroup]="avisosForm" (ngSubmit)="guardarAvisos()">
               <div class="form-grid">
@@ -495,13 +481,13 @@
       <!-- Pestaña Sistema -->
       <div id="sistema" class="tab-panel">
         <div class="config-card">
-          <div class="card-header">
+          <!-- <div class="card-header">
             <div class="card-title">
               <ion-icon name="cog-outline"></ion-icon>
               Configuración del Sistema
             </div>
             <p>Configuraciones avanzadas del sistema</p>
-          </div>
+          </div> -->
           <div class="card-content">
             <form [formGroup]="sistemaForm" (ngSubmit)="guardarSistema()">
               <div class="form-grid">

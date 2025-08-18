@@ -2,16 +2,23 @@
 <div class="profile-card">  
   <div class="profile-info">
     <div class="avatar-container">
-      <img src="assets/default-avatar.jpg" alt="Foto de perfil" class="profile-avatar">
+      <img [src]="usuario?.avatar || 'assets/default-avatar.jpg'" alt="Foto de perfil" class="profile-avatar">
     </div>
     <div class="user-info">
-      <h2 class="user-name">Juan Pérez García <span class="badge">Administrador</span></h2>
-      <p class="user-email">juan.perez&#64;tuempresa.com</p>
+      <h2 class="user-name">
+        {{ usuario?.nombre_completo || 'Cargando...' }} 
+        <span class="badge">{{ getNombreRol() }}</span>
+      </h2>
+      <p class="user-email">{{ usuario?.email || 'Cargando...' }}</p>
     </div>
   </div>
-  <button class="profile-settings-btn desktop-only">
+  <button class="profile-settings-btn desktop-only" (click)="activarEdicion()" *ngIf="!isEditing">
     Ajustes de Perfil
     <ion-icon name="arrow-forward"></ion-icon>
+  </button>
+  <button class="profile-settings-btn desktop-only" (click)="cancelarEdicion()" *ngIf="isEditing">
+    Cancelar
+    <ion-icon name="close-outline"></ion-icon>
   </button>
 </div>
 
@@ -28,14 +35,23 @@
     <p class="mobile-section-description">Configuración de tu información personal</p>
   </div>
 
-  <div class="form-container">
+  <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" class="form-container">
     <div class="form-grid">
       <!-- Nombre completo -->
       <div class="form-group">
         <label>Nombre completo</label>
         <div class="input-container">
           <ion-icon name="person-outline"></ion-icon>
-          <input type="text" value="Azusa Nakano" readonly>
+          <input 
+            type="text" 
+            formControlName="nombre_completo"
+            [readonly]="!isEditing"
+            [class.readonly]="!isEditing"
+            placeholder="Ingrese su nombre completo">
+        </div>
+        <div class="error-message" *ngIf="perfilForm.get('nombre_completo')?.invalid && perfilForm.get('nombre_completo')?.touched">
+          <span *ngIf="perfilForm.get('nombre_completo')?.errors?.['required']">El nombre es requerido</span>
+          <span *ngIf="perfilForm.get('nombre_completo')?.errors?.['minlength']">El nombre debe tener al menos 2 caracteres</span>
         </div>
       </div>
   
@@ -44,7 +60,16 @@
         <label>Correo electrónico</label>
         <div class="input-container">
           <ion-icon name="mail-outline"></ion-icon>
-          <input type="email" value="elementary221b@gmail.com" readonly>
+          <input 
+            type="email" 
+            formControlName="email"
+            [readonly]="!isEditing"
+            [class.readonly]="!isEditing"
+            placeholder="Ingrese su correo electrónico">
+        </div>
+        <div class="error-message" *ngIf="perfilForm.get('email')?.invalid && perfilForm.get('email')?.touched">
+          <span *ngIf="perfilForm.get('email')?.errors?.['required']">El correo es requerido</span>
+          <span *ngIf="perfilForm.get('email')?.errors?.['email']">Ingrese un correo válido</span>
         </div>
       </div>
   
@@ -56,10 +81,22 @@
             <img src="assets/spain-flag.png" alt="España" class="flag-icon">
             <ion-icon name="chevron-down-outline"></ion-icon>
           </div>
-          <input type="tel" value="+34 698 12 15 36" readonly>
-          <button class="copy-btn">
+          <input 
+            type="tel" 
+            formControlName="telefono"
+            [readonly]="!isEditing"
+            [class.readonly]="!isEditing"
+            placeholder="+34 XXX XXX XXX">
+          <button 
+            type="button"
+            class="copy-btn" 
+            (click)="copiarTelefono()"
+            [disabled]="!usuario?.telefono">
             <ion-icon name="copy-outline"></ion-icon>
           </button>
+        </div>
+        <div class="error-message" *ngIf="perfilForm.get('telefono')?.invalid && perfilForm.get('telefono')?.touched">
+          <span *ngIf="perfilForm.get('telefono')?.errors?.['pattern']">Ingrese un número de teléfono válido</span>
         </div>
       </div>
   
@@ -68,8 +105,8 @@
         <label>Rol de cuenta</label>
         <div class="input-container">
           <ion-icon name="shield-outline"></ion-icon>
-          <input type="text" value="Administrador" readonly>
-          <button class="info-btn">
+          <input type="text" [value]="getNombreRol()" readonly>
+          <button type="button" class="info-btn">
             <ion-icon name="information-circle-outline"></ion-icon>
           </button>
         </div>
@@ -79,27 +116,45 @@
       <div class="form-group avatar-upload">
         <label>Cambiar avatar</label>
         <div class="upload-container">
-          <img src="assets/default-avatar.jpg" alt="Avatar actual" class="current-avatar">
-          <div class="upload-area">
+          <img [src]="usuario?.avatar || 'assets/default-avatar.jpg'" alt="Avatar actual" class="current-avatar">
+          <div class="upload-area" *ngIf="isEditing">
             <ion-icon name="cloud-upload-outline"></ion-icon>
             <p class="upload-text">
               <span class="upload-link">Selecciona aquí</span> para subir una nueva imagen
             </p>
             <p class="upload-format">Formatos compatibles: SVG, JPG, PNG (10MB)</p>
           </div>
+          <div class="upload-disabled" *ngIf="!isEditing">
+            <ion-icon name="camera-outline"></ion-icon>
+            <p class="upload-text">Habilita la edición para cambiar el avatar</p>
+          </div>
         </div>
       </div>
     </div>
   
     <!-- Botones de acción -->
-    <div class="action-buttons">
-      <button class="btn-cancel">
+    <div class="action-buttons" *ngIf="isEditing">
+      <button type="button" class="btn-cancel" (click)="cancelarEdicion()">
         Cancelar
         <ion-icon name="close-outline" style="font-size: 18px;"></ion-icon>
       </button>
-      <button class="btn-save">Guardar
+      <button 
+        type="submit" 
+        class="btn-save" 
+        [disabled]="!isFormValid || isLoading">
         <ion-icon name="save" style="font-size: 18px;"></ion-icon>
+        {{ isLoading ? 'Guardando...' : 'Guardar' }}
       </button>
     </div>
-  </div>
+  </form>
 </div>
+
+<!-- Loading indicator -->
+<ion-loading [isOpen]="isLoading" message="Guardando cambios..."></ion-loading>
+
+<!-- Toast notifications -->
+<ion-toast 
+  [isOpen]="false" 
+  message="Mensaje de ejemplo" 
+  duration="3000">
+</ion-toast>

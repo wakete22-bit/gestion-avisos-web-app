@@ -63,6 +63,7 @@ export interface Usuario {
   nombre_completo: string;
   email: string;
   telefono?: string;
+  avatar?: string;
   rol_id: string;
   rol?: Rol;
   es_activo: boolean;
