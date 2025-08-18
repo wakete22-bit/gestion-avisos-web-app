@@ -404,81 +404,83 @@ export class FlujoAvisosService {
           // Calcular horas entre hora_entrada y hora_salida
           const horaEntrada = new Date(`2000-01-01T${albaran.hora_entrada}`);
           const horaSalida = new Date(`2000-01-01T${albaran.hora_salida}`);
-          const horasTrabajo = (horaSalida.getTime() - horaEntrada.getTime()) / (1000 * 60 * 60);
-          horasTotales += Math.max(0, horasTrabajo);
+          const horasAlbaran = (horaSalida.getTime() - horaEntrada.getTime()) / (1000 * 60 * 60);
+          horasTotales += Math.max(0, horasAlbaran);
         }
       });
     }
     
-    // 2. Agregar línea de mano de obra con horas reales
+    // 2. Agregar línea de mano de obra
     if (horasTotales > 0) {
       lineasFactura.push({
-        tipo: 'mano_obra' as const,
-        nombre: 'Mano de obra técnica',
-        cantidad: Math.round(horasTotales * 10) / 10, // Redondear a 1 decimal
-        precio_pvp: 50, // Precio por hora
-        descripcion: `${Math.round(horasTotales * 10) / 10} horas de trabajo técnico`
+        tipo: 'mano_obra',
+        nombre: 'Mano de obra',
+        cantidad: horasTotales,
+        // precio_neto: this.configuracion.precio_hora_mano_obra,
+        // precio_pvp: this.configuracion.precio_hora_mano_obra,
+        precio_neto: 50,
+        precio_pvp: 50,
+        descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas`
       });
     }
     
-    // 3. Agregar repuestos utilizados desde los albaranes
-    const repuestosUtilizados = new Map<string, number>(); // nombre -> cantidad
-    
-    if (datosFactura.resumen.albaranes) {
+    // 3. Agregar repuestos con cantidades REALES desde los albaranes
+    if (datosFactura.resumen.albaranes && datosFactura.resumen.albaranes.length > 0) {
       datosFactura.resumen.albaranes.forEach((albaran: any) => {
-        if (albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0) {
-          albaran.repuestos_utilizados.forEach((repuesto: string) => {
-            const cantidadActual = repuestosUtilizados.get(repuesto) || 0;
-            repuestosUtilizados.set(repuesto, cantidadActual + 1);
+        if (albaran.estado_cierre === 'Finalizado' && albaran.repuestos_utilizados) {
+          console.log('🔧 Procesando repuestos del albarán:', albaran.repuestos_utilizados);
+          
+          albaran.repuestos_utilizados.forEach((repuesto: any) => {
+            // Verificar si el repuesto tiene estructura completa con cantidades
+            if (repuesto && typeof repuesto === 'object' && repuesto.cantidad) {
+              // ✅ NUEVO FORMATO: Repuesto con cantidades reales
+              console.log('🔧 Repuesto con cantidad real:', repuesto);
+              lineasFactura.push({
+                tipo: 'repuesto',
+                nombre: repuesto.nombre,
+                cantidad: repuesto.cantidad, // ← CANTIDAD REAL
+                precio_neto: repuesto.precio_neto || 0,
+                precio_pvp: repuesto.precio_pvp || repuesto.precio_neto || 0,
+                descripcion: `Repuesto: ${repuesto.nombre} - ${repuesto.cantidad} ${repuesto.unidad || 'unidad'}`
+              });
+            } else if (typeof repuesto === 'string') {
+              // ⚠️ FORMATO ANTIGUO: Solo nombre del repuesto (fallback)
+              console.log('⚠️ Repuesto en formato antiguo (sin cantidad):', repuesto);
+              lineasFactura.push({
+                tipo: 'repuesto',
+                nombre: repuesto,
+                cantidad: 1, // ← CANTIDAD POR DEFECTO (fallback)
+                precio_neto: 0,
+                precio_pvp: 0,
+                descripcion: `Repuesto: ${repuesto} (cantidad no especificada)`
+              });
+            }
           });
         }
       });
     }
     
-    // Agregar líneas de repuestos
-    repuestosUtilizados.forEach((cantidad, nombre) => {
-      lineasFactura.push({
-        tipo: 'repuesto' as const,
-        nombre: nombre,
-        cantidad: cantidad,
-        precio_pvp: 25, // Precio base por repuesto (se puede ajustar)
-        descripcion: `Repuesto utilizado: ${nombre}`
-      });
-    });
+    // 4. Calcular totales
+    const subtotal = lineasFactura.reduce((total, linea) => {
+      return total + (linea.precio_pvp * linea.cantidad);
+    }, 0);
     
-    // Si no hay líneas, agregar una línea básica
-    if (lineasFactura.length === 0) {
-      lineasFactura.push({
-        tipo: 'mano_obra' as const,
-        nombre: 'Servicio técnico básico',
-        cantidad: 1,
-        precio_pvp: 50,
-        descripcion: 'Servicio técnico realizado'
-      });
-    }
-
-    console.log('🔧 Líneas de factura creadas:', lineasFactura);
-    console.log('🔧 Horas totales calculadas:', horasTotales);
+    const iva = subtotal * (0.21);
+    const total = subtotal + iva;
     
-    const totales = this.facturasService.calcularTotales(lineasFactura);
+    console.log('🔧 Líneas de factura generadas:', lineasFactura);
+    console.log('🔧 Subtotal:', subtotal, 'IVA:', iva, 'Total:', total);
     
-    console.log('🔧 Totales calculados:', totales);
-
     return {
-      numero_factura: '', // Se generará automáticamente por el servicio
-      fecha_emision: new Date().toISOString().split('T')[0],
       cliente_id: datosFactura.cliente.id,
       nombre_cliente: datosFactura.cliente.nombre_completo,
-      direccion_cliente: datosFactura.cliente.direccion || 'Sin dirección',
-      cif_cliente: 'Sin CIF', // El modelo de cliente no tiene CIF
-      email_cliente: datosFactura.cliente.email || 'Sin email',
-      aviso_id: datosFactura.avisoId,
-      subtotal: totales.subtotal,
-      iva: totales.iva,
-      total: totales.total,
-      estado: 'En curso', // Cambiar a 'En curso' para indicar que está siendo procesada
-      notas: `Factura generada desde ${datosFactura.resumen.albaranes?.length || 0} albarán(es) con ${Math.round(horasTotales * 10) / 10}h de trabajo técnico`,
-      lineas: lineasFactura
+      direccion_cliente: datosFactura.cliente.direccion || '',
+      cif_cliente: datosFactura.cliente.cif || '',
+      email_cliente: datosFactura.cliente.email || '',
+      aviso_id: datosFactura.aviso.id,
+      subtotal: subtotal,
+      iva: iva,
+      total: total,
+      lineas_factura: lineasFactura
     };
-  }
-} 
+  }} 

@@ -34,41 +34,36 @@ export class TrabajosService {
     /**
      * Obtiene los trabajos realizados de un aviso
      */
-    getTrabajosAviso(
-        avisoId: string,
-        pagina: number = 1,
-        porPagina: number = 10
-    ): Observable<TrabajoResponse> {
-        const desde = (pagina - 1) * porPagina;
-
-        return from(
-            this.supabase
-                .from('trabajos_realizados')
-                .select('*', { count: 'exact' })
-                .eq('aviso_id', avisoId)
-                .order('fecha_trabajo', { ascending: false })
-                .range(desde, desde + porPagina - 1)
+    getTrabajosAviso(avisoId: string): Observable<any> {
+        return from(this.supabase
+            .from('trabajos_realizados')
+            .select(`
+            *,
+            materiales:materiales_trabajo(
+              id,
+              cantidad_utilizada,
+              precio_neto_al_momento,
+              material:inventario(
+                id,
+                nombre,
+                unidad,
+                precio_neto,
+                pvp,
+                codigo
+              )
+            )
+          `)
+            .eq('aviso_id', avisoId)
+            .order('fecha_creacion', { ascending: false })
         ).pipe(
-            map(({ data, error, count }) => {
-                if (error) throw error;
-
-                const trabajos = data as TrabajoRealizado[];
-                this.trabajosSubject.next(trabajos);
-
+            map(response => {
+                if (response.error) throw response.error;
                 return {
-                    trabajos,
-                    total: count || 0,
-                    pagina,
-                    por_pagina: porPagina
+                    trabajos: response.data || []
                 };
-            }),
-            catchError(error => {
-                console.error('Error al obtener trabajos:', error);
-                throw error;
             })
         );
     }
-
     /**
      * Obtiene un trabajo por su ID con sus materiales
      */
@@ -105,7 +100,7 @@ export class TrabajosService {
      */
     crearTrabajo(trabajo: CrearTrabajoRequest): Observable<TrabajoCompleto> {
         const { materiales, ...trabajoData } = trabajo;
-        
+
         const trabajoInsert = {
             ...trabajoData,
             fecha_creacion: new Date().toISOString(),
@@ -159,7 +154,7 @@ export class TrabajosService {
      */
     actualizarTrabajo(id: string, trabajo: ActualizarTrabajoRequest): Observable<TrabajoCompleto> {
         const { materiales, ...trabajoData } = trabajo;
-        
+
         const datosActualizados = {
             ...trabajoData,
             fecha_actualizacion: new Date().toISOString()
@@ -266,7 +261,7 @@ export class TrabajosService {
                 if (error) throw error;
 
                 const trabajos = data as TrabajoRealizado[];
-                
+
                 const estadisticas = {
                     totalTrabajos: trabajos.length,
                     trabajosCompletados: trabajos.filter(t => t.estado === 'Completado').length,

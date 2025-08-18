@@ -220,10 +220,17 @@
           </td>
           <td data-label="Materiales">
             <div class="materiales-info">
-              <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
+              <!-- Mostrar materiales con cantidades reales si están disponibles -->
+              <ul class="repuestos-list" *ngIf="trabajo.materiales && trabajo.materiales.length > 0">
+                <li *ngFor="let material of trabajo.materiales">
+                  {{material.material?.nombre || 'Material'}}: {{material.cantidad_utilizada}} {{material.material?.unidad || 'unidad'}}
+                </li>
+              </ul>
+              <!-- Fallback a repuestos básicos si no hay materiales detallados -->
+              <ul class="repuestos-list" *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && trabajo.repuestos && trabajo.repuestos.length > 0">
                 <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
               </ul>
-              <span *ngIf="!trabajo.repuestos || trabajo.repuestos.length === 0" class="no-repuestos">
+              <span *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && (!trabajo.repuestos || trabajo.repuestos.length === 0)" class="no-repuestos">
                 Sin materiales
               </span>
             </div>
@@ -235,12 +242,23 @@
           </td>
           <td data-label="Acciones">
             <div class="estado-actions">
-              <!-- Botón de Hacer Albarán (solo si el trabajo está en estado "En curso" o "Abierto") -->
+              <!-- Botón de depuración temporal - SIEMPRE VISIBLE -->
               <button 
-                *ngIf="trabajo.estado === 'En curso' || trabajo.estado === 'Abierto'"
+                class="btn-secondary btn-small" 
+                (click)="debugTrabajo(trabajo)" 
+                title="Debug trabajo"
+                style="background: #FF6B6B; color: white;">
+                <ion-icon name="bug-outline"></ion-icon>
+                <span class="desktop-only">Debug</span>
+                <span class="mobile-only">Debug</span>
+              </button>
+              
+              <!-- Botón de Hacer Albarán - VERSIÓN SIMPLIFICADA PARA DEPURACIÓN -->
+              <button 
                 class="btn-primary btn-small" 
                 (click)="hacerAlbaran(trabajo)" 
-                title="Hacer albarán">
+                title="Hacer albarán"
+                style="background: #4CAF50;">
                 <ion-icon name="document-text-outline"></ion-icon>
                 <span class="desktop-only">Crear Albarán</span>
                 <span class="mobile-only">Albarán</span>
@@ -329,8 +347,14 @@
         <div class="detail-item full-width" *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0">
           <label>Repuestos utilizados:</label>
           <div class="repuestos-tags">
+            <!-- Mostrar repuestos con cantidades reales si están disponibles -->
             <span class="repuesto-tag" *ngFor="let repuesto of albaran.repuestos_utilizados">
-              {{repuesto}}
+              <ng-container *ngIf="repuesto.cantidad; else repuestoBasico">
+                {{repuesto.nombre}}: {{repuesto.cantidad}} {{repuesto.unidad || 'unidad'}}
+              </ng-container>
+              <ng-template #repuestoBasico>
+                {{repuesto}}
+              </ng-template>
             </span>
           </div>
         </div>

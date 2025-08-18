@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline, bugOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { TrabajosService } from '../../../../core/services/trabajos.service';
 import { Aviso } from '../../models/aviso.model';
@@ -21,22 +21,22 @@ addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrow
   selector: 'app-ver-avisos',
   templateUrl: './ver-avisos.component.html',
   styleUrls: ['./ver-avisos.component.scss'],
-  standalone: true, 
-    imports: [CommonModule, IonIcon, FlujoEstadoComponent],
+  standalone: true,
+  imports: [CommonModule, IonIcon, FlujoEstadoComponent],
 })
 export class VerAvisosComponent implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
-  
+
   // Añadir la propiedad para controlar la vista
   vistaGaleria: 'grid' | 'list' = 'grid';
-  
+
   // Datos del aviso
   aviso: Aviso | null = null;
   loading = false;
   error: string | null = null;
   subiendoImagenes = false;
-  
-  private destroy$ = new Subject<void>();  
+
+  private destroy$ = new Subject<void>();
 
   // Datos de trabajos realizados
   trabajosRealizados: TrabajoRealizado[] = [];
@@ -50,7 +50,7 @@ export class VerAvisosComponent implements OnInit {
     private modalController: ModalController,
     private flujoAvisosService: FlujoAvisosService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,navigate,person,call,mail,addCircle,constructOutline,documentTextOutline,checkmarkCircleOutline,trashOutline,imagesOutline,personOutline,gridOutline,listOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({ refreshOutline, alertCircleOutline, arrowBackOutline, close, pencilOutline, checkmarkCircleOutline, navigate, person, call, mail, addCircle, constructOutline, bugOutline, documentTextOutline, trashOutline, imagesOutline, personOutline, gridOutline, listOutline, chevronDownOutline, eyeOutline, ellipsisVerticalOutline, ellipsisVertical, add, mapOutline });
   }
 
   ngOnInit() {
@@ -68,7 +68,21 @@ export class VerAvisosComponent implements OnInit {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
+          console.log('🔍 cargarTrabajos - Respuesta completa:', response);
           this.trabajosRealizados = response.trabajos;
+          console.log('🔍 cargarTrabajos - Trabajos cargados:', this.trabajosRealizados);
+
+          // Log detallado de cada trabajo
+          this.trabajosRealizados.forEach((trabajo, index) => {
+            console.log(`🔍 cargarTrabajos - Trabajo ${index + 1}:`, {
+              id: trabajo.id,
+              estado: trabajo.estado,
+              albaran_id: trabajo.albaran_id,
+              materiales: trabajo.materiales, // ← NUEVO: Verificar materiales
+              puedeCrearAlbaran: this.puedeCrearAlbaran(trabajo)
+            });
+          });
+
           this.loadingTrabajos = false;
         },
         error: (error) => {
@@ -77,7 +91,6 @@ export class VerAvisosComponent implements OnInit {
         }
       });
   }
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -176,7 +189,7 @@ export class VerAvisosComponent implements OnInit {
     if (role === 'confirm' && data) {
       try {
         console.log('Datos del formulario de edición:', data);
-        
+
         // Preparar datos para actualizar
         const datosActualizacion = {
           tipo: data.tipo,
@@ -197,17 +210,17 @@ export class VerAvisosComponent implements OnInit {
             next: (avisoActualizado) => {
               console.log('Aviso actualizado exitosamente:', avisoActualizado);
               this.loading = false;
-              
+
               // Mostrar mensaje de éxito
               this.mostrarMensaje('Aviso actualizado exitosamente', 'success');
-              
+
               // Recargar los datos del aviso
               this.cargarAviso();
             },
             error: (error) => {
               console.error('Error al actualizar aviso:', error);
               this.loading = false;
-              
+
               // Mostrar mensaje de error
               this.mostrarMensaje(
                 error.message || 'Error al actualizar el aviso. Por favor, inténtalo de nuevo.',
@@ -246,7 +259,7 @@ export class VerAvisosComponent implements OnInit {
     if (files.length > 0 && this.aviso?.id) {
       this.subirImagenes(Array.from(files));
     }
-    
+
     // Limpiar el input para permitir seleccionar los mismos archivos de nuevo
     event.target.value = '';
   }
@@ -267,7 +280,7 @@ export class VerAvisosComponent implements OnInit {
       const subidasCompletadas = new Promise<void>((resolve) => {
         let fotosSubidas = 0;
         const totalFotos = files.length;
-        
+
         files.forEach((file: File) => {
           this.avisosService.subirFoto(this.aviso!.id!, file)
             .pipe(takeUntil(this.destroy$))
@@ -289,13 +302,13 @@ export class VerAvisosComponent implements OnInit {
             });
         });
       });
-      
+
       // Esperar a que todas las fotos se suban
       await subidasCompletadas;
-      
+
       // Recargar el aviso para mostrar las nuevas imágenes
       this.cargarAviso();
-      
+
     } catch (error) {
       console.error('Error al subir imágenes:', error);
       this.error = 'Error al subir las imágenes. Por favor, inténtalo de nuevo.';
@@ -335,7 +348,7 @@ export class VerAvisosComponent implements OnInit {
           console.log('Trabajo creado exitosamente:', resultado);
           alert('Trabajo creado exitosamente. Los materiales han sido descontados del inventario.');
         }
-        
+
         // Recargar trabajos para mostrar los cambios
         this.cargarTrabajos();
       } catch (error) {
@@ -375,7 +388,7 @@ export class VerAvisosComponent implements OnInit {
         await firstValueFrom(this.trabajosService.eliminarTrabajo(trabajo.id!));
         console.log('Trabajo eliminado exitosamente');
         alert('Trabajo eliminado exitosamente. Los materiales han sido devueltos al inventario.');
-        
+
         // Recargar trabajos para actualizar la lista
         this.cargarTrabajos();
       } catch (error) {
@@ -392,7 +405,7 @@ export class VerAvisosComponent implements OnInit {
     console.log('Abriendo modal de hacer albarán para trabajo:', trabajo);
     if (!this.aviso?.id) return;
 
-        const modal = await this.modalController.create({
+    const modal = await this.modalController.create({
       component: HacerAlbaranComponent,
       componentProps: {
         trabajo: trabajo,
@@ -407,41 +420,41 @@ export class VerAvisosComponent implements OnInit {
     await modal.present();
     console.log('Modal presentado');
 
-                    const { data, role } = await modal.onWillDismiss();
-        if (role === 'confirm' && data?.success) {
-          try {
-            console.log('Albarán creado exitosamente:', data.albaran);
-            console.log('Trabajo actualizado:', data.trabajo);
-            console.log('Aviso actualizado:', data.aviso);
-            alert(data.mensaje || 'Albarán creado exitosamente');
-            
-            // Recargar trabajos y aviso para mostrar los cambios
-            this.cargarTrabajos();
-            if (data.aviso) {
-              this.aviso = data.aviso;
-            }
-            
-            // Procesar el estado del albarán
-            if (data.albaran.estado_cierre === 'Finalizado') {
-              console.log('Trabajo finalizado, listo para facturar');
-              // El trabajo ya está marcado como "Finalizado" y listo para facturar
-            }
-            
-            if (data.albaran.estado_cierre === 'Presupuesto pendiente') {
-              console.log('Presupuesto pendiente, se puede crear presupuesto');
-              // Aquí se podría mostrar opción para crear presupuesto
-            }
-            
-            if (data.albaran.estado_cierre === 'Otra visita') {
-              console.log('Otra visita requerida');
-              // Aquí se podría programar nueva visita
-            }
-            
-          } catch (error) {
-            console.error('Error al procesar albarán:', error);
-            alert('Error al procesar el albarán. Por favor, inténtalo de nuevo.');
-          }
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data?.success) {
+      try {
+        console.log('Albarán creado exitosamente:', data.albaran);
+        console.log('Trabajo actualizado:', data.trabajo);
+        console.log('Aviso actualizado:', data.aviso);
+        alert(data.mensaje || 'Albarán creado exitosamente');
+
+        // Recargar trabajos y aviso para mostrar los cambios
+        this.cargarTrabajos();
+        if (data.aviso) {
+          this.aviso = data.aviso;
         }
+
+        // Procesar el estado del albarán
+        if (data.albaran.estado_cierre === 'Finalizado') {
+          console.log('Trabajo finalizado, listo para facturar');
+          // El trabajo ya está marcado como "Finalizado" y listo para facturar
+        }
+
+        if (data.albaran.estado_cierre === 'Presupuesto pendiente') {
+          console.log('Presupuesto pendiente, se puede crear presupuesto');
+          // Aquí se podría mostrar opción para crear presupuesto
+        }
+
+        if (data.albaran.estado_cierre === 'Otra visita') {
+          console.log('Otra visita requerida');
+          // Aquí se podría programar nueva visita
+        }
+
+      } catch (error) {
+        console.error('Error al procesar albarán:', error);
+        alert('Error al procesar el albarán. Por favor, inténtalo de nuevo.');
+      }
+    }
   }
 
   realizarOtraVisita(trabajo: any) {
@@ -460,12 +473,12 @@ export class VerAvisosComponent implements OnInit {
 
     // Confirmar antes de eliminar
     const confirmacion = confirm(`¿Estás seguro de que quieres eliminar esta imagen?\n\nEsta acción no se puede deshacer.`);
-    
+
     if (confirmacion) {
       try {
         await firstValueFrom(this.avisosService.eliminarFoto(foto.id));
         console.log('Foto eliminada exitosamente');
-        
+
         // Recargar el aviso para actualizar la lista de fotos
         this.cargarAviso();
       } catch (error) {
@@ -489,17 +502,67 @@ export class VerAvisosComponent implements OnInit {
    * Obtiene el estado del albarán asociado al trabajo
    */
   getAlbaranEstado(trabajo: TrabajoRealizado): string {
+    console.log('🔍 getAlbaranEstado - Trabajo:', trabajo);
+    console.log('🔍 getAlbaranEstado - Aviso albaranes:', this.aviso?.albaranes);
+
     if (!trabajo.albaran_id || !this.aviso?.albaranes) {
+      console.log('🔍 getAlbaranEstado - Sin albarán o sin albaranes en aviso');
       return 'pendiente';
     }
-    
+
     const albaran = this.aviso.albaranes.find(a => a.id === trabajo.albaran_id);
+    console.log('🔍 getAlbaranEstado - Albarán encontrado:', albaran);
+
     if (!albaran) {
+      console.log('🔍 getAlbaranEstado - Albarán no encontrado');
       return 'pendiente';
     }
-    
+
     // Convertir el estado del albarán a un formato válido para CSS
-    return albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
+    const estado = albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
+    console.log('🔍 getAlbaranEstado - Estado final:', estado);
+    return estado;
+  }
+
+  /**
+   * Verifica si se puede crear un albarán para un trabajo
+   */
+  puedeCrearAlbaran(trabajo: TrabajoRealizado): boolean {
+    console.log('🔍 puedeCrearAlbaran - Trabajo:', trabajo);
+    console.log('🔍 puedeCrearAlbaran - Estado:', trabajo.estado);
+    console.log('🔍 puedeCrearAlbaran - Albarán ID:', trabajo.albaran_id);
+
+    // No se puede crear si ya tiene albarán
+    if (trabajo.albaran_id) {
+      console.log('🔍 puedeCrearAlbaran - Ya tiene albarán, no se puede crear');
+      return false;
+    }
+
+    // Estados válidos para crear albarán
+    const estadosValidos = ['En curso', 'Abierto', 'Pendiente'];
+    const puedeCrear = estadosValidos.includes(trabajo.estado);
+
+    console.log('🔍 puedeCrearAlbaran - Estado válido:', puedeCrear);
+    return puedeCrear;
+  }
+
+  /**
+   * Método de depuración para ver la información completa del trabajo
+   */
+  debugTrabajo(trabajo: TrabajoRealizado) {
+    console.log('🐛 DEBUG TRABAJO:', trabajo);
+    console.log('🐛 Estado:', trabajo.estado);
+    console.log('🐛 Albarán ID:', trabajo.albaran_id);
+    console.log('🐛 Puede crear albarán:', this.puedeCrearAlbaran(trabajo));
+    console.log('🐛 Aviso albaranes:', this.aviso?.albaranes);
+
+    // Mostrar alerta con información del trabajo
+    alert(`DEBUG TRABAJO:
+ID: ${trabajo.id}
+Estado: ${trabajo.estado}
+Albarán ID: ${trabajo.albaran_id || 'Ninguno'}
+Puede crear albarán: ${this.puedeCrearAlbaran(trabajo)}
+Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
   }
 
   /**
@@ -515,17 +578,17 @@ export class VerAvisosComponent implements OnInit {
    */
   onAccionFlujoEjecutada(resultado: any) {
     console.log('Acción de flujo ejecutada:', resultado);
-    
+
     // Recargar aviso para reflejar cambios
     this.cargarAviso();
-    
+
     // Mostrar mensaje de éxito (opcional)
     if (resultado.mensaje) {
       console.log('Mensaje de éxito:', resultado.mensaje);
       // Aquí puedes implementar un toast o notificación
       alert(resultado.mensaje);
     }
-    
+
     // Navegar si se creó una factura
     if (resultado.facturaId) {
       const navegarFactura = confirm('Se ha generado una factura. ¿Deseas ver la factura creada?');
@@ -538,26 +601,26 @@ export class VerAvisosComponent implements OnInit {
   completarAviso() {
     if (this.aviso?.id) {
       console.log('🔄 Completando aviso:', this.aviso.id);
-      
+
       // Mostrar confirmación antes de completar
       if (confirm('¿Estás seguro de que quieres marcar este aviso como completado? Esta acción no se puede deshacer.')) {
         this.loading = true;
-        
+
         this.flujoAvisosService.completarAviso(this.aviso.id).subscribe({
           next: (resultado) => {
             console.log('✅ Aviso completado exitosamente:', resultado);
             this.loading = false;
-            
+
             // Mostrar mensaje de éxito
             this.mostrarMensaje('Aviso completado exitosamente', 'success');
-            
+
             // Recargar los datos del aviso
             this.cargarAviso();
           },
           error: (error) => {
             console.error('❌ Error al completar aviso:', error);
             this.loading = false;
-            
+
             // Mostrar mensaje de error
             this.mostrarMensaje(
               error.message || 'Error al completar el aviso. Verifica que haya trabajos realizados y facturas generadas.',
@@ -579,11 +642,11 @@ export class VerAvisosComponent implements OnInit {
     // Aquí podrías implementar un sistema de notificaciones
     // Por ahora, usamos console.log y alert para errores
     console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
-    
+
     if (tipo === 'error') {
       alert(mensaje);
     }
-    
+
     // Si tienes un servicio de notificaciones, lo usarías aquí
     // this.notificationService.show(mensaje, tipo);
   }
