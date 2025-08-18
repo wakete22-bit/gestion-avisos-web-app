@@ -50,7 +50,7 @@ export class VerAvisosComponent implements OnInit {
     private modalController: ModalController,
     private flujoAvisosService: FlujoAvisosService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,navigate,person,call,mail,addCircle,constructOutline,documentTextOutline,checkmarkCircleOutline,trashOutline,imagesOutline,personOutline,gridOutline,listOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({refreshOutline,alertCircleOutline,refreshOutline,arrowBackOutline,close,pencilOutline,checkmarkCircleOutline,navigate,person,call,mail,addCircle,refreshOutline,constructOutline,documentTextOutline,checkmarkCircleOutline,pencilOutline,trashOutline,addCircle,refreshOutline,imagesOutline,trashOutline,personOutline,gridOutline,listOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {

@@ -421,28 +421,42 @@ export class FlujoAvisosService {
       });
     }
     
-    // 3. Agregar repuestos utilizados desde los albaranes
-    const repuestosUtilizados = new Map<string, number>(); // nombre -> cantidad
+    // 3. Agregar repuestos utilizados desde los albaranes CON CANTIDADES REALES
+    const repuestosUtilizados = new Map<string, any>(); // nombre -> {cantidad, precio, unidad, codigo}
     
     if (datosFactura.resumen.albaranes) {
       datosFactura.resumen.albaranes.forEach((albaran: any) => {
         if (albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0) {
-          albaran.repuestos_utilizados.forEach((repuesto: string) => {
-            const cantidadActual = repuestosUtilizados.get(repuesto) || 0;
-            repuestosUtilizados.set(repuesto, cantidadActual + 1);
+          albaran.repuestos_utilizados.forEach((repuesto: any) => {
+            // Verificar si el repuesto ya existe
+            const existente = repuestosUtilizados.get(repuesto.nombre);
+            if (existente) {
+              // Si ya existe, sumar la cantidad
+              existente.cantidad += repuesto.cantidad || 1;
+            } else {
+              // Si no existe, crearlo con los datos del repuesto
+              repuestosUtilizados.set(repuesto.nombre, {
+                cantidad: repuesto.cantidad || 1,
+                precio_neto: repuesto.precio_neto || 0,
+                precio_pvp: repuesto.precio_pvp || 25,
+                unidad: repuesto.unidad || 'unidad',
+                codigo: repuesto.codigo || ''
+              });
+            }
           });
         }
       });
     }
     
-    // Agregar líneas de repuestos
-    repuestosUtilizados.forEach((cantidad, nombre) => {
+    // Agregar líneas de repuestos con cantidades reales
+    repuestosUtilizados.forEach((datos, nombre) => {
       lineasFactura.push({
         tipo: 'repuesto' as const,
         nombre: nombre,
-        cantidad: cantidad,
-        precio_pvp: 25, // Precio base por repuesto (se puede ajustar)
-        descripcion: `Repuesto utilizado: ${nombre}`
+        cantidad: datos.cantidad, // ← CANTIDAD REAL
+        precio_neto: datos.precio_neto,
+        precio_pvp: datos.precio_pvp,
+        descripcion: `Repuesto utilizado: ${nombre} (${datos.cantidad} ${datos.unidad})`
       });
     });
     
@@ -459,6 +473,7 @@ export class FlujoAvisosService {
 
     console.log('🔧 Líneas de factura creadas:', lineasFactura);
     console.log('🔧 Horas totales calculadas:', horasTotales);
+    console.log('🔧 Repuestos con cantidades reales:', repuestosUtilizados);
     
     const totales = this.facturasService.calcularTotales(lineasFactura);
     
