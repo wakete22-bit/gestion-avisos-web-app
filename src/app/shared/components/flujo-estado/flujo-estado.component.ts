@@ -23,9 +23,7 @@ import { FlujoAvisosService, FlujoEstado } from '../../../core/services/flujo-av
   standalone: true,
   imports: [
     CommonModule,
-    IonIcon,
-    IonButton,
-    IonBadge
+    IonIcon
   ]
 })
 export class FlujoEstadoComponent implements OnInit, OnDestroy {

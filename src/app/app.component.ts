@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { PwaInstallBannerComponent } from './core/components/pwa-install-banner/pwa-install-banner.component';
-import { PwaDebugComponent } from './core/components/pwa-debug/pwa-debug.component';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { PwaIosService } from './core/services/pwa-ios.service';
 import { ViewportService } from './core/services/viewport.service';
@@ -12,7 +11,7 @@ import { environment } from '../environments/environment';
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent, PwaDebugComponent],
+  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent],
 })
 export class AppComponent implements OnInit {
   constructor(

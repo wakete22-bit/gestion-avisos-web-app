@@ -97,8 +97,10 @@
     padding-bottom: 30px;
   }
 
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -141,8 +143,10 @@
     padding-bottom: 80px;
   }
 
-  scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
 
   &::-webkit-scrollbar {
     width: 6px;

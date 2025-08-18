@@ -51,17 +51,12 @@ export interface AlbaranData {
     IonButton, 
     IonInput, 
     IonTextarea, 
-    IonSelect, 
-    IonSelectOption, 
-    IonDatetime, 
     IonLabel, 
-    IonItem, 
     IonContent, 
     IonHeader, 
     IonToolbar, 
     IonTitle, 
-    IonButtons, 
-    IonModal
+    IonButtons
   ]
 })
 export class HacerAlbaranComponent implements OnInit, AfterViewInit {

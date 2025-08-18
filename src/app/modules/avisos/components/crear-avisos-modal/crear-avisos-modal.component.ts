@@ -15,7 +15,7 @@ import { Subject, takeUntil } from 'rxjs';
   templateUrl: './crear-avisos-modal.component.html',
   styleUrls: ['./crear-avisos-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule, CrearClienteModalComponent]
+  imports: [IonicModule, CommonModule, ReactiveFormsModule]
 })
 export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() clienteData: any;

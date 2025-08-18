@@ -22,7 +22,7 @@ addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrow
   templateUrl: './ver-avisos.component.html',
   styleUrls: ['./ver-avisos.component.scss'],
   standalone: true, 
-    imports: [CommonModule, IonIcon, IonSegment, IonSegmentButton, FlujoEstadoComponent],
+    imports: [CommonModule, IonIcon, FlujoEstadoComponent],
 })
 export class VerAvisosComponent implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;

@@ -33,8 +33,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
     IonRefresher,
     MatTableModule,
     MatIconModule,
-    ScrollingModule,
-    CrearAvisosModalComponent
+    ScrollingModule
   ],
 })
 export class AvisosComponent implements AfterViewInit, OnDestroy {

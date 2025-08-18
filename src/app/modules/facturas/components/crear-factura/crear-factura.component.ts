@@ -24,7 +24,7 @@ import jsPDF from 'jspdf';
   templateUrl: './crear-factura.component.html',
   styleUrls: ['./crear-factura.component.scss'],
   standalone: true,
-    imports: [IonContent, CommonModule, ReactiveFormsModule, FormsModule, IonIcon]
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, IonIcon]
 })
 export class CrearFacturaComponent implements OnInit {
   @Input() facturaId?: string; // Para editar factura existente
