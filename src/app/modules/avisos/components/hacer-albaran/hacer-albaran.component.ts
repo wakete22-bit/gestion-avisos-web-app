@@ -18,20 +18,9 @@ import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
 import { Aviso } from '../../models/aviso.model';
 import { InventarioService } from '../../../inventario/services/inventario.service';
 import { Inventario } from '../../../inventario/models/inventario.model';
-import { InventarioService } from '../../../inventario/services/inventario.service';
 import { AlbaranesService, CrearAlbaranRequest } from '../../../../core/services/albaranes.service';
 import { TrabajosService } from '../../../../core/services/trabajos.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
-
-// Nueva interfaz para repuestos con cantidades reales
-export interface RepuestoAlbaran {
-  nombre: string;
-  cantidad: number;
-  precio_neto: number;
-  precio_pvp: number;
-  unidad: string;
-  codigo: string;
-}
 
 export interface AlbaranData {
   trabajo_id: string;
@@ -40,7 +29,7 @@ export interface AlbaranData {
   hora_entrada: string;
   hora_salida: string;
   descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
+  repuestos_utilizados: string[];
   estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
   presupuesto_necesario: number;
   dni_cliente: string;
@@ -83,7 +72,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   productosFiltrados: Inventario[] = [];
   busquedaRepuesto = '';
   mostrarSelectorRepuestos = false;
-  repuestosSeleccionados: RepuestoAlbaran[] = []; // ← CAMBIADO: Ahora incluye cantidades
+  repuestosSeleccionados: string[] = [];
 
   // Variables para la firma digital
   @ViewChild('signaturePad') signaturePadElement!: ElementRef;
@@ -152,17 +141,9 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         repuestos_utilizados: this.trabajo.repuestos || []
       });
       
-      // Si ya hay repuestos, convertirlos al nuevo formato con cantidades
+      // Si ya hay repuestos, agregarlos a la lista
       if (this.trabajo.repuestos && this.trabajo.repuestos.length > 0) {
-        // Convertir repuestos existentes al nuevo formato
-        this.repuestosSeleccionados = this.trabajo.repuestos.map(nombre => ({
-          nombre: nombre,
-          cantidad: 1, // Cantidad por defecto si no hay información previa
-          precio_neto: 0,
-          precio_pvp: 25, // Precio por defecto
-          unidad: 'unidad',
-          codigo: ''
-        }));
+        this.repuestosSeleccionados = [...this.trabajo.repuestos];
       }
     }
   }
@@ -218,40 +199,22 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Agrega un repuesto del inventario con cantidad
+   * Agrega un repuesto del inventario
    */
   agregarRepuesto(producto: Inventario) {
-    // Verificar si el repuesto ya existe
-    const repuestoExistente = this.repuestosSeleccionados.find(r => r.nombre === producto.nombre);
-    
-    if (repuestoExistente) {
-      // Si ya existe, aumentar la cantidad
-      repuestoExistente.cantidad += 1;
-    } else {
-      // Si no existe, agregarlo con cantidad 1
-      const nuevoRepuesto: RepuestoAlbaran = {
-        nombre: producto.nombre,
-        cantidad: 1,
-        precio_neto: producto.precio_neto || 0,
-        precio_pvp: producto.pvp || producto.precio_neto || 25,
-        unidad: producto.unidad || 'unidad',
-        codigo: producto.codigo || ''
-      };
-      this.repuestosSeleccionados.push(nuevoRepuesto);
+    if (!this.repuestosSeleccionados.includes(producto.nombre)) {
+      this.repuestosSeleccionados.push(producto.nombre);
+      this.albaranForm.patchValue({
+        repuestos_utilizados: this.repuestosSeleccionados
+      });
     }
-    
-    // Actualizar el formulario
-    this.albaranForm.patchValue({
-      repuestos_utilizados: this.repuestosSeleccionados
-    });
-    
     this.cerrarSelectorRepuestos();
   }
 
   /**
    * Elimina un repuesto de la lista
    */
-  eliminarRepuesto(repuesto: RepuestoAlbaran) {
+  eliminarRepuesto(repuesto: string) {
     this.repuestosSeleccionados = this.repuestosSeleccionados.filter(r => r !== repuesto);
     this.albaranForm.patchValue({
       repuestos_utilizados: this.repuestosSeleccionados
@@ -259,37 +222,13 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Actualiza la cantidad de un repuesto
-   */
-  actualizarCantidadRepuesto(repuesto: RepuestoAlbaran, nuevaCantidad: number) {
-    if (nuevaCantidad > 0) {
-      repuesto.cantidad = nuevaCantidad;
-      this.albaranForm.patchValue({
-        repuestos_utilizados: this.repuestosSeleccionados
-      });
-    }
-  }
-
-  /**
    * Agrega un repuesto manualmente
    */
   agregarRepuestoManual() {
-    const nombreRepuesto = prompt('Introduce el nombre del repuesto:');
-    if (nombreRepuesto && nombreRepuesto.trim()) {
-      const cantidadStr = prompt('Introduce la cantidad utilizada:');
-      const cantidad = parseInt(cantidadStr || '1');
-      
-      if (cantidad > 0) {
-        const repuestoManual: RepuestoAlbaran = {
-          nombre: nombreRepuesto.trim(),
-          cantidad: cantidad,
-          precio_neto: 0,
-          precio_pvp: 25, // Precio por defecto
-          unidad: 'unidad',
-          codigo: ''
-        };
-        
-        this.repuestosSeleccionados.push(repuestoManual);
+    const repuestoManual = prompt('Introduce el nombre del repuesto:');
+    if (repuestoManual && repuestoManual.trim()) {
+      if (!this.repuestosSeleccionados.includes(repuestoManual.trim())) {
+        this.repuestosSeleccionados.push(repuestoManual.trim());
         this.albaranForm.patchValue({
           repuestos_utilizados: this.repuestosSeleccionados
         });
@@ -332,21 +271,21 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
       this.loading = true;
       this.error = null;
 
-      const albaranData: CrearAlbaranRequest = {
-        trabajo_id: this.trabajo.id!,
-        aviso_id: this.aviso.id!,
-        fecha_cierre: this.albaranForm.value.fecha_cierre,
-        hora_entrada: this.albaranForm.value.hora_entrada,
-        hora_salida: this.albaranForm.value.hora_salida,
-        descripcion_trabajo_realizado: this.albaranForm.value.descripcion_trabajo_realizado,
-        repuestos_utilizados: this.albaranForm.value.repuestos_utilizados,
-        estado_cierre: this.albaranForm.value.estado_cierre,
-        presupuesto_necesario: this.albaranForm.value.presupuesto_necesario,
-        dni_cliente: this.albaranForm.value.dni_cliente,
-        nombre_firma: this.albaranForm.value.nombre_firma,
-        firma_cliente: this.albaranForm.value.firma_cliente,
-        observaciones: this.albaranForm.value.observaciones
-      };
+             const albaranData: CrearAlbaranRequest = {
+         trabajo_id: this.trabajo.id!,
+         aviso_id: this.aviso.id!,
+         fecha_cierre: this.albaranForm.value.fecha_cierre,
+         hora_entrada: this.albaranForm.value.hora_entrada,
+         hora_salida: this.albaranForm.value.hora_salida,
+         descripcion_trabajo_realizado: this.albaranForm.value.descripcion_trabajo_realizado,
+         repuestos_utilizados: this.albaranForm.value.repuestos_utilizados,
+         estado_cierre: this.albaranForm.value.estado_cierre,
+         presupuesto_necesario: this.albaranForm.value.presupuesto_necesario,
+         dni_cliente: this.albaranForm.value.dni_cliente,
+         nombre_firma: this.albaranForm.value.nombre_firma,
+         firma_cliente: this.albaranForm.value.firma_cliente,
+         observaciones: this.albaranForm.value.observaciones
+       };
 
       console.log('Datos del albarán:', albaranData);
 

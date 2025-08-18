@@ -220,17 +220,10 @@
           </td>
           <td data-label="Materiales">
             <div class="materiales-info">
-              <!-- Mostrar materiales con cantidades reales si están disponibles -->
-              <ul class="repuestos-list" *ngIf="trabajo.materiales && trabajo.materiales.length > 0">
-                <li *ngFor="let material of trabajo.materiales">
-                  {{material.material?.nombre || 'Material'}}: {{material.cantidad_utilizada}} {{material.material?.unidad || 'unidad'}}
-                </li>
-              </ul>
-              <!-- Fallback a repuestos básicos si no hay materiales detallados -->
-              <ul class="repuestos-list" *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && trabajo.repuestos && trabajo.repuestos.length > 0">
+              <ul class="repuestos-list" *ngIf="trabajo.repuestos && trabajo.repuestos.length > 0">
                 <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
               </ul>
-              <span *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && (!trabajo.repuestos || trabajo.repuestos.length === 0)" class="no-repuestos">
+              <span *ngIf="!trabajo.repuestos || trabajo.repuestos.length === 0" class="no-repuestos">
                 Sin materiales
               </span>
             </div>
@@ -336,14 +329,8 @@
         <div class="detail-item full-width" *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0">
           <label>Repuestos utilizados:</label>
           <div class="repuestos-tags">
-            <!-- Mostrar repuestos con cantidades reales si están disponibles -->
             <span class="repuesto-tag" *ngFor="let repuesto of albaran.repuestos_utilizados">
-              <ng-container *ngIf="repuesto.cantidad; else repuestoBasico">
-                {{repuesto.nombre}}: {{repuesto.cantidad}} {{repuesto.unidad || 'unidad'}}
-              </ng-container>
-              <ng-template #repuestoBasico>
-                {{repuesto}}
-              </ng-template>
+              {{repuesto}}
             </span>
           </div>
         </div>

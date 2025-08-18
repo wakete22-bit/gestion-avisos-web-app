@@ -110,20 +110,7 @@
             <div class="repuestos-list" *ngIf="repuestosSeleccionados.length > 0">
               <h4>Repuestos Seleccionados:</h4>
               <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
-                <div class="repuesto-info">
-                  <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
-                  <div class="repuesto-cantidad">
-                    <label>Cantidad:</label>
-                    <input 
-                      type="number" 
-                      [value]="repuesto.cantidad"
-                      [min]="1"
-                      (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)"
-                      class="cantidad-input">
-                    <span class="unidad">{{ repuesto.unidad }}</span>
-                  </div>
-                  <span class="repuesto-precio">{{ repuesto.precio_pvp | currency:'EUR':'symbol':'1.2-2' }}</span>
-                </div>
+                <span class="repuesto-nombre">{{ repuesto }}</span>
                 <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
                   <ion-icon name="trash-outline"></ion-icon>
                 </button>
@@ -292,20 +279,7 @@
             <div class="repuestos-list" *ngIf="repuestosSeleccionados.length > 0">
               <h4>Repuestos Seleccionados:</h4>
               <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
-                <div class="repuesto-info">
-                  <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
-                  <div class="repuesto-cantidad">
-                    <label>Cantidad:</label>
-                    <input 
-                      type="number" 
-                      [value]="repuesto.cantidad"
-                      [min]="1"
-                      (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)"
-                      class="cantidad-input">
-                    <span class="unidad">{{ repuesto.unidad }}</span>
-                  </div>
-                  <span class="repuesto-precio">{{ repuesto.precio_pvp | currency:'EUR':'symbol':'1.2-2' }}</span>
-                </div>
+                <span class="repuesto-nombre">{{ repuesto }}</span>
                 <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
                   <ion-icon name="trash-outline"></ion-icon>
                 </button>

@@ -808,53 +808,10 @@ form::-webkit-scrollbar-thumb:hover {
     border-radius: 6px;
     margin-bottom: 8px;
 
-    .repuesto-info {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-
-      .repuesto-nombre {
-        font-weight: 500;
-        color: #0369A1;
-        font-size: 14px;
-        min-width: 120px;
-      }
-
-      .repuesto-cantidad {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        label {
-          font-size: 12px;
-          color: #6B7280;
-          font-weight: 500;
-        }
-
-        .cantidad-input {
-          width: 60px;
-          padding: 4px 8px;
-          border: 1px solid #D1D5DB;
-          border-radius: 4px;
-          font-size: 12px;
-          text-align: center;
-        }
-
-        .unidad {
-          font-size: 11px;
-          color: #6B7280;
-          font-weight: 500;
-        }
-      }
-
-      .repuesto-precio {
-        font-weight: 600;
-        color: #059669;
-        font-size: 13px;
-        min-width: 80px;
-        text-align: right;
-      }
+    .repuesto-nombre {
+      font-weight: 500;
+      color: #0369A1;
+      font-size: 14px;
     }
 
     .btn-remove {

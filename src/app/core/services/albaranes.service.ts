@@ -4,16 +4,6 @@ import { map, catchError } from 'rxjs/operators';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseClientService } from './supabase-client.service';
 
-// Nueva interfaz para repuestos con cantidades reales
-export interface RepuestoAlbaran {
-  nombre: string;
-  cantidad: number;
-  precio_neto: number;
-  precio_pvp: number;
-  unidad: string;
-  codigo: string;
-}
-
 export interface Albaran {
   id?: string;
   trabajo_id: string;
@@ -22,7 +12,7 @@ export interface Albaran {
   hora_entrada: string;
   hora_salida: string;
   descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
+  repuestos_utilizados: string[];
   estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
   presupuesto_necesario: number;
   dni_cliente?: string;
@@ -40,7 +30,7 @@ export interface CrearAlbaranRequest {
   hora_entrada: string;
   hora_salida: string;
   descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
+  repuestos_utilizados: string[];
   estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
   presupuesto_necesario: number;
   dni_cliente?: string;
