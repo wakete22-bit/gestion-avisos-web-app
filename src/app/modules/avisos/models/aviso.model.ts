@@ -1,3 +1,21 @@
+// Importar la interfaz Albaran
+export interface Albaran {
+  id: string;
+  trabajo_id: string;
+  aviso_id: string;
+  fecha_cierre: Date;
+  hora_entrada: string;
+  hora_salida: string;
+  descripcion_trabajo_realizado: string;
+  repuestos_utilizados: string[];
+  estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
+  presupuesto_necesario: number;
+  dni_cliente: string;
+  nombre_firma: string;
+  firma_url?: string;
+  observaciones?: string;
+}
+
 export interface Aviso {
   id: string;
   cliente_id: string;
@@ -22,6 +40,7 @@ export interface Aviso {
   cliente?: Cliente;
   tecnico_asignado?: Usuario;
   fotos?: FotoAviso[];
+  albaranes?: Albaran[];
 }
 
 export interface CrearAvisoRequest {

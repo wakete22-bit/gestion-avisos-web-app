@@ -33,7 +33,7 @@
       </div>
       
       <!-- Información del resumen -->
-      <div class="resumen-info" *ngIf="estadoFlujo.resumen">
+      <!-- <div class="resumen-info" *ngIf="estadoFlujo.resumen">
         <div class="info-grid">
           <div class="info-item" *ngIf="estadoFlujo.resumen.estadisticas">
             <span class="label">Trabajos completados:</span>
@@ -54,7 +54,7 @@
             <span class="value">{{ estadoFlujo.resumen.estadisticas.totalFacturas }}</span>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Acciones disponibles -->
@@ -73,37 +73,35 @@
       </div>
     </div>
 
-    <!-- Opciones de flujo inicial -->
-    <div class="flujo-inicial" *ngIf="estadoFlujo.puedeCrearPresupuesto">
-      <h4 class="section-title">Iniciar flujo:</h4>
-      <div class="flujo-options">
-        <button 
-          (click)="ejecutarAccion('crear_presupuesto')"
-          class="btn-flujo presupuesto"
-          [disabled]="loading"
-          title="Crear presupuesto y seguir flujo completo">
-          <ion-icon name="document-text-outline"></ion-icon>
-          <div class="flujo-content">
-            <span class="title">Con Presupuesto</span>
-            <span class="description desktop-only">Crear presupuesto → Aprobación → Trabajos → Factura</span>
-            <span class="description mobile-only">Presupuesto → Aprobación → Trabajos → Factura</span>
-          </div>
-        </button>
-        
-        <button 
-          (click)="iniciarFlujoDirecto()"
-          class="btn-flujo directo"
-          [disabled]="loading"
-          title="Iniciar trabajos directos sin presupuesto">
+    <!-- Información del nuevo flujo -->
+    <div class="flujo-inicial" *ngIf="estadoFlujo.estadoActual === 'No visitado' || estadoFlujo.estadoActual === 'Visitado pendiente'">
+      <!-- <h4 class="section-title">Nuevo Flujo de Trabajo:</h4>
+      <div class="flujo-info">
+        <div class="flujo-step">
           <ion-icon name="create-outline"></ion-icon>
-          <div class="flujo-content">
-            <span class="title">Trabajo Directo</span>
-            <span class="description desktop-only">Trabajos inmediatos → Factura</span>
-            <span class="description mobile-only">Trabajos → Factura</span>
+          <div class="step-content">
+            <span class="step-title">1. Crear Trabajo</span>
+            <span class="step-description">Crear un nuevo parte de trabajo para el aviso</span>
           </div>
-        </button>
+        </div>
+        
+        <div class="flujo-step">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <div class="step-content">
+            <span class="step-title">2. Hacer Albarán</span>
+            <span class="step-description">Al finalizar el trabajo, crear albarán con firma del cliente</span>
+          </div>
+        </div>
+        
+        <div class="flujo-step">
+          <ion-icon name="receipt-outline"></ion-icon>
+          <div class="step-content">
+            <span class="step-title">3. Facturar</span>
+            <span class="step-description">Generar factura basada en el albarán completado</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Sin acciones disponibles -->
     <div class="sin-acciones" *ngIf="accionesDisponibles.length === 0 && !estadoFlujo.puedeCrearPresupuesto">

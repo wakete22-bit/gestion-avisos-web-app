@@ -63,7 +63,7 @@ export class SupabaseClientService {
           // Configuración de realtime optimizada
           realtime: {
             params: {
-              eventsPerSecond: 10 // Limitar eventos por segundo
+              eventsPerSecond: 2 // Reducido a 2 para máximo rendimiento
             }
           }
         }

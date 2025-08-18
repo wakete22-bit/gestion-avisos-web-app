@@ -31,7 +31,7 @@ export class PerformanceMonitorService {
 
     this.monitoringInterval = setInterval(() => {
       this.collectMetrics();
-    }, 30000); // Cada 30 segundos
+    }, 60000); // Cada minuto para reducir overhead
   }
 
   /**
@@ -95,7 +95,13 @@ export class PerformanceMonitorService {
    */
   private getActiveSubscriptions(): number {
     // Esta es una aproximación basada en el número de elementos en el DOM
-    return document.querySelectorAll('*').length;
+    // Limitamos la búsqueda para evitar ser muy costoso
+    const body = document.body;
+    if (!body) return 0;
+    
+    // Solo contar elementos principales para evitar overhead
+    return body.children.length + 
+           (body.querySelectorAll('ion-content, ion-page, ion-header, ion-footer').length * 2);
   }
 
   /**

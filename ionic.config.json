@@ -1,7 +1,0 @@
-{
-  "name": "gestion-avisos-web-app",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
-}

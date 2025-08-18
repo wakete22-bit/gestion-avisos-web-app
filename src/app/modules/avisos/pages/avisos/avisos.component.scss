@@ -2,6 +2,47 @@ ion-content {
   --background: #FFF;
 }
 
+// Estilos para el IonRefresher
+ion-refresher {
+  --color: #4F46E5;
+  --background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  
+  ion-refresher-content {
+    --color: #4F46E5;
+    --text-color: #64748b;
+    --pulling-icon-color: #4F46E5;
+    --refreshing-spinner-color: #4F46E5;
+  }
+}
+
+// Mejoras para dispositivos móviles
+@media (max-width: 768px) {
+  ion-refresher {
+    --background: rgba(255, 255, 255, 0.98);
+    
+    ion-refresher-content {
+      --pulling-text-font-size: 14px;
+      --refreshing-text-font-size: 14px;
+    }
+  }
+}
+
+// Ajustes para pantallas pequeñas
+@media (max-width: 480px) {
+  ion-refresher {
+    ion-refresher-content {
+      --pulling-text-font-size: 12px;
+      --refreshing-text-font-size: 12px;
+    }
+  }
+}
+
+// Ajustes para el contenido cuando el refresher está activo
+ion-content.refresher-active {
+  --overflow: hidden;
+}
+
 .dashboard-table {
   background: #fff;
   padding: 25px;
@@ -285,6 +326,26 @@ ion-content {
   &.green {
     background: var(--estado-completado-bg);
     color: var(--estado-completado-color);
+  }
+  
+  &.no-visitado {
+    background: var(--estado-no-visitado-bg);
+    color: var(--estado-no-visitado-color);
+  }
+  
+  &.visitado-pendiente {
+    background: var(--estado-visitado-pendiente-bg);
+    color: var(--estado-visitado-pendiente-color);
+  }
+  
+  &.pendiente-presupuesto {
+    background: var(--estado-pendiente-presupuesto-bg);
+    color: var(--estado-pendiente-presupuesto-color);
+  }
+  
+  &.listo-para-facturar {
+    background: var(--estado-listo-para-facturar-bg);
+    color: var(--estado-listo-para-facturar-color);
   }
 }
 
@@ -1188,6 +1249,10 @@ ion-content {
       &.pendiente-presupuesto {
         background-color: #3B82F6;
       }
+      
+      &.listo-para-facturar {
+        background-color: #059669;
+      }
     }
 
     span {
@@ -1630,6 +1695,18 @@ ion-content {
             background-color: #DBEAFE;
           }
         }
+        
+        &.listo-para-facturar {
+          .aviso-cell:first-child {
+            border-left: 4px solid #059669;
+          }
+          .aviso-cell {
+            background-color: #ECFDF5;
+          }
+          &:hover .aviso-cell {
+            background-color: #D1FAE5;
+          }
+        }
 
         &.en-curso {
           .aviso-cell:first-child {
@@ -1725,6 +1802,11 @@ ion-content {
               &.pendiente-presupuesto {
                 background: var(--estado-pendiente-presupuesto-bg);
                 color: var(--estado-pendiente-presupuesto-color);
+              }
+              
+              &.listo-para-facturar {
+                background: var(--estado-listo-para-facturar-bg);
+                color: var(--estado-listo-para-facturar-color);
               }
             }
           }

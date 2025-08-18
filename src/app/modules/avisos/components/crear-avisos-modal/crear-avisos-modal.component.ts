@@ -91,6 +91,9 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
   cargarClientes() {
     this.loadingClientes = true;
     this.errorClientes = null;
+    
+    // Deshabilitar el select de cliente mientras se cargan los datos
+    this.avisoForm.get('cliente')?.disable();
 
     this.clientesService.getClientes(1, 100, '', 'nombre_completo', 'asc', true)
       .pipe(takeUntil(this.destroy$))
@@ -98,11 +101,15 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
         next: (response) => {
           this.clientes = response.clientes;
           this.loadingClientes = false;
+          // Habilitar el select de cliente una vez cargados los datos
+          this.avisoForm.get('cliente')?.enable();
         },
         error: (error) => {
           console.error('Error al cargar clientes:', error);
           this.errorClientes = 'Error al cargar los clientes';
           this.loadingClientes = false;
+          // Habilitar el select de cliente en caso de error
+          this.avisoForm.get('cliente')?.enable();
         }
       });
   }

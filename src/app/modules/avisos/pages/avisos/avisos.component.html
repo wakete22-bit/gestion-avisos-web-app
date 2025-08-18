@@ -1,4 +1,14 @@
 <ion-content>
+  <!-- IonRefresher para pull-to-refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="chevron-down-circle-outline"
+      pullingText="Desliza hacia abajo para actualizar"
+      refreshingSpinner="circles"
+      refreshingText="Actualizando avisos...">
+    </ion-refresher-content>
+  </ion-refresher>
+
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-state">
     <div class="loading-spinner">
@@ -89,7 +99,8 @@
                    'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
                    'en-curso': aviso.estado === 'En curso',
                    'pendiente': aviso.estado === 'Pendiente',
-                   'completado': aviso.estado === 'Completado'
+                   'completado': aviso.estado === 'Completado',
+                   'listo-para-facturar': aviso.estado === 'Listo para facturar'
                  }">
               <div class="aviso-cell numero-aviso">#{{ aviso.id?.substring(0, 8) || 'N/A' }}</div>
               <div class="aviso-cell estado-aviso desktop-only" style="justify-content: start;">
@@ -99,7 +110,8 @@
                         'green': aviso.estado === 'Completado',
                         'no-visitado': aviso.estado === 'No visitado',
                         'visitado-pendiente': aviso.estado === 'Visitado pendiente',
-                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto'
+                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
+                        'listo-para-facturar': aviso.estado === 'Listo para facturar'
                       }">
                   {{ aviso.estado }}
                 </span>
@@ -235,7 +247,8 @@
                 <div *ngFor="let aviso of avisos" class="aviso-row" [ngClass]="{
                        'no-visitado': aviso.estado === 'No visitado',
                        'visitado-pendiente': aviso.estado === 'Visitado pendiente',
-                       'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto'
+                       'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
+                       'listo-para-facturar': aviso.estado === 'Listo para facturar'
                      }" (click)="centrarAvisoEnMapa(aviso, $event)">
                   <div class="aviso-cell numero-aviso">#{{ aviso.id?.substring(0, 8) || 'N/A' }}</div>
                   <div class="aviso-cell nombre-cliente">{{ aviso.nombre_cliente_aviso }}</div>
@@ -284,6 +297,10 @@
           <div class="legend-item" title="Pendiente de presupuesto - Necesita presupuesto para continuar">
             <div class="legend-color pendiente-presupuesto"></div>
             <span>Pendiente presupuesto</span>
+          </div>
+          <div class="legend-item" title="Listo para facturar - Trabajos completados, pendiente de facturación">
+            <div class="legend-color listo-para-facturar"></div>
+            <span>Listo para facturar</span>
           </div>
         </div>
 

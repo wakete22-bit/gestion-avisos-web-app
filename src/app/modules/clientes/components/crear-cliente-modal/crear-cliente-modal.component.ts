@@ -96,6 +96,9 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
 
   async guardarCliente() {
     if (this.clienteForm.valid) {
+      // Deshabilitar el botón mientras se procesa
+      this.clienteForm.disable();
+      
       const clienteData = {
         nombre_completo: this.clienteForm.value.nombreContacto,
         telefono_contacto: this.clienteForm.value.telefono,
@@ -123,5 +126,9 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
 
   get textoBotonGuardar(): string {
     return this.modo === 'editar' ? 'Guardar cambios' : 'Guardar cliente';
+  }
+
+  get botonDeshabilitado(): boolean {
+    return !this.clienteForm.valid || this.clienteForm.disabled;
   }
 }

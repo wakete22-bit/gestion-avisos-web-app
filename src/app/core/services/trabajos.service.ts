@@ -300,4 +300,51 @@ export class TrabajosService {
         this.trabajosSubject.next([]);
         this.materialesTrabajoService.limpiarMateriales();
     }
+
+    /**
+     * Actualiza el estado del trabajo cuando se crea un albarán
+     */
+    actualizarEstadoTrabajo(id: string, nuevoEstado: string, albaranId?: string): Observable<TrabajoRealizado> {
+        const datosActualizados: any = {
+            estado: nuevoEstado,
+            fecha_actualizacion: new Date().toISOString()
+        };
+
+        // Si se proporciona un albaran_id, actualizarlo también
+        if (albaranId) {
+            datosActualizados.albaran_id = albaranId;
+        }
+
+        return from(
+            this.supabase
+                .from('trabajos_realizados')
+                .update(datosActualizados)
+                .eq('id', id)
+                .select()
+                .single()
+        ).pipe(
+            map(({ data, error }) => {
+                if (error) throw error;
+
+                const trabajo = data as TrabajoRealizado;
+
+                // Actualizar el estado local
+                const trabajosActuales = this.trabajosSubject.value;
+                const index = trabajosActuales.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    trabajosActuales[index] = trabajo;
+                    this.trabajosSubject.next([...trabajosActuales]);
+                }
+
+                // Notificar actualización y limpiar cache
+                this.dataUpdateService.notifyUpdated('trabajos');
+
+                return trabajo;
+            }),
+            catchError(error => {
+                console.error('Error al actualizar estado del trabajo:', error);
+                throw error;
+            })
+        );
+    }
 } 

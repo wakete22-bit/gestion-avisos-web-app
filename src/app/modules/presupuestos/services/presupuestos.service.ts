@@ -141,10 +141,7 @@ export class PresupuestosService {
             *,
             cliente:clientes(*)
           ),
-          materiales:materiales_presupuesto(
-            *,
-            material:inventario(*)
-          )
+          materiales_estimados
         `)
         .eq('id', id)
         .single()
@@ -185,46 +182,17 @@ export class PresupuestosService {
 
         const presupuesto = presupuestoCreado as Presupuesto;
 
-                // Si no hay materiales, devolver solo el presupuesto
-        if (!presupuestoData.materiales || presupuestoData.materiales.length === 0) {
-          const presupuestosActuales = this.presupuestosSubject.value;
-          this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
-          
-          // Notificar creación y limpiar cache
-          this.dataUpdateService.notifyCreated('presupuestos');
-          
-          return from([presupuesto]);
-        }
-
-      // Insertar los materiales del presupuesto
-      const materialesInsert = presupuestoData.materiales.map(material => ({
-        presupuesto_id: presupuesto.id,
-        material_id: material.material_id,
-        cantidad_estimada: material.cantidad_estimada,
-        precio_neto_al_momento: material.precio_neto_al_momento
-      }));
-
-      return from(
-        this.supabase
-          .from('materiales_presupuesto')
-          .insert(materialesInsert)
-          .select()
-      ).pipe(
-        map(({ data: materialesCreados, error: materialesError }) => {
-          if (materialesError) throw materialesError;
-
-          const presupuestosActuales = this.presupuestosSubject.value;
-          this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
-
-          // Notificar creación y limpiar cache
-          this.dataUpdateService.notifyCreated('presupuestos');
-
-          return presupuesto;
-        })
-      );
-    })
-  );
-}
+                // Los materiales ahora se almacenan directamente en el campo JSONB materiales_estimados
+        const presupuestosActuales = this.presupuestosSubject.value;
+        this.presupuestosSubject.next([presupuesto, ...presupuestosActuales]);
+        
+        // Notificar creación y limpiar cache
+        this.dataUpdateService.notifyCreated('presupuestos');
+        
+        return from([presupuesto]);
+      })
+    );
+  }
 
   /**
    * Actualiza un presupuesto existente
@@ -238,16 +206,13 @@ export class PresupuestosService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    // Remover materiales de los datos del presupuesto para no incluirlos en la actualización
-    const { materiales, ...datosPresupuesto } = datosActualizados;
-    
-    console.log('Servicio: Materiales a procesar:', materiales);
-    console.log('Servicio: Datos del presupuesto:', datosPresupuesto);
+    // Los materiales ahora se almacenan directamente en el campo JSONB materiales_estimados
+    console.log('Servicio: Datos del presupuesto:', datosActualizados);
 
     return from(
       this.supabase
         .from('presupuestos')
-        .update(datosPresupuesto)
+        .update(datosActualizados)
         .eq('id', id)
         .select(`
           *,
@@ -264,75 +229,21 @@ export class PresupuestosService {
         const presupuesto = presupuestoActualizado as Presupuesto;
         console.log('Servicio: Presupuesto actualizado:', presupuesto);
 
-        console.log('Servicio: Procesando materiales...');
-        // Siempre eliminar materiales existentes primero
-        return from(
-          this.supabase
-            .from('materiales_presupuesto')
-            .delete()
-            .eq('presupuesto_id', id)
-        ).pipe(
-          switchMap(({ error: deleteError }) => {
-            if (deleteError) throw deleteError;
-            console.log('Servicio: Materiales existentes eliminados');
+        // Los materiales ahora se almacenan directamente en el campo JSONB materiales_estimados
+        console.log('Servicio: Presupuesto actualizado:', presupuesto);
+        
+        // Actualizar el estado local
+        const presupuestosActuales = this.presupuestosSubject.value;
+        const index = presupuestosActuales.findIndex(p => p.id === id);
+        if (index !== -1) {
+          presupuestosActuales[index] = presupuesto;
+          this.presupuestosSubject.next([...presupuestosActuales]);
+        }
 
-            // Si no hay materiales para insertar, devolver solo el presupuesto
-            if (!materiales || materiales.length === 0) {
-              console.log('Servicio: No hay materiales para insertar');
-              const presupuestosActuales = this.presupuestosSubject.value;
-              const index = presupuestosActuales.findIndex(p => p.id === id);
-              if (index !== -1) {
-                presupuestosActuales[index] = presupuesto;
-                this.presupuestosSubject.next([...presupuestosActuales]);
-              }
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('presupuestos');
 
-              // Notificar actualización y limpiar cache
-              this.dataUpdateService.notifyUpdated('presupuestos');
-
-              return from([presupuesto]);
-            }
-
-            // Insertar los nuevos materiales (sin fecha_creacion)
-            const materialesInsert = materiales.map(material => ({
-              presupuesto_id: id,
-              material_id: material.material_id,
-              cantidad_estimada: material.cantidad_estimada,
-              precio_neto_al_momento: material.precio_neto_al_momento
-            }));
-            
-            console.log('Servicio: Materiales a insertar:', materialesInsert);
-
-            return from(
-              this.supabase
-                .from('materiales_presupuesto')
-                .insert(materialesInsert)
-                .select()
-            );
-          }),
-          switchMap((result) => {
-            // Si result es un Presupuesto, significa que no había materiales
-            if ('id' in result) {
-              return from([result]);
-            }
-            
-            // Si es PostgrestSingleResponse, procesar materiales
-            const { data: materialesCreados, error: materialesError } = result;
-            if (materialesError) throw materialesError;
-            console.log('Servicio: Materiales insertados correctamente:', materialesCreados);
-
-            const presupuestosActuales = this.presupuestosSubject.value;
-            const index = presupuestosActuales.findIndex(p => p.id === id);
-            if (index !== -1) {
-              presupuestosActuales[index] = presupuesto;
-              this.presupuestosSubject.next([...presupuestosActuales]);
-            }
-
-                         // Notificar actualización y limpiar cache
-             this.dataUpdateService.notifyUpdated('presupuestos');
-
-             return from([presupuesto]);
-          })
-        );
+        return from([presupuesto]);
       })
     );
   }
@@ -343,20 +254,10 @@ export class PresupuestosService {
   eliminarPresupuesto(id: string): Observable<void> {
     return from(
       this.supabase
-        .from('materiales_presupuesto')
+        .from('presupuestos')
         .delete()
-        .eq('presupuesto_id', id)
+        .eq('id', id)
     ).pipe(
-      switchMap(({ error: materialesError }) => {
-        if (materialesError) throw materialesError;
-
-        return from(
-          this.supabase
-            .from('presupuestos')
-            .delete()
-            .eq('id', id)
-        );
-      }),
       map(({ error }) => {
         if (error) throw error;
 

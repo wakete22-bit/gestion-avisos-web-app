@@ -29,8 +29,7 @@
               <select 
                 formControlName="cliente" 
                 class="form-control"
-                (change)="onClienteChange($event)"
-                [disabled]="loadingClientes">
+                (change)="onClienteChange($event)">
                 <option value="">Seleccionar cliente</option>
                 <option *ngFor="let cliente of clientes" [value]="cliente.id">
                   {{ cliente.nombre_completo }}

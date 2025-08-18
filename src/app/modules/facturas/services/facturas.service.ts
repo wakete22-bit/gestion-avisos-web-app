@@ -534,7 +534,7 @@ export class FacturasService {
       this.supabase
         .from('facturas')
         .select('numero_factura')
-        .like('numero_factura', `F${año}-%`)
+        .like('numero_factura', `FAC-${año}-%`)
         .order('numero_factura', { ascending: false })
         .limit(1)
     ).pipe(
@@ -542,18 +542,18 @@ export class FacturasService {
         if (error) throw error;
 
         if (!data || data.length === 0) {
-          return `F${año}-001`;
+          return `FAC-${año}-001`;
         }
 
         const ultimoNumero = data[0].numero_factura;
-        const match = ultimoNumero.match(/F\d{4}-(\d{3})/);
+        const match = ultimoNumero.match(/FAC-\d{4}-(\d{3})/);
         
         if (match) {
           const siguiente = parseInt(match[1]) + 1;
-          return `F${año}-${siguiente.toString().padStart(3, '0')}`;
+          return `FAC-${año}-${siguiente.toString().padStart(3, '0')}`;
         }
 
-        return `F${año}-001`;
+        return `FAC-${año}-001`;
       }),
       // Agregar un pequeño delay para evitar conflictos de concurrencia
       tap(() => new Promise(resolve => setTimeout(resolve, 100)))
@@ -635,10 +635,7 @@ export class FacturasService {
             *,
             cliente:clientes(*)
           ),
-          materiales:materiales_presupuesto(
-            *,
-            material:inventario(*)
-          )
+          materiales_estimados
         `)
         .eq('id', presupuestoId)
         .single()
@@ -662,14 +659,21 @@ export class FacturasService {
         return this.getSiguienteNumero().pipe(
           switchMap(numeroFactura => {
             // Convertir materiales del presupuesto en líneas de factura
-            const lineasMateriales: LineaFactura[] = presupuestoData.materiales?.map((material: any) => ({
-              tipo: 'repuesto' as const,
-              nombre: material.material?.nombre || 'Material desconocido',
-              cantidad: material.cantidad_estimada || 0,
-              precio_neto: material.material?.precio_neto || 0,
-              precio_pvp: material.precio_unitario_al_momento || 0,
-              descripcion: `Material del presupuesto: ${material.material?.descripcion || ''}`
-            })) || [];
+            const lineasMateriales: LineaFactura[] = [];
+            
+            // Procesar materiales estimados del presupuesto (JSONB)
+            if (presupuestoData.materiales_estimados && Array.isArray(presupuestoData.materiales_estimados)) {
+              presupuestoData.materiales_estimados.forEach((material: any) => {
+                lineasMateriales.push({
+                  tipo: 'repuesto' as const,
+                  nombre: material.nombre || 'Material desconocido',
+                  cantidad: material.cantidad || 0,
+                  precio_neto: material.precio_neto || 0,
+                  precio_pvp: material.precio_pvp || 0,
+                  descripcion: `Material del presupuesto: ${material.descripcion || ''}`
+                });
+              });
+            }
 
             // Agregar línea de mano de obra si hay horas estimadas
             if (presupuestoData.horas_estimadas && presupuestoData.horas_estimadas > 0) {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
+import { PERFORMANCE_CONFIG } from '../config/performance.config';
 
 export interface CacheItem<T> {
   data: T;
@@ -13,11 +14,12 @@ export interface CacheItem<T> {
 })
 export class CacheService {
   private cache = new Map<string, CacheItem<any>>();
-  private readonly DEFAULT_TTL = 5 * 60 * 1000; // 5 minutos por defecto
+  private readonly DEFAULT_TTL = PERFORMANCE_CONFIG.CACHE.DEFAULT_TTL;
+  private readonly MAX_CACHE_SIZE = PERFORMANCE_CONFIG.CACHE.MAX_SIZE;
   private cleanupInterval: any;
 
   constructor() {
-    // Iniciar limpieza automática cada 2 minutos
+    // Iniciar limpieza automática según configuración
     this.startAutoCleanup();
   }
 
@@ -27,8 +29,7 @@ export class CacheService {
   private startAutoCleanup(): void {
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
-      console.log('🧹 Limpieza automática de cache completada');
-    }, 2 * 60 * 1000); // Cada 2 minutos
+    }, PERFORMANCE_CONFIG.CACHE.CLEANUP_INTERVAL);
   }
 
   /**
@@ -75,8 +76,7 @@ export class CacheService {
    */
   set<T>(key: string, data: T, ttl: number = this.DEFAULT_TTL): void {
     // Verificar si el cache está muy lleno
-    if (this.cache.size > 100) {
-      console.warn('⚠️ Cache muy lleno, limpiando elementos antiguos...');
+    if (this.cache.size > this.MAX_CACHE_SIZE) {
       this.cleanup();
     }
 
@@ -156,17 +156,21 @@ export class CacheService {
    */
   cleanup(): void {
     const now = Date.now();
-    let expiredCount = 0;
     
     for (const [key, item] of this.cache.entries()) {
       if (this.isExpired(item)) {
         this.cache.delete(key);
-        expiredCount++;
       }
     }
     
-    if (expiredCount > 0) {
-      console.log(`🧹 Limpiados ${expiredCount} elementos expirados del cache`);
+    // Si aún hay muchos elementos, limpiar los más antiguos
+    if (this.cache.size > this.MAX_CACHE_SIZE) {
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+      
+      // Mantener solo los elementos más recientes
+      const toDelete = entries.slice(0, entries.length - this.MAX_CACHE_SIZE);
+      toDelete.forEach(([key]) => this.cache.delete(key));
     }
   }
 

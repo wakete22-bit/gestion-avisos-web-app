@@ -6,7 +6,7 @@ import { PwaUpdateService } from './core/services/pwa-update.service';
 import { PwaIosService } from './core/services/pwa-ios.service';
 import { ViewportService } from './core/services/viewport.service';
 import { AuthService } from './core/services/auth.service';
-import { PerformanceMonitorService } from './core/services/performance-monitor.service';
+import { PerformanceFixService } from './core/services/performance-fix.service';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
     private pwaIosService: PwaIosService,
     private viewportService: ViewportService,
     private authService: AuthService,
-    private performanceMonitor: PerformanceMonitorService
+    private performanceFix: PerformanceFixService
   ) {}
 
   ngOnInit() {
@@ -30,14 +30,12 @@ export class AppComponent implements OnInit {
       console.log('Estado de autenticación:', isAuthenticated);
     });
 
-    // Iniciar monitoreo de rendimiento en producción
+    // Iniciar optimización automática de rendimiento en producción
     if (!this.isDevMode()) {
-      this.performanceMonitor.startMonitoring();
-      
-      // Mostrar reporte de rendimiento cada 5 minutos
+      // Limpieza preventiva cada 2 minutos
       setInterval(() => {
-        console.log(this.performanceMonitor.generateReport());
-      }, 5 * 60 * 1000);
+        this.performanceFix.forceCleanup();
+      }, 2 * 60 * 1000);
     }
   }
 

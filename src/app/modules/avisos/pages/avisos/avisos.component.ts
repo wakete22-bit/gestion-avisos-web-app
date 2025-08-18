@@ -1,12 +1,12 @@
 import { Component, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, trashOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
@@ -16,6 +16,8 @@ import { AvisosService } from '../../../../core/services/avisos.service';
 import { CacheService } from '../../../../core/services/cache.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
 import { PrefetchService } from '../../../../core/services/prefetch.service';
+import { NavigationService } from '../../../../core/services/navigation.service';
+import { DebugService } from '../../../../core/services/debug.service';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -24,10 +26,11 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
   templateUrl: './avisos.component.html',
   styleUrls: ['./avisos.component.scss'],
   standalone: true,
-  imports: [
+  imports: [IonRefresherContent, 
     CommonModule,
     IonContent,
     IonIcon,
+    IonRefresher,
     MatTableModule,
     MatIconModule,
     ScrollingModule,
@@ -54,6 +57,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private busquedaSubject = new Subject<string>();
+  private dataLoaded = false;
   
   Math = Math;
 
@@ -65,18 +69,38 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private cacheService: CacheService,
     private imageOptimizationService: ImageOptimizationService,
     private prefetchService: PrefetchService,
-    private router: Router
+    private router: Router,
+    private navigationService: NavigationService,
+    private debugService: DebugService
   ) {
-    addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,chevronDownCircleOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
     
     // Configurar debounce para búsqueda
     this.configurarBusqueda();
   }
 
   ngAfterViewInit() {
-    // Cargar avisos al inicializar
-    this.cargarAvisos();
+    // Primero probar la conexión a Supabase
+    this.probarConexionSupabase();
+    
+    // Cargar avisos al inicializar usando método simplificado
+    this.cargarAvisosSimple();
     this.suscribirseAAvisos();
+    
+    // Suscribirse a cambios de navegación
+    this.navigationService.getCurrentRoute()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(route => {
+        if (route.includes('/avisos') && !this.dataLoaded) {
+          console.log('🧭 Ruta de avisos detectada, preparando carga...');
+          // Pequeño delay para asegurar que el DOM esté listo
+          setTimeout(() => {
+            if (!this.dataLoaded && !this.destroy$.closed) {
+              this.cargarAvisosSimple();
+            }
+          }, 200);
+        }
+      });
     
     // Prefetch de datos críticos en segundo plano
     this.prefetchService.prefetchCriticalData();
@@ -89,6 +113,121 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     
     // Listener para ajustar posición del botón en resize
     window.addEventListener('resize', this.handleResize.bind(this));
+  }
+
+  /**
+   * Prueba la conexión a Supabase antes de cargar datos
+   */
+  probarConexionSupabase() {
+    console.log('🔍 Iniciando pruebas de conexión...');
+    
+    // Probar conexión básica usando el servicio de avisos
+    this.avisosService.debugConnection()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.success) {
+            console.log('✅ Conexión básica exitosa');
+            // Si la conexión básica funciona, intentar cargar avisos
+            this.cargarAvisos();
+          } else {
+            console.error('❌ Error en conexión básica:', result.error);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error al probar conexión:', error);
+        }
+      });
+  }
+
+  /**
+   * Carga avisos con caché y optimizaciones
+   */
+  cargarAvisos() {
+    if (this.dataLoaded && this.avisos.length > 0) {
+      console.log('📊 Avisos ya cargados, saltando carga...');
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+    console.log('🔄 Cargando avisos...');
+
+    // Cargar directamente sin cache por ahora para debuggear
+    this.avisosService.getAvisosActivos(
+      this.paginaActual,
+      this.porPagina,
+      this.busqueda,
+      this.ordenarPor,
+      this.orden,
+      this.estadoFiltro
+    ).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        console.log('✅ Avisos cargados exitosamente:', response.avisos.length, 'avisos');
+        this.avisos = response.avisos;
+        this.totalAvisos = response.total;
+        this.loading = false;
+        this.dataLoaded = true;
+        
+        // Actualizar marcadores del mapa si está en vista de mapa
+        if (this.isMapView && this.map) {
+          this.plotAvisosOnMap();
+        }
+        
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar avisos:', error);
+        console.error('❌ Detalles del error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
+        this.loading = false;
+        
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Método de carga simplificado para debug
+   */
+  cargarAvisosSimple() {
+    console.log('🔍 Cargando avisos de forma simplificada...');
+    
+    this.loading = true;
+    this.error = null;
+    
+    // Usar el método de debug del servicio
+    this.avisosService.debugConnection()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.success) {
+            console.log('✅ Conexión exitosa, intentando cargar avisos completos...');
+            // Si la conexión funciona, cargar avisos completos
+            this.cargarAvisos();
+          } else {
+            console.error('❌ Conexión falló:', result.error);
+            this.error = 'Error de conexión a la base de datos';
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error en conexión:', error);
+          this.error = 'Error de conexión: ' + (error.message || 'Desconocido');
+          this.loading = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -120,91 +259,6 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Maneja los cambios en pantalla completa
-   */
-  private handleFullscreenChange() {
-    // Si salimos de pantalla completa, restaurar el estado normal
-    const isFullscreen = !!(document.fullscreenElement || 
-                           (document as any).webkitFullscreenElement || 
-                           (document as any).mozFullScreenElement || 
-                           (document as any).msFullscreenElement);
-    
-    if (!isFullscreen) {
-      this.closeExpandedMap();
-    }
-  }
-
-  /**
-   * Configura la búsqueda con debounce para optimizar rendimiento
-   */
-  private configurarBusqueda() {
-    this.busquedaSubject.pipe(
-      takeUntil(this.destroy$),
-      debounceTime(500), // Aumentado de 300ms a 500ms para reducir consultas
-      distinctUntilChanged()
-    ).subscribe(termino => {
-      this.busqueda = termino;
-      this.paginaActual = 1; // Resetear a la primera página
-      this.cargarAvisos();
-    });
-  }
-
-  /**
-   * Maneja la búsqueda de avisos con debounce
-   */
-  onBuscar(termino: string) {
-    this.busquedaSubject.next(termino);
-  }
-
-  /**
-   * Carga avisos con caché y optimizaciones
-   */
-  cargarAvisos() {
-    this.loading = true;
-    this.error = null;
-
-    const cacheKey = this.cacheService.generateKey('avisos', {
-      pagina: this.paginaActual,
-      porPagina: this.porPagina,
-      busqueda: this.busqueda,
-      ordenarPor: this.ordenarPor,
-      orden: this.orden,
-      estadoFiltro: this.estadoFiltro
-    });
-
-    this.cacheService.getOrSet(
-      cacheKey,
-      () => this.avisosService.getAvisosActivos(
-        this.paginaActual,
-        this.porPagina,
-        this.busqueda,
-        this.ordenarPor,
-        this.orden,
-        this.estadoFiltro
-      ),
-      2 * 60 * 1000 // 2 minutos de caché
-    ).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        this.avisos = response.avisos;
-        this.totalAvisos = response.total;
-        this.loading = false;
-        
-        // Actualizar marcadores del mapa si está en vista de mapa
-        if (this.isMapView && this.map) {
-          this.plotAvisosOnMap();
-        }
-      },
-      error: (error) => {
-        console.error('Error al cargar avisos:', error);
-        this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
-        this.loading = false;
-      }
-    });
-  }
-
-  /**
    * Se suscribe a los cambios en la lista de avisos
    */
   private suscribirseAAvisos() {
@@ -223,40 +277,93 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Maneja el pull-to-refresh desde el IonRefresher
+   */
+  async handleRefresh(event: any) {
+    try {
+      console.log('🔄 Iniciando refresh manual...');
+      console.log('📱 Usuario deslizó hacia abajo para actualizar');
+      
+      // Mostrar indicador de carga sutil (sin bloquear la UI)
+      const wasLoading = this.loading;
+      this.loading = false; // Evitar mostrar el loading state completo
+      
+      // Limpiar caché antes de recargar para obtener datos frescos
+      this.cacheService.clearCache('avisos');
+      console.log('🗑️ Caché limpiado');
+      
+      // Recargar avisos sin caché
+      await this.recargarAvisosSinCache();
+      console.log('📊 Avisos recargados');
+      
+      // Si estamos en vista de mapa, actualizar marcadores
+      if (this.isMapView && this.map) {
+        this.plotAvisosOnMap();
+        console.log('🗺️ Marcadores del mapa actualizados');
+      }
+      
+      // Restaurar estado de loading si estaba activo
+      this.loading = wasLoading;
+      
+      console.log('✅ Refresh completado exitosamente');
+      console.log('📈 Total de avisos actualizados:', this.totalAvisos);
+      
+      // Completar el refresh
+      event.target.complete();
+      
+    } catch (error) {
+      console.error('❌ Error durante el refresh:', error);
+      this.error = 'Error al actualizar los avisos. Por favor, inténtalo de nuevo.';
+      
+      // Restaurar estado de loading si estaba activo
+      this.loading = false;
+      
+      // Completar el refresh incluso si hay error
+      event.target.complete();
+    }
+  }
+
+  /**
    * Recarga avisos sin caché (útil después de crear/editar)
    */
-  recargarAvisosSinCache() {
-    this.loading = true;
-    this.error = null;
+  async recargarAvisosSinCache(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.loading = true;
+      this.error = null;
+      this.dataLoaded = false; // Resetear flag para forzar recarga
 
-    // Limpiar caché antes de cargar
-    this.cacheService.clearCache('avisos');
+      // Limpiar caché antes de cargar
+      this.cacheService.clearCache('avisos');
 
-    this.avisosService.getAvisosActivos(
-      this.paginaActual,
-      this.porPagina,
-      this.busqueda,
-      this.ordenarPor,
-      this.orden,
-      this.estadoFiltro
-    ).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (response) => {
-        this.avisos = response.avisos;
-        this.totalAvisos = response.total;
-        this.loading = false;
-        
-        // Actualizar marcadores del mapa si está en vista de mapa
-        if (this.isMapView && this.map) {
-          this.plotAvisosOnMap();
+      this.avisosService.getAvisosActivos(
+        this.paginaActual,
+        this.porPagina,
+        this.busqueda,
+        this.ordenarPor,
+        this.orden,
+        this.estadoFiltro
+      ).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (response) => {
+          this.avisos = response.avisos;
+          this.totalAvisos = response.total;
+          this.loading = false;
+          this.dataLoaded = true;
+          
+          // Actualizar marcadores del mapa si está en vista de mapa
+          if (this.isMapView && this.map) {
+            this.plotAvisosOnMap();
+          }
+          resolve();
+        },
+        error: (error) => {
+          console.error('Error al cargar avisos:', error);
+          this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
+          this.loading = false;
+          reject(error);
         }
-      },
-      error: (error) => {
-        console.error('Error al cargar avisos:', error);
-        this.error = 'Error al cargar los avisos. Por favor, inténtalo de nuevo.';
-        this.loading = false;
-      }
+      });
     });
   }
 
@@ -761,6 +868,43 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         setTimeout(() => this.map!.resize(), 100);
       }
     }
+  }
+
+  /**
+   * Maneja los cambios en pantalla completa
+   */
+  private handleFullscreenChange() {
+    // Si salimos de pantalla completa, restaurar el estado normal
+    const isFullscreen = !!(document.fullscreenElement || 
+                           (document as any).webkitFullscreenElement || 
+                           (document as any).mozFullScreenElement || 
+                           (document as any).msFullscreenElement);
+    
+    if (!isFullscreen) {
+      this.closeExpandedMap();
+    }
+  }
+
+  /**
+   * Configura la búsqueda con debounce para optimizar rendimiento
+   */
+  private configurarBusqueda() {
+    this.busquedaSubject.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(500), // Aumentado de 300ms a 500ms para reducir consultas
+      distinctUntilChanged()
+    ).subscribe(termino => {
+      this.busqueda = termino;
+      this.paginaActual = 1; // Resetear a la primera página
+      this.cargarAvisos();
+    });
+  }
+
+  /**
+   * Maneja la búsqueda de avisos con debounce
+   */
+  onBuscar(termino: string) {
+    this.busquedaSubject.next(termino);
   }
 
   /**

@@ -251,6 +251,46 @@ $success-color: #10B981;
   font-weight: 500;
 }
 
+// Badges para diferentes estados del aviso
+.badge-estado-aviso {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.badge-pendiente {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+
+  &.badge-en-curso {
+    background: #DBEAFE;
+    color: #1E40AF;
+  }
+
+                    &.badge-pendiente {
+                    background: #FEF3C7;
+                    color: #92400E;
+                  }
+
+  &.badge-completado {
+    background: #10B981;
+    color: white;
+  }
+
+  &.badge-pendiente-de-presupuesto {
+    background: #FCD34D;
+    color: #92400E;
+  }
+  
+  &.badge-listo-para-facturar {
+    background: #D1FAE5;
+    color: #059669;
+  }
+}
+
 // Grid de información
 .info-grid {
   padding: 25px;
@@ -693,16 +733,101 @@ $success-color: #10B981;
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 
   .btn-small {
     padding: 6px 12px;
     font-size: 13px;
   }
+
+  .estado-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+
+    &.estado-pendiente {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+
+    &.estado-en-curso {
+      background-color: #DCFCE7;
+      color: #166534;
+    }
+
+    &.estado-abierto {
+      background-color: #DBEAFE;
+      color: #1E40AF;
+    }
+
+    &.estado-cerrado {
+      background-color: #F3F4F6;
+      color: #374151;
+    }
+
+    &.estado-finalizado {
+      background-color: #ECFDF5;
+      color: #14532D;
+    }
+  }
+}
+
+// Estilos para la información del albarán en las acciones del trabajo
+.albaran-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0;
+
+  .badge-albaran {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    background: #10B981;
+    color: white;
+
+    ion-icon {
+      font-size: 12px;
+    }
+
+    &.badge-finalizado {
+      background: #10B981;
+      color: white;
+    }
+
+    &.badge-presupuesto-pendiente {
+      background: #F59E0B;
+      color: white;
+    }
+
+    &.badge-otra-visita {
+      background: #EF4444;
+      color: white;
+    }
+  }
+
+  .albaran-details {
+    font-size: 10px;
+    color: #6B7280;
+    text-transform: capitalize;
+  }
 }
 
 .no-trabajos {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px 20px;
   color: $secondary-color;
   
   p {
@@ -1857,6 +1982,168 @@ $success-color: #10B981;
     
     .descripcion-texto {
       font-size: 12px;
+    }
+  }
+}
+
+// ========================================
+// ESTILOS PARA ALBARANES CERRADOS
+// ========================================
+
+.albaranes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.albaran-item {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+}
+
+.albaran-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E5E7EB;
+
+  .albaran-info {
+    h4 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1F2937;
+    }
+
+    .fecha-albaran {
+      font-size: 14px;
+      color: #6B7280;
+      font-weight: 500;
+    }
+  }
+
+  .estado-albaran {
+    .badge-estado {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.badge-finalizado {
+        background: #D1FAE5;
+        color: #065F46;
+      }
+
+      &.badge-presupuesto-pendiente {
+        background: #FEF3C7;
+        color: #92400E;
+      }
+
+      &.badge-otra-visita {
+        background: #DBEAFE;
+        color: #1E40AF;
+      }
+    }
+  }
+}
+
+.albaran-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .detail-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    span, p {
+      font-size: 14px;
+      color: #1F2937;
+      margin: 0;
+    }
+
+    p {
+      line-height: 1.5;
+      background: #F9FAFB;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #E5E7EB;
+    }
+  }
+
+  .repuestos-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .repuesto-tag {
+      background: #E0F2FE;
+      color: #0C4A6E;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #BAE6FD;
+    }
+  }
+}
+
+// Responsive para albaranes
+@media (max-width: 768px) {
+  .albaranes-container {
+    gap: 16px;
+  }
+
+  .albaran-item {
+    padding: 16px;
+  }
+
+  .albaran-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+
+    .estado-albaran {
+      align-self: flex-start;
+    }
+  }
+
+  .albaran-details {
+    .detail-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
     }
   }
 }

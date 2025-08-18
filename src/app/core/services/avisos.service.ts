@@ -29,18 +29,45 @@ export class AvisosService {
     }
 
     /**
+     * Método de debug para probar la conexión básica
+     */
+    debugConnection(): Observable<any> {
+        console.log('🔍 AvisosService: Probando conexión básica...');
+        
+        return from(
+            this.supabase
+                .from('avisos')
+                .select('id')
+                .limit(1)
+        ).pipe(
+            map(({ data, error }) => {
+                if (error) {
+                    console.error('❌ AvisosService: Error en conexión:', error);
+                    throw error;
+                }
+                console.log('✅ AvisosService: Conexión exitosa, datos:', data);
+                return { success: true, data };
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error crítico:', error);
+                return from(Promise.resolve({ success: false, error }));
+            })
+        );
+    }
+
+    /**
      * Obtiene la lista de avisos con paginación y filtros - VERSIÓN OPTIMIZADA
      */
     getAvisos(
         pagina: number = 1,
-        porPagina: number = 20, // Aumentado de 10 a 20
+        porPagina: number = 15, // Reducido a 15 para mejor rendimiento
         busqueda?: string,
         ordenarPor?: string,
         orden?: 'asc' | 'desc',
         estado?: string,
         incluirCompletados: boolean = false
     ): Observable<AvisoResponse> {
-        // Consulta optimizada - incluir campos requeridos por el tipo Aviso
+        // Consulta optimizada - incluir solo campos esenciales
         let query = this.supabase
             .from('avisos')
             .select(`
@@ -48,7 +75,6 @@ export class AvisosService {
                 cliente_id,
                 tecnico_asignado_id,
                 fecha_creacion,
-                fecha_actualizacion,
                 nombre_cliente_aviso,
                 direccion_cliente_aviso,
                 telefono_cliente_aviso,
@@ -60,11 +86,8 @@ export class AvisosService {
                 es_urgente,
                 latitud,
                 longitud,
-                fecha_finalizacion,
-                requiere_presupuesto,
-                requiere_nueva_visita,
-                cliente:clientes!inner(id, nombre_completo, direccion, telefono_contacto, email, nivel_urgencia_habitual, es_activo, fecha_creacion, fecha_actualizacion),
-                tecnico_asignado:usuarios(id, nombre_completo, email, telefono, rol_id, fecha_creacion, fecha_actualizacion)
+                cliente:clientes!inner(id, nombre_completo, direccion, telefono_contacto),
+                tecnico_asignado:usuarios(id, nombre_completo, email)
             `, { count: 'exact' });
 
         // Aplicar filtros de manera más eficiente
@@ -514,9 +537,10 @@ export class AvisosService {
 
     /**
      * Crea una factura automáticamente desde los trabajos realizados de un aviso
+     * Actualizado para el nuevo flujo de albaranes
      */
     crearFacturaDesdeTrabajos(avisoId: string): Observable<any> {
-        // Obtener el aviso con todos sus trabajos realizados
+        // Obtener el aviso con todos sus trabajos realizados y albaranes
         return from(
             this.supabase
                 .from('avisos')
@@ -528,7 +552,8 @@ export class AvisosService {
                         materiales:materiales_trabajo(
                             *,
                             material:inventario(*)
-                        )
+                        ),
+                        albaran:albaranes!trabajos_realizados_albaran_id_fkey(*)
                     )
                 `)
                 .eq('id', avisoId)
@@ -539,10 +564,13 @@ export class AvisosService {
                 
                 const avisoData = aviso as any;
                 
-                // Validar que el aviso tenga trabajos completados
-                const trabajosCompletados = avisoData.trabajos?.filter((t: any) => t.estado === 'Completado') || [];
-                if (trabajosCompletados.length === 0) {
-                    throw new Error('No hay trabajos completados para facturar');
+                // Validar que el aviso tenga trabajos finalizados (con albarán)
+                const trabajosFinalizados = avisoData.trabajos?.filter((t: any) => 
+                    t.estado === 'Finalizado' || t.albaran?.estado_cierre === 'Finalizado'
+                ) || [];
+                
+                if (trabajosFinalizados.length === 0) {
+                    throw new Error('No hay trabajos finalizados para facturar. Debes crear un albarán primero.');
                 }
 
                 // Preparar datos para la factura
@@ -554,8 +582,8 @@ export class AvisosService {
                         email: 'sin-email@ejemplo.com',
                         cif: 'Sin CIF'
                     },
-                    trabajos: trabajosCompletados,
-                    resumen: this.calcularResumenFacturacion(trabajosCompletados)
+                    trabajos: trabajosFinalizados,
+                    resumen: this.calcularResumenFacturacion(trabajosFinalizados)
                 };
 
                 return facturaData;
@@ -607,6 +635,7 @@ export class AvisosService {
 
     /**
      * Obtiene un resumen completo del aviso con todos sus elementos
+     * Actualizado para el nuevo esquema de base de datos
      */
     getResumenCompletoAviso(avisoId: string): Observable<any> {
         return from(
@@ -617,20 +646,16 @@ export class AvisosService {
                     cliente:clientes(*),
                     tecnico_asignado:usuarios(*),
                     fotos:fotos_aviso(*),
-                    trabajos:trabajos_realizados(
-                        *,
-                        materiales:materiales_trabajo(
-                            *,
-                            material:inventario(*)
-                        )
-                    ),
-                    presupuesto:presupuestos(
-                        *,
-                        materiales:materiales_presupuesto(
-                            *,
-                            material:inventario(*)
-                        )
-                    ),
+                                           trabajos:trabajos_realizados(
+                           *,
+                           materiales:materiales_trabajo(
+                               *,
+                               material:inventario(*)
+                           ),
+                           albaran:albaranes!trabajos_realizados_albaran_id_fkey(*)
+                       ),
+                    albaranes:albaranes(*),
+                    presupuestos:presupuestos(*),
                     facturas:facturas(*)
                 `)
                 .eq('id', avisoId)
@@ -641,20 +666,35 @@ export class AvisosService {
                 
                 const avisoCompleto = data as any;
                 
-                // Calcular estadísticas
-                const trabajosCompletados = avisoCompleto.trabajos?.filter((t: any) => t.estado === 'Completado') || [];
-                const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => f.estado !== 'Completado') || [];
+                // Calcular estadísticas para el nuevo flujo
+                const trabajosFinalizados = avisoCompleto.trabajos?.filter((t: any) => 
+                    t.estado === 'Finalizado' || t.albaran?.estado_cierre === 'Finalizado'
+                ) || [];
+                
+                const trabajosConAlbaran = avisoCompleto.trabajos?.filter((t: any) => 
+                    t.albaran_id !== null
+                ) || [];
+                
+                const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => 
+                    f.estado !== 'Completado'
+                ) || [];
+                
+                // Determinar si tiene presupuesto pendiente
+                const presupuestoPendiente = avisoCompleto.albaranes?.some((a: any) => 
+                    a.estado_cierre === 'Presupuesto pendiente'
+                ) || false;
                 
                 return {
                     ...avisoCompleto,
                     estadisticas: {
                         totalTrabajos: avisoCompleto.trabajos?.length || 0,
-                        trabajosCompletados: trabajosCompletados.length,
-                        tienePresupuesto: !!avisoCompleto.presupuesto,
-                        estadoPresupuesto: avisoCompleto.presupuesto?.estado || null,
+                        trabajosConAlbaran: trabajosConAlbaran.length,
+                        trabajosFinalizados: trabajosFinalizados.length,
+                        tienePresupuesto: presupuestoPendiente,
+                        estadoPresupuesto: presupuestoPendiente ? 'Pendiente' : null,
                         totalFacturas: avisoCompleto.facturas?.length || 0,
                         facturasPendientes: facturasPendientes.length,
-                        puedeFacturar: trabajosCompletados.length > 0 && facturasPendientes.length === 0
+                        puedeFacturar: trabajosFinalizados.length > 0 && facturasPendientes.length === 0
                     }
                 };
             }),
@@ -667,27 +707,57 @@ export class AvisosService {
 
     /**
      * Actualiza el estado del aviso basándose en sus elementos relacionados
+     * Actualizado para el nuevo flujo de albaranes
      */
     actualizarEstadoAutomatico(avisoId: string): Observable<Aviso> {
         return this.getResumenCompletoAviso(avisoId).pipe(
             switchMap(resumen => {
                 let nuevoEstado = resumen.estado;
                 
-                // Lógica para determinar el estado automáticamente
-                if (resumen.estadisticas.trabajosCompletados > 0 && !resumen.estadisticas.tienePresupuesto) {
+                console.log('🔍 Analizando estado del aviso:', {
+                    estadoActual: resumen.estado,
+                    estadisticas: resumen.estadisticas,
+                    trabajos: resumen.trabajos?.length || 0,
+                    albaranes: resumen.albaranes?.length || 0
+                });
+                
+                // Nueva lógica para determinar el estado automáticamente
+                if (resumen.estadisticas.trabajosFinalizados > 0 && resumen.estadisticas.totalFacturas > 0) {
+                    // Si hay trabajos finalizados y facturas generadas, está completado
                     nuevoEstado = 'Completado';
-                } else if (resumen.estadisticas.tienePresupuesto && resumen.presupuesto?.estado === 'Pendiente') {
+                } else if (resumen.estadisticas.trabajosFinalizados > 0 && resumen.estadisticas.facturasPendientes === 0) {
+                    // Si hay trabajos finalizados pero no hay facturas, está listo para facturar
+                    nuevoEstado = 'Listo para facturar';
+                } else if (resumen.estadisticas.trabajosConAlbaran > 0 && resumen.estadisticas.tienePresupuesto) {
+                    // Si hay trabajos con albarán y requiere presupuesto
                     nuevoEstado = 'Pendiente de presupuesto';
-                } else if (resumen.estadisticas.tienePresupuesto && resumen.presupuesto?.estado === 'Completado') {
+                } else if (resumen.estadisticas.trabajosConAlbaran > 0 || resumen.estadisticas.totalTrabajos > 0) {
+                    // Si hay trabajos con albarán o trabajos en general, está en curso
                     nuevoEstado = 'En curso';
-                } else if (resumen.estadisticas.trabajosCompletados > 0 && resumen.estadisticas.facturasPendientes === 0) {
-                    nuevoEstado = 'Completado';
+                } else if (resumen.estadisticas.totalTrabajos === 0 && resumen.estadisticas.trabajosConAlbaran === 0) {
+                    // Si no hay trabajos ni albaranes, mantener el estado original o marcarlo como pendiente
+                    if (resumen.estado === 'No visitado' || resumen.estado === 'Pendiente') {
+                        nuevoEstado = resumen.estado; // Mantener el estado actual
+                    } else {
+                        nuevoEstado = 'Pendiente';
+                    }
                 }
+                
+                console.log('🔍 Estado calculado:', {
+                    estadoAnterior: resumen.estado,
+                    estadoNuevo: nuevoEstado,
+                    cambio: resumen.estado !== nuevoEstado
+                });
                 
                 // Actualizar el estado si es diferente
                 if (nuevoEstado !== resumen.estado) {
+                    console.log(`🔄 Actualizando estado del aviso ${avisoId} de "${resumen.estado}" a "${nuevoEstado}"`);
                     return this.actualizarAviso(avisoId, { estado: nuevoEstado });
                 }
+                
+                // NOTA: Después de actualizar el estado del aviso, se debe llamar a
+                // flujoAvisosService.sincronizarEstadosFacturas(avisoId) para mantener
+                // los estados de las facturas sincronizados con el estado del aviso
                 
                 return from([resumen]);
             })

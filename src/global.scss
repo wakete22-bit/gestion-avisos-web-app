@@ -561,4 +561,80 @@ section {
   
   --estado-pendiente-presupuesto-bg: #DBEAFE;
   --estado-pendiente-presupuesto-color: #2563EB;
+  
+  --estado-listo-para-facturar-bg: #D1FAE5;
+  --estado-listo-para-facturar-color: #059669;
+  
+  --estado-en-curso-bg: #FFF7E6;
+  --estado-en-curso-color: #B25E02;
+}
+
+// Estilos específicos para el modal de hacer albarán
+.modal-hacer-albaran {
+  --width: 95%;
+  --height: 90%;
+  --max-width: 1400px;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --background: #ffffff;
+  --box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+// Ajustes para diferentes tamaños de pantalla
+@media (min-width: 1200px) {
+  .modal-hacer-albaran {
+    --width: 90%;
+    --height: 85%;
+    --max-width: 1600px;
+    --max-height: 85vh;
+  }
+}
+
+@media (min-width: 1600px) {
+  .modal-hacer-albaran {
+    --width: 85%;
+    --height: 80%;
+    --max-width: 1800px;
+    --max-height: 80vh;
+  }
+}
+
+// Modal fullscreen para móviles
+.modal-hacer-albaran.modal-fullscreen {
+  --width: 100%;
+  --height: 100%;
+  --max-width: 100vw;
+  --max-height: 100vh;
+  --border-radius: 0;
+}
+
+// Asegurar que el contenido del modal sea visible
+.modal-hacer-albaran ion-content {
+  --background: #f8fafc;
+  --color: #1f2937;
+}
+
+// Estilos para el header del modal
+.modal-hacer-albaran ion-header {
+  --background: #ffffff;
+  --color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+// Estilos para el toolbar del modal
+.modal-hacer-albaran ion-toolbar {
+  --background: #ffffff;
+  --color: #1f2937;
+  --border-color: #e5e7eb;
+}
+
+// Asegurar que el modal se muestre correctamente en dispositivos móviles
+@media (max-width: 768px) {
+  .modal-hacer-albaran {
+    --width: 100%;
+    --height: 100%;
+    --max-width: 100vw;
+    --max-height: 100vh;
+    --border-radius: 0;
+  }
 }

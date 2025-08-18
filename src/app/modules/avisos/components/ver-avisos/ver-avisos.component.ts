@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { TrabajosService } from '../../../../core/services/trabajos.service';
 import { Aviso } from '../../models/aviso.model';
 import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
 import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/crear-trabajos-realizados.component';
+import { HacerAlbaranComponent } from '../hacer-albaran/hacer-albaran.component';
 import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
+import { CrearAvisosModalComponent } from '../crear-avisos-modal/crear-avisos-modal.component';
 import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 import { FlujoAvisosService } from '../../../../core/services/flujo-avisos.service';
 
@@ -48,7 +50,7 @@ export class VerAvisosComponent implements OnInit {
     private modalController: ModalController,
     private flujoAvisosService: FlujoAvisosService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,personOutline,navigate,person,call,mail,gridOutline,listOutline,addCircle,imagesOutline,trashOutline,constructOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,navigate,person,call,mail,addCircle,constructOutline,documentTextOutline,checkmarkCircleOutline,trashOutline,imagesOutline,personOutline,gridOutline,listOutline,chevronDownOutline,eyeOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
@@ -149,8 +151,74 @@ export class VerAvisosComponent implements OnInit {
 
   editarAviso() {
     if (this.aviso?.id) {
-      // Implementar edición del aviso
-      console.log('Editar aviso:', this.aviso.id);
+      this.abrirModalEditarAviso();
+    }
+  }
+
+  /**
+   * Abre el modal para editar el aviso
+   */
+  async abrirModalEditarAviso() {
+    if (!this.aviso?.id) return;
+
+    const modal = await this.modalController.create({
+      component: CrearAvisosModalComponent,
+      cssClass: 'modal-crear-aviso',
+      componentProps: {
+        modoEdicion: true,
+        avisoExistente: this.aviso
+      }
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+    if (role === 'confirm' && data) {
+      try {
+        console.log('Datos del formulario de edición:', data);
+        
+        // Preparar datos para actualizar
+        const datosActualizacion = {
+          tipo: data.tipo,
+          nombre_cliente_aviso: data.nombreContacto,
+          direccion_cliente_aviso: data.direccionLocal,
+          telefono_cliente_aviso: data.telefono,
+          nombre_contacto: data.nombreContacto,
+          descripcion_problema: data.descripcion,
+          es_urgente: data.esUrgente,
+          urgencia: data.esUrgente ? 'Alta' : 'Normal'
+        };
+
+        // Actualizar el aviso
+        this.loading = true;
+        this.avisosService.actualizarAviso(this.aviso.id, datosActualizacion)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (avisoActualizado) => {
+              console.log('Aviso actualizado exitosamente:', avisoActualizado);
+              this.loading = false;
+              
+              // Mostrar mensaje de éxito
+              this.mostrarMensaje('Aviso actualizado exitosamente', 'success');
+              
+              // Recargar los datos del aviso
+              this.cargarAviso();
+            },
+            error: (error) => {
+              console.error('Error al actualizar aviso:', error);
+              this.loading = false;
+              
+              // Mostrar mensaje de error
+              this.mostrarMensaje(
+                error.message || 'Error al actualizar el aviso. Por favor, inténtalo de nuevo.',
+                'error'
+              );
+            }
+          });
+      } catch (error) {
+        console.error('Error al procesar la edición:', error);
+        this.mostrarMensaje('Error al procesar la edición. Por favor, inténtalo de nuevo.', 'error');
+      }
     }
   }
 
@@ -317,6 +385,65 @@ export class VerAvisosComponent implements OnInit {
     }
   }
 
+  /**
+   * Abre el modal para hacer albarán
+   */
+  async hacerAlbaran(trabajo: TrabajoRealizado) {
+    console.log('Abriendo modal de hacer albarán para trabajo:', trabajo);
+    if (!this.aviso?.id) return;
+
+        const modal = await this.modalController.create({
+      component: HacerAlbaranComponent,
+      componentProps: {
+        trabajo: trabajo,
+        aviso: this.aviso
+      },
+      cssClass: 'modal-hacer-albaran modal-fullscreen',
+      backdropDismiss: false
+    });
+
+    console.log('Modal creado:', modal);
+    console.log('Presentando modal...');
+    await modal.present();
+    console.log('Modal presentado');
+
+                    const { data, role } = await modal.onWillDismiss();
+        if (role === 'confirm' && data?.success) {
+          try {
+            console.log('Albarán creado exitosamente:', data.albaran);
+            console.log('Trabajo actualizado:', data.trabajo);
+            console.log('Aviso actualizado:', data.aviso);
+            alert(data.mensaje || 'Albarán creado exitosamente');
+            
+            // Recargar trabajos y aviso para mostrar los cambios
+            this.cargarTrabajos();
+            if (data.aviso) {
+              this.aviso = data.aviso;
+            }
+            
+            // Procesar el estado del albarán
+            if (data.albaran.estado_cierre === 'Finalizado') {
+              console.log('Trabajo finalizado, listo para facturar');
+              // El trabajo ya está marcado como "Finalizado" y listo para facturar
+            }
+            
+            if (data.albaran.estado_cierre === 'Presupuesto pendiente') {
+              console.log('Presupuesto pendiente, se puede crear presupuesto');
+              // Aquí se podría mostrar opción para crear presupuesto
+            }
+            
+            if (data.albaran.estado_cierre === 'Otra visita') {
+              console.log('Otra visita requerida');
+              // Aquí se podría programar nueva visita
+            }
+            
+          } catch (error) {
+            console.error('Error al procesar albarán:', error);
+            alert('Error al procesar el albarán. Por favor, inténtalo de nuevo.');
+          }
+        }
+  }
+
   realizarOtraVisita(trabajo: any) {
     // Implementar lógica para realizar otra visita
     console.log('Realizar otra visita para el trabajo:', trabajo);
@@ -356,6 +483,31 @@ export class VerAvisosComponent implements OnInit {
     const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
     const horas = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
     return Math.max(0, horas);
+  }
+
+  /**
+   * Obtiene el estado del albarán asociado al trabajo
+   */
+  getAlbaranEstado(trabajo: TrabajoRealizado): string {
+    if (!trabajo.albaran_id || !this.aviso?.albaranes) {
+      return 'pendiente';
+    }
+    
+    const albaran = this.aviso.albaranes.find(a => a.id === trabajo.albaran_id);
+    if (!albaran) {
+      return 'pendiente';
+    }
+    
+    // Convertir el estado del albarán a un formato válido para CSS
+    return albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
+  }
+
+  /**
+   * Convierte el estado del aviso a una clase CSS válida
+   */
+  getEstadoClass(estado: string | undefined): string {
+    if (!estado) return 'badge-pendiente';
+    return 'badge-' + estado.toLowerCase().replace(/ /g, '-');
   }
 
   /**

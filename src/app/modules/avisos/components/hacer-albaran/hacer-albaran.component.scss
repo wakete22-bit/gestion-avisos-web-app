@@ -1,0 +1,1155 @@
+// Header del modal
+ion-header {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    --color: #111827;
+    
+    ion-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    ion-button {
+      --color: #6b7280;
+      
+      &:hover {
+        --color: #111827;
+      }
+    }
+  }
+}
+
+// Contenedor principal
+.albaran-container {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+}
+
+// Formulario principal
+form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 20px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+// Scrollbar personalizado
+form::-webkit-scrollbar {
+  width: 6px;
+}
+
+form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+form::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+form::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+// Layout de dos columnas
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  flex: 1;
+}
+
+// En escritorio, usar dos columnas
+@media (min-width: 1200px) {
+  .form-layout {
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+  }
+}
+
+// Columna principal (izquierda)
+.form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  order: 1;
+}
+
+// Sidebar derecha
+.form-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  order: 2;
+}
+
+// Secciones del formulario
+.form-section {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+
+  h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    border-bottom: 2px solid #4F46E5;
+    padding-bottom: 8px;
+  }
+}
+
+// Sección de repuestos especial
+.repuestos-section {
+  position: sticky;
+  top: 20px;
+  
+  h3 {
+    border-bottom-color: #10B981;
+  }
+}
+
+// En móvil, no usar sticky para la sección de repuestos
+@media (max-width: 1199px) {
+  .repuestos-section {
+    position: static;
+    top: auto;
+  }
+}
+
+// Filas de formulario
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+// En escritorio, usar 3 columnas para mejor aprovechamiento del espacio
+@media (min-width: 1200px) {
+  .form-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+}
+
+// Grupos de formulario
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+
+  ion-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  ion-input,
+  ion-textarea,
+  ion-select {
+    --background: #FAFAFB;
+    --border-radius: 6px;
+    --border-width: 1px;
+    --border-color: transparent;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    --color: #111827;
+    --placeholder-color: #9CA3AF;
+    font-size: 14px;
+    transition: border-color 0.2s;
+
+    &:focus-within {
+      --border-color: #2563eb;
+      --background: #fff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+  }
+
+  ion-textarea {
+    --min-height: 80px;
+    resize: vertical;
+  }
+}
+
+// Texto de ayuda
+.help-text {
+  display: block;
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 4px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+// Botón de hora actual
+.btn-now {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+// Estados de cierre
+.estados-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+// En escritorio, usar 3 columnas para los estados
+@media (min-width: 1200px) {
+  .estados-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+.estado-option {
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: #fff;
+
+  &:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &.selected {
+    border-color: #2563eb;
+    background: #EFF6FF;
+
+    ion-icon {
+      color: #2563eb;
+    }
+  }
+
+  .estado-content {
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.4;
+    }
+  }
+
+  ion-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 20px;
+    color: #9CA3AF;
+  }
+}
+
+// Área de firma
+.signature-area {
+  border: 2px dashed #D1D5DB;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background: #F9FAFB;
+  transition: all 0.2s ease;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &:hover {
+    border-color: #2563eb;
+    background: #EFF6FF;
+  }
+
+  // Canvas de firma
+  .signature-canvas-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .signature-canvas {
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      background: #fff;
+      cursor: crosshair;
+      touch-action: none; // Importante para móvil
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+
+      .btn-clear {
+        background: #FEE2E2;
+        color: #DC2626;
+
+        &:hover {
+          background: #FECACA;
+        }
+      }
+
+      .btn-save {
+        background: #10B981;
+        color: white;
+
+        &:hover {
+          background: #059669;
+        }
+      }
+    }
+  }
+
+  // Vista previa de la firma
+  .signature-preview {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .firma-image {
+      max-width: 100%;
+      max-height: 120px;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .signature-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+
+      .btn-edit {
+        background: #DBEAFE;
+        color: #1D4ED8;
+
+        &:hover {
+          background: #BFDBFE;
+        }
+      }
+
+      .btn-remove {
+        background: #FEE2E2;
+        color: #DC2626;
+
+        &:hover {
+          background: #FECACA;
+        }
+      }
+    }
+  }
+
+  .signature-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #6B7280;
+    margin-top: 15px;
+
+    ion-icon {
+      font-size: 48px;
+      color: #9CA3AF;
+    }
+
+    span {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    small {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+
+    .btn-start-signature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+
+      &:hover {
+        background: #1d4ed8;
+      }
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// Mensaje de error
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  color: #DC2626;
+  margin-bottom: 20px;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #DC2626;
+    flex-shrink: 0;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// Botones de acción
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #E5E7EB;
+  flex-shrink: 0;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+
+  ion-button {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    min-width: 140px;
+    border-radius: 6px;
+    transition: all 0.2s;
+
+    &[fill="outline"] {
+      --border-color: #d1d5db;
+      --color: #374151;
+
+      &:hover {
+        --background: #f8fafc;
+        --border-color: #9ca3af;
+      }
+    }
+
+    &[type="submit"] {
+      --background: #2563eb;
+      --border-color: #2563eb;
+      --color: #fff;
+
+      &:hover {
+        --background: #1d4ed8;
+        --border-color: #1d4ed8;
+      }
+    }
+  }
+}
+
+// ========================================
+// ESTILOS PARA LA SECCIÓN DE REPUESTOS
+// ========================================
+
+// Acciones de repuestos
+.repuestos-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+
+  .btn-select-inventory {
+    background: #2563eb;
+    color: white;
+
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+
+  .btn-add-manual {
+    background: #10B981;
+    color: white;
+
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+
+// Estado vacío de repuestos
+.repuestos-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #6B7280;
+  }
+
+  small {
+    font-size: 13px;
+    color: #9CA3AF;
+    line-height: 1.4;
+  }
+}
+
+// Selector de inventario
+.inventory-selector {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h4 {
+      margin: 0;
+      color: #1F2937;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: #6B7280;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #F3F4F6;
+        color: #374151;
+      }
+    }
+  }
+
+  .search-container {
+    position: relative;
+    margin-bottom: 16px;
+
+      .search-input {
+    --background: #FAFAFB;
+    --border-radius: 6px;
+    --border-width: 1px;
+    --border-color: transparent;
+    --padding-start: 40px 12px 12px;
+    --padding-end: 12px;
+    --padding-top: 10px;
+    --padding-bottom: 10px;
+    --color: #111827;
+    --placeholder-color: #9CA3AF;
+    font-size: 14px;
+    transition: border-color 0.2s;
+
+    &:focus-within {
+      --border-color: #2563eb;
+      --background: #fff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+  }
+
+    ion-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+      font-size: 18px;
+    }
+  }
+
+  .products-list {
+    flex: 1;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    background: #F9FAFB;
+
+    .product-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-bottom: 1px solid #E5E7EB;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #F3F4F6;
+      }
+
+      .product-info {
+        flex: 1;
+
+        .product-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 4px;
+
+          .product-code {
+            font-size: 11px;
+            color: #6B7280;
+            background: #E5E7EB;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+          }
+
+          .product-price {
+            font-weight: 600;
+            color: #059669;
+            font-size: 13px;
+          }
+        }
+
+        .product-name {
+          font-weight: 600;
+          color: #1F2937;
+          font-size: 13px;
+          margin-bottom: 4px;
+          display: block;
+        }
+
+        .product-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .product-stock {
+            font-size: 11px;
+            color: #6B7280;
+          }
+
+          .product-description {
+            font-size: 11px;
+            color: #9CA3AF;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .add-icon {
+        color: #3B82F6;
+        font-size: 18px;
+        margin-left: 8px;
+      }
+    }
+  }
+}
+
+// Lista de repuestos seleccionados
+.repuestos-list {
+  margin-top: 20px;
+
+  h4 {
+    margin: 0 0 16px 0;
+    color: #1F2937;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .repuesto-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 6px;
+    margin-bottom: 8px;
+
+    .repuesto-nombre {
+      font-weight: 500;
+      color: #0369A1;
+      font-size: 14px;
+    }
+
+    .btn-remove {
+      background: #FEE2E2;
+      color: #DC2626;
+      border: none;
+      padding: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #FECACA;
+      }
+
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Animación de carga
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Estilos para el estado de carga del botón
+ion-button[type="submit"] {
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  ion-icon.spinning {
+    margin-right: 8px;
+  }
+}
+
+// ========================================
+// CLASES DE VISIBILIDAD RESPONSIVA
+// ========================================
+
+// Solo visible en móvil
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
+// Solo visible en escritorio
+@media (min-width: 1200px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .desktop-only {
+    display: block;
+  }
+}
+
+// ========================================
+// RESPONSIVE DESIGN
+// ========================================
+
+// Móvil
+@media (max-width: 768px) {
+  .albaran-container {
+    padding: 16px;
+  }
+
+  // Reorganizar el orden en móvil: repuestos antes de observaciones
+  .form-main {
+    order: 1;
+  }
+
+  .form-sidebar {
+    order: 2;
+  }
+
+  .form-section {
+    padding: 20px;
+    margin-bottom: 20px;
+
+    h3 {
+      font-size: 16px;
+      margin-bottom: 16px;
+    }
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .estados-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .estado-option {
+    padding: 16px;
+
+    .estado-content {
+      h4 {
+        font-size: 15px;
+      }
+
+      p {
+        font-size: 12px;
+      }
+    }
+
+    ion-icon {
+      font-size: 18px;
+      top: 12px;
+      right: 12px;
+    }
+  }
+
+  .repuestos-actions {
+    flex-direction: column;
+    gap: 8px;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .form-actions {
+    gap: 12px;
+
+    ion-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .signature-area {
+    padding: 30px;
+
+    .signature-placeholder {
+      ion-icon {
+        font-size: 36px;
+      }
+
+      span {
+        font-size: 14px;
+      }
+
+      small {
+        font-size: 11px;
+      }
+    }
+  }
+}
+
+// Tablet
+@media (min-width: 769px) and (max-width: 1199px) {
+  .albaran-container {
+    padding: 24px;
+  }
+
+  // Mantener el orden en tablet
+  .form-main {
+    order: 1;
+  }
+
+  .form-sidebar {
+    order: 2;
+  }
+
+  .form-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .estados-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .repuestos-actions {
+    flex-direction: row;
+    gap: 12px;
+    
+    button {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+// Escritorio
+@media (min-width: 1200px) {
+  .albaran-container {
+    padding: 32px;
+  }
+
+  // Mantener el orden en escritorio (dos columnas)
+  .form-main {
+    order: 1;
+  }
+
+  .form-sidebar {
+    order: 2;
+  }
+
+  .form-section {
+    padding: 28px;
+  }
+
+  .form-row {
+    gap: 28px;
+  }
+
+  .estados-grid {
+    gap: 24px;
+  }
+
+  .repuestos-actions {
+    flex-direction: column;
+    gap: 16px;
+    
+    button {
+      padding: 14px 20px;
+      font-size: 15px;
+    }
+  }
+
+  .form-actions {
+    gap: 20px;
+    
+    ion-button {
+      min-width: 160px;
+      --padding-start: 28px;
+      --padding-end: 28px;
+      --padding-top: 14px;
+      --padding-bottom: 14px;
+      font-size: 15px;
+    }
+  }
+}
+
+// Móvil pequeño
+@media (max-width: 480px) {
+  .albaran-container {
+    padding: 12px;
+  }
+
+  // Mantener el orden en móvil pequeño
+  .form-main {
+    order: 1;
+  }
+
+  .form-sidebar {
+    order: 2;
+  }
+
+  .form-section {
+    padding: 16px;
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+
+    ion-label {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+  }
+
+  .estado-option {
+    padding: 12px;
+
+    .estado-content {
+      h4 {
+        font-size: 14px;
+      }
+
+      p {
+        font-size: 11px;
+      }
+    }
+
+    ion-icon {
+      font-size: 16px;
+      top: 8px;
+      right: 8px;
+    }
+  }
+
+  .signature-area {
+    padding: 15px 0px;
+    border-color: #2563eb;
+    background: #EFF6FF;
+    display: flex;
+    flex-direction: column;
+
+    .signature-placeholder {
+      ion-icon {
+        font-size: 32px;
+      }
+
+      span {
+        font-size: 13px;
+      }
+
+      small {
+        font-size: 10px;
+      }
+    }
+  }
+
+  .help-text {
+    font-size: 10px;
+  }
+
+  .btn-now {
+    padding: 4px 8px;
+    font-size: 11px;
+
+    ion-icon {
+      font-size: 12px;
+    }
+  }
+}
