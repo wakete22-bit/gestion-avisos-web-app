@@ -4,6 +4,9 @@
 
 export const environment = {
   production: false,
+  enableLogging: true,
+  enableDebug: true,
+  logLevel: 'debug', // Todo el logging en desarrollo
   maptilerApiKey: 'AlWSqnyOeMHGBjtAcVcc',
   apiUrl: 'http://localhost:3000/api',
   supabaseUrl: 'https://qqoxlnkfcstqfigjjygf.supabase.co',

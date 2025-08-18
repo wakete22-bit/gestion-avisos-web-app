@@ -1,5 +1,8 @@
 export const environment = {
   production: true,
+  enableLogging: false,
+  enableDebug: false,
+  logLevel: 'error', // Solo errores críticos
   maptilerApiKey: 'AlWSqnyOeMHGBjtAcVcc',
   apiUrl: 'https://gestion-avisos-backend.onrender.com/api',
   supabaseUrl: 'https://qqoxlnkfcstqfigjjygf.supabase.co',

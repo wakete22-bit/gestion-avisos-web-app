@@ -79,7 +79,8 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": "ngsw-config.json",
+              "webpackConfig": "webpack.config.js"
             },
             "development": {
               "optimization": false,
