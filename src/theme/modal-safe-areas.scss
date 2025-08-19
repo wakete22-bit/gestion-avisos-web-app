@@ -23,9 +23,9 @@ ion-modal {
     --padding-bottom: 0;
   }
   
-  // Configurar el header del modal - con padding mínimo para zonas seguras
+  // Configurar el header del modal - SIN padding adicional ya que ion-header lo maneja
   ion-header {
-    padding-top: var(--safe-area-top); // Necesario para respetar zonas seguras
+    // NO añadir padding-top aquí - ion-header maneja las zonas seguras automáticamente
     
     ion-toolbar {
       --padding-top: 0;
@@ -35,9 +35,9 @@ ion-modal {
     }
   }
   
-  // Configurar el footer del modal - con padding mínimo para zonas seguras
+  // Configurar el footer del modal - SIN padding adicional ya que ion-footer lo maneja
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Necesario para respetar zonas seguras
+    // NO añadir padding-bottom aquí - ion-footer maneja las zonas seguras automáticamente
     
     ion-toolbar {
       --padding-top: 0;
@@ -61,8 +61,8 @@ ion-modal {
     --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
     
     ion-header {
-      // En iOS, padding mínimo para el notch/Dynamic Island
-      padding-top: var(--safe-area-top);
+      // En iOS, NO añadir padding-top - ion-header maneja las zonas seguras automáticamente
+      padding-top: 0;
       
       ion-toolbar {
         --padding-top: 0;
@@ -73,8 +73,8 @@ ion-modal {
     }
     
     ion-footer {
-      // En iOS, padding mínimo para la home indicator
-      padding-bottom: var(--safe-area-bottom);
+      // En iOS, NO añadir padding-bottom - ion-footer maneja las zonas seguras automáticamente
+      padding-bottom: 0;
       
       ion-toolbar {
         --padding-top: 0;
@@ -111,7 +111,8 @@ ion-modal {
 .android {
   ion-modal {
     ion-header {
-      padding-top: var(--safe-area-top); // Padding mínimo para zonas seguras
+      // En Android, tampoco añadir padding-top - ion-header lo maneja
+      padding-top: 0;
       
       ion-toolbar {
         --padding-top: 0;
@@ -121,7 +122,8 @@ ion-modal {
     }
     
     ion-footer {
-      padding-bottom: var(--safe-area-bottom); // Padding mínimo para zonas seguras
+      // En Android, tampoco añadir padding-bottom - ion-footer lo maneja
+      padding-bottom: 0;
       
       ion-toolbar {
         --padding-bottom: 0;
@@ -145,13 +147,14 @@ ion-modal {
 // MODALES ESPECÍFICOS
 // ============================================================================
 
-// Modal para crear aviso - ajuste específico para el problema visual
+// Modal para crear aviso - SIN padding adicional
 ion-modal.modal-crear-aviso {
   --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -161,7 +164,8 @@ ion-modal.modal-crear-aviso {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -177,7 +181,8 @@ ion-modal.modal-crear-cliente {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -187,7 +192,8 @@ ion-modal.modal-crear-cliente {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -203,7 +209,8 @@ ion-modal.modal-ver-albaran {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -213,7 +220,8 @@ ion-modal.modal-ver-albaran {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -229,7 +237,8 @@ ion-modal.modal-hacer-albaran {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -239,7 +248,8 @@ ion-modal.modal-hacer-albaran {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -255,7 +265,8 @@ ion-modal.modal-crear-factura {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -265,7 +276,8 @@ ion-modal.modal-crear-factura {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -281,7 +293,8 @@ ion-modal.modal-crear-presupuesto {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -291,7 +304,8 @@ ion-modal.modal-crear-presupuesto {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -307,7 +321,8 @@ ion-modal.modal-crear-tecnico {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -317,7 +332,8 @@ ion-modal.modal-crear-tecnico {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -333,7 +349,8 @@ ion-modal.modal-crear-producto {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -343,7 +360,8 @@ ion-modal.modal-crear-producto {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -369,7 +387,8 @@ ion-modal.modal-fullscreen {
   --box-shadow: none;
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -379,7 +398,8 @@ ion-modal.modal-fullscreen {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -403,7 +423,8 @@ ion-modal.side-modal {
   justify-content: flex-end;
   
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
@@ -413,7 +434,8 @@ ion-modal.side-modal {
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
@@ -434,11 +456,13 @@ ion-modal.side-modal {
     --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
     
     ion-header {
-      padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+      // NO añadir padding-top - ion-header maneja las zonas seguras
+      padding-top: 0;
     }
     
     ion-footer {
-      padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+      // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+      padding-bottom: 0;
     }
   }
   
@@ -463,11 +487,13 @@ ion-modal.side-modal {
     --min-height: calc(100vh - 40px);
     
     ion-header {
-      padding-top: 20px; // Fallback para navegadores antiguos
+      // Solo en navegadores antiguos, añadir padding mínimo
+      padding-top: 20px;
     }
     
     ion-footer {
-      padding-bottom: 20px; // Fallback para navegadores antiguos
+      // Solo en navegadores antiguos, añadir padding mínimo
+      padding-bottom: 20px;
     }
   }
   
@@ -488,11 +514,13 @@ ion-modal.side-modal {
 // Clase para modales con zonas seguras
 .modal-safe {
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
   }
   
   ion-content {
@@ -504,7 +532,8 @@ ion-modal.side-modal {
 // Clase para modales con header seguro
 .modal-header-safe {
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras
+    padding-top: 0;
   }
   
   ion-content {
@@ -515,7 +544,8 @@ ion-modal.side-modal {
 // Clase para modales con footer seguro
 .modal-footer-safe {
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+    padding-bottom: 0;
   }
   
   ion-content {
@@ -548,11 +578,13 @@ ion-modal.side-modal {
 @media (max-width: 480px) {
   ion-modal {
     ion-header {
-      padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+      // NO añadir padding-top - ion-header maneja las zonas seguras
+      padding-top: 0;
     }
     
     ion-footer {
-      padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+      // NO añadir padding-bottom - ion-footer maneja las zonas seguras
+      padding-bottom: 0;
     }
   }
 }

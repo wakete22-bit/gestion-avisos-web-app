@@ -76,11 +76,13 @@
 // Modal con zonas seguras
 .modal-safe {
   ion-header {
-    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-top - ion-header maneja las zonas seguras automáticamente
+    padding-top: 0;
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
+    // NO añadir padding-bottom - ion-footer maneja las zonas seguras automáticamente
+    padding-bottom: 0;
   }
 }
 
@@ -102,14 +104,14 @@
     --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
   }
   
-  // Headers en iOS - solo el padding necesario para zonas seguras
+  // Headers en iOS - NO añadir padding ya que ion-header lo maneja
   .header-safe {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
   }
   
-  // Footers en iOS - solo el padding necesario para zonas seguras
+  // Footers en iOS - NO añadir padding ya que ion-footer lo maneja
   .footer-safe {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
   }
   
   // Toolbars en iOS - altura estándar
@@ -118,14 +120,14 @@
     --height: 56px;
   }
   
-  // Headers en iOS - solo el padding necesario para zonas seguras
+  // Headers en iOS - NO añadir padding ya que ion-header lo maneja
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
   }
   
-  // Footers en iOS - solo el padding necesario para zonas seguras
+  // Footers en iOS - NO añadir padding ya que ion-footer lo maneja
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
   }
   
   // Header móvil específico para iOS - altura estándar
@@ -146,14 +148,14 @@
     --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
   }
   
-  // Headers en Android - solo el padding necesario para zonas seguras
+  // Headers en Android - NO añadir padding ya que ion-header lo maneja
   .header-safe {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
   }
   
-  // Footers en Android - solo el padding necesario para zonas seguras
+  // Footers en Android - NO añadir padding ya que ion-footer lo maneja
   .footer-safe {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
   }
   
   // Toolbars en Android - altura estándar
@@ -182,14 +184,14 @@
     --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   }
   
-  // Headers en modo standalone - solo el padding necesario para zonas seguras
+  // Headers en modo standalone - NO añadir padding ya que ion-header lo maneja
   .header-safe {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
   }
   
-  // Footers en modo standalone - solo el padding necesario para zonas seguras
+  // Footers en modo standalone - NO añadir padding ya que ion-footer lo maneja
   .footer-safe {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
   }
   
   // Toolbars en modo standalone - altura estándar
