@@ -182,10 +182,10 @@
                 min-height: 100%;
 
                 &.mobile {
-                    margin-top: calc(50px + var(--safe-area-top, 0px)) !important;
+                    margin-top: 50px;
                     padding: 0px;
                     padding-bottom: calc(80px + var(--safe-area-bottom));
-                    min-height: calc(100vh - 50px - var(--safe-area-top, 0px));
+                    min-height: calc(100vh - 50px);
                 }
             }
         }
@@ -218,7 +218,7 @@
 
             .main-content {
                 &.mobile {
-                    margin-top: 55px !important;
+                    margin-top: 55px;
                     padding-bottom: calc(16px + var(--safe-area-bottom));
                     min-height: calc(100vh - 55px);
                 }
@@ -241,7 +241,7 @@
             .content-wrapper {
                 .main-content {
                     &.mobile {
-                        margin-top: 55px !important;
+                        margin-top: 55px;
                         padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                         min-height: calc(100vh - 55px);
                     }
@@ -256,17 +256,17 @@
     .main-layout {
         .mobile-header {
             ion-toolbar {
-                --min-height: 100px;
-                --height: 100px;
+                --min-height: 60px;
+                --height: 60px;
             }
         }
 
         .content-wrapper {
             .main-content {
                 &.mobile {
-                    margin-top: 100px !important;
+                    margin-top: 60px;
                     padding-bottom: calc(20px + var(--safe-area-bottom));
-                    min-height: calc(100vh - 100px);
+                    min-height: calc(100vh - 60px);
                 }
             }
         }

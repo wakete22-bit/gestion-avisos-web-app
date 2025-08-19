@@ -17,31 +17,33 @@ ion-modal {
   
   // Configurar el contenido del modal
   ion-content {
-    --offset-top: var(--safe-area-top);
-    --offset-bottom: var(--safe-area-bottom);
+    --offset-top: 0;
+    --offset-bottom: 0;
     --padding-top: 0;
     --padding-bottom: 0;
   }
   
-  // Configurar el header del modal
+  // Configurar el header del modal - sin padding adicional
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0; // ion-header ya maneja las zonas seguras
     
     ion-toolbar {
       --padding-top: 0;
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
-  // Configurar el footer del modal
+  // Configurar el footer del modal - sin padding adicional
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0; // ion-footer ya maneja las zonas seguras
     
     ion-toolbar {
       --padding-top: 0;
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -59,48 +61,44 @@ ion-modal {
     --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
     
     ion-header {
-      // En iOS, necesitamos padding adicional para el notch/Dynamic Island
-      padding-top: calc(var(--safe-area-top) + 8px);
+      // En iOS, sin padding adicional ya que ion-header lo maneja
+      padding-top: 0;
       
       ion-toolbar {
         --padding-top: 0;
         --padding-bottom: 0;
         --min-height: 56px;
-        // Asegurar que el toolbar tenga altura suficiente
-        --height: calc(56px + var(--safe-area-top));
-        --min-height: calc(56px + var(--safe-area-top));
+        --height: 56px;
       }
     }
     
     ion-footer {
-      // En iOS, padding adicional para la home indicator
-      padding-bottom: calc(var(--safe-area-bottom) + 8px);
+      // En iOS, sin padding adicional ya que ion-footer lo maneja
+      padding-bottom: 0;
       
       ion-toolbar {
         --padding-top: 0;
         --padding-bottom: 0;
         --min-height: 56px;
-        // Asegurar que el toolbar tenga altura suficiente
-        --height: calc(56px + var(--safe-area-bottom));
-        --min-height: calc(56px + var(--safe-area-bottom));
+        --height: 56px;
       }
     }
     
     ion-content {
-      // Configurar offsets para iOS
-      --offset-top: calc(var(--safe-area-top) + 8px);
-      --offset-bottom: calc(var(--safe-area-bottom) + 8px);
+      // Configurar offsets mínimos para iOS
+      --offset-top: 0;
+      --offset-bottom: 0;
       --padding-top: 0;
       --padding-bottom: 0;
     }
   }
   
-  // Header móvil en iOS
+  // Header móvil en iOS - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -113,30 +111,32 @@ ion-modal {
 .android {
   ion-modal {
     ion-header {
-      padding-top: calc(var(--safe-area-top) + 4px);
+      padding-top: 0; // Sin padding adicional
       
       ion-toolbar {
         --padding-top: 0;
         --min-height: 56px;
+        --height: 56px;
       }
     }
     
     ion-footer {
-      padding-bottom: calc(var(--safe-area-bottom) + 4px);
+      padding-bottom: 0; // Sin padding adicional
       
       ion-toolbar {
         --padding-bottom: 0;
         --min-height: 56px;
+        --height: 56px;
       }
     }
   }
   
-  // Header móvil en Android
+  // Header móvil en Android - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -151,20 +151,22 @@ ion-modal.modal-crear-cliente {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0; // ion-header ya maneja las zonas seguras
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0; // ion-footer ya maneja las zonas seguras
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -175,20 +177,22 @@ ion-modal.modal-ver-albaran {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -199,20 +203,22 @@ ion-modal.modal-hacer-albaran {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -223,20 +229,22 @@ ion-modal.modal-crear-factura {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -247,20 +255,22 @@ ion-modal.modal-crear-presupuesto {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -271,20 +281,22 @@ ion-modal.modal-crear-aviso {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -295,20 +307,22 @@ ion-modal.modal-crear-cliente {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -319,20 +333,22 @@ ion-modal.modal-crear-tecnico {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -343,20 +359,22 @@ ion-modal.modal-crear-producto {
   --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -377,20 +395,22 @@ ion-modal.modal-fullscreen {
   --box-shadow: none;
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -409,20 +429,22 @@ ion-modal.side-modal {
   justify-content: flex-end;
   
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
+      --height: 56px;
     }
   }
 }
@@ -438,20 +460,20 @@ ion-modal.side-modal {
     --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
     
     ion-header {
-      padding-top: calc(var(--safe-area-top) + 8px);
+      padding-top: 0; // Sin padding adicional
     }
     
     ion-footer {
-      padding-bottom: calc(var(--safe-area-bottom) + 8px);
+      padding-bottom: 0; // Sin padding adicional
     }
   }
   
-  // Header móvil en modo standalone
+  // Header móvil en modo standalone - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -475,11 +497,11 @@ ion-modal.side-modal {
     }
   }
   
-  // Header móvil fallback
+  // Header móvil fallback - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: 84px;
-      --height: 84px;
+      --min-height: 60px;
+      --height: 60px;
       --padding-top: 24px;
     }
   }
@@ -492,38 +514,38 @@ ion-modal.side-modal {
 // Clase para modales con zonas seguras
 .modal-safe {
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0; // ion-header ya maneja las zonas seguras
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0; // ion-footer ya maneja las zonas seguras
   }
   
   ion-content {
-    --offset-top: var(--safe-area-top);
-    --offset-bottom: var(--safe-area-bottom);
+    --offset-top: 0;
+    --offset-bottom: 0;
   }
 }
 
 // Clase para modales con header seguro
 .modal-header-safe {
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0; // ion-header ya maneja las zonas seguras
   }
   
   ion-content {
-    --offset-top: var(--safe-area-top);
+    --offset-top: 0;
   }
 }
 
 // Clase para modales con footer seguro
 .modal-footer-safe {
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0; // ion-footer ya maneja las zonas seguras
   }
   
   ion-content {
-    --offset-bottom: var(--safe-area-bottom);
+    --offset-bottom: 0;
   }
 }
 
@@ -552,11 +574,11 @@ ion-modal.side-modal {
 @media (max-width: 480px) {
   ion-modal {
     ion-header {
-      padding-top: calc(var(--safe-area-top) + 4px);
+      padding-top: 0; // Sin padding adicional
     }
     
     ion-footer {
-      padding-bottom: calc(var(--safe-area-bottom) + 4px);
+      padding-bottom: 0; // Sin padding adicional
     }
   }
 }

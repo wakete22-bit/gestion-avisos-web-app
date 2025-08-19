@@ -18,9 +18,9 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
   
-  // Márgenes adicionales para mejor UX
-  --safe-margin-top: calc(var(--safe-area-top) + 12px);
-  --safe-margin-bottom: calc(var(--safe-area-bottom) + 16px);
+  // Márgenes mínimos para mejor UX (sin excesos)
+  --safe-margin-top: calc(var(--safe-area-top) + 8px);
+  --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
   --safe-margin-left: calc(var(--safe-area-left) + 16px);
   --safe-margin-right: calc(var(--safe-area-right) + 16px);
 }
@@ -53,34 +53,34 @@
   padding-right: var(--safe-area-right);
 }
 
-// Footer con zona segura
+// Footer con zona segura (mínimo)
 .footer-safe {
-  padding-bottom: var(--safe-margin-bottom);
+  padding-bottom: var(--safe-area-bottom);
 }
 
-// Header con zona segura
+// Header con zona segura (mínimo)
 .header-safe {
-  padding-top: var(--safe-margin-top);
+  padding-top: var(--safe-area-top);
 }
 
 // Contenedor de botones con zona segura
 .button-container-safe {
-  padding-bottom: var(--safe-margin-bottom);
+  padding-bottom: var(--safe-area-bottom);
 }
 
 // FAB con zona segura
 .fab-container-safe {
-  bottom: var(--safe-margin-bottom);
+  bottom: var(--safe-area-bottom);
 }
 
 // Modal con zonas seguras
 .modal-safe {
   ion-header {
-    padding-top: var(--safe-area-top);
+    padding-top: 0; // ion-header ya maneja esto
   }
   
   ion-footer {
-    padding-bottom: var(--safe-area-bottom);
+    padding-bottom: 0; // ion-footer ya maneja esto
   }
 }
 
@@ -97,43 +97,43 @@
 // Configuración específica para iOS
 .ios {
   :root {
-    // En iOS, necesitamos márgenes adicionales para el notch/Dynamic Island
-    --safe-margin-top: calc(var(--safe-area-top) + 16px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 20px);
+    // En iOS, márgenes mínimos ya que ion-header/ion-footer manejan las zonas seguras
+    --safe-margin-top: calc(var(--safe-area-top) + 4px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   }
   
-  // Headers en iOS necesitan más espacio
+  // Headers en iOS - sin padding adicional ya que ion-header lo maneja
   .header-safe {
-    padding-top: calc(var(--safe-area-top) + 16px);
+    padding-top: var(--safe-area-top);
   }
   
-  // Footers en iOS necesitan más espacio
+  // Footers en iOS - sin padding adicional ya que ion-footer lo maneja
   .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 20px);
+    padding-bottom: var(--safe-area-bottom);
   }
   
-  // Toolbars en iOS necesitan altura adicional
+  // Toolbars en iOS - altura mínima estándar
   ion-toolbar {
-    --min-height: calc(56px + var(--safe-area-top));
-    --height: calc(56px + var(--safe-area-top));
+    --min-height: 56px;
+    --height: 56px;
   }
   
-  // Headers en iOS necesitan padding adicional
+  // Headers en iOS - sin padding adicional
   ion-header {
-    padding-top: calc(var(--safe-area-top) + 8px);
+    padding-top: 0;
   }
   
-  // Footers en iOS necesitan padding adicional
+  // Footers en iOS - sin padding adicional
   ion-footer {
-    padding-bottom: calc(var(--safe-area-bottom) + 8px);
+    padding-bottom: 0;
   }
   
-  // Header móvil específico para iOS
+  // Header móvil específico para iOS - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -141,32 +141,32 @@
 // Configuración específica para Android
 .android {
   :root {
-    // En Android, márgenes más conservadores
-    --safe-margin-top: calc(var(--safe-area-top) + 8px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
+    // En Android, márgenes mínimos
+    --safe-margin-top: calc(var(--safe-area-top) + 4px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   }
   
-  // Headers en Android
+  // Headers en Android - sin padding adicional
   .header-safe {
-    padding-top: calc(var(--safe-area-top) + 8px);
+    padding-top: var(--safe-area-top);
   }
   
-  // Footers en Android
+  // Footers en Android - sin padding adicional
   .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 12px);
+    padding-bottom: var(--safe-area-bottom);
   }
   
-  // Toolbars en Android
+  // Toolbars en Android - altura estándar
   ion-toolbar {
-    --min-height: calc(56px + var(--safe-area-top));
+    --min-height: 56px;
   }
   
-  // Header móvil específico para Android
+  // Header móvil específico para Android - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -177,33 +177,33 @@
 
 @media all and (display-mode: standalone) {
   :root {
-    // En modo standalone, márgenes más generosos
-    --safe-margin-top: calc(var(--safe-area-top) + 20px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 24px);
+    // En modo standalone, márgenes mínimos
+    --safe-margin-top: calc(var(--safe-area-top) + 8px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
   }
   
-  // Headers en modo standalone
+  // Headers en modo standalone - sin padding adicional
   .header-safe {
-    padding-top: calc(var(--safe-area-top) + 20px);
+    padding-top: var(--safe-area-top);
   }
   
-  // Footers en modo standalone
+  // Footers en modo standalone - sin padding adicional
   .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 24px);
+    padding-bottom: var(--safe-area-bottom);
   }
   
-  // Toolbars en modo standalone
+  // Toolbars en modo standalone - altura estándar
   ion-toolbar {
-    --min-height: calc(56px + var(--safe-area-top));
-    --height: calc(56px + var(--safe-area-top));
+    --min-height: 56px;
+    --height: 56px;
   }
   
-  // Header móvil en modo standalone
+  // Header móvil en modo standalone - altura estándar
   .mobile-header {
     ion-toolbar {
-      --min-height: calc(60px + var(--safe-area-top));
-      --height: calc(60px + var(--safe-area-top));
-      --padding-top: var(--safe-area-top);
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 0;
     }
   }
 }
@@ -231,8 +231,8 @@
 @media (orientation: portrait) {
   :root {
     // En portrait, las zonas seguras verticales son más importantes
-    --safe-margin-top: calc(var(--safe-area-top) + 16px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 20px);
+    --safe-margin-top: calc(var(--safe-area-top) + 4px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   }
 }
 
@@ -257,16 +257,16 @@
     }
     
     .header-safe {
-      padding-top: 36px;
+      padding-top: 24px;
     }
     
     .footer-safe {
-      padding-bottom: 36px;
+      padding-bottom: 24px;
     }
     
     .mobile-header ion-toolbar {
-      --min-height: 84px;
-      --height: 84px;
+      --min-height: 60px;
+      --height: 60px;
       --padding-top: 24px;
     }
   }
@@ -279,16 +279,16 @@
     }
     
     .header-safe {
-      padding-top: 44px;
+      padding-top: 28px;
     }
     
     .footer-safe {
-      padding-bottom: 44px;
+      padding-bottom: 28px;
     }
     
     .mobile-header ion-toolbar {
-      --min-height: 88px;
-      --height: 88px;
+      --min-height: 60px;
+      --height: 60px;
       --padding-top: 28px;
     }
   }
@@ -301,16 +301,16 @@
     }
     
     .header-safe {
-      padding-top: 32px;
+      padding-top: 24px;
     }
     
     .footer-safe {
-      padding-bottom: 32px;
+      padding-bottom: 24px;
     }
     
     .mobile-header ion-toolbar {
-      --min-height: 84px;
-      --height: 84px;
+      --min-height: 60px;
+      --height: 60px;
       --padding-top: 24px;
     }
   }
