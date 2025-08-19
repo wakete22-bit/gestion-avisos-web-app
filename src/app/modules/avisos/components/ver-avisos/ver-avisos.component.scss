@@ -1992,6 +1992,30 @@ $success-color: #10B981;
 // ESTILOS PARA ALBARANES CERRADOS
 // ========================================
 
+// Mensaje cuando no hay albaranes
+.no-albaranes {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+  
+  ion-icon {
+    font-size: 48px;
+    color: #D1D5DB;
+    margin-bottom: 16px;
+  }
+  
+  p {
+    margin: 8px 0;
+    font-size: 16px;
+    
+    &.info-text {
+      font-size: 14px;
+      color: #9CA3AF;
+      font-style: italic;
+    }
+  }
+}
+
 .albaranes-container {
   display: flex;
   flex-direction: column;
@@ -2000,15 +2024,11 @@ $success-color: #10B981;
 
 .albaran-item {
   background: #fff;
-  border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
   }
 }
 
@@ -2058,6 +2078,59 @@ $success-color: #10B981;
         background: #DBEAFE;
         color: #1E40AF;
       }
+    }
+  }
+
+  .albaran-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .btn-primary.btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #4F46E5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      &:hover {
+        background: #4338CA;
+      }
+
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Estilos para el botón de recarga de albaranes
+.header-actions {
+  .btn-secondary.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: #6B7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+      background: #4B5563;
+    }
+
+    ion-icon {
+      font-size: 14px;
     }
   }
 }
@@ -2139,6 +2212,27 @@ $success-color: #10B981;
 
     .estado-albaran {
       align-self: flex-start;
+    }
+
+    .albaran-actions {
+      align-self: flex-start;
+      margin-top: 8px;
+    }
+  }
+  
+  .no-albaranes {
+    padding: 20px 10px;
+    
+    ion-icon {
+      font-size: 36px;
+    }
+    
+    p {
+      font-size: 14px;
+      
+      &.info-text {
+        font-size: 12px;
+      }
     }
   }
 

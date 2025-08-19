@@ -276,8 +276,9 @@ export class FlujoAvisosService {
         }
 
         // Validación adicional: verificar que TODOS los trabajos tengan albaranes cerrados
+        // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para completar el aviso
         const trabajosSinAlbaranCerrado = resumen.trabajos?.filter((t: any) => 
-          !t.albaran_id || !t.albaran?.estado_cierre || t.albaran.estado_cierre === 'Otra visita'
+          !t.albaran_id || !t.albaran?.estado_cierre
         ) || [];
         
         if (trabajosSinAlbaranCerrado.length > 0) {
@@ -363,8 +364,9 @@ export class FlujoAvisosService {
     // 1. Hay trabajos finalizados (con albaranes cerrados)
     // 2. No hay facturas pendientes
     // 3. TODOS los trabajos tienen albaranes cerrados (no puede haber trabajos abiertos)
+    // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para facturar
     const todosLosTrabajosTienenAlbaranesCerrados = resumen.trabajos?.every((t: any) => 
-      t.albaran_id && t.albaran?.estado_cierre && t.albaran.estado_cierre !== 'Otra visita'
+      t.albaran_id && t.albaran?.estado_cierre
     ) || false;
     
     return resumen.estadisticas.trabajosFinalizados > 0 && 
@@ -377,8 +379,9 @@ export class FlujoAvisosService {
     // 1. Hay trabajos finalizados (con albaranes cerrados)
     // 2. Hay facturas generadas
     // 3. TODOS los trabajos tienen albaranes cerrados (no puede haber trabajos abiertos)
+    // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para completar el aviso
     const todosLosTrabajosTienenAlbaranesCerrados = resumen.trabajos?.every((t: any) => 
-      t.albaran_id && t.albaran?.estado_cierre && t.albaran.estado_cierre !== 'Otra visita'
+      t.albaran_id && t.albaran?.estado_cierre
     ) || false;
     
     return resumen.estadisticas.trabajosFinalizados > 0 && 

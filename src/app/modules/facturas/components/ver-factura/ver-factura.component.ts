@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline } from 'ionicons/icons';
 
@@ -14,7 +15,7 @@ import { PdfService } from '../../../../core/services/pdf.service';
   templateUrl: './ver-factura.component.html',
   styleUrls: ['./ver-factura.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonContent, IonIcon]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon]
 })
 export class VerFacturaComponent implements OnInit {
   factura: FacturaCompleta | null = null;
@@ -22,6 +23,7 @@ export class VerFacturaComponent implements OnInit {
   error: string | null = null;
   facturaId: string | null = null;
   modoEdicion = false;
+  plantillaSeleccionada: 'completa' | 'simple' | 'profesional' = 'completa';
 
   constructor(
     private route: ActivatedRoute,
@@ -103,6 +105,7 @@ export class VerFacturaComponent implements OnInit {
         direccion_cliente: this.factura.factura.direccion_cliente,
         cif_cliente: this.factura.factura.cif_cliente,
         email_cliente: this.factura.factura.email_cliente,
+        cliente_id: this.factura.factura.cliente_id,
         subtotal: this.factura.factura.subtotal,
         iva: this.factura.factura.iva,
         total: this.factura.factura.total,
@@ -111,8 +114,14 @@ export class VerFacturaComponent implements OnInit {
         lineas: this.factura.lineas
       };
 
-      // Generar PDF nativo con estilos
-      this.pdfService.generarPdfNativo(datosFactura, nombreArchivo);
+      // Generar PDF según la plantilla seleccionada
+      if (this.plantillaSeleccionada === 'simple') {
+        this.pdfService.generarPlantillaFacturaSimple(datosFactura, nombreArchivo);
+      } else if (this.plantillaSeleccionada === 'profesional') {
+        this.pdfService.generarPlantillaFacturaProfesional(datosFactura, nombreArchivo);
+      } else {
+        this.pdfService.generarPdfNativo(datosFactura, nombreArchivo);
+      }
       
       console.log('✅ Factura descargada exitosamente');
     } catch (error) {

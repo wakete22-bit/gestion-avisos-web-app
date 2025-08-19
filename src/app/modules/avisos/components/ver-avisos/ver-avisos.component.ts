@@ -12,6 +12,7 @@ import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/c
 import { HacerAlbaranComponent } from '../hacer-albaran/hacer-albaran.component';
 import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
 import { CrearAvisosModalComponent } from '../crear-avisos-modal/crear-avisos-modal.component';
+import { VerAlbaranModalComponent } from '../ver-albaran-modal/ver-albaran-modal.component';
 import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 import { FlujoAvisosService } from '../../../../core/services/flujo-avisos.service';
 
@@ -102,11 +103,12 @@ export class VerAvisosComponent implements OnInit {
         const avisoId = params['id-aviso'];
         console.log('🔍 ID de aviso obtenido de la URL:', avisoId);
         if (avisoId) {
-          this.avisosService.getAviso(avisoId)
+          this.avisosService.getResumenCompletoAviso(avisoId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (aviso) => {
                 console.log('✅ Aviso cargado exitosamente:', aviso.id, 'Estado:', aviso.estado);
+                console.log('📊 Albaranes cargados:', aviso.albaranes?.length || 0);
                 this.aviso = aviso;
                 this.loading = false;
                 // Cargar trabajos realizados después de cargar el aviso
@@ -135,6 +137,26 @@ export class VerAvisosComponent implements OnInit {
   forzarRecargaDatos() {
     this.error = null;
     this.cargarAviso();
+  }
+
+  /**
+   * Recarga específicamente los albaranes del aviso
+   */
+  recargarAlbaranes() {
+    if (!this.aviso?.id) return;
+    
+    console.log('🔄 Recargando albaranes del aviso:', this.aviso.id);
+    this.avisosService.getResumenCompletoAviso(this.aviso.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (avisoActualizado) => {
+          console.log('✅ Albaranes recargados:', avisoActualizado.albaranes?.length || 0);
+          this.aviso = avisoActualizado;
+        },
+        error: (error) => {
+          console.error('❌ Error al recargar albaranes:', error);
+        }
+      });
   }
 
   /**
@@ -415,7 +437,13 @@ export class VerAvisosComponent implements OnInit {
         aviso: this.aviso
       },
       cssClass: 'modal-hacer-albaran modal-fullscreen',
-      backdropDismiss: false
+      backdropDismiss: false,
+      showBackdrop: true,
+      breakpoints: [0, 1], // Solo dos breakpoints: cerrado (0) y abierto (1)
+      initialBreakpoint: 1, // Siempre abierto al máximo
+      backdropBreakpoint: 0, // Backdrop solo cuando está cerrado
+      handle: false, // Deshabilitar el handle de arrastre
+      handleBehavior: 'none' // Sin comportamiento de arrastre
     });
 
     console.log('Modal creado:', modal);
@@ -610,6 +638,41 @@ export class VerAvisosComponent implements OnInit {
     } else {
       console.error('No hay aviso seleccionado para completar');
       this.mostrarMensaje('No hay aviso seleccionado para completar', 'error');
+    }
+  }
+
+  /**
+   * Abre el modal para ver los detalles completos de un albarán
+   */
+  async verAlbaran(albaran: any) {
+    if (!albaran?.id) {
+      console.error('No se puede abrir el albarán: ID no válido');
+      return;
+    }
+
+    try {
+      console.log('Abriendo modal de albarán:', albaran);
+      
+      const modal = await this.modalController.create({
+        component: VerAlbaranModalComponent,
+        componentProps: {
+          albaran: albaran,
+          aviso: this.aviso
+        },
+        cssClass: 'modal-ver-albaran modal-fullscreen',
+        backdropDismiss: true
+      });
+
+      await modal.present();
+
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirm' && data) {
+        console.log('Modal de albarán cerrado con datos:', data);
+        // Aquí se pueden manejar acciones adicionales si es necesario
+      }
+    } catch (error) {
+      console.error('Error al abrir el modal del albarán:', error);
+      this.mostrarMensaje('Error al abrir el albarán. Por favor, inténtalo de nuevo.', 'error');
     }
   }
 

@@ -1,0 +1,205 @@
+<div class="modal-header">
+  <div class="header-content">
+    <h2>
+      <ion-icon name="document-text-outline"></ion-icon>
+      Albarán #{{albaran.id?.substring(0, 8)}}
+    </h2>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="descargarPDF()" title="Descargar PDF">
+        <ion-icon name="download-outline"></ion-icon>
+        <span class="desktop-only">PDF</span>
+      </button>
+      <button class="btn-secondary" (click)="imprimirAlbaran()" title="Imprimir">
+        <ion-icon name="print-outline"></ion-icon>
+        <span class="desktop-only">Imprimir</span>
+      </button>
+      <button class="btn-close" (click)="cerrarModal()" title="Cerrar">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-content">
+  <!-- Estado del albarán -->
+  <div class="estado-section">
+    <div class="estado-badge" [style.background-color]="getEstadoColor(albaran.estado_cierre)">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      {{albaran.estado_cierre}}
+    </div>
+  </div>
+
+  <!-- Información del aviso -->
+  <div class="info-section">
+    <h3>Información del Aviso</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Cliente:</label>
+        <span>{{aviso?.nombre_cliente_aviso || 'No especificado'}}</span>
+      </div>
+      <div class="info-item">
+        <label>Dirección:</label>
+        <span>{{aviso?.direccion_cliente_aviso || 'No especificada'}}</span>
+      </div>
+      <div class="info-item">
+        <label>Fecha de creación:</label>
+        <span>{{formatearFecha(aviso?.fecha_creacion)}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fechas y horarios -->
+  <div class="info-section">
+    <h3>Fechas y Horarios</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Fecha de cierre:</label>
+        <span>{{formatearFecha(albaran.fecha_cierre)}}</span>
+      </div>
+      <div class="info-item">
+        <label>Hora de entrada:</label>
+        <span>{{formatearHora(albaran.hora_entrada)}}</span>
+      </div>
+      <div class="info-item">
+        <label>Hora de salida:</label>
+        <span>{{formatearHora(albaran.hora_salida)}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Descripción del trabajo -->
+  <div class="info-section">
+    <h3>Descripción del Trabajo Realizado</h3>
+    <div class="descripcion-content">
+      <p>{{albaran.descripcion_trabajo_realizado}}</p>
+    </div>
+  </div>
+
+  <!-- Materiales utilizados -->
+  <div class="info-section">
+    <h3>Materiales Utilizados</h3>
+    <div class="materiales-content">
+      <div *ngIf="repuestosCompletos() && albaran.repuestos_utilizados.length > 0" class="materiales-tabla">
+        <table class="materiales-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Material</th>
+              <th>Cantidad</th>
+              <th>Unidad</th>
+              <th>Precio Unit.</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let material of albaran.repuestos_utilizados">
+              <td>{{getMaterialAsRepuesto(material).codigo}}</td>
+              <td>{{getMaterialAsRepuesto(material).nombre}}</td>
+              <td>{{getMaterialAsRepuesto(material).cantidad}}</td>
+              <td>{{getMaterialAsRepuesto(material).unidad}}</td>
+              <td>{{getMaterialAsRepuesto(material).precio_pvp | currency:'EUR':'symbol':'1.2-2'}}</td>
+              <td>{{getMaterialAsRepuesto(material).precio_pvp * getMaterialAsRepuesto(material).cantidad | currency:'EUR':'symbol':'1.2-2'}}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="5"><strong>Total Materiales:</strong></td>
+              <td><strong>{{calcularTotalMateriales() | currency:'EUR':'symbol':'1.2-2'}}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <div *ngIf="!repuestosCompletos() && albaran.repuestos_utilizados.length > 0" class="materiales-lista">
+        <ul class="repuestos-list">
+          <li *ngFor="let repuesto of albaran.repuestos_utilizados">{{repuesto}}</li>
+        </ul>
+      </div>
+      
+      <div *ngIf="albaran.repuestos_utilizados.length === 0" class="no-materiales">
+        <p>No se utilizaron materiales en este trabajo</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presupuesto -->
+  <div class="info-section" *ngIf="albaran.presupuesto_necesario > 0">
+    <h3>Presupuesto Adicional</h3>
+    <div class="presupuesto-content">
+      <div class="presupuesto-amount">
+        <span class="amount-label">Monto:</span>
+        <span class="amount-value">{{albaran.presupuesto_necesario | currency:'EUR':'symbol':'1.2-2'}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información del cliente -->
+  <div class="info-section" *ngIf="albaran.dni_cliente || albaran.nombre_firma">
+    <h3>Información del Cliente</h3>
+    <div class="info-grid">
+      <div class="info-item" *ngIf="albaran.dni_cliente">
+        <label>DNI:</label>
+        <span>{{albaran.dni_cliente}}</span>
+      </div>
+      <div class="info-item" *ngIf="albaran.nombre_firma">
+        <label>Firmado por:</label>
+        <span>{{albaran.nombre_firma}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firma del cliente -->
+  <div class="info-section" *ngIf="tieneFirma()">
+    <h3>Firma del Cliente</h3>
+    <div class="firma-content">
+      <div *ngIf="albaran.firma_url" class="firma-imagen">
+        <img [src]="albaran.firma_url" alt="Firma del cliente" class="firma-img">
+        <p class="firma-caption">Firma digital del cliente</p>
+      </div>
+      <div *ngIf="!albaran.firma_url && albaran.nombre_firma" class="firma-texto">
+        <p>El cliente ha firmado este albarán</p>
+        <div class="firma-nombre">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>{{albaran.nombre_firma}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observaciones -->
+  <div class="info-section" *ngIf="albaran.observaciones">
+    <h3>Observaciones</h3>
+    <div class="observaciones-content">
+      <p>{{albaran.observaciones}}</p>
+    </div>
+  </div>
+
+  <!-- Información adicional -->
+  <div class="info-section">
+    <h3>Información Adicional</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>ID del trabajo:</label>
+        <span>{{albaran.trabajo_id?.substring(0, 8)}}</span>
+      </div>
+      <div class="info-item">
+        <label>ID del aviso:</label>
+        <span>{{albaran.aviso_id?.substring(0, 8)}}</span>
+      </div>
+      <div class="info-item" *ngIf="albaran.fecha_creacion">
+        <label>Fecha de creación:</label>
+        <span>{{formatearFecha(albaran.fecha_creacion)}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button class="btn-primary" (click)="imprimirAlbaran()">
+    <ion-icon name="print-outline"></ion-icon>
+    Imprimir Albarán
+  </button>
+  <button class="btn-secondary" (click)="cerrarModal()">
+    Cerrar
+  </button>
+</div>

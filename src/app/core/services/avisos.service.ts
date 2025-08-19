@@ -678,6 +678,14 @@ export class AvisosService {
                     t.albaran_id !== null
                 ) || [];
                 
+                const trabajosPresupuestoPendiente = avisoCompleto.trabajos?.filter((t: any) => 
+                    t.estado === 'Presupuesto pendiente' || t.albaran?.estado_cierre === 'Presupuesto pendiente'
+                ) || [];
+                
+                const trabajosOtraVisita = avisoCompleto.trabajos?.filter((t: any) => 
+                    t.estado === 'Otra visita' || t.albaran?.estado_cierre === 'Otra visita'
+                ) || [];
+                
                 const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => 
                     f.estado !== 'Completado'
                 ) || [];
@@ -687,13 +695,21 @@ export class AvisosService {
                     a.estado_cierre === 'Presupuesto pendiente'
                 ) || false;
                 
+                // Determinar si requiere otra visita
+                const requiereOtraVisita = avisoCompleto.albaranes?.some((a: any) => 
+                    a.estado_cierre === 'Otra visita'
+                ) || false;
+                
                 return {
                     ...avisoCompleto,
                     estadisticas: {
                         totalTrabajos: avisoCompleto.trabajos?.length || 0,
                         trabajosConAlbaran: trabajosConAlbaran.length,
                         trabajosFinalizados: trabajosFinalizados.length,
+                        trabajosPresupuestoPendiente: trabajosPresupuestoPendiente.length,
+                        trabajosOtraVisita: trabajosOtraVisita.length,
                         tienePresupuesto: presupuestoPendiente,
+                        requiereOtraVisita: requiereOtraVisita,
                         estadoPresupuesto: presupuestoPendiente ? 'Pendiente' : null,
                         totalFacturas: avisoCompleto.facturas?.length || 0,
                         facturasPendientes: facturasPendientes.length,
@@ -731,8 +747,14 @@ export class AvisosService {
                 } else if (resumen.estadisticas.trabajosFinalizados > 0 && resumen.estadisticas.facturasPendientes === 0) {
                     // Si hay trabajos finalizados pero no hay facturas, está listo para facturar
                     nuevoEstado = 'Listo para facturar';
+                } else if (resumen.estadisticas.trabajosPresupuestoPendiente > 0) {
+                    // Si hay trabajos con presupuesto pendiente
+                    nuevoEstado = 'Pendiente de presupuesto';
+                } else if (resumen.estadisticas.trabajosOtraVisita > 0) {
+                    // Si hay trabajos que requieren otra visita
+                    nuevoEstado = 'Otra visita requerida';
                 } else if (resumen.estadisticas.trabajosConAlbaran > 0 && resumen.estadisticas.tienePresupuesto) {
-                    // Si hay trabajos con albarán y requiere presupuesto
+                    // Si hay trabajos con albarán y requiere presupuesto (fallback)
                     nuevoEstado = 'Pendiente de presupuesto';
                 } else if (resumen.estadisticas.trabajosConAlbaran > 0 || resumen.estadisticas.totalTrabajos > 0) {
                     // Si hay trabajos con albarán o trabajos en general, está en curso

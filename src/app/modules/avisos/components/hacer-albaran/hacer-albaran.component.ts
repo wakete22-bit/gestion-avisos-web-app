@@ -397,18 +397,32 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
 
       // Guardar albarán usando el servicio
       this.albaranesService.crearAlbaran(albaranData).subscribe({
-        next: (albaran) => {
-          console.log('Albarán guardado exitosamente:', albaran);
+                  next: (albaran) => {
+            console.log('Albarán guardado exitosamente:', albaran);
 
-          // Cuando se cierra un albarán, el trabajo siempre pasa a estado "Finalizado"
-          const nuevoEstado = 'Finalizado';
-          
-          console.log('🔄 Actualizando estado del trabajo:', {
-            trabajoId: this.trabajo.id,
-            estadoAnterior: this.trabajo.estado,
-            nuevoEstado: nuevoEstado,
-            albaranId: albaran.id
-          });
+            // Determinar el estado del trabajo basado en el estado de cierre del albarán
+            let nuevoEstado: string;
+            switch (albaran.estado_cierre) {
+              case 'Finalizado':
+                nuevoEstado = 'Finalizado';
+                break;
+              case 'Presupuesto pendiente':
+                nuevoEstado = 'Presupuesto pendiente';
+                break;
+              case 'Otra visita':
+                nuevoEstado = 'Otra visita';
+                break;
+              default:
+                nuevoEstado = 'Finalizado'; // Estado por defecto
+            }
+            
+            console.log('🔄 Actualizando estado del trabajo:', {
+              trabajoId: this.trabajo.id,
+              estadoAnterior: this.trabajo.estado,
+              nuevoEstado: nuevoEstado,
+              albaranId: albaran.id,
+              estadoAlbaran: albaran.estado_cierre
+            });
 
           // Actualizar el trabajo con el nuevo estado y el ID del albarán
           this.trabajosService.actualizarEstadoTrabajo(

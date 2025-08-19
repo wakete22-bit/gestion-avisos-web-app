@@ -6,6 +6,7 @@ import { PwaIosService } from './core/services/pwa-ios.service';
 import { ViewportService } from './core/services/viewport.service';
 import { AuthService } from './core/services/auth.service';
 import { PerformanceFixService } from './core/services/performance-fix.service';
+import { AppInitService } from './core/services/app-init.service';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -19,22 +20,35 @@ export class AppComponent implements OnInit {
     private pwaIosService: PwaIosService,
     private viewportService: ViewportService,
     private authService: AuthService,
-    private performanceFix: PerformanceFixService
+    private performanceFix: PerformanceFixService,
+    private appInitService: AppInitService
   ) {}
 
-  ngOnInit() {
-    // Los servicios PWA se inicializan automáticamente en sus constructores
-    // Verificar autenticación al iniciar la aplicación
-    this.authService.isAuthenticated$.subscribe(isAuthenticated => {
-      console.log('Estado de autenticación:', isAuthenticated);
-    });
+  async ngOnInit() {
+    try {
+      console.log('🚀 AppComponent: Iniciando aplicación...');
 
-    // Iniciar optimización automática de rendimiento en producción
-    if (!this.isDevMode()) {
-      // Limpieza preventiva cada 2 minutos
-      setInterval(() => {
-        this.performanceFix.forceCleanup();
-      }, 2 * 60 * 1000);
+      // Inicializar la aplicación usando el nuevo servicio
+      await this.appInitService.initializeApp();
+
+      // Los servicios PWA se inicializan automáticamente en sus constructores
+      // Verificar autenticación al iniciar la aplicación
+      this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+        console.log('Estado de autenticación:', isAuthenticated);
+      });
+
+      // Iniciar optimización automática de rendimiento en producción
+      if (!this.isDevMode()) {
+        // Limpieza preventiva cada 2 minutos
+        setInterval(() => {
+          this.performanceFix.forceCleanup();
+        }, 2 * 60 * 1000);
+      }
+
+      console.log('✅ AppComponent: Aplicación iniciada correctamente');
+
+    } catch (error) {
+      console.error('❌ AppComponent: Error en inicialización:', error);
     }
   }
 

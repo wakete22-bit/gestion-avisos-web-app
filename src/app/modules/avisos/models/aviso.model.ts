@@ -28,7 +28,7 @@ export interface Aviso {
   nombre_contacto: string;
   tipo: 'correctivo' | 'preventivo';
   descripcion_problema: string;
-  estado: 'No visitado' | 'Visitado pendiente' | 'Pendiente de presupuesto' | 'En curso' | 'Pendiente' | 'Completado' | 'Cancelado';
+  estado: 'No visitado' | 'Visitado pendiente' | 'Pendiente de presupuesto' | 'Otra visita requerida' | 'En curso' | 'Pendiente' | 'Completado' | 'Cancelado';
   urgencia: string; // Columna original de la base de datos
   es_urgente?: boolean; // Columna adicional para compatibilidad
   latitud?: number;
@@ -64,7 +64,7 @@ export interface ActualizarAvisoRequest {
   nombre_contacto?: string;
   tipo?: 'correctivo' | 'preventivo';
   descripcion_problema?: string;
-  estado?: 'No visitado' | 'Visitado pendiente' | 'Pendiente de presupuesto' | 'En curso' | 'Pendiente' | 'Completado';
+  estado?: 'No visitado' | 'Visitado pendiente' | 'Pendiente de presupuesto' | 'Otra visita requerida' | 'En curso' | 'Pendiente' | 'Completado';
   es_urgente?: boolean;
   latitud?: number;
   longitud?: number;

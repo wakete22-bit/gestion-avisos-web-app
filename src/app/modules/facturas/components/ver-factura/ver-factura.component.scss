@@ -39,6 +39,33 @@ ion-content {
       }
     }
   }
+
+  .pdf-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    .pdf-template-selector {
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        border-color: #cbd5e0;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+    }
+  }
 }
 
 .btn-back {
@@ -385,6 +412,16 @@ ion-content {
     .header-actions {
       width: 100%;
       justify-content: flex-end;
+      
+      .pdf-options {
+        flex-direction: column;
+        gap: 8px;
+        
+        .pdf-template-selector {
+          width: 100%;
+          text-align: center;
+        }
+      }
     }
   }
   

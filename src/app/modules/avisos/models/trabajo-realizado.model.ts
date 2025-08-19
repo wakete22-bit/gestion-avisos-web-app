@@ -6,7 +6,7 @@ export interface TrabajoRealizado {
   hora_fin: string;
   descripcion: string;
   repuestos: string[];
-  estado: 'Pendiente' | 'En curso' | 'Abierto' | 'Cerrado' | 'Finalizado' | 'Completado' | 'Cancelado';
+  estado: 'Pendiente' | 'En curso' | 'Abierto' | 'Cerrado' | 'Finalizado' | 'Completado' | 'Cancelado' | 'Presupuesto pendiente' | 'Otra visita';
   fecha_creacion?: string;
   fecha_actualizacion?: string;
   albaran_id?: string; // ID del albarán asociado al trabajo
@@ -31,7 +31,7 @@ export interface CrearTrabajoRequest {
   hora_fin: string;
   descripcion: string;
   repuestos: string[];
-  estado: 'Pendiente' | 'En curso' | 'Completado' | 'Cancelado';
+  estado: 'Pendiente' | 'En curso' | 'Abierto' | 'Cerrado' | 'Finalizado' | 'Completado' | 'Cancelado' | 'Presupuesto pendiente' | 'Otra visita';
   materiales?: Omit<MaterialTrabajo, 'id' | 'trabajo_id'>[];
 }
 
@@ -41,7 +41,7 @@ export interface ActualizarTrabajoRequest {
   hora_fin?: string;
   descripcion?: string;
   repuestos?: string[];
-  estado?: 'Pendiente' | 'En curso' | 'Abierto' | 'Cerrado' | 'Finalizado' | 'Completado' | 'Cancelado';
+  estado?: 'Pendiente' | 'En curso' | 'Abierto' | 'Cerrado' | 'Finalizado' | 'Completado' | 'Cancelado' | 'Presupuesto pendiente' | 'Otra visita';
   materiales?: Omit<MaterialTrabajo, 'id' | 'trabajo_id'>[];
 }
 

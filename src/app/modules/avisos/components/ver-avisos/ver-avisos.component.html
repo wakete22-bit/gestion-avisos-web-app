@@ -270,9 +270,9 @@
                   <ion-icon name="checkmark-circle-outline"></ion-icon>
                   Albarán Cerrado
                 </span>
-                <small class="albaran-details">
+                <!-- <small class="albaran-details">
                   {{ getAlbaranEstado(trabajo) }}
-                </small>
+                </small> -->
               </div>
               
               <!-- Botón de Editar (solo si no está cerrado) -->
@@ -305,16 +305,30 @@
 </div>
 
 <!-- Albaranes Cerrados -->
-<div class="info-card" *ngIf="aviso && aviso.albaranes && aviso.albaranes.length > 0">
+<div class="info-card">
   <div class="card-header">
     <h2>Albaranes Cerrados</h2>
     <div class="header-actions">
-      <span class="badge-info">Total: {{aviso.albaranes.length}}</span>
+      <span class="badge-info" *ngIf="aviso?.albaranes && aviso?.albaranes.length > 0">Total: {{aviso.albaranes.length}}</span>
+      <span class="badge-info" *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0">Sin albaranes</span>
+      <button class="btn-secondary btn-small" (click)="recargarAlbaranes()" title="Recargar albaranes">
+        <ion-icon name="refresh-outline"></ion-icon>
+        <span class="desktop-only">Recargar</span>
+        <span class="mobile-only">↻</span>
+      </button>
     </div>
   </div>
 
   <div class="albaranes-container">
-    <div class="albaran-item" *ngFor="let albaran of aviso.albaranes; let i = index">
+    <!-- Mensaje cuando no hay albaranes -->
+    <div *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0" class="no-albaranes">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <p>No hay albaranes cerrados para este aviso</p>
+      <p class="info-text">Los albaranes aparecerán aquí una vez que se cierren los trabajos realizados</p>
+    </div>
+    
+    <!-- Lista de albaranes existentes -->
+    <div class="albaran-item" *ngFor="let albaran of aviso?.albaranes; let i = index">
       <div class="albaran-header">
         <div class="albaran-info">
           <h4>Albarán #{{i + 1}}</h4>
@@ -324,6 +338,13 @@
           <span class="badge-estado" [class]="'badge-' + albaran.estado_cierre.toLowerCase().replace(' ', '-')">
             {{albaran.estado_cierre}}
           </span>
+        </div>
+        <div class="albaran-actions">
+          <button class="btn-primary btn-small" (click)="verAlbaran(albaran)" title="Ver albarán completo">
+            <ion-icon name="eye-outline"></ion-icon>
+            <span class="desktop-only">Ver Albarán</span>
+            <span class="mobile-only">Ver</span>
+          </button>
         </div>
       </div>
       

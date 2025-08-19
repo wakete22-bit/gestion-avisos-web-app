@@ -16,10 +16,17 @@
           <ion-icon name="print-outline"></ion-icon>
           Imprimir
         </button>
-        <button class="btn-primary" (click)="descargarFactura()">
-          <ion-icon name="download-outline"></ion-icon>
-          Descargar PDF
-        </button>
+        <div class="pdf-options">
+          <select class="pdf-template-selector" [(ngModel)]="plantillaSeleccionada">
+            <option value="completa">Plantilla Completa</option>
+            <option value="simple">Plantilla Simple</option>
+            <option value="profesional">Plantilla Profesional</option>
+          </select>
+          <button class="btn-primary" (click)="descargarFactura()">
+            <ion-icon name="download-outline"></ion-icon>
+            Descargar PDF
+          </button>
+        </div>
       </div>
     </div>
 
