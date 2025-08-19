@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -26,7 +26,7 @@ import {
   searchOutline,
   locationOutline,
   calendarOutline,
-  createOutline, refreshOutline } from 'ionicons/icons';
+  createOutline, refreshOutline, phonePortraitOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
@@ -106,9 +106,10 @@ export class HomePage implements OnInit, OnDestroy {
     private dashboardService: DashboardService,
     private avisosService: AvisosService,
     private facturasService: FacturasService,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private modalController: ModalController
   ) {
-    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,warning,receipt,document,alertCircle,searchOutline,close,eyeOutline,createOutline,locationOutline,calendarOutline});
+    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,warning,receipt,document,alertCircle,searchOutline,close,eyeOutline,createOutline,phonePortraitOutline,locationOutline,calendarOutline});
   }
 
   ngOnInit() {
@@ -250,4 +251,5 @@ export class HomePage implements OnInit, OnDestroy {
   get presupuestosPendientes() {
     return this.dashboardData?.presupuestosPendientes || [];
   }
+
 }

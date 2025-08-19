@@ -39,13 +39,13 @@
   padding-bottom: var(--safe-area-bottom);
 }
 
-// Contenido con zonas seguras superior e inferior
+// Contenido principal con zonas seguras verticales
 .content-safe-vertical {
   padding-top: var(--safe-area-top);
   padding-bottom: var(--safe-area-bottom);
 }
 
-// Contenido con todas las zonas seguras
+// Contenido principal con todas las zonas seguras
 .content-safe-all {
   padding-top: var(--safe-area-top);
   padding-bottom: var(--safe-area-bottom);
@@ -53,64 +53,35 @@
   padding-right: var(--safe-area-right);
 }
 
-// ============================================================================
-// FOOTERS Y CONTENEDORES DE BOTONES
-// ============================================================================
-
-// Footer con zona segura inferior
+// Footer con zona segura
 .footer-safe {
   padding-bottom: var(--safe-margin-bottom);
 }
 
-// Footer con zona segura inferior y márgenes laterales
-.footer-safe-horizontal {
-  padding-bottom: var(--safe-margin-bottom);
-  padding-left: var(--safe-margin-left);
-  padding-right: var(--safe-margin-right);
-}
-
-// Contenedor de botones con zona segura inferior
-.button-container-safe {
-  padding-bottom: var(--safe-margin-bottom);
-}
-
-// Contenedor de botones flotantes (FAB) con zona segura
-.fab-container-safe {
-  bottom: var(--safe-margin-bottom);
-  right: var(--safe-margin-right);
-}
-
-// ============================================================================
-// HEADERS Y NAVEGACIÓN
-// ============================================================================
-
-// Header con zona segura superior
+// Header con zona segura
 .header-safe {
   padding-top: var(--safe-margin-top);
 }
 
-// Header con zona segura superior y márgenes laterales
-.header-safe-horizontal {
-  padding-top: var(--safe-margin-top);
-  padding-left: var(--safe-margin-left);
-  padding-right: var(--safe-margin-right);
+// Contenedor de botones con zona segura
+.button-container-safe {
+  padding-bottom: var(--safe-margin-bottom);
 }
 
-// Barra de navegación inferior con zona segura
-.bottom-nav-safe {
-  padding-bottom: var(--safe-area-bottom);
+// FAB con zona segura
+.fab-container-safe {
+  bottom: var(--safe-margin-bottom);
 }
-
-// ============================================================================
-// MODALES Y OVERLAYS
-// ============================================================================
 
 // Modal con zonas seguras
 .modal-safe {
-  padding-top: var(--safe-area-top);
-  padding-bottom: var(--safe-area-bottom);
-  padding-left: var(--safe-area-left);
-  padding-right: var(--safe-area-right);
+  ion-header {
+    padding-top: var(--safe-area-top);
+  }
+  
+  ion-footer {
+    padding-bottom: var(--safe-area-bottom);
+  }
 }
 
 // Overlay con zonas seguras
@@ -120,28 +91,121 @@
 }
 
 // ============================================================================
-// UTILIDADES ESPECÍFICAS PARA PLATAFORMAS
+// CONFIGURACIÓN ESPECÍFICA PARA PLATAFORMAS
 // ============================================================================
 
-// Utilidades específicas para iOS
+// Configuración específica para iOS
 .ios {
-  .content-safe-top {
-    padding-top: calc(var(--safe-area-top) + 8px);
+  :root {
+    // En iOS, necesitamos márgenes adicionales para el notch/Dynamic Island
+    --safe-margin-top: calc(var(--safe-area-top) + 16px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 20px);
   }
   
+  // Headers en iOS necesitan más espacio
+  .header-safe {
+    padding-top: calc(var(--safe-area-top) + 16px);
+  }
+  
+  // Footers en iOS necesitan más espacio
   .footer-safe {
     padding-bottom: calc(var(--safe-area-bottom) + 20px);
   }
-}
-
-// Utilidades específicas para Android
-.android {
-  .content-safe-top {
-    padding-top: calc(var(--safe-area-top) + 4px);
+  
+  // Toolbars en iOS necesitan altura adicional
+  ion-toolbar {
+    --min-height: calc(56px + var(--safe-area-top));
+    --height: calc(56px + var(--safe-area-top));
   }
   
+  // Headers en iOS necesitan padding adicional
+  ion-header {
+    padding-top: calc(var(--safe-area-top) + 8px);
+  }
+  
+  // Footers en iOS necesitan padding adicional
+  ion-footer {
+    padding-bottom: calc(var(--safe-area-bottom) + 8px);
+  }
+}
+
+// Configuración específica para Android
+.android {
+  :root {
+    // En Android, márgenes más conservadores
+    --safe-margin-top: calc(var(--safe-area-top) + 8px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
+  }
+  
+  // Headers en Android
+  .header-safe {
+    padding-top: calc(var(--safe-area-top) + 8px);
+  }
+  
+  // Footers en Android
   .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 16px);
+    padding-bottom: calc(var(--safe-area-bottom) + 12px);
+  }
+  
+  // Toolbars en Android
+  ion-toolbar {
+    --min-height: calc(56px + var(--safe-area-top));
+  }
+}
+
+// ============================================================================
+// CONFIGURACIÓN PARA PWA STANDALONE
+// ============================================================================
+
+@media all and (display-mode: standalone) {
+  :root {
+    // En modo standalone, márgenes más generosos
+    --safe-margin-top: calc(var(--safe-area-top) + 20px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 24px);
+  }
+  
+  // Headers en modo standalone
+  .header-safe {
+    padding-top: calc(var(--safe-area-top) + 20px);
+  }
+  
+  // Footers en modo standalone
+  .footer-safe {
+    padding-bottom: calc(var(--safe-area-bottom) + 24px);
+  }
+  
+  // Toolbars en modo standalone
+  ion-toolbar {
+    --min-height: calc(56px + var(--safe-area-top));
+    --height: calc(56px + var(--safe-area-top));
+  }
+}
+
+// ============================================================================
+// CONFIGURACIÓN ESPECÍFICA PARA ORIENTACIÓN
+// ============================================================================
+
+// Orientación landscape
+@media (orientation: landscape) {
+  :root {
+    // En landscape, las zonas seguras laterales son más importantes
+    --safe-margin-left: calc(var(--safe-area-left) + 20px);
+    --safe-margin-right: calc(var(--safe-area-right) + 20px);
+  }
+  
+  // Contenido en landscape
+  .content-safe-all {
+    padding-left: var(--safe-margin-left);
+    padding-right: var(--safe-margin-right);
+  }
+}
+
+// Orientación portrait
+@media (orientation: portrait) {
+  :root {
+    // En portrait, las zonas seguras verticales son más importantes
+    --safe-margin-top: calc(var(--safe-area-top) + 16px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 20px);
   }
 }
 
@@ -158,89 +222,89 @@
     --safe-area-right: 0px;
   }
   
-  // Ajustes específicos para dispositivos móviles conocidos
-  @media screen and (max-width: 768px) {
+  // Aplicar fallbacks en modo standalone
+  @media all and (display-mode: standalone) {
     :root {
       --safe-area-top: 24px;
       --safe-area-bottom: 24px;
     }
+    
+    .header-safe {
+      padding-top: 36px;
+    }
+    
+    .footer-safe {
+      padding-bottom: 36px;
+    }
   }
   
-  // Ajustes para dispositivos muy pequeños
-  @media screen and (max-width: 480px) {
+  // Aplicar fallbacks en iOS
+  .ios {
     :root {
       --safe-area-top: 28px;
       --safe-area-bottom: 28px;
+    }
+    
+    .header-safe {
+      padding-top: 44px;
+    }
+    
+    .footer-safe {
+      padding-bottom: 44px;
+    }
+  }
+  
+  // Aplicar fallbacks en Android
+  .android {
+    :root {
+      --safe-area-top: 24px;
+      --safe-area-bottom: 24px;
+    }
+    
+    .header-safe {
+      padding-top: 32px;
+    }
+    
+    .footer-safe {
+      padding-bottom: 32px;
     }
   }
 }
 
 // ============================================================================
-// UTILIDADES RESPONSIVAS
+// UTILIDADES ADICIONALES
 // ============================================================================
 
-// Ajustes para diferentes tamaños de pantalla
-@media screen and (min-width: 768px) {
-  // En pantallas grandes, reducir las zonas seguras
-  :root {
-    --safe-margin-top: calc(var(--safe-area-top) + 8px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
-  }
+// Clase para elementos que deben estar siempre visibles
+.always-visible {
+  position: relative;
+  z-index: 1000;
 }
 
-@media screen and (max-width: 480px) {
-  // En pantallas muy pequeñas, aumentar las zonas seguras
-  :root {
-    --safe-margin-top: calc(var(--safe-area-top) + 16px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 20px);
-  }
+// Clase para elementos que deben respetar zonas seguras
+.safe-area-respect {
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
 }
 
-// ============================================================================
-// UTILIDADES PARA PWA STANDALONE
-// ============================================================================
-
-// Ajustes específicos para PWA en modo standalone
-@media all and (display-mode: standalone) {
-  :root {
-    --safe-area-top: calc(env(safe-area-inset-top, 0px) + 8px);
-    --safe-area-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  }
-  
-  .header-safe {
-    padding-top: calc(var(--safe-area-top) + 8px);
-  }
-  
-  .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 16px);
-  }
+// Clase para elementos que deben estar en la parte superior segura
+.safe-top {
+  top: var(--safe-area-top);
 }
 
-// ============================================================================
-// UTILIDADES PARA ORIENTACIÓN
-// ============================================================================
-
-// Ajustes para orientación landscape
-@media screen and (orientation: landscape) {
-  .content-safe-top {
-    padding-top: calc(var(--safe-area-top) + 4px);
-  }
-  
-  .footer-safe {
-    padding-bottom: calc(var(--safe-area-bottom) + 12px);
-  }
+// Clase para elementos que deben estar en la parte inferior segura
+.safe-bottom {
+  bottom: var(--safe-area-bottom);
 }
 
-// ============================================================================
-// UTILIDADES PARA DARK MODE
-// ============================================================================
+// Clase para elementos que deben estar en la parte izquierda segura
+.safe-left {
+  left: var(--safe-area-left);
+}
 
-// Ajustes para modo oscuro
-@media (prefers-color-scheme: dark) {
-  .content-safe-top,
-  .content-safe-bottom,
-  .content-safe-vertical,
-  .content-safe-all {
-    // Mantener las mismas zonas seguras en modo oscuro
-  }
+// Clase para elementos que deben estar en la parte derecha segura
+.safe-right {
+  right: var(--safe-area-right);
 }
