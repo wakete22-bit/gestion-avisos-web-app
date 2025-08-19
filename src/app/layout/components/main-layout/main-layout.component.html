@@ -1,16 +1,20 @@
 <div class="main-layout">
     <!-- Header móvil con botón hamburguesa -->
-    <header class="mobile-header" *ngIf="isMobile">
-        <button class="hamburger-btn" (click)="toggleSidebar()">
-            <ion-icon name="menu-outline"></ion-icon>
-        </button>
-        <div class="mobile-title">
-            <img src="assets/icon/LogoGestionAvisosLargo.png" alt="Logo" class="mobile-logo">
-        </div>
-        <div class="mobile-profile" routerLink="/cuenta">
-            <span class="avatar"></span>
-        </div>
-    </header>
+    <ion-header class="mobile-header" *ngIf="isMobile">
+        <ion-toolbar>
+            <div class="mobile-toolbar-content">
+                <button class="hamburger-btn" (click)="toggleSidebar()">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </button>
+                <div class="mobile-title">
+                    <img src="assets/icon/LogoGestionAvisosLargo.png" alt="Logo" class="mobile-logo">
+                </div>
+                <div class="mobile-profile" routerLink="/cuenta">
+                    <span class="avatar"></span>
+                </div>
+            </div>
+        </ion-toolbar>
+    </ion-header>
 
     <!-- Overlay para cerrar sidebar en móviles -->
     <div class="sidebar-overlay" 

@@ -127,6 +127,15 @@
   ion-footer {
     padding-bottom: calc(var(--safe-area-bottom) + 8px);
   }
+  
+  // Header móvil específico para iOS
+  .mobile-header {
+    ion-toolbar {
+      --min-height: calc(60px + var(--safe-area-top));
+      --height: calc(60px + var(--safe-area-top));
+      --padding-top: var(--safe-area-top);
+    }
+  }
 }
 
 // Configuración específica para Android
@@ -150,6 +159,15 @@
   // Toolbars en Android
   ion-toolbar {
     --min-height: calc(56px + var(--safe-area-top));
+  }
+  
+  // Header móvil específico para Android
+  .mobile-header {
+    ion-toolbar {
+      --min-height: calc(60px + var(--safe-area-top));
+      --height: calc(60px + var(--safe-area-top));
+      --padding-top: var(--safe-area-top);
+    }
   }
 }
 
@@ -178,6 +196,15 @@
   ion-toolbar {
     --min-height: calc(56px + var(--safe-area-top));
     --height: calc(56px + var(--safe-area-top));
+  }
+  
+  // Header móvil en modo standalone
+  .mobile-header {
+    ion-toolbar {
+      --min-height: calc(60px + var(--safe-area-top));
+      --height: calc(60px + var(--safe-area-top));
+      --padding-top: var(--safe-area-top);
+    }
   }
 }
 
@@ -236,6 +263,12 @@
     .footer-safe {
       padding-bottom: 36px;
     }
+    
+    .mobile-header ion-toolbar {
+      --min-height: 84px;
+      --height: 84px;
+      --padding-top: 24px;
+    }
   }
   
   // Aplicar fallbacks en iOS
@@ -252,6 +285,12 @@
     .footer-safe {
       padding-bottom: 44px;
     }
+    
+    .mobile-header ion-toolbar {
+      --min-height: 88px;
+      --height: 88px;
+      --padding-top: 28px;
+    }
   }
   
   // Aplicar fallbacks en Android
@@ -267,6 +306,12 @@
     
     .footer-safe {
       padding-bottom: 32px;
+    }
+    
+    .mobile-header ion-toolbar {
+      --min-height: 84px;
+      --height: 84px;
+      --padding-top: 24px;
     }
   }
 }
