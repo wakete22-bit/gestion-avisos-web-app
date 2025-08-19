@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/core/components/pwa-install-banner/pwa-install-banner.component.ts"],
-  "sourcesContent": ["\n    .banner-content {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      gap: 16px;\n    }\n    \n    .banner-text h3 {\n      margin: 0 0 4px 0;\n      font-size: 16px;\n      font-weight: 600;\n    }\n    \n    .banner-text p {\n      margin: 0;\n      font-size: 14px;\n      opacity: 0.8;\n    }\n    \n    .banner-actions {\n      display: flex;\n      align-items: center;\n      gap: 8px;\n    }\n  "],
-  "mappings": ";AACI,CAAA;AACE,WAAA;AACA,eAAA;AACA,mBAAA;AACA,OAAA;;AAGF,CAAA,YAAA;AACE,UAAA,EAAA,EAAA,IAAA;AACA,aAAA;AACA,eAAA;;AAGF,CANA,YAMA;AACE,UAAA;AACA,aAAA;AACA,WAAA;;AAGF,CAAA;AACE,WAAA;AACA,eAAA;AACA,OAAA;;",
-  "names": []
-}
