@@ -35,6 +35,8 @@ export class TrabajosService {
      * Obtiene los trabajos realizados de un aviso
      */
     getTrabajosAviso(avisoId: string): Observable<any> {
+        console.log('🔍 TrabajosService.getTrabajosAviso() ejecutándose para aviso:', avisoId);
+        
         return from(this.supabase
             .from('trabajos_realizados')
             .select(`
@@ -57,7 +59,9 @@ export class TrabajosService {
             .order('fecha_creacion', { ascending: false })
         ).pipe(
             map(response => {
+                console.log('🔍 Respuesta de Supabase para trabajos:', response);
                 if (response.error) throw response.error;
+                console.log('✅ Trabajos obtenidos exitosamente:', response.data?.length || 0, 'trabajos');
                 return {
                     trabajos: response.data || []
                 };

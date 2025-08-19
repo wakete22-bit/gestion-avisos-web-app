@@ -14,7 +14,7 @@ import { SupabaseClientService } from './supabase-client.service';
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-  
+
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
@@ -41,13 +41,13 @@ export class AuthService {
     this.isInitializing = true;
     try {
       console.log('🔧 AuthService: Iniciando autenticación...');
-      
+
       // Intentar limpiar locks problemáticos
       await this.clearProblematicLocks();
-      
+
       await this.loadStoredAuth();
       this.setupAuthListener();
-      
+
       console.log('🔧 AuthService: Inicialización completada');
     } catch (error) {
       console.error('❌ AuthService: Error en inicialización:', error);
@@ -58,40 +58,47 @@ export class AuthService {
   }
 
   private async loadStoredAuth(): Promise<void> {
-    try {
-      console.log('🔧 AuthService: Cargando autenticación almacenada...');
-      
-      // Usar un timeout para evitar bloqueos indefinidos
-      const sessionPromise = this.supabase.auth.getSession();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout getting session')), 5000)
-      );
-      
-      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-      
-      if (session?.user) {
-        console.log('🔧 AuthService: Sesión encontrada, cargando datos del usuario...');
-        await this.loadUserData(session.user.id);
-      } else {
-        console.log('🔧 AuthService: No hay sesión almacenada');
+    const maxRetries = 3;
+    let retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`🔧 AuthService: Intento ${retryCount + 1} de ${maxRetries}`);
+
+        const sessionPromise = this.supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout getting session')), 10000) // ✅ Aumentar timeout
+        );
+
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+
+        if (session?.user) {
+          console.log('🔧 AuthService: Sesión encontrada, cargando datos del usuario...');
+          await this.loadUserData(session.user.id);
+          return; // ✅ Éxito, salir del bucle
+        } else {
+          console.log('🔧 AuthService: No hay sesión almacenada');
+          return;
+        }
+      } catch (error) {
+        retryCount++;
+        console.error(`❌ AuthService: Error en intento ${retryCount}:`, error);
+
+        if (retryCount >= maxRetries) {
+          console.error('❌ AuthService: Máximo de reintentos alcanzado');
+          this.clearAuth();
+          return;
+        }
+
+        // Esperar antes del siguiente intento
+        await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
       }
-    } catch (error) {
-      console.error('❌ AuthService: Error loading stored auth:', error);
-      
-      // Marcar que hay problemas de locks
-      if (error instanceof Error && error.message.includes('NavigatorLockAcquireTimeoutError')) {
-        localStorage.setItem('supabase_lock_issue', 'true');
-        console.log('🔧 AuthService: Problema de Navigator Lock detectado');
-      }
-      
-      this.clearAuth();
     }
   }
-
   private setupAuthListener(): void {
     this.supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
-      
+
       if (event === 'SIGNED_IN' && session?.user) {
         await this.loadUserData(session.user.id);
       } else if (event === 'SIGNED_OUT') {
@@ -105,7 +112,7 @@ export class AuthService {
   async loadUserData(userId: string): Promise<void> {
     try {
       console.log('🔧 AuthService: Cargando datos del usuario:', userId);
-      
+
       // Intentar obtener el usuario de la base de datos
       try {
         const usuario = await this.usuariosService.getUsuario(userId).toPromise();
@@ -115,11 +122,11 @@ export class AuthService {
         console.log('🔧 AuthService: Usuario cargado exitosamente desde BD');
       } catch (dbError) {
         console.warn('⚠️ AuthService: Usuario no encontrado en BD, esperando a que se complete la creación:', dbError);
-        
+
         // En lugar de crear un usuario por defecto, esperar un poco más
         // para que se complete la creación del usuario en la BD
         await new Promise(resolve => setTimeout(resolve, 3000));
-        
+
         try {
           const usuario = await this.usuariosService.getUsuario(userId).toPromise();
           console.log('🔧 AuthService: Usuario encontrado después de esperar:', usuario);
@@ -128,7 +135,7 @@ export class AuthService {
           console.log('🔧 AuthService: Usuario cargado exitosamente después de esperar');
         } catch (finalError) {
           console.error('❌ AuthService: Usuario no encontrado después de esperar, creando usuario por defecto:', finalError);
-          
+
           // Solo crear usuario por defecto si realmente no existe
           const usuarioDefault: Usuario = {
             id: userId,
@@ -204,13 +211,13 @@ export class AuthService {
       if (data.user) {
         // Esperar a que se complete el registro
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
+
         // Crear el usuario en la tabla usuarios
         const userDataWithId = {
           ...userData,
           id: data.user.id
         };
-        
+
         try {
           await this.usuariosService.crearUsuario(userDataWithId).toPromise();
           console.log('🔧 AuthService: Usuario creado en tabla usuarios');
@@ -218,10 +225,10 @@ export class AuthService {
           console.warn('⚠️ AuthService: Error al crear usuario en tabla usuarios:', createError);
           // Continuar aunque falle la creación en la tabla usuarios
         }
-        
+
         // Intentar cargar los datos del usuario
         await this.loadUserData(data.user.id);
-        
+
         return {
           usuario: this.currentUserSubject.value!,
           token: data.session?.access_token || ''
@@ -243,7 +250,7 @@ export class AuthService {
   async refreshToken(): Promise<AuthResponse> {
     try {
       const { data, error } = await this.supabase.auth.refreshSession();
-      
+
       if (error) throw error;
 
       if (data.user) {
@@ -296,7 +303,7 @@ export class AuthService {
   async isTokenExpired(): Promise<boolean> {
     const { data: { session } } = await this.supabase.auth.getSession();
     if (!session) return true;
-    
+
     return new Date(session.expires_at! * 1000) < new Date();
   }
 
@@ -309,7 +316,7 @@ export class AuthService {
   async manualRefreshToken(): Promise<boolean> {
     try {
       console.log('🔄 AuthService: Iniciando refresh manual de token...');
-      
+
       // Verificar si hay una sesión activa
       const { data: { session } } = await this.supabase.auth.getSession();
       if (!session) {
@@ -329,15 +336,15 @@ export class AuthService {
       }
 
       console.log('🔄 AuthService: Token próximo a expirar, refrescando...');
-      
+
       // Intentar refresh con timeout para evitar bloqueos
       const refreshPromise = this.supabase.auth.refreshSession();
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Refresh timeout')), 10000)
       );
-      
+
       const { data, error } = await Promise.race([refreshPromise, timeoutPromise]) as any;
-      
+
       if (error) {
         console.error('❌ AuthService: Error en refresh manual:', error);
         return false;
@@ -354,17 +361,17 @@ export class AuthService {
 
       console.log('🔄 AuthService: No se pudo refrescar el token');
       return false;
-      
+
     } catch (error) {
       console.error('❌ AuthService: Error en refresh manual:', error);
-      
+
       // Si es un error de lock, limpiar y reintentar
       if (error instanceof Error && error.message.includes('NavigatorLockAcquireTimeoutError')) {
         console.log('🔄 AuthService: Error de lock detectado, limpiando...');
         await this.clearProblematicLocks();
         localStorage.setItem('supabase_lock_issue', 'true');
       }
-      
+
       return false;
     }
   }
@@ -397,21 +404,21 @@ export class AuthService {
   private async clearProblematicLocks(): Promise<void> {
     try {
       console.log('🔧 AuthService: Limpiando locks problemáticos...');
-      
+
       // Limpiar localStorage si hay problemas de locks
       const hasLockIssues = localStorage.getItem('supabase_lock_issue');
       if (hasLockIssues) {
         console.log('🔧 AuthService: Detectados problemas de locks, limpiando...');
         localStorage.removeItem('supabase_lock_issue');
-        
+
         // Limpiar datos de Supabase del localStorage de forma más agresiva
-        const keysToRemove = Object.keys(localStorage).filter(key => 
-          key.includes('supabase') || 
-          key.includes('sb-') || 
+        const keysToRemove = Object.keys(localStorage).filter(key =>
+          key.includes('supabase') ||
+          key.includes('sb-') ||
           key.includes('auth') ||
           key.includes('token')
         );
-        
+
         keysToRemove.forEach(key => {
           try {
             localStorage.removeItem(key);
@@ -463,7 +470,7 @@ export class AuthService {
 
   async debugLocalStorage(): Promise<any> {
     try {
-      const supabaseKeys = Object.keys(localStorage).filter(key => 
+      const supabaseKeys = Object.keys(localStorage).filter(key =>
         key.includes('supabase') || key.includes('sb-') || key.includes('auth')
       );
 
@@ -482,15 +489,15 @@ export class AuthService {
   async forceClearLocks(): Promise<void> {
     try {
       console.log('🔧 AuthService: Forzando limpieza de locks...');
-      
+
       // Limpiar todos los datos de Supabase
-      const keysToRemove = Object.keys(localStorage).filter(key => 
-        key.includes('supabase') || 
-        key.includes('sb-') || 
+      const keysToRemove = Object.keys(localStorage).filter(key =>
+        key.includes('supabase') ||
+        key.includes('sb-') ||
         key.includes('auth') ||
         key.includes('token')
       );
-      
+
       keysToRemove.forEach(key => {
         try {
           localStorage.removeItem(key);
@@ -502,10 +509,10 @@ export class AuthService {
 
       // Marcar problema de locks para futuras limpiezas
       localStorage.setItem('supabase_lock_issue', 'true');
-      
+
       // Esperar para que se liberen los locks
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       console.log('🔧 AuthService: Limpieza de locks completada');
     } catch (error) {
       console.error('❌ AuthService: Error en limpieza forzada:', error);

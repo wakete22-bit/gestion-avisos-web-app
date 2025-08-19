@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, NavigationStart } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
@@ -19,21 +19,23 @@ export class NavigationService {
    */
   private setupRouteTracking() {
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: NavigationEnd) => {
-      const currentRoute = event.urlAfterRedirects;
-      console.log('🧭 Navegando a:', currentRoute);
-      
-      this.currentRoute$.next(currentRoute);
-      this.isNavigating$.next(false);
-      
-      // Pequeño delay para asegurar que el DOM esté listo
-      setTimeout(() => {
-        this.isNavigating$.next(false);
-      }, 100);
+      filter(event => event instanceof NavigationStart || event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      if (event instanceof NavigationStart) {
+        console.log('🧭 Iniciando navegación a:', event.url);
+        this.isNavigating$.next(true);
+      } else if (event instanceof NavigationEnd) {
+        const currentRoute = event.urlAfterRedirects;
+        console.log('�� Navegación completada a:', currentRoute);
+        this.currentRoute$.next(currentRoute);
+        
+        // Delay para asegurar que el DOM esté listo
+        setTimeout(() => {
+          this.isNavigating$.next(false);
+        }, 100);
+      }
     });
-  }
-
+  } 
   /**
    * Obtiene la ruta actual
    */

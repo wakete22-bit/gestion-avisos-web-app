@@ -32,6 +32,16 @@
       </div>
     </div>
     <div class="header-actions">
+      <!-- Botón de recarga forzada -->
+      <button 
+        class="btn-secondary" 
+        (click)="forzarRecargaDatos()"
+        title="Recargar datos">
+        <ion-icon name="refresh-outline"></ion-icon>
+        <span class="desktop-only">Recargar</span>
+        <span class="mobile-only">Recargar</span>
+      </button>
+      
       <!-- Solo mostrar botón de completar si el aviso NO está completado -->
       <button 
         *ngIf="aviso?.estado !== 'Completado'" 
@@ -242,19 +252,9 @@
           </td>
           <td data-label="Acciones">
             <div class="estado-actions">
-              <!-- Botón de depuración temporal - SIEMPRE VISIBLE -->
+              <!-- Botón de Hacer Albarán - SOLO VISIBLE CUANDO SE PUEDA CREAR -->
               <button 
-                class="btn-secondary btn-small" 
-                (click)="debugTrabajo(trabajo)" 
-                title="Debug trabajo"
-                style="background: #FF6B6B; color: white;">
-                <ion-icon name="bug-outline"></ion-icon>
-                <span class="desktop-only">Debug</span>
-                <span class="mobile-only">Debug</span>
-              </button>
-              
-              <!-- Botón de Hacer Albarán - VERSIÓN SIMPLIFICADA PARA DEPURACIÓN -->
-              <button 
+                *ngIf="puedeCrearAlbaran(trabajo)"
                 class="btn-primary btn-small" 
                 (click)="hacerAlbaran(trabajo)" 
                 title="Hacer albarán"

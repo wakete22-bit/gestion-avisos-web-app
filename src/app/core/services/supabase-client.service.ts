@@ -17,11 +17,10 @@ export class SupabaseClientService {
         environment.supabaseAnonKey,
         {
           auth: {
-            // Configuración para evitar conflictos de locks
             persistSession: true,
-            autoRefreshToken: false, // ❌ DESHABILITADO para evitar NavigatorLockAcquireTimeoutError
+            autoRefreshToken: true, // ✅ HABILITAR
             detectSessionInUrl: false,
-            // Configurar storage personalizado para evitar locks
+            // Configuración mejorada para evitar locks
             storage: {
               getItem: (key: string) => {
                 try {
@@ -45,10 +44,7 @@ export class SupabaseClientService {
                   console.warn('Error removing from localStorage:', error);
                 }
               }
-            },
-            // Configuración adicional para evitar locks
-            flowType: 'pkce',
-            debug: false
+            }
           },
           // Configuración global para reducir conflictos
           global: {

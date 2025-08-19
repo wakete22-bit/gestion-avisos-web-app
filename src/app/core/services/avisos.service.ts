@@ -654,7 +654,10 @@ export class AvisosService {
                            ),
                            albaran:albaranes!trabajos_realizados_albaran_id_fkey(*)
                        ),
-                    albaranes:albaranes(*),
+                    albaranes:albaranes(
+                        *,
+                        repuestos_utilizados
+                    ),
                     presupuestos:presupuestos(*),
                     facturas:facturas(*)
                 `)

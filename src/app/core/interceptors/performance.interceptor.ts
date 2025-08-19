@@ -6,7 +6,7 @@ import { PerformanceFixService } from '../services/performance-fix.service';
 
 let requestCount = 0;
 const MAX_CONCURRENT_REQUESTS = 5;
-const REQUEST_TIMEOUT = 30000; // 30 segundos
+const REQUEST_TIMEOUT = 15000; // ✅ Reducir a 15 segundos
 
 export function PerformanceInterceptor(
   request: HttpRequest<unknown>, 
@@ -14,23 +14,20 @@ export function PerformanceInterceptor(
 ): Observable<HttpEvent<unknown>> {
   const performanceFix = inject(PerformanceFixService);
   
-  // Contar peticiones concurrentes
-  requestCount++;
-  
-  // Si hay demasiadas peticiones, forzar limpieza
+  // ✅ Mejorar manejo de peticiones concurrentes
   if (requestCount > MAX_CONCURRENT_REQUESTS) {
+    console.warn('⚠️ Demasiadas peticiones concurrentes, forzando limpieza');
     performanceFix.forceCleanup();
     requestCount = 0;
   }
 
-  // Aplicar timeout a todas las peticiones
   return next(request).pipe(
     timeout(REQUEST_TIMEOUT),
     catchError((error: any) => {
       requestCount--;
       
-      // Si hay error de timeout, forzar limpieza
       if (error.name === 'TimeoutError') {
+        console.error('⏰ Timeout en petición, forzando limpieza');
         performanceFix.forceCleanup();
       }
       

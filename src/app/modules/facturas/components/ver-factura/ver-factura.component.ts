@@ -54,6 +54,8 @@ export class VerFacturaComponent implements OnInit {
     
     this.facturasService.getFactura(this.facturaId).subscribe({
       next: (facturaCompleta) => {
+        console.log('🔍 Factura completa recibida del servicio:', facturaCompleta);
+        console.log('🔍 Líneas de la factura:', facturaCompleta.lineas);
         this.factura = facturaCompleta;
         this.loading = false;
       },
@@ -141,15 +143,21 @@ export class VerFacturaComponent implements OnInit {
 
   // Separar líneas por tipo
   get repuestos() {
-    return this.factura?.lineas.filter(linea => linea.tipo === 'repuesto') || [];
+    const repuestos = this.factura?.lineas.filter(linea => linea.tipo === 'repuesto') || [];
+    console.log('🔍 Repuestos en componente ver-factura:', repuestos);
+    return repuestos;
   }
 
   get manoObra() {
-    return this.factura?.lineas.filter(linea => linea.tipo === 'mano_obra') || [];
+    const manoObra = this.factura?.lineas.filter(linea => linea.tipo === 'mano_obra') || [];
+    console.log('🔍 Mano de obra en componente ver-factura:', manoObra);
+    return manoObra;
   }
 
   get desplazamientos() {
-    return this.factura?.lineas.filter(linea => linea.tipo === 'desplazamiento') || [];
+    const desplazamientos = this.factura?.lineas.filter(linea => linea.tipo === 'desplazamiento') || [];
+    console.log('🔍 Desplazamientos en componente ver-factura:', desplazamientos);
+    return desplazamientos;
   }
 
   // Cálculos de totales

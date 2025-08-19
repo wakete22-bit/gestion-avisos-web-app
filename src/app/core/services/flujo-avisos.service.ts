@@ -396,80 +396,146 @@ export class FlujoAvisosService {
     
     const lineasFactura = [];
     
-    // 1. Calcular horas totales de trabajo desde los albaranes
+    // 1. Calcular horas totales de trabajo desde TODOS los trabajos realizados
     let horasTotales = 0;
-    if (datosFactura.resumen.albaranes && datosFactura.resumen.albaranes.length > 0) {
-      datosFactura.resumen.albaranes.forEach((albaran: any) => {
-        if (albaran.estado_cierre === 'Finalizado') {
-          // Calcular horas entre hora_entrada y hora_salida
-          const horaEntrada = new Date(`2000-01-01T${albaran.hora_entrada}`);
-          const horaSalida = new Date(`2000-01-01T${albaran.hora_salida}`);
-          const horasAlbaran = (horaSalida.getTime() - horaEntrada.getTime()) / (1000 * 60 * 60);
-          horasTotales += Math.max(0, horasAlbaran);
+    if (datosFactura.resumen.trabajos && datosFactura.resumen.trabajos.length > 0) {
+      console.log('🔧 Calculando horas totales de todos los trabajos:', datosFactura.resumen.trabajos.length, 'trabajos');
+      
+      datosFactura.resumen.trabajos.forEach((trabajo: any, index: number) => {
+        if (trabajo.hora_inicio && trabajo.hora_fin) {
+          // Calcular horas del trabajo individual
+          const inicio = new Date(`2000-01-01T${trabajo.hora_inicio}`);
+          const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
+          const horasTrabajo = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
+          const horasValidas = Math.max(0, horasTrabajo);
+          
+          console.log(`🔧 Trabajo #${index + 1}: ${trabajo.hora_inicio} - ${trabajo.hora_fin} = ${horasValidas.toFixed(2)} horas`);
+          horasTotales += horasValidas;
         }
       });
+      
+      console.log('🔧 Horas totales acumuladas:', horasTotales.toFixed(2), 'horas');
     }
     
-    // 2. Agregar línea de mano de obra
+    // 2. Agregar línea de mano de obra consolidada
     if (horasTotales > 0) {
       lineasFactura.push({
         tipo: 'mano_obra',
         nombre: 'Mano de obra',
         cantidad: horasTotales,
-        // precio_neto: this.configuracion.precio_hora_mano_obra,
-        // precio_pvp: this.configuracion.precio_hora_mano_obra,
         precio_neto: 50,
         precio_pvp: 50,
-        descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas`
+        descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas (${datosFactura.resumen.trabajos?.length || 0} trabajos)`
       });
     }
     
-    // 3. Agregar repuestos con cantidades REALES desde los albaranes
-    if (datosFactura.resumen.albaranes && datosFactura.resumen.albaranes.length > 0) {
-      datosFactura.resumen.albaranes.forEach((albaran: any) => {
-        if (albaran.estado_cierre === 'Finalizado' && albaran.repuestos_utilizados) {
-          console.log('🔧 Procesando repuestos del albarán:', albaran.repuestos_utilizados);
-          
-          albaran.repuestos_utilizados.forEach((repuesto: any) => {
-            // Verificar si el repuesto tiene estructura completa con cantidades
-            if (repuesto && typeof repuesto === 'object' && repuesto.cantidad) {
-              // ✅ NUEVO FORMATO: Repuesto con cantidades reales
-              console.log('🔧 Repuesto con cantidad real:', repuesto);
-              lineasFactura.push({
-                tipo: 'repuesto',
-                nombre: repuesto.nombre,
-                cantidad: repuesto.cantidad, // ← CANTIDAD REAL
-                precio_neto: repuesto.precio_neto || 0,
-                precio_pvp: repuesto.precio_pvp || repuesto.precio_neto || 0,
-                descripcion: `Repuesto: ${repuesto.nombre} - ${repuesto.cantidad} ${repuesto.unidad || 'unidad'}`
-              });
-            } else if (typeof repuesto === 'string') {
-              // ⚠️ FORMATO ANTIGUO: Solo nombre del repuesto (fallback)
-              console.log('⚠️ Repuesto en formato antiguo (sin cantidad):', repuesto);
-              lineasFactura.push({
-                tipo: 'repuesto',
-                nombre: repuesto,
-                cantidad: 1, // ← CANTIDAD POR DEFECTO (fallback)
-                precio_neto: 0,
-                precio_pvp: 0,
-                descripcion: `Repuesto: ${repuesto} (cantidad no especificada)`
-              });
+    // 3. Consolidar repuestos de TODOS los trabajos (no solo albaranes)
+    const repuestosConsolidados = new Map(); // Usar Map para consolidar por nombre
+    
+    if (datosFactura.resumen.trabajos && datosFactura.resumen.trabajos.length > 0) {
+      console.log('🔧 Consolidando repuestos de todos los trabajos...');
+      
+      datosFactura.resumen.trabajos.forEach((trabajo: any, indexTrabajo: number) => {
+        console.log(`🔧 Procesando trabajo #${indexTrabajo + 1}:`, trabajo.id);
+        
+        // Procesar materiales del trabajo (con cantidades reales)
+        if (trabajo.materiales && trabajo.materiales.length > 0) {
+          trabajo.materiales.forEach((material: any) => {
+            if (material && material.cantidad_utilizada && material.cantidad_utilizada > 0) {
+              const nombreMaterial = material.material?.nombre || 'Material sin nombre';
+              const clave = nombreMaterial.toLowerCase();
+              
+              if (repuestosConsolidados.has(clave)) {
+                // Sumar a material existente
+                const existente = repuestosConsolidados.get(clave);
+                existente.cantidad_total += parseFloat(material.cantidad_utilizada);
+                existente.precio_total += parseFloat(material.precio_neto_al_momento || 0) * parseFloat(material.cantidad_utilizada);
+                existente.trabajos.push(indexTrabajo + 1);
+                console.log(`🔧 Material consolidado: ${nombreMaterial} - Cantidad total: ${existente.cantidad_total}`);
+              } else {
+                // Crear nuevo material consolidado
+                repuestosConsolidados.set(clave, {
+                  nombre: nombreMaterial,
+                  cantidad_total: parseFloat(material.cantidad_utilizada),
+                  precio_unitario: parseFloat(material.precio_neto_al_momento || 0),
+                  precio_total: parseFloat(material.precio_neto_al_momento || 0) * parseFloat(material.cantidad_utilizada),
+                  unidad: material.material?.unidad || 'unidad',
+                  trabajos: [indexTrabajo + 1]
+                });
+                console.log(`🔧 Nuevo material: ${nombreMaterial} - Cantidad: ${material.cantidad_utilizada}`);
+              }
+            }
+          });
+        }
+        
+        // También procesar repuestos básicos si están disponibles
+        if (trabajo.repuestos && trabajo.repuestos.length > 0) {
+          trabajo.repuestos.forEach((repuesto: any) => {
+            if (repuesto) {
+              const nombreRepuesto = typeof repuesto === 'string' ? repuesto : (repuesto.nombre || 'Repuesto sin nombre');
+              const clave = nombreRepuesto.toLowerCase();
+              
+              if (repuestosConsolidados.has(clave)) {
+                // Sumar a repuesto existente
+                const existente = repuestosConsolidados.get(clave);
+                existente.cantidad_total += 1; // Cantidad por defecto para repuestos básicos
+                existente.trabajos.push(indexTrabajo + 1);
+                console.log(`🔧 Repuesto consolidado: ${nombreRepuesto} - Cantidad total: ${existente.cantidad_total}`);
+              } else {
+                // Crear nuevo repuesto consolidado
+                repuestosConsolidados.set(clave, {
+                  nombre: nombreRepuesto,
+                  cantidad_total: 1,
+                  precio_unitario: 0, // Precio por defecto para repuestos básicos
+                  precio_total: 0,
+                  unidad: 'unidad',
+                  trabajos: [indexTrabajo + 1]
+                });
+                console.log(`🔧 Nuevo repuesto: ${nombreRepuesto}`);
+              }
             }
           });
         }
       });
     }
     
-    // 4. Calcular totales
+    // 4. Convertir materiales consolidados a líneas de factura
+    repuestosConsolidados.forEach((material, clave) => {
+      lineasFactura.push({
+        tipo: 'repuesto',
+        nombre: material.nombre,
+        cantidad: material.cantidad_total,
+        precio_neto: material.precio_unitario,
+        precio_pvp: material.precio_unitario > 0 ? material.precio_unitario : 0,
+        descripcion: `${material.nombre} - ${material.cantidad_total} ${material.unidad} (usado en trabajos: ${material.trabajos.join(', ')})`
+      });
+    });
+    
+    // 5. Calcular totales consolidados
     const subtotal = lineasFactura.reduce((total, linea) => {
-      return total + (linea.precio_pvp * linea.cantidad);
+      const subtotalLinea = (linea.precio_pvp || 0) * (linea.cantidad || 0);
+      return total + subtotalLinea;
     }, 0);
     
-    const iva = subtotal * (0.21);
-    const total = subtotal + iva;
+    const iva = +(subtotal * 0.21).toFixed(2);
+    const total = +(subtotal + iva).toFixed(2);
     
-    console.log('🔧 Líneas de factura generadas:', lineasFactura);
-    console.log('🔧 Subtotal:', subtotal, 'IVA:', iva, 'Total:', total);
+    console.log('🔧 Líneas de factura consolidadas:', lineasFactura.length, 'líneas');
+    console.log('🔧 Subtotal consolidado:', subtotal.toFixed(2), '€');
+    console.log('🔧 IVA:', iva.toFixed(2), '€');
+    console.log('🔧 Total consolidado:', total.toFixed(2), '€');
+    
+    // Log detallado de cada línea para debugging
+    lineasFactura.forEach((linea, index) => {
+      console.log(`🔧 Línea ${index + 1}:`, {
+        tipo: linea.tipo,
+        nombre: linea.nombre,
+        cantidad: linea.cantidad,
+        precio_neto: linea.precio_neto,
+        precio_pvp: linea.precio_pvp,
+        descripcion: linea.descripcion
+      });
+    });
     
     return {
       cliente_id: datosFactura.cliente.id,
@@ -477,10 +543,12 @@ export class FlujoAvisosService {
       direccion_cliente: datosFactura.cliente.direccion || '',
       cif_cliente: datosFactura.cliente.cif || '',
       email_cliente: datosFactura.cliente.email || '',
-      aviso_id: datosFactura.aviso.id,
+      aviso_id: datosFactura.avisoId,
+      fecha_emision: new Date().toISOString().split('T')[0],
+      estado: 'Pendiente',
       subtotal: subtotal,
       iva: iva,
       total: total,
-      lineas_factura: lineasFactura
+      lineas: lineasFactura
     };
   }} 

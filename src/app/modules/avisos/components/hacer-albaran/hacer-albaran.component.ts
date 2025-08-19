@@ -400,15 +400,15 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         next: (albaran) => {
           console.log('Albarán guardado exitosamente:', albaran);
 
-          // Actualizar el estado del trabajo según el estado del albarán
-          let nuevoEstado = 'Abierto';
-          if (albaran.estado_cierre === 'Finalizado') {
-            nuevoEstado = 'Finalizado';
-          } else if (albaran.estado_cierre === 'Presupuesto pendiente') {
-            nuevoEstado = 'Cerrado';
-          } else if (albaran.estado_cierre === 'Otra visita') {
-            nuevoEstado = 'Cerrado';
-          }
+          // Cuando se cierra un albarán, el trabajo siempre pasa a estado "Finalizado"
+          const nuevoEstado = 'Finalizado';
+          
+          console.log('🔄 Actualizando estado del trabajo:', {
+            trabajoId: this.trabajo.id,
+            estadoAnterior: this.trabajo.estado,
+            nuevoEstado: nuevoEstado,
+            albaranId: albaran.id
+          });
 
           // Actualizar el trabajo con el nuevo estado y el ID del albarán
           this.trabajosService.actualizarEstadoTrabajo(
@@ -417,7 +417,12 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
             albaran.id
           ).subscribe({
             next: (trabajoActualizado) => {
-              console.log('Trabajo actualizado exitosamente:', trabajoActualizado);
+              console.log('✅ Trabajo actualizado exitosamente:', {
+                id: trabajoActualizado.id,
+                estadoAnterior: this.trabajo.estado,
+                estadoNuevo: trabajoActualizado.estado,
+                albaranId: trabajoActualizado.albaran_id
+              });
 
               // Actualizar automáticamente el estado del aviso
               this.avisosService.actualizarEstadoAutomatico(this.aviso.id!).subscribe({
@@ -431,7 +436,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
                     trabajo: trabajoActualizado,
                     aviso: avisoActualizado,
                     mensaje: 'Albarán guardado exitosamente'
-                  });
+                  }, 'confirm');
                 },
                 error: (error) => {
                   console.error('Error al actualizar estado del aviso:', error);
@@ -442,7 +447,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
                     albaran: albaran,
                     trabajo: trabajoActualizado,
                     mensaje: 'Albarán guardado exitosamente'
-                  });
+                  }, 'confirm');
                 }
               });
             },

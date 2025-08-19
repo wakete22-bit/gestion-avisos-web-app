@@ -63,31 +63,23 @@ export class VerAvisosComponent implements OnInit {
   cargarTrabajos() {
     if (!this.aviso?.id) return;
 
+    console.log('🔄 cargarTrabajos() ejecutándose para aviso:', this.aviso.id);
     this.loadingTrabajos = true;
+    this.error = null; // ← LIMPIAR ERROR AL RECARGAR TRABAJOS
+    
     this.trabajosService.getTrabajosAviso(this.aviso.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('🔍 cargarTrabajos - Respuesta completa:', response);
+          console.log('✅ Trabajos cargados exitosamente:', response.trabajos.length, 'trabajos');
+          console.log('📊 Estados de los trabajos:', response.trabajos.map((t: any) => ({ id: t.id, estado: t.estado, albaran_id: t.albaran_id })));
           this.trabajosRealizados = response.trabajos;
-          console.log('🔍 cargarTrabajos - Trabajos cargados:', this.trabajosRealizados);
-
-          // Log detallado de cada trabajo
-          this.trabajosRealizados.forEach((trabajo, index) => {
-            console.log(`🔍 cargarTrabajos - Trabajo ${index + 1}:`, {
-              id: trabajo.id,
-              estado: trabajo.estado,
-              albaran_id: trabajo.albaran_id,
-              materiales: trabajo.materiales, // ← NUEVO: Verificar materiales
-              puedeCrearAlbaran: this.puedeCrearAlbaran(trabajo)
-            });
-          });
-
           this.loadingTrabajos = false;
         },
         error: (error) => {
-          console.error('Error al cargar trabajos:', error);
+          console.error('❌ Error al cargar trabajos:', error);
           this.loadingTrabajos = false;
+          this.error = 'Error al cargar los trabajos realizados';
         }
       });
   }
@@ -100,25 +92,28 @@ export class VerAvisosComponent implements OnInit {
    * Carga el aviso basado en el ID de la URL
    */
   cargarAviso() {
+    console.log('🔄 cargarAviso() ejecutándose...');
     this.loading = true;
-    this.error = null;
+    this.error = null; // ← LIMPIAR ERROR AL RECARGAR
 
     this.route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         const avisoId = params['id-aviso'];
+        console.log('🔍 ID de aviso obtenido de la URL:', avisoId);
         if (avisoId) {
           this.avisosService.getAviso(avisoId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (aviso) => {
+                console.log('✅ Aviso cargado exitosamente:', aviso.id, 'Estado:', aviso.estado);
                 this.aviso = aviso;
                 this.loading = false;
                 // Cargar trabajos realizados después de cargar el aviso
                 this.cargarTrabajos();
               },
               error: (error) => {
-                console.error('Error al cargar el aviso:', error);
+                console.error('❌ Error al cargar el aviso:', error);
                 this.error = 'Error al cargar el aviso. Por favor, inténtalo de nuevo.';
                 this.loading = false;
               }
@@ -132,6 +127,14 @@ export class VerAvisosComponent implements OnInit {
 
   cambiarVistaGaleria(event: any) {
     this.vistaGaleria = event.detail.value;
+  }
+
+  /**
+   * Fuerza la recarga de todos los datos del aviso
+   */
+  forzarRecargaDatos() {
+    this.error = null;
+    this.cargarAviso();
   }
 
   /**
@@ -421,18 +424,19 @@ export class VerAvisosComponent implements OnInit {
     console.log('Modal presentado');
 
     const { data, role } = await modal.onWillDismiss();
+    console.log('🔍 Modal cerrado con:', { role, data });
+    
     if (role === 'confirm' && data?.success) {
       try {
-        console.log('Albarán creado exitosamente:', data.albaran);
-        console.log('Trabajo actualizado:', data.trabajo);
-        console.log('Aviso actualizado:', data.aviso);
+        console.log('✅ Albarán creado exitosamente:', data.albaran);
+        console.log('✅ Trabajo actualizado:', data.trabajo);
+        console.log('✅ Aviso actualizado:', data.aviso);
         alert(data.mensaje || 'Albarán creado exitosamente');
 
+        console.log('🔄 Recargando datos...');
         // Recargar trabajos y aviso para mostrar los cambios
         this.cargarTrabajos();
-        if (data.aviso) {
-          this.aviso = data.aviso;
-        }
+        this.cargarAviso();
 
         // Procesar el estado del albarán
         if (data.albaran.estado_cierre === 'Finalizado') {
@@ -502,67 +506,38 @@ export class VerAvisosComponent implements OnInit {
    * Obtiene el estado del albarán asociado al trabajo
    */
   getAlbaranEstado(trabajo: TrabajoRealizado): string {
-    console.log('🔍 getAlbaranEstado - Trabajo:', trabajo);
-    console.log('🔍 getAlbaranEstado - Aviso albaranes:', this.aviso?.albaranes);
-
-    if (!trabajo.albaran_id || !this.aviso?.albaranes) {
-      console.log('🔍 getAlbaranEstado - Sin albarán o sin albaranes en aviso');
+    // Validaciones básicas
+    if (!trabajo || !trabajo.albaran_id || !this.aviso?.albaranes) {
       return 'pendiente';
     }
 
     const albaran = this.aviso.albaranes.find(a => a.id === trabajo.albaran_id);
-    console.log('🔍 getAlbaranEstado - Albarán encontrado:', albaran);
 
-    if (!albaran) {
-      console.log('🔍 getAlbaranEstado - Albarán no encontrado');
+    if (!albaran || !albaran.estado_cierre) {
       return 'pendiente';
     }
 
     // Convertir el estado del albarán a un formato válido para CSS
-    const estado = albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
-    console.log('🔍 getAlbaranEstado - Estado final:', estado);
-    return estado;
+    return albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
   }
 
   /**
    * Verifica si se puede crear un albarán para un trabajo
    */
   puedeCrearAlbaran(trabajo: TrabajoRealizado): boolean {
-    console.log('🔍 puedeCrearAlbaran - Trabajo:', trabajo);
-    console.log('🔍 puedeCrearAlbaran - Estado:', trabajo.estado);
-    console.log('🔍 puedeCrearAlbaran - Albarán ID:', trabajo.albaran_id);
+    // Validaciones básicas
+    if (!trabajo || !trabajo.estado) {
+      return false;
+    }
 
     // No se puede crear si ya tiene albarán
     if (trabajo.albaran_id) {
-      console.log('🔍 puedeCrearAlbaran - Ya tiene albarán, no se puede crear');
       return false;
     }
 
     // Estados válidos para crear albarán
     const estadosValidos = ['En curso', 'Abierto', 'Pendiente'];
-    const puedeCrear = estadosValidos.includes(trabajo.estado);
-
-    console.log('🔍 puedeCrearAlbaran - Estado válido:', puedeCrear);
-    return puedeCrear;
-  }
-
-  /**
-   * Método de depuración para ver la información completa del trabajo
-   */
-  debugTrabajo(trabajo: TrabajoRealizado) {
-    console.log('🐛 DEBUG TRABAJO:', trabajo);
-    console.log('🐛 Estado:', trabajo.estado);
-    console.log('🐛 Albarán ID:', trabajo.albaran_id);
-    console.log('🐛 Puede crear albarán:', this.puedeCrearAlbaran(trabajo));
-    console.log('🐛 Aviso albaranes:', this.aviso?.albaranes);
-
-    // Mostrar alerta con información del trabajo
-    alert(`DEBUG TRABAJO:
-ID: ${trabajo.id}
-Estado: ${trabajo.estado}
-Albarán ID: ${trabajo.albaran_id || 'Ninguno'}
-Puede crear albarán: ${this.puedeCrearAlbaran(trabajo)}
-Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
+    return estadosValidos.includes(trabajo.estado);
   }
 
   /**
@@ -579,8 +554,9 @@ Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
   onAccionFlujoEjecutada(resultado: any) {
     console.log('Acción de flujo ejecutada:', resultado);
 
-    // Recargar aviso para reflejar cambios
+    // Recargar aviso y trabajos para reflejar cambios
     this.cargarAviso();
+    this.cargarTrabajos();
 
     // Mostrar mensaje de éxito (opcional)
     if (resultado.mensaje) {
@@ -605,6 +581,7 @@ Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
       // Mostrar confirmación antes de completar
       if (confirm('¿Estás seguro de que quieres marcar este aviso como completado? Esta acción no se puede deshacer.')) {
         this.loading = true;
+        this.error = null; // ← LIMPIAR ERROR AL INICIAR
 
         this.flujoAvisosService.completarAviso(this.aviso.id).subscribe({
           next: (resultado) => {
@@ -621,11 +598,12 @@ Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
             console.error('❌ Error al completar aviso:', error);
             this.loading = false;
 
-            // Mostrar mensaje de error
-            this.mostrarMensaje(
-              error.message || 'Error al completar el aviso. Verifica que haya trabajos realizados y facturas generadas.',
-              'error'
-            );
+            // Mostrar mensaje de error más detallado
+            const mensajeError = error.message || 
+              'Error al completar el aviso. Verifica que haya trabajos realizados y facturas generadas.';
+            
+            this.mostrarMensaje(mensajeError, 'error');
+            this.error = mensajeError;
           }
         });
       }
@@ -644,7 +622,16 @@ Total albaranes en aviso: ${this.aviso?.albaranes?.length || 0}`);
     console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
 
     if (tipo === 'error') {
-      alert(mensaje);
+      // Para errores críticos, mostrar alerta
+      alert(`ERROR: ${mensaje}`);
+    } else if (tipo === 'success') {
+      // Para éxitos, mostrar en consola y opcionalmente alerta
+      console.log(`✅ ${mensaje}`);
+      // Opcional: mostrar alerta de éxito
+      // alert(`✅ ${mensaje}`);
+    } else {
+      // Para info, solo en consola
+      console.log(`ℹ️ ${mensaje}`);
     }
 
     // Si tienes un servicio de notificaciones, lo usarías aquí
