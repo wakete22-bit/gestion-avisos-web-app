@@ -19,8 +19,8 @@
   --safe-area-right: env(safe-area-inset-right, 0px);
   
   // Márgenes mínimos para mejor UX (sin excesos)
-  --safe-margin-top: calc(var(--safe-area-top) + 8px);
-  --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
+  --safe-margin-top: calc(var(--safe-area-top) + 4px);
+  --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   --safe-margin-left: calc(var(--safe-area-left) + 16px);
   --safe-margin-right: calc(var(--safe-area-right) + 16px);
 }
@@ -76,11 +76,11 @@
 // Modal con zonas seguras
 .modal-safe {
   ion-header {
-    padding-top: 0; // ion-header ya maneja esto
+    padding-top: var(--safe-area-top); // Solo el padding necesario para zonas seguras
   }
   
   ion-footer {
-    padding-bottom: 0; // ion-footer ya maneja esto
+    padding-bottom: var(--safe-area-bottom); // Solo el padding necesario para zonas seguras
   }
 }
 
@@ -98,34 +98,34 @@
 .ios {
   :root {
     // En iOS, márgenes mínimos ya que ion-header/ion-footer manejan las zonas seguras
-    --safe-margin-top: calc(var(--safe-area-top) + 4px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
+    --safe-margin-top: calc(var(--safe-area-top) + 2px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
   }
   
-  // Headers en iOS - sin padding adicional ya que ion-header lo maneja
+  // Headers en iOS - solo el padding necesario para zonas seguras
   .header-safe {
     padding-top: var(--safe-area-top);
   }
   
-  // Footers en iOS - sin padding adicional ya que ion-footer lo maneja
+  // Footers en iOS - solo el padding necesario para zonas seguras
   .footer-safe {
     padding-bottom: var(--safe-area-bottom);
   }
   
-  // Toolbars en iOS - altura mínima estándar
+  // Toolbars en iOS - altura estándar
   ion-toolbar {
     --min-height: 56px;
     --height: 56px;
   }
   
-  // Headers en iOS - sin padding adicional
+  // Headers en iOS - solo el padding necesario para zonas seguras
   ion-header {
-    padding-top: 0;
+    padding-top: var(--safe-area-top);
   }
   
-  // Footers en iOS - sin padding adicional
+  // Footers en iOS - solo el padding necesario para zonas seguras
   ion-footer {
-    padding-bottom: 0;
+    padding-bottom: var(--safe-area-bottom);
   }
   
   // Header móvil específico para iOS - altura estándar
@@ -142,16 +142,16 @@
 .android {
   :root {
     // En Android, márgenes mínimos
-    --safe-margin-top: calc(var(--safe-area-top) + 4px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
+    --safe-margin-top: calc(var(--safe-area-top) + 2px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
   }
   
-  // Headers en Android - sin padding adicional
+  // Headers en Android - solo el padding necesario para zonas seguras
   .header-safe {
     padding-top: var(--safe-area-top);
   }
   
-  // Footers en Android - sin padding adicional
+  // Footers en Android - solo el padding necesario para zonas seguras
   .footer-safe {
     padding-bottom: var(--safe-area-bottom);
   }
@@ -178,16 +178,16 @@
 @media all and (display-mode: standalone) {
   :root {
     // En modo standalone, márgenes mínimos
-    --safe-margin-top: calc(var(--safe-area-top) + 8px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 12px);
+    --safe-margin-top: calc(var(--safe-area-top) + 4px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
   }
   
-  // Headers en modo standalone - sin padding adicional
+  // Headers en modo standalone - solo el padding necesario para zonas seguras
   .header-safe {
     padding-top: var(--safe-area-top);
   }
   
-  // Footers en modo standalone - sin padding adicional
+  // Footers en modo standalone - solo el padding necesario para zonas seguras
   .footer-safe {
     padding-bottom: var(--safe-area-bottom);
   }
@@ -231,8 +231,8 @@
 @media (orientation: portrait) {
   :root {
     // En portrait, las zonas seguras verticales son más importantes
-    --safe-margin-top: calc(var(--safe-area-top) + 4px);
-    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
+    --safe-margin-top: calc(var(--safe-area-top) + 2px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
   }
 }
 
