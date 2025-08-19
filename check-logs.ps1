@@ -17,7 +17,7 @@ foreach ($file in $jsFiles) {
     try {
         $content = Get-Content $file.FullName -Raw -ErrorAction Stop
         
-        # Buscar diferentes tipos de logs
+        # Buscar diferentes tipos de logs (corregido para PowerShell)
         $hasLogs = $false
         $logTypes = @()
         

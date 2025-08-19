@@ -22,7 +22,8 @@ $logCount = 0
 
 foreach ($file in $jsFiles) {
     $content = Get-Content $file.FullName -Raw
-    if ($content -match "console\.log|console\.debug|console\.info|console\.warn") {
+    # Corregida la expresión regular para PowerShell
+    if ($content -match "console\.log" -or $content -match "console\.debug" -or $content -match "console\.info" -or $content -match "console\.warn") {
         $logCount++
         Write-Host "⚠️  Archivo con logs encontrado: $($file.Name)" -ForegroundColor Yellow
     }
