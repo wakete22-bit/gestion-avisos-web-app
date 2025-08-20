@@ -10,7 +10,6 @@
     // Header móvil
     .mobile-header {
         display: none;
-
         background: #fff;
         border-bottom: 1px solid #e2e8f0;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -138,9 +137,18 @@
             --offset-bottom: 0;
 
             &.mobile {
-                // En móvil, el ion-content maneja automáticamente las safe areas
-                --padding-top: 0;
-                --padding-bottom: 0;
+                // En móvil, usar offset-top para respetar el header
+                --offset-top: 60px; // Altura del header móvil
+            }
+
+            &.standalone {
+                // En PWA standalone, forzar el offset
+                --offset-top: 100px;
+            }
+
+            &.ios.standalone {
+                // iOS PWA necesita offset adicional para safe areas
+                --offset-top: calc(100px + env(safe-area-inset-top, 0px));
             }
         }
     }
@@ -158,6 +166,7 @@
 }
 
 // Media queries para dispositivos móviles
+// Media queries para dispositivos móviles
 @media (max-width: 768px) {
     .main-layout {
         .mobile-header {
@@ -170,25 +179,10 @@
         }
 
         .content-wrapper {
-            padding-top: 0;
-
             ion-content.main-content {
                 &.mobile {
-                    // ion-content maneja automáticamente las safe areas
-                    --padding-top: 0;
-                    --padding-bottom: 0;
+                    --offset-top: 50px; // Ajustar offset para header más pequeño
                 }
-            }
-        }
-    }
-}
-
-@media (max-width: 480px) {
-    .main-layout {
-        .content-wrapper {
-            .sidebar {
-                width: 100vw;
-                max-width: 100vw;
             }
         }
     }
@@ -205,13 +199,9 @@
         }
 
         .content-wrapper {
-            padding-top: 0;
-
             ion-content.main-content {
-                &.mobile {
-                    // ion-content maneja automáticamente las safe areas en PWA standalone
-                    --padding-top: 0;
-                    --padding-bottom: 0;
+                &.standalone {
+                    --offset-top: 55px; // Offset específico para PWA standalone
                 }
             }
         }
@@ -222,42 +212,12 @@
 @supports (-webkit-touch-callout: none) {
     @media all and (display-mode: standalone) {
         .main-layout {
-            .mobile-header {
-                ion-toolbar {
-                    --min-height: 55px;
-                    --height: 55px;
-                }
-            }
-
             .content-wrapper {
                 ion-content.main-content {
-                    &.mobile {
-                        // ion-content maneja automáticamente las safe areas en iOS
-                        --padding-top: 0;
-                        --padding-bottom: 0;
+                    &.ios.standalone {
+                        // iOS PWA con safe areas
+                        --offset-top: calc(55px + env(safe-area-inset-top, 0px));
                     }
-                }
-            }
-        }
-    }
-}
-
-/* Fallback para navegadores que no soportan env() */
-@supports not (padding-top: env(safe-area-inset-top)) {
-    .main-layout {
-        .mobile-header {
-            ion-toolbar {
-                --min-height: 60px;
-                --height: 60px;
-            }
-        }
-
-        .content-wrapper {
-            ion-content.main-content {
-                &.mobile {
-                    // Fallback para navegadores antiguos
-                    --padding-top: 0;
-                    --padding-bottom: 0;
                 }
             }
         }

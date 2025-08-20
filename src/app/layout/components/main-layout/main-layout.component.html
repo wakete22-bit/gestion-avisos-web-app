@@ -37,7 +37,8 @@
             [class.mobile]="isMobile"
             [class.ios]="isIOS"
             [class.android]="isAndroid"
-            [class.standalone]="isStandalone">
+            [class.standalone]="isStandalone"
+            [class.ios-standalone]="isIOS && isStandalone">
             <router-outlet></router-outlet>
         </ion-content>
     </div>
