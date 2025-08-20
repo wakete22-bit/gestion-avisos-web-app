@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { 
   gridOutline, 
   notificationsOutline, 
@@ -103,6 +103,10 @@ export class HomePage implements OnInit, OnDestroy {
   
   // Subject para manejar la destrucción del componente
   private destroy$ = new Subject<void>();
+  
+  // Variable para controlar el debounce de reconexión
+  private lastReconnectionTime = 0;
+  private readonly RECONNECTION_DEBOUNCE_MS = 5000; // 5 segundos
 
   constructor(
     private router: Router,
@@ -119,11 +123,24 @@ export class HomePage implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Suscribirse a reconexiones para recargar datos automáticamente
+    // Agregar debounce para evitar recargas excesivas
     this.reconnectionService.appResumed
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(1000), // Esperar 1 segundo antes de procesar
+        distinctUntilChanged() // Solo procesar si el valor cambió
+      )
       .subscribe(() => {
-        console.log('🔄 HomePage: App reanudada, recargando dashboard...');
-        this.cargarDashboard();
+        // Verificar si han pasado al menos 5 segundos desde la última reconexión
+        const now = Date.now();
+        if (now - this.lastReconnectionTime >= this.RECONNECTION_DEBOUNCE_MS) {
+          console.log('🔄 HomePage: App reanudada, recargando dashboard...');
+          this.lastReconnectionTime = now;
+          this.cargarDashboard();
+        } else {
+          console.log('🔄 HomePage: Reconexión ignorada por debounce (última hace', 
+            Math.round((now - this.lastReconnectionTime) / 1000), 'segundos)');
+        }
       });
 
     this.cargarDashboard();
