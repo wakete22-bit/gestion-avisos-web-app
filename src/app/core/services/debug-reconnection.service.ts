@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { Platform } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root'
@@ -7,12 +8,20 @@ import { BehaviorSubject } from 'rxjs';
 export class DebugReconnectionService {
   private debugLog$ = new BehaviorSubject<string[]>([]);
   private maxLogs = 50;
+  private isMobile = false;
 
-  constructor() {
+  constructor(private platform: Platform) {
     console.log('🔍 DebugReconnectionService: Inicializado');
+    this.isMobile = this.platform.is('mobile') || this.platform.is('hybrid');
+    console.log('🔍 DebugReconnectionService: Es móvil?', this.isMobile);
     
     // Log automático de eventos de visibilidad
     this.setupVisibilityDebug();
+    
+    // Log específico para móviles
+    if (this.isMobile) {
+      this.setupMobileDebug();
+    }
   }
 
   private setupVisibilityDebug() {
@@ -38,6 +47,62 @@ export class DebugReconnectionService {
     window.addEventListener('pagehide', () => {
       this.log(`📄 Page hidden`);
     });
+  }
+
+  private setupMobileDebug() {
+    console.log('🔍 DebugReconnectionService: Configurando debug específico para móviles');
+    
+    // Detectar cambios de orientación
+    window.addEventListener('orientationchange', () => {
+      this.log(`📱 Orientation change: ${window.orientation}`);
+    });
+
+    // Detectar eventos de touch (útil para móviles)
+    document.addEventListener('touchstart', () => {
+      this.log(`👆 Touch start`);
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+      this.log(`👆 Touch end`);
+    }, { passive: true });
+
+    // Detectar cuando la app se vuelve visible (específico para PWAs móviles)
+    if ('onpagevisibilitychange' in document) {
+      document.addEventListener('pagevisibilitychange', () => {
+        this.log(`📱 Page visibility change (móvil): ${document.visibilityState}`);
+      });
+    }
+
+    // Detectar eventos específicos de PWAs móviles
+    if ('onfreeze' in document) {
+      document.addEventListener('freeze', () => {
+        this.log(`❄️ App congelada (móvil)`);
+      });
+    }
+
+    if ('onresume' in document) {
+      document.addEventListener('resume', () => {
+        this.log(`▶️ App resumida (móvil)`);
+      });
+    }
+
+    // Detectar cambios de estado de red
+    window.addEventListener('online', () => {
+      this.log(`🌐 Network online`);
+    });
+
+    window.addEventListener('offline', () => {
+      this.log(`🌐 Network offline`);
+    });
+
+    // Log periódico del estado de la app
+    setInterval(() => {
+      const visibility = document.visibilityState;
+      const hasFocus = document.hasFocus();
+      const isOnline = navigator.onLine;
+      
+      this.log(`📊 Estado: visible=${visibility}, focus=${hasFocus}, online=${isOnline}`);
+    }, 10000); // Cada 10 segundos
   }
 
   log(message: string) {

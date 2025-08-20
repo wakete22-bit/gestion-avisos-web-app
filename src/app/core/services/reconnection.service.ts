@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, fromEvent, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge, Subscription, interval } from 'rxjs';
 import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({
@@ -11,6 +11,8 @@ export class ReconnectionService {
   private subscriptions: Subscription[] = [];
   private isProcessingResume = false;
   private lastVisibilityState = document.visibilityState;
+  private lastActiveTime = Date.now();
+  private isMobile = false;
 
   constructor(
     private platform: Platform,
@@ -18,6 +20,8 @@ export class ReconnectionService {
     private supabaseService: SupabaseClientService
   ) {
     console.log('🔧 ReconnectionService: Inicializando...');
+    this.isMobile = this.platform.is('mobile') || this.platform.is('hybrid');
+    console.log('🔧 ReconnectionService: Es móvil?', this.isMobile);
     this.initReconnectionListeners();
   }
 
@@ -74,8 +78,105 @@ export class ReconnectionService {
         this.handleAppResume();
       });
     }
+
+    // DETECCIÓN ESPECÍFICA PARA MÓVILES
+    if (this.isMobile) {
+      console.log('🔧 ReconnectionService: Configurando detección específica para móviles');
+      this.setupMobileDetection();
+    }
     
     console.log('🔧 ReconnectionService: Listeners configurados correctamente');
+  }
+
+  /**
+   * Configuración específica para detectar reconexión en móviles
+   */
+  private setupMobileDetection() {
+    // 1. Detectar cuando la app vuelve a estar activa usando user activity
+    const userActivityEvents = ['touchstart', 'touchend', 'mousedown', 'mousemove', 'keypress', 'scroll'];
+    
+    userActivityEvents.forEach(eventType => {
+      document.addEventListener(eventType, () => {
+        this.lastActiveTime = Date.now();
+      }, { passive: true });
+    });
+
+    // 2. Monitoreo periódico para detectar cuando la app vuelve del background
+    const mobileCheckInterval = interval(2000); // Cada 2 segundos
+    
+    const mobileSub = mobileCheckInterval.subscribe(() => {
+      const now = Date.now();
+      const timeSinceLastActivity = now - this.lastActiveTime;
+      
+      // Si han pasado más de 5 segundos sin actividad, probablemente la app estaba en background
+      if (timeSinceLastActivity > 5000) {
+        // Verificar si ahora hay actividad reciente
+        const recentActivity = document.visibilityState === 'visible' && 
+                             (document.hasFocus() || window.navigator.onLine);
+        
+        if (recentActivity) {
+          console.log('🔧 ReconnectionService: Móvil detectado como activo tras inactividad');
+          this.handleAppResume();
+        }
+      }
+    });
+
+    this.subscriptions.push(mobileSub);
+
+    // 3. Detectar cambios de orientación (útil en móviles)
+    window.addEventListener('orientationchange', () => {
+      console.log('🔧 ReconnectionService: Cambio de orientación detectado');
+      setTimeout(() => {
+        this.handleAppResume();
+      }, 500);
+    });
+
+    // 4. Detectar cuando la ventana se vuelve visible (específico para PWAs móviles)
+    if ('onpagevisibilitychange' in document) {
+      document.addEventListener('pagevisibilitychange', () => {
+        console.log('🔧 ReconnectionService: Page visibility change (móvil)');
+        if (document.visibilityState === 'visible') {
+          this.handleAppResume();
+        }
+      });
+    }
+
+    // 5. Detectar cuando la app vuelve del estado suspendido (específico para PWAs)
+    if ('onfreeze' in document) {
+      document.addEventListener('freeze', () => {
+        console.log('🔧 ReconnectionService: App congelada (móvil)');
+      });
+    }
+
+    if ('onresume' in document) {
+      document.addEventListener('resume', () => {
+        console.log('🔧 ReconnectionService: App resumida (móvil)');
+        this.handleAppResume();
+      });
+    }
+
+    // 6. VERIFICACIÓN AGRESIVA PARA MÓVILES - Verificar conexión cada 10 segundos
+    console.log('🔧 ReconnectionService: Configurando verificación agresiva para móviles');
+    const aggressiveCheckInterval = interval(10000); // Cada 10 segundos
+    
+    const aggressiveSub = aggressiveCheckInterval.subscribe(async () => {
+      // Solo verificar si la app está visible y activa
+      if (document.visibilityState === 'visible' && document.hasFocus()) {
+        console.log('🔧 ReconnectionService: Verificación agresiva de conexión (móvil)');
+        
+        try {
+          const isConnected = await this.supabaseService.testConnection(3000);
+          if (!isConnected) {
+            console.log('🔧 ReconnectionService: Conexión perdida detectada en verificación agresiva');
+            this.handleAppResume();
+          }
+        } catch (error) {
+          console.log('🔧 ReconnectionService: Error en verificación agresiva:', error);
+        }
+      }
+    });
+
+    this.subscriptions.push(aggressiveSub);
   }
 
   /**
