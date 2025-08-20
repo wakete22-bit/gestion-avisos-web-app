@@ -1,13 +1,3 @@
-.main-layout {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
-    background-color: #FAFBFF;
-}
-
 // Header móvil
 .mobile-header {
     display: none;
@@ -96,7 +86,7 @@
     }
 }
 
-// Overlay para cerrar sidebar
+// Overlay para cerrar sidebar en móviles
 .sidebar-overlay {
     display: none; // Oculto por defecto
     position: fixed;

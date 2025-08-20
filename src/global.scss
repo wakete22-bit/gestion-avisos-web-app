@@ -448,3 +448,212 @@ section {
     --border-radius: 0;
   }
 }
+
+/* ============================================================================
+ * ESTILOS DEL LAYOUT PRINCIPAL (main-layout)
+ * ============================================================================
+ * Estos estilos se aplican globalmente para mantener la jerarquía de Ionic
+ */
+
+/* Header móvil */
+.mobile-header {
+    display: none; /* Oculto por defecto */
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    ion-toolbar {
+        --background: #fff;
+        --border-color: #e2e8f0;
+        --padding-top: 0;
+        --padding-bottom: 0;
+        --min-height: 60px;
+        --height: 60px;
+    }
+
+    .mobile-toolbar-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0 16px;
+    }
+
+    .hamburger-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-right: 12px;
+        transition: background-color 0.2s ease;
+
+        ion-icon {
+            font-size: 24px;
+            color: #64748b;
+        }
+
+        &:hover {
+            background: #f1f5f9;
+        }
+    }
+
+    .mobile-title {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .mobile-logo {
+            height: 32px;
+            width: auto;
+        }
+    }
+
+    .mobile-profile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 12px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: #f1f5f9;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: #ffe7a0;
+            border-radius: 50%;
+            display: inline-block;
+            background-image: url('https://randomuser.me/api/portraits/men/1.jpg');
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+}
+
+/* Overlay para cerrar sidebar en móviles */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Sidebar - comportamiento diferente en desktop vs móvil */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #FAFBFF;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    
+    /* En desktop: siempre visible */
+    @media (min-width: 769px) {
+        transform: translateX(0);
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* En móvil: oculto por defecto */
+    @media (max-width: 768px) {
+        transform: translateX(-100%);
+        
+        &.open {
+            transform: translateX(0);
+        }
+    }
+}
+
+/* Main content - ahora es hermano directo del header */
+.main-content {
+    --background: #FAFBFF;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    --padding-start: 0;
+    --padding-end: 0;
+    
+    /* En desktop, agregar margen izquierdo para el sidebar */
+    @media (min-width: 769px) {
+        --padding-start: 250px;
+    }
+    
+    /* En móvil, el sidebar se superpone */
+    @media (max-width: 768px) {
+        --padding-start: 0;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Media queries para dispositivos móviles */
+@media (max-width: 768px) {
+    .mobile-header {
+        display: block;
+        
+        ion-toolbar {
+            --min-height: 50px;
+            --height: 50px;
+        }
+    }
+
+    .sidebar {
+        width: 100vw;
+        max-width: 100vw;
+    }
+    
+    /* Mostrar overlay solo en móvil cuando sidebar esté abierto */
+    .sidebar-overlay {
+        display: block;
+    }
+}
+
+/* Configuración específica para PWA standalone */
+@media all and (display-mode: standalone) {
+    .mobile-header {
+        ion-toolbar {
+            --min-height: 55px;
+            --height: 55px;
+        }
+    }
+}
+
+/* Configuración específica para iOS en PWA standalone */
+@supports (-webkit-touch-callout: none) {
+    @media all and (display-mode: standalone) {
+        .mobile-header {
+            ion-toolbar {
+                --min-height: 55px;
+                --height: 55px;
+            }
+        }
+    }
+}
