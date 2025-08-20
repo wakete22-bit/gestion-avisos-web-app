@@ -8,7 +8,7 @@ import { trashOutline, refreshOutline } from 'ionicons/icons';
 @Component({
   selector: 'app-debug-panel',
   template: `
-    <ion-card *ngIf="showDebug" style="position: fixed; top: 10px; right: 10px; z-index: 9999; max-width: 400px; max-height: 500px; overflow: auto;">
+    <ion-card *ngIf="showDebug" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; max-width: 400px; max-height: 500px; overflow: auto;">
       <ion-card-header>
         <ion-card-title>🔍 Debug Reconexión</ion-card-title>
       </ion-card-header>
@@ -35,9 +35,10 @@ import { trashOutline, refreshOutline } from 'ionicons/icons';
     <ion-button 
       *ngIf="!showDebug" 
       (click)="toggleDebug()" 
-      style="position: fixed; top: 10px; right: 10px; z-index: 9999;"
+      style="position: fixed; top: 20px; left: 20px; z-index: 9999;"
       size="small"
       fill="outline"
+      color="warning"
     >
       🔍 Debug
     </ion-button>

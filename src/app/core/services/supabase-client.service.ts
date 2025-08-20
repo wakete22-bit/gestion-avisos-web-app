@@ -485,16 +485,16 @@ export class SupabaseClientService {
   /**
    * Verifica la conexión con timeout para evitar loadings infinitos
    */
-  public async testConnection(timeoutMs: number = 5000): Promise<boolean> {
+  public async testConnection(timeoutMs: number = 2000): Promise<boolean> {
     try {
-      console.log('🔧 SupabaseClientService: Iniciando test de conexión...');
+      console.log('🔧 SupabaseClientService: Iniciando test de conexión (timeout:', timeoutMs, 'ms)...');
       const client = this.getClient();
       
       // Usar Promise.race para implementar timeout
       const connectionTest = Promise.race([
-        // Test de conexión real
-        client.from('avisos').select('count').limit(1),
-        // Timeout
+        // Test de conexión real - usar una consulta muy simple y rápida
+        client.from('avisos').select('id').limit(1),
+        // Timeout más agresivo
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
         )

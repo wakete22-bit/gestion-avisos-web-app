@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Platform } from '@ionic/angular';
-import { BehaviorSubject, fromEvent, merge, Subscription, interval } from 'rxjs';
+import { BehaviorSubject, fromEvent, merge, Subscription, interval, timer } from 'rxjs';
 import { SupabaseClientService } from './supabase-client.service';
 
 @Injectable({
@@ -13,6 +13,7 @@ export class ReconnectionService {
   private lastVisibilityState = document.visibilityState;
   private lastActiveTime = Date.now();
   private isMobile = false;
+  private connectionCheckTimer: any = null;
 
   constructor(
     private platform: Platform,
@@ -102,14 +103,14 @@ export class ReconnectionService {
     });
 
     // 2. Monitoreo periódico para detectar cuando la app vuelve del background
-    const mobileCheckInterval = interval(2000); // Cada 2 segundos
+    const mobileCheckInterval = interval(1000); // Cada 1 segundo (más agresivo)
     
     const mobileSub = mobileCheckInterval.subscribe(() => {
       const now = Date.now();
       const timeSinceLastActivity = now - this.lastActiveTime;
       
-      // Si han pasado más de 5 segundos sin actividad, probablemente la app estaba en background
-      if (timeSinceLastActivity > 5000) {
+      // Si han pasado más de 3 segundos sin actividad, probablemente la app estaba en background
+      if (timeSinceLastActivity > 3000) {
         // Verificar si ahora hay actividad reciente
         const recentActivity = document.visibilityState === 'visible' && 
                              (document.hasFocus() || window.navigator.onLine);
@@ -128,7 +129,7 @@ export class ReconnectionService {
       console.log('🔧 ReconnectionService: Cambio de orientación detectado');
       setTimeout(() => {
         this.handleAppResume();
-      }, 500);
+      }, 200); // Más rápido
     });
 
     // 4. Detectar cuando la ventana se vuelve visible (específico para PWAs móviles)
@@ -155,23 +156,23 @@ export class ReconnectionService {
       });
     }
 
-    // 6. VERIFICACIÓN AGRESIVA PARA MÓVILES - Verificar conexión cada 10 segundos
-    console.log('🔧 ReconnectionService: Configurando verificación agresiva para móviles');
-    const aggressiveCheckInterval = interval(10000); // Cada 10 segundos
+    // 6. VERIFICACIÓN ULTRA-RÁPIDA PARA MÓVILES - Verificar conexión cada 5 segundos
+    console.log('🔧 ReconnectionService: Configurando verificación ultra-rápida para móviles');
+    const aggressiveCheckInterval = interval(5000); // Cada 5 segundos
     
     const aggressiveSub = aggressiveCheckInterval.subscribe(async () => {
       // Solo verificar si la app está visible y activa
       if (document.visibilityState === 'visible' && document.hasFocus()) {
-        console.log('🔧 ReconnectionService: Verificación agresiva de conexión (móvil)');
+        console.log('🔧 ReconnectionService: Verificación ultra-rápida de conexión (móvil)');
         
         try {
-          const isConnected = await this.supabaseService.testConnection(3000);
+          const isConnected = await this.supabaseService.testConnection(1500); // Timeout más corto
           if (!isConnected) {
-            console.log('🔧 ReconnectionService: Conexión perdida detectada en verificación agresiva');
+            console.log('🔧 ReconnectionService: Conexión perdida detectada en verificación ultra-rápida');
             this.handleAppResume();
           }
         } catch (error) {
-          console.log('🔧 ReconnectionService: Error en verificación agresiva:', error);
+          console.log('🔧 ReconnectionService: Error en verificación ultra-rápida:', error);
         }
       }
     });
@@ -194,30 +195,64 @@ export class ReconnectionService {
       
       this.ngZone.run(async () => {
         try {
-          // Verificar conexión Supabase con timeout
-          console.log('🔄 Verificando conexión Supabase...');
-          const isConnected = await this.supabaseService.testConnection(5000);
+          // ESTRATEGIA RÁPIDA: Verificar conexión con timeout muy corto
+          console.log('🔄 Verificando conexión Supabase (timeout rápido)...');
+          const isConnected = await this.supabaseService.testConnection(2000); // Solo 2 segundos
           
           if (isConnected) {
             console.log('✅ Supabase connection OK');
             // Notificar que la app se reanudó exitosamente
             this.appResumed$.next(true);
           } else {
-            console.log('❌ Supabase connection failed, forcing refresh');
-            this.forceAppRefresh();
+            console.log('❌ Supabase connection failed, intentando reconexión rápida...');
+            // En lugar de refresh inmediato, intentar reconexión rápida
+            await this.attemptQuickReconnection();
           }
           
         } catch (error) {
           console.error('❌ Error en verificación de conexión:', error);
-          this.forceAppRefresh();
+          // Intentar reconexión rápida antes del refresh
+          await this.attemptQuickReconnection();
         }
       });
       
     } catch (error) {
       console.error('❌ Error en handleAppResume:', error);
+      // Último recurso: refresh
       this.forceAppRefresh();
     } finally {
       this.isProcessingResume = false;
+    }
+  }
+
+  /**
+   * Intenta una reconexión rápida antes de forzar refresh
+   */
+  private async attemptQuickReconnection(): Promise<void> {
+    try {
+      console.log('🔄 Intentando reconexión rápida...');
+      
+      // Limpiar conexiones existentes
+      const client = this.supabaseService.getClient();
+      client.removeAllChannels();
+      
+      // Esperar un momento muy corto
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Intentar reconexión con timeout muy corto
+      const isReconnected = await this.supabaseService.testConnection(1500);
+      
+      if (isReconnected) {
+        console.log('✅ Reconexión rápida exitosa');
+        this.appResumed$.next(true);
+      } else {
+        console.log('❌ Reconexión rápida falló, forzando refresh');
+        this.forceAppRefresh();
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en reconexión rápida:', error);
+      this.forceAppRefresh();
     }
   }
 
@@ -227,14 +262,12 @@ export class ReconnectionService {
   private forceAppRefresh() {
     console.log('🔄 Forzando refresh de la app...');
     
-    // Pequeño delay para evitar refreshes múltiples
-    setTimeout(() => {
-      try {
-        window.location.reload();
-      } catch (error) {
-        console.error('❌ Error forzando refresh:', error);
-      }
-    }, 1000);
+    // Refresh inmediato sin delay
+    try {
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ Error forzando refresh:', error);
+    }
   }
 
   /**
