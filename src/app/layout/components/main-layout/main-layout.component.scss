@@ -166,7 +166,6 @@
 }
 
 // Media queries para dispositivos móviles
-// Media queries para dispositivos móviles
 @media (max-width: 768px) {
     .main-layout {
         .mobile-header {
@@ -179,11 +178,7 @@
         }
 
         .content-wrapper {
-            ion-content.main-content {
-                &.mobile {
-                    --offset-top: 50px; // Ajustar offset para header más pequeño
-                }
-            }
+            padding-top: 0;
         }
     }
 }
@@ -197,14 +192,6 @@
                 --height: 55px;
             }
         }
-
-        .content-wrapper {
-            ion-content.main-content {
-                &.standalone {
-                    --offset-top: 55px; // Offset específico para PWA standalone
-                }
-            }
-        }
     }
 }
 
@@ -212,12 +199,10 @@
 @supports (-webkit-touch-callout: none) {
     @media all and (display-mode: standalone) {
         .main-layout {
-            .content-wrapper {
-                ion-content.main-content {
-                    &.ios.standalone {
-                        // iOS PWA con safe areas
-                        --offset-top: calc(55px + env(safe-area-inset-top, 0px));
-                    }
+            .mobile-header {
+                ion-toolbar {
+                    --min-height: 55px;
+                    --height: 55px;
                 }
             }
         }

@@ -9,35 +9,6 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
-
-/* Basic CSS for apps built with Ionic */
-@import "@ionic/angular/css/normalize.css";
-@import "@ionic/angular/css/structure.css";
-@import "@ionic/angular/css/typography.css";
-@import '@ionic/angular/css/display.css';
-
-/* Optional CSS utils that can be commented out */
-@import "@ionic/angular/css/padding.css";
-@import "@ionic/angular/css/float-elements.css";
-@import "@ionic/angular/css/text-alignment.css";
-@import "@ionic/angular/css/text-transformation.css";
-@import "@ionic/angular/css/flex-utils.css";
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Safe Areas Utilities */
-@import "./theme/safe-areas.scss";
-
-/* Modal Safe Areas */
-@import "./theme/modal-safe-areas.scss";
-
-/* PWA Standalone Styles */
-@import "./theme/pwa-standalone.scss";
-
-/* PWA Standalone Fixes */
-@import "./theme/pwa-standalone-fixes.scss";
-
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -54,50 +25,84 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+/* Ionic Dark Mode */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+/* Safe Areas Utilities */
+@import "./theme/safe-areas.scss";
+
+/* Modal Safe Areas */
+@import "./theme/modal-safe-areas.scss";
+
+/* PWA Standalone Styles */
+@import "./theme/pwa-standalone.scss";
+
+/* PWA Standalone Fixes */
+@import "./theme/pwa-standalone-fixes.scss";
+
+/* Fuentes */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Variables globales para safe areas */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  
+  // Estados de avisos, facturas, presupuestos, etc.
+  --estado-pendiente-bg: #FEE4E2;
+  --estado-pendiente-color: #D92D20;
+  --estado-en-curso-bg: #FFF7E6;
+  --estado-en-curso-color: #B25E02;
+  --estado-completado-bg: #E6F4EA;
+  --estado-completado-color: #137333;
+  --estado-cancelado-bg: #FEE2E2;
+  --estado-cancelado-color: #DC2626;
+  --estado-no-visitado-bg: #FEE2E2;
+  --estado-no-visitado-color: #DC2626;
+  --estado-visitado-pendiente-bg: #FEF3C7;
+  --estado-visitado-pendiente-color: #D97706;
+  --estado-pendiente-presupuesto-bg: #DBEAFE;
+  --estado-pendiente-presupuesto-color: #2563EB;
+  --estado-listo-para-facturar-bg: #D1FAE5;
+  --estado-listo-para-facturar-color: #059669;
+}
+
+/* Estilos base */
 * {   
   font-family: 'Poppins', sans-serif;
 }
 
 body {
   font-family: 'Inter', sans-serif;
-}
-
-// Estilos globales para móviles
-html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-// Prevenir zoom en inputs en iOS
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Prevenir zoom en inputs en iOS */
 input, select, textarea {
   font-size: 16px;
 }
 
-// Mejorar scrolling en móviles
+/* Mejorar scrolling en móviles */
 * {
   -webkit-overflow-scrolling: touch;
 }
 
-ion-content {
-  --offset-top: 0px !important;
-  --offset-bottom: 0px !important;
-}
-
-// Estilos base para modales
-ion-modal{
+/* Estilos base para modales */
+ion-modal {
   --background: #fff;
   --border-radius: 10px;
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -109,7 +114,7 @@ ion-modal{
   --min-height: 200px;
 }
 
-// Modal lateral para escritorio
+/* Modal lateral para escritorio */
 ion-modal.side-modal {
   --width: 420px;
   --height: 100vh;
@@ -119,7 +124,7 @@ ion-modal.side-modal {
   justify-content: flex-end;
 }
 
-// Estilos específicos para móviles
+/* Estilos específicos para móviles */
 @media (max-width: 768px) {
   ion-modal {
     --width: 100vw !important;
@@ -147,7 +152,7 @@ ion-modal.side-modal {
   }
 }
 
-// Configuración específica para PWA standalone en móviles
+/* Configuración específica para PWA standalone en móviles */
 @media all and (display-mode: standalone) {
   ion-modal {
     --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
@@ -164,7 +169,7 @@ ion-modal.side-modal {
   }
 }
 
-// Configuración específica para iOS en PWA standalone
+/* Configuración específica para iOS en PWA standalone */
 @supports (-webkit-touch-callout: none) {
   @media all and (display-mode: standalone) {
     ion-modal {
@@ -176,11 +181,11 @@ ion-modal.side-modal {
 }
 
 ion-modal.modal-crear-cliente::part(backdrop) {
-  background: rgba(16, 18, 27, 0.55); // Más oscuro que el default
+  background: rgba(16, 18, 27, 0.55);
   opacity: 1;
 }
 
-// Modal para ver albarán
+/* Modal para ver albarán */
 ion-modal.modal-ver-albaran {
   --width: 90%;
   --max-width: 900px;
@@ -195,7 +200,7 @@ ion-modal.modal-ver-albaran::part(backdrop) {
   opacity: 1;
 }
 
-// Modal fullscreen para móviles
+/* Modal fullscreen para móviles */
 ion-modal.modal-fullscreen {
   --width: 100vw;
   --height: 100vh;
@@ -205,7 +210,7 @@ ion-modal.modal-fullscreen {
   --box-shadow: none;
 }
 
-// Modal para hacer albarán - Prevenir cambios de tamaño
+/* Modal para hacer albarán - Prevenir cambios de tamaño */
 ion-modal.modal-hacer-albaran {
   --width: 100vw !important;
   --height: 100vh !important;
@@ -214,7 +219,7 @@ ion-modal.modal-hacer-albaran {
   --border-radius: 0 !important;
   --box-shadow: none !important;
   
-  // Prevenir que el modal cambie de tamaño
+  /* Prevenir que el modal cambie de tamaño */
   ion-content {
     --overflow: hidden !important;
     height: 100vh !important;
@@ -222,7 +227,7 @@ ion-modal.modal-hacer-albaran {
     max-height: 100vh !important;
   }
   
-  // Asegurar que el header mantenga su tamaño
+  /* Asegurar que el header mantenga su tamaño */
   ion-header {
     height: 56px !important;
     min-height: 56px !important;
@@ -230,9 +235,9 @@ ion-modal.modal-hacer-albaran {
   }
 }
 
-// Media queries adicionales para móviles
+/* Media queries adicionales para móviles */
 @media (max-width: 768px) {
-  // Ocultar scrollbars en móviles para una experiencia más limpia
+  /* Ocultar scrollbars en móviles para una experiencia más limpia */
   ::-webkit-scrollbar {
     display: none;
   }
@@ -242,12 +247,12 @@ ion-modal.modal-hacer-albaran {
     scrollbar-width: none;
   }
   
-  // Mejorar el espaciado en móviles
+  /* Mejorar el espaciado en móviles */
   .ion-padding {
     padding: 16px !important;
   }
   
-  // Ajustar tamaños de fuente en móviles
+  /* Ajustar tamaños de fuente en móviles */
   h1 {
     font-size: 1.5rem !important;
   }
@@ -259,33 +264,6 @@ ion-modal.modal-hacer-albaran {
   h3 {
     font-size: 1.1rem !important;
   }
-}
-
-/* Global PWA styles for safe areas */
-:root {
-  /* Variables para safe areas */
-  --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-area-left: env(safe-area-inset-left, 0px);
-  --safe-area-right: env(safe-area-inset-right, 0px);
-}
-
-/* Configuración base para todos los dispositivos */
-html {
-  height: 100%;
-  overflow: hidden;
-}
-
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--ion-background-color, #ffffff);
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 /* Configuración específica para PWA standalone */
@@ -306,10 +284,8 @@ body {
     padding: 0;
   }
   
-  /* Configurar ion-content para que respete las safe areas */
+  /* NO forzar offset-top aquí, dejar que Ionic lo maneje */
   ion-content {
-    --offset-top: 0px;
-    --offset-bottom: 0px;
     --padding-top: 0px;
     --padding-bottom: var(--safe-area-bottom);
   }
@@ -382,8 +358,6 @@ body {
   flex-direction: column;
 }
 
-
-
 /* Configurar el router outlet para que ocupe el espacio disponible */
 ion-router-outlet {
   flex: 1;
@@ -447,14 +421,14 @@ ion-router-outlet {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   h3 {
-    color: #111827; /* Color oscuro para el título */
+    color: #111827;
     font-size: 16px;
     font-weight: 600;
     margin: 0 0 5px 0;
   }
 
   p {
-    color: #4B5563; /* Color gris oscuro para el texto */
+    color: #4B5563;
     font-size: 14px;
     margin: 0;
   }
@@ -486,10 +460,10 @@ ion-router-outlet {
 }
 
 section {
-  padding-top: 15px!important;
+  padding-top: 15px !important;
 }
 
-// Estilos globales para móviles
+/* Estilos globales para móviles */
 @media (max-width: 768px) {
   ion-content {
     --padding-start: 0px;
@@ -508,11 +482,11 @@ section {
   }
 
   section {
-    padding-top: 30px!important;
+    padding-top: 30px !important;
   }
 }
 
-// Estilos para tablets
+/* Estilos para tablets */
 @media (min-width: 769px) and (max-width: 1024px) {
   ion-content {
     --padding-start: 24px;
@@ -525,7 +499,7 @@ section {
   }
 }
 
-// Estilos para desktop
+/* Estilos para desktop */
 @media (min-width: 1025px) {
   ion-content {
     --padding-start: 0px;
@@ -538,33 +512,33 @@ section {
   }
 }
 
-// Estilos adicionales para modales en PWA standalone
+/* Estilos adicionales para modales en PWA standalone */
 @media all and (display-mode: standalone) {
-  // Asegurar que los modales respeten las safe areas
+  /* Asegurar que los modales respeten las safe areas */
   ion-modal {
     --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
     --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
     --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
   }
   
-  // Aplicar safe areas a los contenedores de modales
+  /* Aplicar safe areas a los contenedores de modales */
   .modal-container {
     height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
     max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
   }
   
-  // Aplicar safe areas a los headers de modales
+  /* Aplicar safe areas a los headers de modales */
   .modal-header {
     padding-top: calc(16px + var(--safe-area-top, 0px)) !important;
   }
   
-  // Aplicar safe areas a los footers de modales
+  /* Aplicar safe areas a los footers de modales */
   .modal-footer {
     padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
   }
 }
 
-// Configuración específica para iOS en PWA standalone
+/* Configuración específica para iOS en PWA standalone */
 @supports (-webkit-touch-callout: none) {
   @media all and (display-mode: standalone) {
     ion-modal {
@@ -588,7 +562,7 @@ section {
   }
 }
 
-// Fallback para navegadores que no soportan env() en modales
+/* Fallback para navegadores que no soportan env() en modales */
 @supports not (padding-top: env(safe-area-inset-top)) {
   @media all and (display-mode: standalone) {
     ion-modal {
@@ -612,38 +586,7 @@ section {
   }
 }
 
-// Variables globales para colores de estados
-:root {
-  // Estados de avisos, facturas, presupuestos, etc.
-  --estado-pendiente-bg: #FEE4E2;
-  --estado-pendiente-color: #D92D20;
-  
-  --estado-en-curso-bg: #FFF7E6;
-  --estado-en-curso-color: #B25E02;
-  
-  --estado-completado-bg: #E6F4EA;
-  --estado-completado-color: #137333;
-  
-  --estado-cancelado-bg: #FEE2E2;
-  --estado-cancelado-color: #DC2626;
-  
-  --estado-no-visitado-bg: #FEE2E2;
-  --estado-no-visitado-color: #DC2626;
-  
-  --estado-visitado-pendiente-bg: #FEF3C7;
-  --estado-visitado-pendiente-color: #D97706;
-  
-  --estado-pendiente-presupuesto-bg: #DBEAFE;
-  --estado-pendiente-presupuesto-color: #2563EB;
-  
-  --estado-listo-para-facturar-bg: #D1FAE5;
-  --estado-listo-para-facturar-color: #059669;
-  
-  --estado-en-curso-bg: #FFF7E6;
-  --estado-en-curso-color: #B25E02;
-}
-
-// Estilos específicos para el modal de hacer albarán
+/* Estilos específicos para el modal de hacer albarán */
 .modal-hacer-albaran {
   --width: 95%;
   --height: 90%;
@@ -654,7 +597,7 @@ section {
   --box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-// Ajustes para diferentes tamaños de pantalla
+/* Ajustes para diferentes tamaños de pantalla */
 @media (min-width: 1200px) {
   .modal-hacer-albaran {
     --width: 90%;
@@ -673,7 +616,7 @@ section {
   }
 }
 
-// Modal fullscreen para móviles
+/* Modal fullscreen para móviles */
 .modal-hacer-albaran.modal-fullscreen {
   --width: 100%;
   --height: 100%;
@@ -682,27 +625,27 @@ section {
   --border-radius: 0;
 }
 
-// Asegurar que el contenido del modal sea visible
+/* Asegurar que el contenido del modal sea visible */
 .modal-hacer-albaran ion-content {
   --background: #f8fafc;
   --color: #1f2937;
 }
 
-// Estilos para el header del modal
+/* Estilos para el header del modal */
 .modal-hacer-albaran ion-header {
   --background: #ffffff;
   --color: #1f2937;
   border-bottom: 1px solid #e5e7eb;
 }
 
-// Estilos para el toolbar del modal
+/* Estilos para el toolbar del modal */
 .modal-hacer-albaran ion-toolbar {
   --background: #ffffff;
   --color: #1f2937;
   --border-color: #e5e7eb;
 }
 
-// Asegurar que el modal se muestre correctamente en dispositivos móviles
+/* Asegurar que el modal se muestre correctamente en dispositivos móviles */
 @media (max-width: 768px) {
   .modal-hacer-albaran {
     --width: 100%;
