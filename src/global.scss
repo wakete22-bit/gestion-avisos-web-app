@@ -35,6 +35,9 @@
 /* PWA Standalone Styles */
 @import "./theme/pwa-standalone.scss";
 
+/* PWA Standalone Fixes */
+@import "./theme/pwa-standalone-fixes.scss";
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 

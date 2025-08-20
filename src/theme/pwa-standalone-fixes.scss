@@ -1,0 +1,232 @@
+// ============================================================================
+// PWA STANDALONE FIXES
+// ============================================================================
+// Fixes específicos para problemas comunes en PWA standalone
+// Especialmente para iOS y Android
+
+// Fix principal: Asegurar que el contenido principal tenga el espacio correcto
+@media all and (display-mode: standalone) {
+  // Forzar el padding-top en el contenido principal
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+
+  // Fix específico para iOS
+  @supports (-webkit-touch-callout: none) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+            padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+
+  // Fix específico para Android
+  @supports not (-webkit-touch-callout: none) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+            padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fix para cuando la PWA está en modo standalone y se detecta la clase
+.pwa-standalone {
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para iOS específicamente
+.ios.pwa-standalone {
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para Android específicamente
+.android.pwa-standalone {
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para dispositivos móviles en PWA standalone
+@media (max-width: 768px) {
+  @media all and (display-mode: standalone) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(50px + var(--safe-area-top, 0px)) !important;
+            padding-bottom: calc(80px + var(--safe-area-bottom, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+
+  .pwa-standalone {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(50px + var(--safe-area-top, 0px)) !important;
+            padding-bottom: calc(80px + var(--safe-area-bottom, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fix para orientación landscape en PWA standalone
+@media all and (display-mode: standalone) and (orientation: landscape) {
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para orientación portrait en PWA standalone
+@media all and (display-mode: standalone) and (orientation: portrait) {
+  .main-layout {
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para navegadores que no soportan env()
+@supports not (padding-top: env(safe-area-inset-top)) {
+  @media all and (display-mode: standalone) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(80px + 24px) !important;
+            padding-bottom: calc(16px + 24px) !important;
+          }
+        }
+      }
+    }
+  }
+
+  .pwa-standalone {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(80px + 24px) !important;
+            padding-bottom: calc(16px + 24px) !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fix para asegurar que el contenido no se superponga con el header
+@media all and (display-mode: standalone) {
+  .main-layout {
+    .mobile-header {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 999 !important;
+    }
+
+    .content-wrapper {
+      padding-top: 0 !important;
+      
+      .main-content {
+        &.mobile {
+          position: relative !important;
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+        }
+      }
+    }
+  }
+}
+
+// Fix para iOS específicamente en PWA standalone
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            -webkit-transform: translateZ(0) !important;
+            transform: translateZ(0) !important;
+            padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fix para Android específicamente en PWA standalone
+@supports not (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    .main-layout {
+      .content-wrapper {
+        .main-content {
+          &.mobile {
+            padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+          }
+        }
+      }
+    }
+  }
+}

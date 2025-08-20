@@ -69,6 +69,15 @@
     height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
     overflow: hidden;
   }
+
+  // Configuración específica para el contenido principal en PWA standalone
+  .main-content {
+    &.mobile {
+      padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+      padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+      min-height: calc(100vh - 60px);
+    }
+  }
 }
 
 // ============================================================================
@@ -110,12 +119,21 @@
       }
     }
 
-    // Configurar contenido principal para iOS
+    // Configurar contenido principal para iOS - IMPORTANTE: usar padding-top
     .main-content {
       &.mobile {
-        margin-top: calc(80px + var(--safe-area-top));
-        padding-bottom: calc(16px + var(--safe-area-bottom));
+        padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+        padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
         min-height: calc(100vh - 60px);
+      }
+    }
+
+    // Asegurar que el contenido principal tenga el espacio correcto
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+        }
       }
     }
   }
@@ -156,12 +174,21 @@
       }
     }
 
-    // Configurar contenido principal para Android
+    // Configurar contenido principal para Android - IMPORTANTE: usar padding-top
     .main-content {
       &.mobile {
-        margin-top: calc(80px + var(--safe-area-top));
-        padding-bottom: calc(16px + var(--safe-area-bottom));
+        padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+        padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
         min-height: calc(100vh - 60px);
+      }
+    }
+
+    // Asegurar que el contenido principal tenga el espacio correcto
+    .content-wrapper {
+      .main-content {
+        &.mobile {
+          padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+        }
       }
     }
   }
@@ -233,11 +260,11 @@
       --padding-top: 24px;
     }
 
-    // Configurar contenido principal con fallbacks
+    // Configurar contenido principal con fallbacks - IMPORTANTE: usar padding-top
     .main-content {
       &.mobile {
-        margin-top: calc(80px + 24px);
-        padding-bottom: calc(16px + 24px);
+        padding-top: calc(80px + 24px) !important;
+        padding-bottom: calc(16px + 24px) !important;
         min-height: calc(100vh - 60px);
       }
     }
@@ -280,6 +307,14 @@
   ion-toolbar {
     --padding-top: 0px;
     --padding-bottom: 0px;
+  }
+
+  // Configuración específica para el contenido principal
+  .main-content {
+    &.mobile {
+      padding-top: calc(80px + var(--safe-area-top, 0px)) !important;
+      padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
+    }
   }
 }
 

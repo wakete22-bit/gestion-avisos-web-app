@@ -140,8 +140,8 @@
             position: relative;
 
             &.mobile {
-                margin-top: calc(80px + var(--safe-area-top, 0px));
-                padding: 0px;
+                padding-top: calc(80px + var(--safe-area-top, 0px));
+                padding: calc(80px + var(--safe-area-top, 0px)) 0px 0px 0px;
                 padding-bottom: var(--safe-area-bottom, 0px);
                 min-height: calc(100vh - 60px);
             }
@@ -149,13 +149,13 @@
             // Configuración específica para iOS
             &.ios {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
 
                 &.standalone {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
@@ -164,13 +164,13 @@
             // Configuración específica para Android
             &.android {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
 
                 &.standalone {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
@@ -178,7 +178,7 @@
 
             // Configuración para PWA standalone
             &.standalone {
-                margin-top: calc(80px + var(--safe-area-top, 0px));
+                padding-top: calc(80px + var(--safe-area-top, 0px));
                 padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                 min-height: calc(100vh - 60px);
             }
@@ -198,7 +198,7 @@
         .content-wrapper {
             .main-content {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
@@ -219,7 +219,7 @@
         .content-wrapper {
             .main-content {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
@@ -240,7 +240,7 @@
         .content-wrapper {
             .main-content {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
@@ -282,31 +282,37 @@
                 min-height: 100%;
 
                 &.mobile {
-                    margin-top: 50px;
-                    padding: 0px;
+                    padding-top: calc(50px + var(--safe-area-top, 0px));
+                    padding: calc(50px + var(--safe-area-top, 0px)) 16px 16px 16px;
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
                 }
 
                 // Configuración específica para iOS en móvil
                 &.ios.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(50px + var(--safe-area-top, 0px));
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
+                    padding-left: 0px;
+                    padding-right: 0px;
                 }
 
                 // Configuración específica para Android en móvil
                 &.android.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(50px + var(--safe-area-top, 0px));
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
+                    padding-left: 0px;
+                    padding-right: 0px;
                 }
 
                 // Configuración para PWA standalone en móvil
                 &.standalone.mobile {
-                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    padding-top: calc(50px + var(--safe-area-top, 0px));
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
+                    padding-left: 0px;
+                    padding-right: 0px;
                 }
             }
         }
@@ -339,7 +345,7 @@
 
             .main-content {
                 &.mobile {
-                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 55px);
                 }
@@ -362,7 +368,7 @@
             .content-wrapper {
                 .main-content {
                     &.mobile {
-                        margin-top: calc(80px + var(--safe-area-top, 0px));
+                        padding-top: calc(80px + var(--safe-area-top, 0px));
                         padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                         min-height: calc(100vh - 55px);
                     }
@@ -385,7 +391,7 @@
         .content-wrapper {
             .main-content {
                 &.mobile {
-                    margin-top: 60px;
+                    padding-top: 60px;
                     padding-bottom: calc(20px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
