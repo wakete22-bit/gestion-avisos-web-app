@@ -30,6 +30,58 @@ export class AuthService {
   ) {
     this.supabase = this.supabaseClientService.getClient();
     this.initializeAuth();
+    this.setupReconnectionHandler();
+  }
+
+  /**
+   * Configura el manejador de reconexión automática
+   */
+  private setupReconnectionHandler(): void {
+    // Escuchar eventos de reconexión de Supabase
+    document.addEventListener('supabase-reconnection', async (event: any) => {
+      const { success } = event.detail;
+      console.log('🔧 AuthService: Evento de reconexión recibido:', success);
+      
+      if (success) {
+        // Reconexión exitosa, verificar y actualizar estado de autenticación
+        await this.handleSuccessfulReconnection();
+      } else {
+        // Reconexión fallida, marcar como no autenticado
+        console.log('🔧 AuthService: Reconexión fallida, limpiando estado...');
+        this.clearAuth();
+      }
+    });
+  }
+
+  /**
+   * Maneja la reconexión exitosa
+   */
+  private async handleSuccessfulReconnection(): Promise<void> {
+    try {
+      console.log('🔧 AuthService: Manejando reconexión exitosa...');
+      
+      // Verificar si hay una sesión válida
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (session?.user) {
+        console.log('🔧 AuthService: Sesión válida después de reconexión, actualizando estado...');
+        
+        // Actualizar el estado de autenticación
+        this.isAuthenticatedSubject.next(true);
+        
+        // Cargar datos del usuario si no están cargados
+        if (!this.currentUserSubject.value) {
+          await this.loadUserData(session.user.id);
+        }
+        
+        console.log('🔧 AuthService: Estado de autenticación actualizado después de reconexión');
+      } else {
+        console.log('🔧 AuthService: No hay sesión válida después de reconexión');
+        this.clearAuth();
+      }
+    } catch (error) {
+      console.error('❌ AuthService: Error manejando reconexión exitosa:', error);
+      this.clearAuth();
+    }
   }
 
   private async initializeAuth(): Promise<void> {
@@ -379,6 +431,13 @@ export class AuthService {
   // Método para asegurar que el token sea válido
   async ensureValidToken(): Promise<boolean> {
     try {
+      // Primero verificar que la conexión esté saludable
+      const isConnectionHealthy = await this.supabaseClientService.ensureConnection();
+      if (!isConnectionHealthy) {
+        console.log('🔧 AuthService: Conexión no saludable, no se puede verificar el token');
+        return false;
+      }
+      
       const { data: { session } } = await this.supabase.auth.getSession();
       if (!session) {
         return false;

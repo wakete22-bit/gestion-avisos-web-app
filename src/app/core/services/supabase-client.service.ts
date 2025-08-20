@@ -181,10 +181,28 @@ export class SupabaseClientService {
     try {
       console.log('🔄 SupabaseClientService: Reconectando tras resumen de app...');
       
+      // Forzar reconexión completa
+      await this.forceReconnect();
+      
+    } catch (error) {
+      console.error('❌ Error en reconexión tras resumen:', error);
+    }
+  }
+
+  /**
+   * Fuerza la reconexión completa del cliente Supabase
+   * Este método es público para que otros servicios puedan llamarlo
+   */
+  public async forceReconnect(): Promise<void> {
+    try {
+      console.log('🔄 SupabaseClientService: Forzando reconexión completa...');
+      
+      const client = this.getClient();
+      
       // Verificar si hay una sesión válida
       const session = await this.getCurrentSession();
       if (session) {
-        console.log('✅ Sesión válida encontrada, reconectando realtime...');
+        console.log('✅ Sesión válida encontrada, reconectando...');
         
         // Reconectar realtime
         await this.reconnectRealtime();
@@ -194,11 +212,38 @@ export class SupabaseClientService {
           console.log('🔄 Token próximo a expirar, refrescando...');
           await this.refreshSession();
         }
+        
+        // Emitir evento de reconexión exitosa
+        this.emitReconnectionEvent(true);
       } else {
         console.log('ℹ️ No hay sesión activa para reconectar');
+        // Emitir evento de reconexión fallida
+        this.emitReconnectionEvent(false);
       }
     } catch (error) {
-      console.error('❌ Error en reconexión tras resumen:', error);
+      console.error('❌ Error en reconexión forzada:', error);
+      // Emitir evento de reconexión fallida
+      this.emitReconnectionEvent(false);
+      throw error;
+    }
+  }
+
+  /**
+   * Emite un evento de reconexión para que otros servicios puedan reaccionar
+   */
+  private emitReconnectionEvent(success: boolean): void {
+    try {
+      // Crear un evento personalizado
+      const event = new CustomEvent('supabase-reconnection', {
+        detail: { success, timestamp: Date.now() }
+      });
+      
+      // Emitir el evento en el documento
+      document.dispatchEvent(event);
+      
+      console.log(`🔄 SupabaseClientService: Evento de reconexión emitido - ${success ? 'ÉXITO' : 'FALLO'}`);
+    } catch (error) {
+      console.warn('⚠️ Error emitiendo evento de reconexión:', error);
     }
   }
 
@@ -217,6 +262,14 @@ export class SupabaseClientService {
     try {
       console.log('👁️ Documento visible, verificando estado de la sesión...');
       
+      // Verificar si la conexión está saludable
+      const isConnectionHealthy = await this.isConnectionHealthy();
+      if (!isConnectionHealthy) {
+        console.log('👁️ Conexión no saludable, forzando reconexión...');
+        await this.forceReconnect();
+        return;
+      }
+      
       const session = await this.getCurrentSession();
       if (session) {
         // Verificar si la sesión sigue siendo válida
@@ -230,6 +283,12 @@ export class SupabaseClientService {
       }
     } catch (error) {
       console.error('❌ Error verificando estado de sesión:', error);
+      // Si hay error, intentar reconectar
+      try {
+        await this.forceReconnect();
+      } catch (reconnectError) {
+        console.error('❌ Error en reconexión automática:', reconnectError);
+      }
     }
   }
 
@@ -413,5 +472,85 @@ export class SupabaseClientService {
     } catch (error) {
       console.error('❌ Error en cleanup:', error);
     }
+  }
+
+  /**
+   * Verifica si la conexión está activa y funcional
+   */
+  public async isConnectionHealthy(): Promise<boolean> {
+    try {
+      const client = this.getClient();
+      
+      // Intentar una operación simple para verificar la conexión
+      const { data, error } = await client.auth.getSession();
+      
+      if (error) {
+        console.log('🔍 SupabaseClientService: Conexión no saludable - Error:', error.message);
+        return false;
+      }
+      
+      console.log('🔍 SupabaseClientService: Conexión saludable');
+      return true;
+    } catch (error) {
+      console.log('🔍 SupabaseClientService: Conexión no saludable - Excepción:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Intenta reconectar automáticamente si la conexión no está saludable
+   */
+  public async ensureConnection(): Promise<boolean> {
+    try {
+      const isHealthy = await this.isConnectionHealthy();
+      
+      if (isHealthy) {
+        console.log('🔍 SupabaseClientService: Conexión ya está saludable');
+        return true;
+      }
+      
+      console.log('🔍 SupabaseClientService: Conexión no saludable, intentando reconectar...');
+      await this.forceReconnect();
+      
+      // Verificar si la reconexión fue exitosa
+      const isHealthyAfterReconnect = await this.isConnectionHealthy();
+      console.log('🔍 SupabaseClientService: Estado después de reconexión:', isHealthyAfterReconnect ? 'SALUDABLE' : 'NO SALUDABLE');
+      
+      return isHealthyAfterReconnect;
+    } catch (error) {
+      console.error('❌ SupabaseClientService: Error asegurando conexión:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Limpia el estado de reconexión y resetea el servicio
+   */
+  public async resetReconnectionState(): Promise<void> {
+    try {
+      console.log('🔧 SupabaseClientService: Reseteando estado de reconexión...');
+      
+      // Limpiar todos los canales de realtime
+      const client = this.getClient();
+      client.removeAllChannels();
+      
+      // Esperar un poco para que se liberen los recursos
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('🔧 SupabaseClientService: Estado de reconexión reseteado');
+    } catch (error) {
+      console.error('❌ Error reseteando estado de reconexión:', error);
+    }
+  }
+
+  /**
+   * Obtiene el estado actual de la conexión
+   */
+  public getConnectionStatus(): { isHealthy: boolean; lastCheck: number; isReconnecting: boolean } {
+    return {
+      isHealthy: this.isInitialized,
+      lastCheck: Date.now(),
+      isReconnecting: false // Este valor se puede mejorar con un BehaviorSubject si es necesario
+    };
   }
 } 

@@ -186,4 +186,11 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
   async crearCliente() {
     await this.modalController.dismiss(null, 'crear-cliente');
   }
+
+  /**
+   * Obtiene la clase CSS para el modal
+   */
+  getModalClass(): string {
+    return 'crear-avisos-modal';
+  }
 }

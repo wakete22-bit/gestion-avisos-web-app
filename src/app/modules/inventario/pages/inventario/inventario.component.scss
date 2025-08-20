@@ -264,7 +264,7 @@ width: auto ;
 
 .table-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
   flex-wrap: wrap;
@@ -284,7 +284,9 @@ width: auto ;
 
 .table-search {
   display: flex;
-  gap: 20px;
+  gap: 24px;
+  align-items: center;
+  flex-shrink: 0;
 
   input {
       border-radius: 8px;
@@ -293,6 +295,9 @@ width: auto ;
       border: none;
       background: #F9FBFF;
       color: #26262A;
+      width: 200px;
+      min-width: 200px;
+      max-width: 200px;
   }
 
   select {
@@ -302,6 +307,9 @@ width: auto ;
       background: #F9FBFF;
       border: none;
       color: #26262A;
+      width: 180px;
+      min-width: 180px;
+      max-width: 180px;
   }
 }
 
@@ -309,24 +317,25 @@ width: auto ;
   display: none;
   position: relative;
   width: 100%;
+  padding: 0px 16px;
 
   input {
-      width: 100%;
-      padding: 8px 16px;
-      padding-right: 40px;
-      border-radius: 8px;
-      border: 1px solid #e2e8f0;
-      font-size: 14px;
-      background: #fff;
+    width: 100%;
+    padding: 8px 16px;
+    padding-right: 40px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    background: #fff;
   }
 
   ion-icon {
-      position: absolute;
-      right: 26px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 18px;
-      color: #64748b;
+    position: absolute;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #64748b;
   }
 }
 
@@ -710,8 +719,9 @@ ion-icon[name="alert-circle"] {
 // Header Actions
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: 1rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .btn-refresh {
@@ -834,6 +844,7 @@ ion-icon[name="alert-circle"] {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .btn-add {
@@ -903,13 +914,20 @@ ion-icon[name="alert-circle"] {
   .dashboard-table {
     height: 100%;
     margin: 0;
-    padding: 16px;
+    padding: 0px;
     border-radius: 0;
     box-shadow: none;
   }
 
   .table-header {
       margin-bottom: 12px;
+      align-items: center;
+      gap: 12px;
+  }
+
+  .table-header-left {
+    flex: 1;
+    padding: 0px 16px;
   }
 
   .table-pagination {
@@ -951,6 +969,7 @@ ion-icon[name="alert-circle"] {
 
   .mobile-actions {
       gap: 12px;
+      padding: 0px 16px;
       
       .mobile-filter {
           padding: 8px 16px !important;
@@ -968,6 +987,10 @@ ion-icon[name="alert-circle"] {
               ion-icon {
                   font-size: 20px !important;
               }
+          }
+
+          .btn-refresh {
+            display: none !important;
           }
       }
   }

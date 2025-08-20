@@ -124,6 +124,22 @@ ion-modal {
   --min-height: 200px;
 }
 
+/* Aplicar safe areas a todos los modales */
+ion-modal::part(content) {
+  padding-top: var(--ion-safe-area-top, 0px);
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+  padding-left: var(--ion-safe-area-left, 0px);
+  padding-right: var(--ion-safe-area-right, 0px);
+}
+
+/* Asegurar que el contenido interno de los modales respete las safe areas */
+ion-modal ion-content {
+  --padding-top: var(--ion-safe-area-top, 0px);
+  --padding-bottom: var(--ion-safe-area-bottom, 0px);
+  --padding-start: var(--ion-safe-area-left, 0px);
+  --padding-end: var(--ion-safe-area-right, 0px);
+}
+
 /* Modal lateral para escritorio */
 ion-modal.side-modal {
   --width: 420px;
@@ -145,6 +161,21 @@ ion-modal.side-modal {
     --min-height: 100vh !important;
     --border-radius: 0 !important;
     --box-shadow: none !important;
+  }
+  
+  /* Aplicar safe areas específicas para móviles */
+  ion-modal::part(content) {
+    padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
+    padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+    padding-left: var(--ion-safe-area-left, 0px);
+    padding-right: var(--ion-safe-area-right, 0px);
+  }
+  
+  ion-modal ion-content {
+    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
+    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+    --padding-start: var(--ion-safe-area-left, 0px);
+    --padding-end: var(--ion-safe-area-right, 0px);
   }
   
   ion-modal.side-modal {
@@ -201,12 +232,24 @@ ion-modal.modal-hacer-albaran {
   --border-radius: 0 !important;
   --box-shadow: none !important;
   
+  /* Aplicar safe areas específicas */
+  &::part(content) {
+    padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
+    padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+    padding-left: var(--ion-safe-area-left, 0px);
+    padding-right: var(--ion-safe-area-right, 0px);
+  }
+  
   /* Prevenir que el modal cambie de tamaño */
   ion-content {
     --overflow: hidden !important;
     height: 100vh !important;
     min-height: 100vh !important;
     max-height: 100vh !important;
+    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
+    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
+    --padding-start: var(--ion-safe-area-left, 0px);
+    --padding-end: var(--ion-safe-area-right, 0px);
   }
   
   /* Asegurar que el header mantenga su tamaño */
@@ -349,7 +392,7 @@ section {
   }
 
   section {
-    padding-top: 30px !important;
+    padding-top: 15px !important;
   }
 }
 
@@ -638,22 +681,79 @@ section {
 
 /* Configuración específica para PWA standalone */
 @media all and (display-mode: standalone) {
-    .mobile-header {
-        ion-toolbar {
-            --min-height: 55px;
-            --height: 55px;
-        }
-    }
+  /* Aplicar safe areas más agresivas en PWA standalone */
+  ion-modal::part(content) {
+    padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
+    padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
+    padding-left: var(--ion-safe-area-left, 0px);
+    padding-right: var(--ion-safe-area-right, 0px);
+  }
+  
+  ion-modal ion-content {
+    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
+    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
+    --padding-start: var(--ion-safe-area-left, 0px);
+    --padding-end: var(--ion-safe-area-right, 0px);
+  }
+  
+  .mobile-header {
+      ion-toolbar {
+          --min-height: 55px;
+          --height: 55px;
+      }
+  }
 }
 
 /* Configuración específica para iOS en PWA standalone */
 @supports (-webkit-touch-callout: none) {
-    @media all and (display-mode: standalone) {
-        .mobile-header {
-            ion-toolbar {
-                --min-height: 55px;
-                --height: 55px;
-            }
-        }
+  @media all and (display-mode: standalone) {
+    @media (max-width: 768px) {
+      .modal-container {
+        height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
+        max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
+      }
+
+      .modal-header {
+        padding-top: calc(16px + var(--safe-area-top, 0px));
+      }
+
+      .modal-footer {
+        padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+      }
     }
+    
+    /* Safe areas específicas para iOS */
+    ion-modal::part(content) {
+      padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
+      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
+    }
+    
+    ion-modal ion-content {
+      --padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
+      --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
+    }
+  }
+}
+
+/* Configuración específica para Android */
+@supports not (-webkit-touch-callout: none) {
+  /* Android tiene botones de navegación fijos, aplicar safe areas más agresivas */
+  ion-modal::part(content) {
+    padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px);
+  }
+  
+  ion-modal ion-content {
+    --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px);
+  }
+  
+  /* En móviles Android, asegurar margen mínimo para botones de navegación */
+  @media (max-width: 768px) {
+    ion-modal::part(content) {
+      padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
+    }
+    
+    ion-modal ion-content {
+      --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
+    }
+  }
 }
