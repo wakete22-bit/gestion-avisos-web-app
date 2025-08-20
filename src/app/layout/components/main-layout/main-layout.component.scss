@@ -290,14 +290,14 @@
 
                 // Configuración específica para iOS en móvil
                 &.ios.mobile {
-                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
                 }
 
                 // Configuración específica para Android en móvil
                 &.android.mobile {
-                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
                     padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
                 }
