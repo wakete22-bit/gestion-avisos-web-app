@@ -5,6 +5,7 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
 import { IonIcon } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
 import { menuOutline } from 'ionicons/icons';
+import { SafeAreaService } from '../../../core/services/safe-area.service';
 
 addIcons({
   'menu-outline': menuOutline
@@ -20,17 +21,37 @@ addIcons({
 export class MainLayoutComponent implements OnInit {
   isSidebarOpen: boolean = false;
   isMobile: boolean = false;
+  isIOS: boolean = false;
+  isAndroid: boolean = false;
+  isStandalone: boolean = false;
 
-  constructor() {
+  constructor(private safeAreaService: SafeAreaService) {
     addIcons({ menuOutline });
     this.checkScreenSize();
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.initializePlatformInfo();
+  }
+
+  private initializePlatformInfo() {
+    const platformInfo = this.safeAreaService.getPlatformInfo();
+    this.isIOS = platformInfo.isIOS;
+    this.isAndroid = platformInfo.isAndroid;
+    this.isStandalone = platformInfo.isStandalone;
+  }
 
   @HostListener('window:resize', ['$event'])
   onResize() {
     this.checkScreenSize();
+  }
+
+  @HostListener('window:orientationchange', ['$event'])
+  onOrientationChange() {
+    // Recalcular safe areas cuando cambie la orientación
+    setTimeout(() => {
+      this.safeAreaService.recalculateSafeAreas();
+    }, 100);
   }
 
   checkScreenSize() {

@@ -1,0 +1,313 @@
+// ============================================================================
+// PWA STANDALONE STYLES
+// ============================================================================
+// Estilos específicos para cuando la PWA está instalada en el inicio de pantalla
+// Compatible con iOS y Android
+
+// Configuración base para PWA standalone
+@media all and (display-mode: standalone) {
+  :root {
+    // Usar safe areas nativas cuando esté disponible
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    
+    // Márgenes calculados para mejor UX
+    --safe-margin-top: calc(var(--safe-area-top) + 4px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 8px);
+    --safe-margin-left: calc(var(--safe-area-left) + 16px);
+    --safe-margin-right: calc(var(--safe-area-right) + 16px);
+  }
+
+  // Configurar ion-app para PWA standalone
+  ion-app {
+    height: 100vh;
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  // Configurar ion-content para PWA standalone
+  ion-content {
+    --offset-top: 0px;
+    --offset-bottom: 0px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
+
+  // Configurar ion-header para PWA standalone
+  ion-header {
+    padding-top: 0px;
+  }
+
+  // Configurar ion-footer para PWA standalone
+  ion-footer {
+    padding-bottom: 0px;
+  }
+
+  // Configurar ion-toolbar para PWA standalone
+  ion-toolbar {
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
+
+  // Configurar el body para PWA standalone
+  body {
+    height: 100vh;
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  // Configurar html para PWA standalone
+  html {
+    height: 100vh;
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    overflow: hidden;
+  }
+}
+
+// ============================================================================
+// CONFIGURACIÓN ESPECÍFICA PARA iOS EN PWA STANDALONE
+// ============================================================================
+
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    :root {
+      // En iOS standalone, márgenes específicos para notch y home indicator
+      --safe-margin-top: calc(var(--safe-area-top) + 2px);
+      --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
+    }
+
+    // Configuración específica para iOS
+    body {
+      // Prevenir el bounce scroll en iOS
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    // Configurar ion-content para iOS
+    ion-content {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom);
+    }
+
+    // Configurar headers móviles para iOS
+    .mobile-header {
+      ion-toolbar {
+        --min-height: 60px;
+        --height: 60px;
+        --padding-top: 0;
+        --padding-bottom: 0;
+      }
+    }
+
+    // Configurar contenido principal para iOS
+    .main-content {
+      &.mobile {
+        margin-top: calc(80px + var(--safe-area-top));
+        padding-bottom: calc(16px + var(--safe-area-bottom));
+        min-height: calc(100vh - 60px);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// CONFIGURACIÓN ESPECÍFICA PARA ANDROID EN PWA STANDALONE
+// ============================================================================
+
+@supports not (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    :root {
+      // En Android standalone, márgenes específicos para navigation bar
+      --safe-margin-top: calc(var(--safe-area-top) + 2px);
+      --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
+    }
+
+    // Configuración específica para Android
+    body {
+      position: relative;
+      height: 100vh;
+      height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    }
+
+    // Configurar ion-content para Android
+    ion-content {
+      padding-top: var(--safe-area-top);
+      padding-bottom: var(--safe-area-bottom);
+    }
+
+    // Configurar headers móviles para Android
+    .mobile-header {
+      ion-toolbar {
+        --min-height: 60px;
+        --height: 60px;
+        --padding-top: 0;
+        --padding-bottom: 0;
+      }
+    }
+
+    // Configurar contenido principal para Android
+    .main-content {
+      &.mobile {
+        margin-top: calc(80px + var(--safe-area-top));
+        padding-bottom: calc(16px + var(--safe-area-bottom));
+        min-height: calc(100vh - 60px);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// CONFIGURACIÓN PARA ORIENTACIÓN EN PWA STANDALONE
+// ============================================================================
+
+// Orientación landscape en PWA standalone
+@media all and (display-mode: standalone) and (orientation: landscape) {
+  :root {
+    // En landscape, las zonas seguras laterales son más importantes
+    --safe-margin-left: calc(var(--safe-area-left) + 20px);
+    --safe-margin-right: calc(var(--safe-area-right) + 20px);
+  }
+
+  // Contenido en landscape
+  .content-safe-all {
+    padding-left: var(--safe-margin-left);
+    padding-right: var(--safe-margin-right);
+  }
+
+  // Ajustar altura para landscape
+  ion-app {
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+  }
+}
+
+// Orientación portrait en PWA standalone
+@media all and (display-mode: standalone) and (orientation: portrait) {
+  :root {
+    // En portrait, las zonas seguras verticales son más importantes
+    --safe-margin-top: calc(var(--safe-area-top) + 2px);
+    --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
+  }
+
+  // Ajustar altura para portrait
+  ion-app {
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+  }
+}
+
+// ============================================================================
+// FALLBACKS PARA NAVEGADORES ANTIGUOS EN PWA STANDALONE
+// ============================================================================
+
+@supports not (padding-top: env(safe-area-inset-top)) {
+  @media all and (display-mode: standalone) {
+    :root {
+      --safe-area-top: 24px;
+      --safe-area-bottom: 24px;
+      --safe-area-left: 0px;
+      --safe-area-right: 0px;
+    }
+
+    // Aplicar fallbacks en modo standalone
+    .header-safe {
+      padding-top: 24px;
+    }
+
+    .footer-safe {
+      padding-bottom: 24px;
+    }
+
+    .mobile-header ion-toolbar {
+      --min-height: 60px;
+      --height: 60px;
+      --padding-top: 24px;
+    }
+
+    // Configurar contenido principal con fallbacks
+    .main-content {
+      &.mobile {
+        margin-top: calc(80px + 24px);
+        padding-bottom: calc(16px + 24px);
+        min-height: calc(100vh - 60px);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// UTILIDADES ESPECÍFICAS PARA PWA STANDALONE
+// ============================================================================
+
+// Clase para PWA standalone
+.pwa-standalone {
+  // Configurar ion-app para PWA standalone
+  ion-app {
+    height: 100vh;
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    margin: 0;
+    padding: 0;
+  }
+
+  // Configurar ion-content para PWA standalone
+  ion-content {
+    --offset-top: 0px;
+    --offset-bottom: 0px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
+
+  // Configurar ion-header para PWA standalone
+  ion-header {
+    padding-top: 0px;
+  }
+
+  // Configurar ion-footer para PWA standalone
+  ion-footer {
+    padding-bottom: 0px;
+  }
+
+  // Configurar ion-toolbar para PWA standalone
+  ion-toolbar {
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
+}
+
+// ============================================================================
+// ANIMACIONES Y TRANSICIONES PARA PWA STANDALONE
+// ============================================================================
+
+@media all and (display-mode: standalone) {
+  // Transiciones suaves para cambios de orientación
+  ion-app,
+  ion-content,
+  .main-content {
+    transition: all 0.3s ease;
+  }
+
+  // Animación de entrada para PWA standalone
+  .pwa-standalone {
+    animation: pwaEnter 0.5s ease-out;
+  }
+
+  @keyframes pwaEnter {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}

@@ -7,6 +7,7 @@ import { ViewportService } from './core/services/viewport.service';
 import { AuthService } from './core/services/auth.service';
 import { PerformanceFixService } from './core/services/performance-fix.service';
 import { AppInitService } from './core/services/app-init.service';
+import { SafeAreaService } from './core/services/safe-area.service';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -21,7 +22,8 @@ export class AppComponent implements OnInit {
     private viewportService: ViewportService,
     private authService: AuthService,
     private performanceFix: PerformanceFixService,
-    private appInitService: AppInitService
+    private appInitService: AppInitService,
+    private safeAreaService: SafeAreaService
   ) {}
 
   async ngOnInit() {
@@ -30,6 +32,10 @@ export class AppComponent implements OnInit {
 
       // Inicializar la aplicación usando el nuevo servicio
       await this.appInitService.initializeApp();
+
+      // Inicializar safe areas y detección de plataforma
+      const platformInfo = this.safeAreaService.getPlatformInfo();
+      console.log('📱 Información de plataforma:', platformInfo);
 
       // Los servicios PWA se inicializan automáticamente en sus constructores
       // Verificar autenticación al iniciar la aplicación

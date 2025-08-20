@@ -96,7 +96,7 @@ ion-content.refresher-active {
   display: none;
   position: relative;
   width: 100%;
-  padding: 0px 16px;
+  padding-left: 16px;
 
   input {
     width: 100%;
@@ -784,12 +784,16 @@ ion-content.refresher-active {
   .mobile-search,
   .mobile-actions.mobile-only {
     display: flex;
+    flex: 3;
+    height: 44px;
   }
 
   .table-header {
     margin-bottom: 12px;
     align-items: center;
     gap: 12px;
+    display: flex;
+    flex-direction: row-reverse;
   }
 
   .table-header-left {
@@ -801,7 +805,6 @@ ion-content.refresher-active {
     justify-content: space-between;
     align-items: center;
     padding: 0px 16px;
-    width: 100%;
   }
 
   .table-pagination {

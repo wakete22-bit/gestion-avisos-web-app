@@ -140,10 +140,110 @@
             position: relative;
 
             &.mobile {
-                margin-top: 60px;
+                margin-top: calc(80px + var(--safe-area-top, 0px));
                 padding: 0px;
-                padding-bottom: var(--safe-area-bottom);
+                padding-bottom: var(--safe-area-bottom, 0px);
                 min-height: calc(100vh - 60px);
+            }
+
+            // Configuración específica para iOS
+            &.ios {
+                &.mobile {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+
+                &.standalone {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+            }
+
+            // Configuración específica para Android
+            &.android {
+                &.mobile {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+
+                &.standalone {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+            }
+
+            // Configuración para PWA standalone
+            &.standalone {
+                margin-top: calc(80px + var(--safe-area-top, 0px));
+                padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                min-height: calc(100vh - 60px);
+            }
+        }
+    }
+
+    // Configuración específica para iOS
+    &.ios {
+        .mobile-header {
+            ion-toolbar {
+                --min-height: 60px;
+                --height: 60px;
+                --padding-top: 0;
+            }
+        }
+
+        .content-wrapper {
+            .main-content {
+                &.mobile {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+            }
+        }
+    }
+
+    // Configuración específica para Android
+    &.android {
+        .mobile-header {
+            ion-toolbar {
+                --min-height: 60px;
+                --height: 60px;
+                --padding-top: 0;
+            }
+        }
+
+        .content-wrapper {
+            .main-content {
+                &.mobile {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
+            }
+        }
+    }
+
+    // Configuración para PWA standalone
+    &.standalone {
+        .mobile-header {
+            ion-toolbar {
+                --min-height: 60px;
+                --height: 60px;
+                --padding-top: 0;
+            }
+        }
+
+        .content-wrapper {
+            .main-content {
+                &.mobile {
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 60px);
+                }
             }
         }
     }
@@ -184,7 +284,28 @@
                 &.mobile {
                     margin-top: 50px;
                     padding: 0px;
-                    padding-bottom: calc(80px + var(--safe-area-bottom));
+                    padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 50px);
+                }
+
+                // Configuración específica para iOS en móvil
+                &.ios.mobile {
+                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 50px);
+                }
+
+                // Configuración específica para Android en móvil
+                &.android.mobile {
+                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
+                    min-height: calc(100vh - 50px);
+                }
+
+                // Configuración para PWA standalone en móvil
+                &.standalone.mobile {
+                    margin-top: calc(50px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(80px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 50px);
                 }
             }
@@ -218,8 +339,8 @@
 
             .main-content {
                 &.mobile {
-                    margin-top: 55px;
-                    padding-bottom: calc(16px + var(--safe-area-bottom));
+                    margin-top: calc(80px + var(--safe-area-top, 0px));
+                    padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 55px);
                 }
             }
@@ -241,7 +362,7 @@
             .content-wrapper {
                 .main-content {
                     &.mobile {
-                        margin-top: 55px;
+                        margin-top: calc(80px + var(--safe-area-top, 0px));
                         padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
                         min-height: calc(100vh - 55px);
                     }
@@ -265,7 +386,7 @@
             .main-content {
                 &.mobile {
                     margin-top: 60px;
-                    padding-bottom: calc(20px + var(--safe-area-bottom));
+                    padding-bottom: calc(20px + var(--safe-area-bottom, 0px));
                     min-height: calc(100vh - 60px);
                 }
             }

@@ -1,4 +1,4 @@
-<div class="main-layout">
+<div class="main-layout" [class.ios]="isIOS" [class.android]="isAndroid" [class.standalone]="isStandalone">
     <!-- Header móvil con botón hamburguesa -->
     <ion-header class="mobile-header" *ngIf="isMobile">
         <ion-toolbar>
@@ -32,7 +32,11 @@
         </app-sidebar>
 
         <!-- Main Content -->
-        <main class="main-content" [class.mobile]="isMobile">
+        <main class="main-content" 
+              [class.mobile]="isMobile"
+              [class.ios]="isIOS"
+              [class.android]="isAndroid"
+              [class.standalone]="isStandalone">
             <router-outlet></router-outlet>
         </main>
     </div>

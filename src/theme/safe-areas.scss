@@ -210,6 +210,66 @@
   }
 }
 
+// Configuración específica para iOS en PWA standalone
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    :root {
+      // En iOS standalone, márgenes específicos para notch y home indicator
+      --safe-margin-top: calc(var(--safe-area-top) + 2px);
+      --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
+    }
+    
+    // Headers en iOS standalone - NO añadir padding ya que ion-header lo maneja
+    .header-safe {
+      padding-top: 0;
+    }
+    
+    // Footers en iOS standalone - NO añadir padding ya que ion-footer lo maneja
+    .footer-safe {
+      padding-bottom: 0;
+    }
+    
+    // Header móvil en iOS standalone - altura estándar
+    .mobile-header {
+      ion-toolbar {
+        --min-height: 60px;
+        --height: 60px;
+        --padding-top: 0;
+      }
+    }
+  }
+}
+
+// Configuración específica para Android en PWA standalone
+@supports not (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    :root {
+      // En Android standalone, márgenes específicos para navigation bar
+      --safe-margin-top: calc(var(--safe-area-top) + 2px);
+      --safe-margin-bottom: calc(var(--safe-area-bottom) + 4px);
+    }
+    
+    // Headers en Android standalone - NO añadir padding ya que ion-header lo maneja
+    .header-safe {
+      padding-top: 0;
+    }
+    
+    // Footers en Android standalone - NO añadir padding ya que ion-footer lo maneja
+    .footer-safe {
+      padding-bottom: 0;
+    }
+    
+    // Header móvil en Android standalone - altura estándar
+    .mobile-header {
+      ion-toolbar {
+        --min-height: 60px;
+        --height: 60px;
+        --padding-top: 0;
+      }
+    }
+  }
+}
+
 // ============================================================================
 // CONFIGURACIÓN ESPECÍFICA PARA ORIENTACIÓN
 // ============================================================================
@@ -354,4 +414,51 @@
 // Clase para elementos que deben estar en la parte derecha segura
 .safe-right {
   right: var(--safe-area-right);
+}
+
+// ============================================================================
+// CONFIGURACIÓN ESPECÍFICA PARA PWA STANDALONE
+// ============================================================================
+
+// Clase para PWA standalone
+.pwa-standalone {
+  :root {
+    // En PWA standalone, usar safe areas nativas
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+  }
+  
+  // Configurar ion-app para PWA standalone
+  ion-app {
+    height: 100vh;
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    margin: 0;
+    padding: 0;
+  }
+  
+  // Configurar ion-content para PWA standalone
+  ion-content {
+    --offset-top: 0px;
+    --offset-bottom: 0px;
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
+  
+  // Configurar ion-header para PWA standalone
+  ion-header {
+    padding-top: 0px;
+  }
+  
+  // Configurar ion-footer para PWA standalone
+  ion-footer {
+    padding-bottom: 0px;
+  }
+  
+  // Configurar ion-toolbar para PWA standalone
+  ion-toolbar {
+    --padding-top: 0px;
+    --padding-bottom: 0px;
+  }
 }
