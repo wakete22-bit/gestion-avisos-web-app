@@ -135,21 +135,6 @@
             --padding-end: 0;
             --offset-top: 0;
             --offset-bottom: 0;
-
-            &.mobile {
-                // En móvil, usar offset-top para respetar el header
-                --offset-top: 60px; // Altura del header móvil
-            }
-
-            &.standalone {
-                // En PWA standalone, forzar el offset
-                --offset-top: 100px;
-            }
-
-            &.ios.standalone {
-                // iOS PWA necesita offset adicional para safe areas
-                --offset-top: calc(100px + env(safe-area-inset-top, 0px));
-            }
         }
     }
 }

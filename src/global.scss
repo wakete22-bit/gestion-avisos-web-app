@@ -28,18 +28,6 @@
 /* Ionic Dark Mode */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
-/* Safe Areas Utilities */
-@import "./theme/safe-areas.scss";
-
-/* Modal Safe Areas */
-@import "./theme/modal-safe-areas.scss";
-
-/* PWA Standalone Styles */
-@import "./theme/pwa-standalone.scss";
-
-/* PWA Standalone Fixes */
-@import "./theme/pwa-standalone-fixes.scss";
-
 /* Fuentes */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -51,7 +39,7 @@
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
   
-  // Estados de avisos, facturas, presupuestos, etc.
+  /* Estados de avisos, facturas, presupuestos, etc. */
   --estado-pendiente-bg: #FEE4E2;
   --estado-pendiente-color: #D92D20;
   --estado-en-curso-bg: #FFF7E6;
@@ -70,9 +58,11 @@
   --estado-listo-para-facturar-color: #059669;
 }
 
-/* Estilos base */
-* {   
-  font-family: 'Poppins', sans-serif;
+/* Estilos base esenciales para evitar pantalla negra */
+html {
+  height: 100%;
+  overflow: hidden;
+  background-color: #FAFBFF;
 }
 
 body {
@@ -81,14 +71,34 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background-color: #FAFBFF;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
+* {   
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Configuración base para ion-app */
+ion-app {
+  background-color: #FAFBFF;
+  height: 100vh;
+}
+
+/* Configuración base para ion-content */
+ion-content {
+  --background: #FAFBFF;
+  --color: #1f2937;
+}
+
+/* Configuración base para ion-page */
+.ion-page {
+  background-color: #FAFBFF;
   height: 100%;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Prevenir zoom en inputs en iOS */
@@ -149,34 +159,6 @@ ion-modal.side-modal {
     --max-height: 100vh !important;
     --border-radius: 0 !important;
     --box-shadow: none !important;
-  }
-}
-
-/* Configuración específica para PWA standalone en móviles */
-@media all and (display-mode: standalone) {
-  ion-modal {
-    --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-  }
-  
-  @media (max-width: 768px) {
-    ion-modal {
-      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    }
-  }
-}
-
-/* Configuración específica para iOS en PWA standalone */
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    ion-modal {
-      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    }
   }
 }
 
@@ -266,98 +248,6 @@ ion-modal.modal-hacer-albaran {
   }
 }
 
-/* Configuración específica para PWA standalone */
-@media all and (display-mode: standalone) {
-  body {
-    /* Aplicar safe areas solo en modo standalone */
-    padding-top: var(--safe-area-top);
-    padding-bottom: var(--safe-area-bottom);
-    padding-left: var(--safe-area-left);
-    padding-right: var(--safe-area-right);
-  }
-  
-  /* Configurar ion-app para que ocupe todo el espacio disponible */
-  ion-app {
-    height: 100vh;
-    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* NO forzar offset-top aquí, dejar que Ionic lo maneje */
-  ion-content {
-    --padding-top: 0px;
-    --padding-bottom: var(--safe-area-bottom);
-  }
-  
-  /* Configurar ion-header para que respete la safe area superior */
-  ion-header {
-    padding-top: 0px;
-  }
-  
-  /* Configurar ion-footer para que respete la safe area inferior */
-  ion-footer {
-    padding-bottom: 0px;
-  }
-  
-  /* Configurar ion-toolbar para que respete las safe areas */
-  ion-toolbar {
-    --padding-top: 0px;
-    --padding-bottom: 0px;
-  }
-}
-
-/* Configuración específica para iOS */
-@supports (-webkit-touch-callout: none) {
-  body {
-    /* Prevenir el bounce scroll en iOS */
-    position: fixed;
-    width: 100%;
-    height: 100%;
-  }
-  
-  ion-content {
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Configuración específica para iOS en modo standalone */
-  @media all and (display-mode: standalone) {
-    body {
-      /* En iOS, el body ya tiene el padding de safe areas */
-      padding-top: var(--safe-area-top);
-      padding-bottom: var(--safe-area-bottom);
-    }
-    
-    ion-app {
-      /* En iOS, ion-app no necesita margin adicional */
-      height: 100vh;
-      height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-      margin: 0;
-    }
-    
-    ion-content {
-      /* En iOS, agregar padding inferior para safe area */
-      --padding-bottom: var(--safe-area-bottom);
-    }
-  }
-}
-
-/* Configuración para Android */
-@supports not (-webkit-touch-callout: none) {
-  body {
-    /* Configuración específica para Android */
-    position: relative;
-  }
-}
-
-/* Asegurar que el contenido principal ocupe todo el espacio */
-.ion-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
 /* Configurar el router outlet para que ocupe el espacio disponible */
 ion-router-outlet {
   flex: 1;
@@ -388,29 +278,6 @@ ion-router-outlet {
   overflow-y: auto;
   /* Asegurar que el debug respete la safe area superior */
   top: calc(20px + var(--safe-area-top));
-}
-
-/* Fallback para navegadores que no soportan env() */
-@supports not (padding-top: env(safe-area-inset-top)) {
-  @media all and (display-mode: standalone) {
-    body {
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
-    
-    ion-app {
-      height: calc(100vh - 40px);
-      margin: 0;
-    }
-    
-    .pwa-banner {
-      padding-bottom: 36px;
-    }
-    
-    .pwa-debug {
-      top: 40px;
-    }
-  }
 }
 
 /* Estilos para los popups de MapLibre */
@@ -509,80 +376,6 @@ section {
   ion-card {
     margin: 24px;
     border-radius: 20px;
-  }
-}
-
-/* Estilos adicionales para modales en PWA standalone */
-@media all and (display-mode: standalone) {
-  /* Asegurar que los modales respeten las safe areas */
-  ion-modal {
-    --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-  }
-  
-  /* Aplicar safe areas a los contenedores de modales */
-  .modal-container {
-    height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-  }
-  
-  /* Aplicar safe areas a los headers de modales */
-  .modal-header {
-    padding-top: calc(16px + var(--safe-area-top, 0px)) !important;
-  }
-  
-  /* Aplicar safe areas a los footers de modales */
-  .modal-footer {
-    padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
-  }
-}
-
-/* Configuración específica para iOS en PWA standalone */
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    ion-modal {
-      --height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      --min-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    }
-    
-    .modal-container {
-      height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-      max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px)) !important;
-    }
-    
-    .modal-header {
-      padding-top: calc(16px + var(--safe-area-top, 0px)) !important;
-    }
-    
-    .modal-footer {
-      padding-bottom: calc(16px + var(--safe-area-bottom, 0px)) !important;
-    }
-  }
-}
-
-/* Fallback para navegadores que no soportan env() en modales */
-@supports not (padding-top: env(safe-area-inset-top)) {
-  @media all and (display-mode: standalone) {
-    ion-modal {
-      --height: calc(100vh - 40px) !important;
-      --max-height: calc(100vh - 40px) !important;
-      --min-height: calc(100vh - 40px) !important;
-    }
-    
-    .modal-container {
-      height: calc(100vh - 40px) !important;
-      max-height: calc(100vh - 40px) !important;
-    }
-    
-    .modal-header {
-      padding-top: 36px !important;
-    }
-    
-    .modal-footer {
-      padding-bottom: 36px !important;
-    }
   }
 }
 

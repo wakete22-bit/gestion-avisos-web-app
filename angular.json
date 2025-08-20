@@ -53,6 +53,10 @@
             "styles": [
               "src/global.scss",
               "src/theme/variables.scss",
+              "src/theme/safe-areas.scss",
+              "src/theme/modal-safe-areas.scss",
+              "src/theme/pwa-standalone.scss",
+              "src/theme/pwa-standalone-fixes.scss",
               "node_modules/maplibre-gl/dist/maplibre-gl.css"
             ],
             "scripts": [],
@@ -134,7 +138,14 @@
                 "output": "."
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": [
+              "src/global.scss", 
+              "src/theme/variables.scss",
+              "src/theme/safe-areas.scss",
+              "src/theme/modal-safe-areas.scss",
+              "src/theme/pwa-standalone.scss",
+              "src/theme/pwa-standalone-fixes.scss"
+            ],
             "scripts": []
           },
           "configurations": {
