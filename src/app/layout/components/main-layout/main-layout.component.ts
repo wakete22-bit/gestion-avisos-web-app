@@ -6,6 +6,8 @@ import { IonIcon } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
 import { menuOutline } from 'ionicons/icons';
 import { SafeAreaService } from '../../../core/services/safe-area.service';
+import { IonContent } from '@ionic/angular/standalone';
+
 
 addIcons({
   'menu-outline': menuOutline
@@ -16,7 +18,7 @@ addIcons({
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterOutlet, SidebarComponent, IonIcon],
+  imports: [CommonModule, RouterOutlet, SidebarComponent, IonIcon, IonContent],
 })
 export class MainLayoutComponent implements OnInit {
   isSidebarOpen: boolean = false;
