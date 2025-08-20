@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { IonContent, IonIcon, ModalController, LoadingController } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -36,6 +36,10 @@ import { DashboardService, DashboardData } from '../core/services/dashboard.serv
 import { AvisosService } from '../core/services/avisos.service';
 import { FacturasService } from '../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../modules/presupuestos/services/presupuestos.service';
+
+// Importar componente base para reconexión
+import { BasePageComponent } from '../core/components/base-page.component';
+import { ReconnectionService } from '../core/services/reconnection.service';
 
 addIcons({
   'grid-outline': gridOutline,
@@ -83,12 +87,11 @@ export interface Aviso {
     MatIconModule
   ],
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage extends BasePageComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'urgente', 'direccion', 'acciones'];
   
   // Datos del dashboard
   dashboardData: DashboardData | null = null;
-  loading = true;
   error = false;
   
   // Datos de avisos
@@ -107,41 +110,71 @@ export class HomePage implements OnInit, OnDestroy {
     private avisosService: AvisosService,
     private facturasService: FacturasService,
     private presupuestosService: PresupuestosService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    // Inyectar servicios del BasePageComponent
+    reconnectionService: ReconnectionService,
+    cdr: ChangeDetectorRef,
+    loadingCtrl: LoadingController
   ) {
+    super(reconnectionService, cdr, loadingCtrl);
     addIcons({hourglassOutline,alertCircleOutline,refreshOutline,warning,receipt,document,alertCircle,searchOutline,close,eyeOutline,createOutline,phonePortraitOutline,locationOutline,calendarOutline});
   }
 
-  ngOnInit() {
+  override ngOnInit() {
+    super.ngOnInit(); // Llamar al ngOnInit del BasePageComponent
     this.cargarDashboard();
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
+    super.ngOnDestroy(); // Llamar al ngOnDestroy del BasePageComponent
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   /**
+   * Implementación del método abstracto del BasePageComponent
+   * Se ejecuta cuando la app se reanuda tras estar en background
+   */
+  protected onAppResumed(): void {
+    console.log('🔄 HomePage: App reanudada, recargando dashboard...');
+    this.cargarDashboard();
+  }
+
+  /**
    * Carga los datos del dashboard
    */
-  cargarDashboard() {
-    this.loading = true;
-    this.error = false;
+  async cargarDashboard() {
+    try {
+      const loading = await this.showLoading('Cargando dashboard...', 8000);
+      
+      this.error = false;
 
-    this.dashboardService.getDashboardData()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (data: DashboardData) => {
-          this.dashboardData = data;
-          this.procesarDatosDashboard(data);
-          this.loading = false;
-        },
-        error: (error) => {
-          console.error('Error al cargar dashboard:', error);
-          this.error = true;
-          this.loading = false;
-        }
-      });
+      this.dashboardService.getDashboardData()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: async (data: DashboardData) => {
+            this.dashboardData = data;
+            this.procesarDatosDashboard(data);
+            this.error = false;
+            
+            if (loading) {
+              await this.hideLoading();
+            }
+          },
+          error: async (error) => {
+            console.error('Error al cargar dashboard:', error);
+            this.error = true;
+            
+            if (loading) {
+              await this.hideLoading();
+            }
+          }
+        });
+        
+    } catch (error) {
+      console.error('Error en cargarDashboard:', error);
+      await this.hideLoading();
+    }
   }
 
   /**
@@ -168,8 +201,8 @@ export class HomePage implements OnInit, OnDestroy {
   /**
    * Refresca los datos del dashboard
    */
-  refreshDashboard() {
-    this.cargarDashboard();
+  async refreshDashboard() {
+    await this.safeReloadData();
   }
 
   /**

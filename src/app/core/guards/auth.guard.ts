@@ -1,38 +1,19 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
-import { Observable, from, BehaviorSubject } from 'rxjs';
-import { map, switchMap, catchError, take } from 'rxjs/operators';
+import { Observable, from } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
-import { SupabaseClientService } from '../services/supabase-client.service';
 import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  private isReconnecting = new BehaviorSubject<boolean>(false);
   
   constructor(
     private authService: AuthService,
-    private supabaseClientService: SupabaseClientService,
     private router: Router
-  ) {
-    this.setupReconnectionListener();
-  }
-
-  private setupReconnectionListener(): void {
-    // Escuchar eventos de reconexión de Supabase
-    document.addEventListener('supabase-reconnection', (event: any) => {
-      const { success } = event.detail;
-      console.log('🔍 AuthGuard: Evento de reconexión recibido:', success);
-      
-      if (success) {
-        this.isReconnecting.next(false);
-      } else {
-        this.isReconnecting.next(true);
-      }
-    });
-  }
+  ) {}
 
   canActivate(): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
     console.log('🚀 AuthGuard: canActivate() llamado');
@@ -57,19 +38,6 @@ export class AuthGuard implements CanActivate {
   private async checkAuthStatus(): Promise<boolean> {
     try {
       console.log('🔍 AuthGuard: Verificación rápida de autenticación');
-      
-      // Si estamos reconectando, esperar un poco
-      if (this.isReconnecting.value) {
-        console.log('🔍 AuthGuard: Reconexión en progreso, esperando...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
-      // Verificar que la conexión esté saludable antes de continuar
-      const isConnectionHealthy = await this.supabaseClientService.ensureConnection();
-      if (!isConnectionHealthy) {
-        console.log('🔍 AuthGuard: Conexión no saludable después de intentar reconectar');
-        return false;
-      }
       
       // Verificar token de forma rápida
       const token = await this.authService.getToken();

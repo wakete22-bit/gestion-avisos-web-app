@@ -4,6 +4,7 @@ import { Preferences } from '@capacitor/preferences';
 import { App } from '@capacitor/app';
 import { environment } from '../../../environments/environment';
 import { PREFERENCES_KEYS } from '../config/preferences.config';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,8 @@ export class SupabaseClientService {
   private static instance: SupabaseClient | null = null;
   private isInitialized = false;
   private appStateListener: any;
+  private connectionStatus$ = new BehaviorSubject<boolean>(true);
+  private isReconnecting = false;
   
   constructor(private ngZone: NgZone) {}
   
@@ -106,11 +109,50 @@ export class SupabaseClientService {
       // Configurar listener para cambios de visibilidad del documento
       this.setupVisibilityChangeListener();
       
+      // Configurar monitoreo de conexión realtime
+      this.setupConnectionMonitoring();
+      
       this.isInitialized = true;
       console.log('🔧 SupabaseClientService: Servicio inicializado correctamente');
     } catch (error) {
       console.error('❌ SupabaseClientService: Error en inicialización:', error);
     }
+  }
+
+  /**
+   * Configura el monitoreo de conexión realtime
+   */
+  private setupConnectionMonitoring(): void {
+    const client = this.getClient();
+    
+    // Monitorear estado de conexión usando el estado actual y cambios de estado
+    const checkConnectionStatus = () => {
+      const isConnected = client.realtime.isConnected();
+      this.ngZone.run(() => {
+        this.connectionStatus$.next(isConnected);
+      });
+    };
+
+    // Verificar estado inicial
+    checkConnectionStatus();
+
+    // Monitorear cambios de estado cada 2 segundos
+    setInterval(() => {
+      checkConnectionStatus();
+    }, 2000);
+
+    // También verificar cuando se realizan operaciones
+    const originalFrom = client.from;
+    client.from = function(table: string) {
+      const result = originalFrom.call(this, table);
+      
+      // Verificar conexión después de operaciones
+      setTimeout(() => {
+        checkConnectionStatus();
+      }, 100);
+      
+      return result;
+    };
   }
 
   /**
@@ -178,31 +220,19 @@ export class SupabaseClientService {
    * Maneja cuando la app vuelve del background
    */
   private async handleAppResume(): Promise<void> {
-    try {
-      console.log('🔄 SupabaseClientService: Reconectando tras resumen de app...');
-      
-      // Forzar reconexión completa
-      await this.forceReconnect();
-      
-    } catch (error) {
-      console.error('❌ Error en reconexión tras resumen:', error);
+    if (this.isReconnecting) {
+      console.log('🔄 Ya hay una reconexión en progreso, saltando...');
+      return;
     }
-  }
 
-  /**
-   * Fuerza la reconexión completa del cliente Supabase
-   * Este método es público para que otros servicios puedan llamarlo
-   */
-  public async forceReconnect(): Promise<void> {
     try {
-      console.log('🔄 SupabaseClientService: Forzando reconexión completa...');
-      
-      const client = this.getClient();
+      this.isReconnecting = true;
+      console.log('🔄 SupabaseClientService: Reconectando tras resumen de app...');
       
       // Verificar si hay una sesión válida
       const session = await this.getCurrentSession();
       if (session) {
-        console.log('✅ Sesión válida encontrada, reconectando...');
+        console.log('✅ Sesión válida encontrada, reconectando realtime...');
         
         // Reconectar realtime
         await this.reconnectRealtime();
@@ -212,38 +242,15 @@ export class SupabaseClientService {
           console.log('🔄 Token próximo a expirar, refrescando...');
           await this.refreshSession();
         }
-        
-        // Emitir evento de reconexión exitosa
-        this.emitReconnectionEvent(true);
       } else {
         console.log('ℹ️ No hay sesión activa para reconectar');
-        // Emitir evento de reconexión fallida
-        this.emitReconnectionEvent(false);
       }
     } catch (error) {
-      console.error('❌ Error en reconexión forzada:', error);
-      // Emitir evento de reconexión fallida
-      this.emitReconnectionEvent(false);
-      throw error;
-    }
-  }
-
-  /**
-   * Emite un evento de reconexión para que otros servicios puedan reaccionar
-   */
-  private emitReconnectionEvent(success: boolean): void {
-    try {
-      // Crear un evento personalizado
-      const event = new CustomEvent('supabase-reconnection', {
-        detail: { success, timestamp: Date.now() }
-      });
-      
-      // Emitir el evento en el documento
-      document.dispatchEvent(event);
-      
-      console.log(`🔄 SupabaseClientService: Evento de reconexión emitido - ${success ? 'ÉXITO' : 'FALLO'}`);
-    } catch (error) {
-      console.warn('⚠️ Error emitiendo evento de reconexión:', error);
+      console.error('❌ Error en reconexión tras resumen:', error);
+      // Forzar refresh si la reconexión falla
+      this.forceReconnection();
+    } finally {
+      this.isReconnecting = false;
     }
   }
 
@@ -259,16 +266,14 @@ export class SupabaseClientService {
    * Maneja cuando el documento se vuelve visible
    */
   private async handleDocumentVisible(): Promise<void> {
+    if (this.isReconnecting) {
+      console.log('🔄 Ya hay una reconexión en progreso, saltando...');
+      return;
+    }
+
     try {
+      this.isReconnecting = true;
       console.log('👁️ Documento visible, verificando estado de la sesión...');
-      
-      // Verificar si la conexión está saludable
-      const isConnectionHealthy = await this.isConnectionHealthy();
-      if (!isConnectionHealthy) {
-        console.log('👁️ Conexión no saludable, forzando reconexión...');
-        await this.forceReconnect();
-        return;
-      }
       
       const session = await this.getCurrentSession();
       if (session) {
@@ -283,13 +288,37 @@ export class SupabaseClientService {
       }
     } catch (error) {
       console.error('❌ Error verificando estado de sesión:', error);
-      // Si hay error, intentar reconectar
-      try {
-        await this.forceReconnect();
-      } catch (reconnectError) {
-        console.error('❌ Error en reconexión automática:', reconnectError);
-      }
+      // Forzar refresh si la verificación falla
+      this.forceReconnection();
+    } finally {
+      this.isReconnecting = false;
     }
+  }
+
+  /**
+   * Fuerza la reconexión completa si fallan los métodos normales
+   */
+  private forceReconnection(): void {
+    console.log('🔄 Forzando reconexión completa...');
+    
+    // Limpiar instancia y reconectar
+    setTimeout(() => {
+      try {
+        const client = this.getClient();
+        client.removeAllChannels();
+        
+        // Notificar cambio de estado
+        this.connectionStatus$.next(false);
+        
+        // Intentar reconectar después de un breve delay
+        setTimeout(() => {
+          this.connectionStatus$.next(true);
+        }, 1000);
+        
+      } catch (error) {
+        console.error('❌ Error en reconexión forzada:', error);
+      }
+    }, 500);
   }
 
   /**
@@ -447,6 +476,40 @@ export class SupabaseClientService {
   }
 
   /**
+   * Obtiene el observable del estado de conexión
+   */
+  public getConnectionStatus() {
+    return this.connectionStatus$.asObservable();
+  }
+
+  /**
+   * Verifica la conexión con timeout para evitar loadings infinitos
+   */
+  public async testConnection(timeoutMs: number = 5000): Promise<boolean> {
+    try {
+      const client = this.getClient();
+      
+      // Usar Promise.race para implementar timeout
+      const connectionTest = Promise.race([
+        // Test de conexión real
+        client.from('avisos').select('count').limit(1),
+        // Timeout
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
+        )
+      ]);
+
+      await connectionTest;
+      console.log('✅ Conexión Supabase verificada correctamente');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Error verificando conexión Supabase:', error);
+      return false;
+    }
+  }
+
+  /**
    * Limpia la instancia singleton (útil para testing o reinicio)
    */
   public static clearInstance(): void {
@@ -472,85 +535,5 @@ export class SupabaseClientService {
     } catch (error) {
       console.error('❌ Error en cleanup:', error);
     }
-  }
-
-  /**
-   * Verifica si la conexión está activa y funcional
-   */
-  public async isConnectionHealthy(): Promise<boolean> {
-    try {
-      const client = this.getClient();
-      
-      // Intentar una operación simple para verificar la conexión
-      const { data, error } = await client.auth.getSession();
-      
-      if (error) {
-        console.log('🔍 SupabaseClientService: Conexión no saludable - Error:', error.message);
-        return false;
-      }
-      
-      console.log('🔍 SupabaseClientService: Conexión saludable');
-      return true;
-    } catch (error) {
-      console.log('🔍 SupabaseClientService: Conexión no saludable - Excepción:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Intenta reconectar automáticamente si la conexión no está saludable
-   */
-  public async ensureConnection(): Promise<boolean> {
-    try {
-      const isHealthy = await this.isConnectionHealthy();
-      
-      if (isHealthy) {
-        console.log('🔍 SupabaseClientService: Conexión ya está saludable');
-        return true;
-      }
-      
-      console.log('🔍 SupabaseClientService: Conexión no saludable, intentando reconectar...');
-      await this.forceReconnect();
-      
-      // Verificar si la reconexión fue exitosa
-      const isHealthyAfterReconnect = await this.isConnectionHealthy();
-      console.log('🔍 SupabaseClientService: Estado después de reconexión:', isHealthyAfterReconnect ? 'SALUDABLE' : 'NO SALUDABLE');
-      
-      return isHealthyAfterReconnect;
-    } catch (error) {
-      console.error('❌ SupabaseClientService: Error asegurando conexión:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Limpia el estado de reconexión y resetea el servicio
-   */
-  public async resetReconnectionState(): Promise<void> {
-    try {
-      console.log('🔧 SupabaseClientService: Reseteando estado de reconexión...');
-      
-      // Limpiar todos los canales de realtime
-      const client = this.getClient();
-      client.removeAllChannels();
-      
-      // Esperar un poco para que se liberen los recursos
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('🔧 SupabaseClientService: Estado de reconexión reseteado');
-    } catch (error) {
-      console.error('❌ Error reseteando estado de reconexión:', error);
-    }
-  }
-
-  /**
-   * Obtiene el estado actual de la conexión
-   */
-  public getConnectionStatus(): { isHealthy: boolean; lastCheck: number; isReconnecting: boolean } {
-    return {
-      isHealthy: this.isInitialized,
-      lastCheck: Date.now(),
-      isReconnecting: false // Este valor se puede mejorar con un BehaviorSubject si es necesario
-    };
   }
 } 

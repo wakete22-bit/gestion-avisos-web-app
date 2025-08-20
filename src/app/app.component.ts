@@ -8,6 +8,7 @@ import { AuthService } from './core/services/auth.service';
 import { PerformanceFixService } from './core/services/performance-fix.service';
 import { AppInitService } from './core/services/app-init.service';
 import { SafeAreaService } from './core/services/safe-area.service';
+import { ReconnectionService } from './core/services/reconnection.service';
 import { environment } from '../environments/environment';
 
 @Component({
@@ -23,7 +24,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private performanceFix: PerformanceFixService,
     private appInitService: AppInitService,
-    private safeAreaService: SafeAreaService
+    private safeAreaService: SafeAreaService,
+    private reconnectionService: ReconnectionService
   ) {}
 
   async ngOnInit() {
