@@ -57,19 +57,32 @@ export class MainLayoutComponent implements OnInit {
   }
 
   checkScreenSize() {
+    const wasMobile = this.isMobile;
     this.isMobile = window.innerWidth <= 768;
-    // Cerrar sidebar automáticamente en desktop
-    if (!this.isMobile) {
+    
+    // Si cambiamos de desktop a móvil, cerrar sidebar
+    if (wasMobile === false && this.isMobile === true) {
       this.isSidebarOpen = false;
+    }
+    
+    // Si cambiamos de móvil a desktop, abrir sidebar
+    if (wasMobile === true && this.isMobile === false) {
+      this.isSidebarOpen = true;
     }
   }
 
   toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
+    // Solo permitir toggle en móvil
+    if (this.isMobile) {
+      this.isSidebarOpen = !this.isSidebarOpen;
+    }
   }
 
   closeSidebar() {
-    this.isSidebarOpen = false;
+    // Solo cerrar en móvil
+    if (this.isMobile) {
+      this.isSidebarOpen = false;
+    }
   }
 
   onOverlayClick() {
