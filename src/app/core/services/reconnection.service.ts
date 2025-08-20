@@ -10,12 +10,14 @@ export class ReconnectionService {
   private appResumed$ = new BehaviorSubject<boolean>(false);
   private subscriptions: Subscription[] = [];
   private isProcessingResume = false;
+  private lastVisibilityState = document.visibilityState;
 
   constructor(
     private platform: Platform,
     private ngZone: NgZone,
     private supabaseService: SupabaseClientService
   ) {
+    console.log('🔧 ReconnectionService: Inicializando...');
     this.initReconnectionListeners();
   }
 
@@ -23,24 +25,57 @@ export class ReconnectionService {
    * Inicializa los listeners para detectar cuando la app se reanuda
    */
   private initReconnectionListeners() {
-    if (this.platform.is('hybrid')) {
-      // Para app nativa con Capacitor
-      document.addEventListener('resume', () => this.handleAppResume());
-    } else {
-      // Para PWA en navegador
-      const visibilityChange$ = fromEvent(document, 'visibilitychange');
-      const focus$ = fromEvent(window, 'focus');
+    console.log('🔧 ReconnectionService: Configurando listeners...');
+    
+    // Para PWA en navegador - múltiples eventos para mayor compatibilidad
+    const visibilityChange$ = fromEvent(document, 'visibilitychange');
+    const focus$ = fromEvent(window, 'focus');
+    const blur$ = fromEvent(window, 'blur');
+    const pageshow$ = fromEvent(window, 'pageshow');
+    const pagehide$ = fromEvent(window, 'pagehide');
+    
+    // Combinar todos los eventos
+    const resumeEvents$ = merge(
+      visibilityChange$, 
+      focus$, 
+      blur$, 
+      pageshow$, 
+      pagehide$
+    );
+    
+    const resumeSub = resumeEvents$.subscribe((event) => {
+      console.log('🔧 ReconnectionService: Evento detectado:', event.type);
       
-      const resumeEvents$ = merge(visibilityChange$, focus$);
-      
-      const resumeSub = resumeEvents$.subscribe(() => {
-        if (!document.hidden) {
+      if (event.type === 'visibilitychange') {
+        const currentState = document.visibilityState;
+        console.log('🔧 ReconnectionService: Estado de visibilidad:', this.lastVisibilityState, '->', currentState);
+        
+        if (this.lastVisibilityState === 'hidden' && currentState === 'visible') {
+          console.log('🔧 ReconnectionService: Documento se volvió visible');
           this.handleAppResume();
         }
+        this.lastVisibilityState = currentState;
+      } else if (event.type === 'focus') {
+        console.log('🔧 ReconnectionService: Ventana enfocada');
+        this.handleAppResume();
+      } else if (event.type === 'pageshow') {
+        console.log('🔧 ReconnectionService: Página mostrada');
+        this.handleAppResume();
+      }
+    });
+    
+    this.subscriptions.push(resumeSub);
+    
+    // Para app nativa con Capacitor
+    if (this.platform.is('hybrid')) {
+      console.log('🔧 ReconnectionService: Configurando listeners para app nativa');
+      document.addEventListener('resume', () => {
+        console.log('🔧 ReconnectionService: App nativa resumida');
+        this.handleAppResume();
       });
-      
-      this.subscriptions.push(resumeSub);
     }
+    
+    console.log('🔧 ReconnectionService: Listeners configurados correctamente');
   }
 
   /**
@@ -59,6 +94,7 @@ export class ReconnectionService {
       this.ngZone.run(async () => {
         try {
           // Verificar conexión Supabase con timeout
+          console.log('🔄 Verificando conexión Supabase...');
           const isConnected = await this.supabaseService.testConnection(5000);
           
           if (isConnected) {

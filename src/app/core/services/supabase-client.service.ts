@@ -487,6 +487,7 @@ export class SupabaseClientService {
    */
   public async testConnection(timeoutMs: number = 5000): Promise<boolean> {
     try {
+      console.log('🔧 SupabaseClientService: Iniciando test de conexión...');
       const client = this.getClient();
       
       // Usar Promise.race para implementar timeout
@@ -500,11 +501,11 @@ export class SupabaseClientService {
       ]);
 
       await connectionTest;
-      console.log('✅ Conexión Supabase verificada correctamente');
+      console.log('✅ SupabaseClientService: Conexión verificada correctamente');
       return true;
       
     } catch (error) {
-      console.error('❌ Error verificando conexión Supabase:', error);
+      console.error('❌ SupabaseClientService: Error verificando conexión:', error);
       return false;
     }
   }

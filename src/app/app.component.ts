@@ -9,12 +9,14 @@ import { PerformanceFixService } from './core/services/performance-fix.service';
 import { AppInitService } from './core/services/app-init.service';
 import { SafeAreaService } from './core/services/safe-area.service';
 import { ReconnectionService } from './core/services/reconnection.service';
+import { DebugReconnectionService } from './core/services/debug-reconnection.service';
+import { DebugPanelComponent } from './core/components/debug-panel.component';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent],
+  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent, DebugPanelComponent],
 })
 export class AppComponent implements OnInit {
   constructor(
@@ -25,7 +27,8 @@ export class AppComponent implements OnInit {
     private performanceFix: PerformanceFixService,
     private appInitService: AppInitService,
     private safeAreaService: SafeAreaService,
-    private reconnectionService: ReconnectionService
+    private reconnectionService: ReconnectionService,
+    private debugReconnectionService: DebugReconnectionService
   ) {}
 
   async ngOnInit() {
