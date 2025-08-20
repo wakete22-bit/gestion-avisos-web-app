@@ -12,12 +12,14 @@ export class SmartReconnectionService {
   private lastSuccessfulConnection = Date.now();
   private consecutiveFailures = 0;
   private maxFailures = 3;
+  private lastHealthCheck = 0;
+  private minHealthCheckInterval = 30000; // Mínimo 30 segundos entre checks
 
   constructor(
     private ngZone: NgZone,
     private supabaseService: SupabaseClientService
   ) {
-    console.log('🧠 SmartReconnectionService: Inicializando...');
+    console.log('🧠 SmartReconnectionService: Inicializando (modo silencioso)...');
     this.startHealthMonitoring();
   }
 
@@ -25,8 +27,8 @@ export class SmartReconnectionService {
    * Inicia el monitoreo de salud de la conexión
    */
   private startHealthMonitoring() {
-    // Verificar salud de la conexión cada 3 segundos
-    this.healthCheckInterval = interval(3000).subscribe(async () => {
+    // Verificar salud de la conexión cada 30 segundos (mucho menos agresivo)
+    this.healthCheckInterval = interval(30000).subscribe(async () => {
       await this.checkConnectionHealth();
     });
   }
@@ -36,12 +38,30 @@ export class SmartReconnectionService {
    */
   private async checkConnectionHealth(): Promise<void> {
     try {
-      // Solo verificar si la app está activa
-      if (document.visibilityState !== 'visible' || !document.hasFocus()) {
+      const now = Date.now();
+      
+      // Verificar si ha pasado suficiente tiempo desde el último health check
+      if (now - this.lastHealthCheck < this.minHealthCheckInterval) {
+        return;
+      }
+      
+      this.lastHealthCheck = now;
+      
+      // Solo verificar si la app está activa Y no se está reconectando
+      if (document.visibilityState !== 'visible' || 
+          !document.hasFocus() || 
+          this.isReconnecting) {
         return;
       }
 
-      const isHealthy = await this.supabaseService.testConnection(1000); // Timeout muy corto
+      // Solo verificar si han pasado más de 2 minutos desde la última conexión exitosa
+      const timeSinceLastConnection = now - this.lastSuccessfulConnection;
+      if (timeSinceLastConnection < 120000) { // 2 minutos
+        return;
+      }
+
+      console.log('🧠 SmartReconnectionService: Verificación de salud programada...');
+      const isHealthy = await this.supabaseService.testConnection(3000); // Timeout más largo
       
       if (isHealthy) {
         this.handleHealthyConnection();
@@ -75,16 +95,16 @@ export class SmartReconnectionService {
     this.consecutiveFailures++;
     
     if (this.consecutiveFailures >= this.maxFailures) {
-      console.log(`❌ SmartReconnectionService: ${this.consecutiveFailures} fallos consecutivos, iniciando reconexión inteligente`);
+      console.log(`❌ SmartReconnectionService: ${this.consecutiveFailures} fallos consecutivos, iniciando reconexión silenciosa`);
       this.connectionHealth$.next(false);
-      this.attemptSmartReconnection();
+      this.attemptSilentReconnection();
     }
   }
 
   /**
-   * Intenta una reconexión inteligente
+   * Intenta una reconexión silenciosa (sin interrumpir al usuario)
    */
-  private async attemptSmartReconnection(): Promise<void> {
+  private async attemptSilentReconnection(): Promise<void> {
     if (this.isReconnecting) {
       console.log('🔄 SmartReconnectionService: Ya se está reconectando, saltando...');
       return;
@@ -92,28 +112,29 @@ export class SmartReconnectionService {
 
     try {
       this.isReconnecting = true;
-      console.log('🧠 SmartReconnectionService: Iniciando reconexión inteligente...');
+      console.log('🧠 SmartReconnectionService: Iniciando reconexión silenciosa...');
 
       // Estrategia 1: Limpiar conexiones existentes
       await this.clearExistingConnections();
       
-      // Estrategia 2: Esperar un momento muy corto
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Estrategia 2: Esperar un momento
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Estrategia 3: Intentar reconexión con timeout muy corto
-      const isReconnected = await this.supabaseService.testConnection(1500);
+      // Estrategia 3: Intentar reconexión silenciosa
+      const isReconnected = await this.supabaseService.testConnection(5000);
       
       if (isReconnected) {
-        console.log('✅ SmartReconnectionService: Reconexión inteligente exitosa');
+        console.log('✅ SmartReconnectionService: Reconexión silenciosa exitosa');
         this.handleHealthyConnection();
       } else {
-        console.log('❌ SmartReconnectionService: Reconexión inteligente falló, usando estrategia de respaldo');
-        await this.fallbackReconnectionStrategy();
+        console.log('❌ SmartReconnectionService: Reconexión silenciosa falló, notificando a la app');
+        // En lugar de refresh, notificar a la app para que maneje la reconexión
+        this.connectionHealth$.next(false);
       }
       
     } catch (error) {
-      console.error('❌ Error en reconexión inteligente:', error);
-      await this.fallbackReconnectionStrategy();
+      console.error('❌ Error en reconexión silenciosa:', error);
+      this.connectionHealth$.next(false);
     } finally {
       this.isReconnecting = false;
     }
@@ -133,28 +154,13 @@ export class SmartReconnectionService {
   }
 
   /**
-   * Estrategia de respaldo para reconexión
-   */
-  private async fallbackReconnectionStrategy(): Promise<void> {
-    console.log('🔄 SmartReconnectionService: Usando estrategia de respaldo...');
-    
-    try {
-      // Último intento: refresh de la página
-      console.log('🔄 SmartReconnectionService: Forzando refresh como último recurso');
-      window.location.reload();
-    } catch (error) {
-      console.error('❌ Error en estrategia de respaldo:', error);
-    }
-  }
-
-  /**
-   * Fuerza una verificación de conexión inmediata
+   * Fuerza una verificación de conexión inmediata (solo cuando se solicita)
    */
   public async forceConnectionCheck(): Promise<boolean> {
-    console.log('🧠 SmartReconnectionService: Verificación forzada de conexión...');
+    console.log('🧠 SmartReconnectionService: Verificación forzada solicitada...');
     
     try {
-      const isHealthy = await this.supabaseService.testConnection(2000);
+      const isHealthy = await this.supabaseService.testConnection(5000);
       
       if (isHealthy) {
         this.handleHealthyConnection();

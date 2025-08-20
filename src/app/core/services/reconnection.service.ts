@@ -156,28 +156,30 @@ export class ReconnectionService {
       });
     }
 
-    // 6. VERIFICACIÓN ULTRA-RÁPIDA PARA MÓVILES - Verificar conexión cada 5 segundos
-    console.log('🔧 ReconnectionService: Configurando verificación ultra-rápida para móviles');
-    const aggressiveCheckInterval = interval(5000); // Cada 5 segundos
+    // 6. VERIFICACIÓN INTELIGENTE PARA MÓVILES - Solo cuando es necesario
+    console.log('🔧 ReconnectionService: Configurando verificación inteligente para móviles');
+    const intelligentCheckInterval = interval(15000); // Cada 15 segundos (menos agresivo)
     
-    const aggressiveSub = aggressiveCheckInterval.subscribe(async () => {
-      // Solo verificar si la app está visible y activa
-      if (document.visibilityState === 'visible' && document.hasFocus()) {
-        console.log('🔧 ReconnectionService: Verificación ultra-rápida de conexión (móvil)');
+    const intelligentSub = intelligentCheckInterval.subscribe(async () => {
+      // Solo verificar si la app está visible, activa y no se está reconectando
+      if (document.visibilityState === 'visible' && 
+          document.hasFocus() && 
+          !this.isProcessingResume) {
+        console.log('🔧 ReconnectionService: Verificación inteligente de conexión (móvil)');
         
         try {
-          const isConnected = await this.supabaseService.testConnection(1500); // Timeout más corto
+          const isConnected = await this.supabaseService.testConnection(3000); // Timeout más largo
           if (!isConnected) {
-            console.log('🔧 ReconnectionService: Conexión perdida detectada en verificación ultra-rápida');
+            console.log('🔧 ReconnectionService: Conexión perdida detectada en verificación inteligente');
             this.handleAppResume();
           }
         } catch (error) {
-          console.log('🔧 ReconnectionService: Error en verificación ultra-rápida:', error);
+          console.log('🔧 ReconnectionService: Error en verificación inteligente:', error);
         }
       }
     });
 
-    this.subscriptions.push(aggressiveSub);
+    this.subscriptions.push(intelligentSub);
   }
 
   /**
