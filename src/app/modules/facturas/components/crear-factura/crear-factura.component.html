@@ -8,7 +8,17 @@
   </div>
 
   <div class="factura-formulario" *ngIf="!loading || !isEditing">
-    <h2>{{ isEditing ? 'Editar Factura' : 'Crear Factura' }}</h2>
+    <div class="header-container">  
+      <h2>{{ isEditing ? 'Editar Factura' : 'Crear Factura' }}</h2>
+      <div class="actions-preview">
+        <button type="button" class="btn-outline" (click)="toggleVistaPrevia()">
+          <ion-icon name="eye-outline"></ion-icon>
+          <span class="button-text">Vista previa</span>
+        </button>
+      </div>
+    </div>
+    
+
     <form [formGroup]="facturaForm">
       <div class="grid-datos">
         <div class="form-group">
@@ -184,15 +194,6 @@
         </div>
       </section>
 
-      <div class="botones-footer">
-        <button type="button" class="btn-outline" (click)="enviarFactura()" [disabled]="loading || !facturaForm.valid">
-          {{ loading ? 'Enviando...' : (isEditing ? 'Actualizar factura' : 'Enviar factura') }}
-        </button>
-        <button type="button" class="btn-primary" (click)="generarFactura()" [disabled]="loading || !facturaForm.valid">
-          {{ loading ? 'Generando...' : (isEditing ? 'Guardar cambios' : 'Generar factura') }}
-        </button>
-      </div>
-
     </form>
   </div>
 
@@ -208,6 +209,10 @@
         <button type="button" class="btn-primary" (click)="imprimirFactura()">
           <ion-icon name="print"></ion-icon>
           <span class="button-text">Imprimir</span>
+        </button>
+        <button type="button" class="btn-close" (click)="toggleVistaPrevia()">
+          <ion-icon name="close-outline"></ion-icon>
+          <span class="button-text">Cerrar</span>
         </button>
       </div>  
     </div>
@@ -324,8 +329,30 @@
     </div>
   </div>
 
-  <!-- Botón flotante para alternar vista en móvil -->
-  <button class="toggle-preview-btn" (click)="toggleVistaPrevia()">
-    <ion-icon [name]="mostrarVistaPrevia ? 'create-outline' : 'eye-outline'"></ion-icon>
-  </button>
+  <!-- Footer con botones de acción -->
+  <ion-footer class="factura-footer" [translucent]="true">
+    <ion-toolbar>
+      <div class="footer-buttons">
+        <ion-button 
+          fill="outline" 
+          color="primary" 
+          (click)="enviarFactura()" 
+          [disabled]="loading || !facturaForm.valid"
+          class="footer-btn">
+          <ion-icon name="send-outline" slot="start"></ion-icon>
+          {{ loading ? 'Enviando...' : (isEditing ? 'Actualizar factura' : 'Enviar factura') }}
+        </ion-button>
+        
+        <ion-button 
+          fill="solid" 
+          color="primary" 
+          (click)="generarFactura()" 
+          [disabled]="loading || !facturaForm.valid"
+          class="footer-btn">
+          <ion-icon name="save-outline" slot="start"></ion-icon>
+          {{ loading ? 'Generando...' : (isEditing ? 'Guardar cambios' : 'Generar factura') }}
+        </ion-button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
 </div>

@@ -47,7 +47,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 15px;
 
   .actions-preview {
     display: flex;
@@ -201,6 +201,40 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  position: relative; // Para posicionar el botón de cerrar flotante
+
+  // Botón de cerrar flotante
+  .close-preview-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1002;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    &:hover {
+      background: #e5e7eb;
+      color: #374151;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 
   h2 {
     font-size: 18px;
@@ -410,6 +444,20 @@
       ion-icon {
         font-size: 20px;
       }
+
+      &.btn-close {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+
+        &:hover {
+          background: #e5e7eb;
+          color: #374151;
+        }
+      }
     }
   }
 }
@@ -420,6 +468,7 @@
   gap: 32px;
   display: flex;
   padding: 25px;
+  padding-bottom: 80px; // Espacio para el footer sticky
 }
 
 .factura-formulario {
@@ -611,42 +660,41 @@
   }
 }
 
-.botones-footer {
-  display: flex;
-  gap: 16px;
-  margin: 32px 0 0 0;
+// Footer de Ionic para los botones de acción
+.factura-footer {
+  --background: #ffffff;
+  --border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  bottom: 0;
+  z-index: 1000;
 
-  .btn-outline {
-    width: 100%;
-    background: #fff;
-    color: #4F46E5;
-    border: 2px solid #4F46E5;
-    border-radius: 12px;
-    padding: 12px 32px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-
-    &:hover {
-      background: #F3F4F6;
-    }
+  ion-toolbar {
+    --background: #ffffff;
+    --border: none;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    --padding-start: 16px;
+    --padding-end: 16px;
   }
 
-  .btn-primary {
+  .footer-buttons {
+    display: flex;
+    gap: 12px;
     width: 100%;
-    background: #4F46E5;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 32px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
 
-    &:hover {
-      background: #2723B8;
+    .footer-btn {
+      flex: 1;
+      --border-radius: 12px;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      --font-weight: 600;
+      --font-size: 14px;
+      height: 48px;
+
+      ion-icon {
+        font-size: 18px;
+      }
     }
   }
 }
@@ -696,7 +744,7 @@
   }
 }
 
-.toggle-preview-btn{
+.toggle-preview-btn {
   display: none;
 }
 
@@ -715,7 +763,7 @@
     ion-icon {
       font-size: 48px;
       margin-bottom: 16px;
-      
+
       &.spinning {
         animation: spin 1s linear infinite;
       }
@@ -730,8 +778,13 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // Estilos responsive
@@ -739,6 +792,7 @@
   .factura-container {
     flex-direction: column;
     padding: 0;
+    padding-bottom: 70px; // Espacio para el footer sticky en móvil
     gap: 0;
     position: relative;
     height: 100%;
@@ -748,7 +802,7 @@
     border-radius: 0;
     padding: 16px;
     box-shadow: none;
-    
+
     h2 {
       font-size: 20px;
       margin-bottom: 16px;
@@ -774,8 +828,9 @@
       overflow-x: auto;
       white-space: nowrap;
       -webkit-overflow-scrolling: touch;
-      
-      th, td {
+
+      th,
+      td {
         padding: 8px 12px;
         font-size: 13px;
       }
@@ -807,6 +862,19 @@
     padding: 16px;
     overflow-y: auto;
     min-width: unset;
+    margin-top: 30px;
+
+    // Botón de cerrar flotante en móvil
+    .close-preview-btn {
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
 
     &.active {
       display: block;
@@ -818,7 +886,7 @@
       background: white;
       z-index: 10;
       padding: 12px 0;
-      margin-bottom: 16px;
+      margin-bottom: 0px !important;
 
       h2 {
         font-size: 16px;
@@ -837,6 +905,13 @@
 
           ion-icon {
             font-size: 18px;
+          }
+
+          &.btn-close {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
           }
         }
       }
@@ -865,7 +940,9 @@
       }
 
       .factura-info {
-        span, address {
+
+        span,
+        address {
           font-size: 12px;
         }
 
@@ -893,7 +970,7 @@
   // Botón flotante para alternar vista
   .toggle-preview-btn {
     position: fixed;
-    bottom: 80px;
+    bottom: 120px; // Ajustado para evitar superposición con el footer
     right: 16px;
     width: 56px;
     height: 56px;
@@ -905,7 +982,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 1001; // Más alto que la vista previa
     cursor: pointer;
 
     ion-icon {
@@ -914,6 +991,33 @@
 
     &:active {
       transform: scale(0.95);
+    }
+  }
+
+  // Ajustes para el footer en móvil
+  .factura-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+
+    ion-toolbar {
+      --padding-top: 8px;
+      --padding-bottom: 8px;
+      --padding-start: 12px;
+      --padding-end: 12px;
+    }
+
+    .footer-buttons {
+      gap: 8px;
+
+      .footer-btn {
+        --font-size: 13px;
+        height: 44px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
     }
   }
 }
@@ -960,14 +1064,18 @@
   }
 
   .form-group {
-    input, textarea {
+
+    input,
+    textarea {
       font-size: 13px;
     }
   }
 
   .tabla-section {
     table {
-      th, td {
+
+      th,
+      td {
         padding: 6px 10px;
         font-size: 12px;
       }
@@ -979,13 +1087,44 @@
     padding: 4px 6px;
   }
 
-  .botones-footer {
-    padding: 8px 12px;
+  // Footer en pantallas muy pequeñas
+  .factura-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
 
-    button {
-      padding: 10px 24px!important;
-      font-size: 15px !important;
-      font-weight: 500 !important;
+    ion-toolbar {
+      --padding-top: 6px;
+      --padding-bottom: 6px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+
+    .footer-buttons {
+      gap: 6px;
+
+      .footer-btn {
+        --font-size: 12px;
+        height: 40px;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  // Botón de cerrar en pantallas muy pequeñas
+  .factura-preview {
+    .actions-preview {
+      button {
+        width: 32px;
+        height: 32px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
     }
   }
 }

@@ -18,13 +18,14 @@ import { FacturasService } from '../../services/facturas.service';
 import { LineaFactura, CrearFacturaRequest, FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
 import jsPDF from 'jspdf';
+import { IonFooter, IonToolbar, IonButton } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-crear-factura',
   templateUrl: './crear-factura.component.html',
   styleUrls: ['./crear-factura.component.scss'],
   standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, IonIcon]
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, IonIcon, IonFooter, IonToolbar, IonButton]
 })
 export class CrearFacturaComponent implements OnInit {
   @Input() facturaId?: string; // Para editar factura existente
