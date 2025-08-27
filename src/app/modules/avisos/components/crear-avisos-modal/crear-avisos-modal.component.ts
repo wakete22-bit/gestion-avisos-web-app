@@ -19,6 +19,8 @@ import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalC
 })
 export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() clienteData: any;
+  @Input() modoEdicion: boolean = false;
+  @Input() avisoExistente: any = null;
   avisoForm: FormGroup;
   imagenes: File[] = [];
   clientes: Cliente[] = [];
@@ -64,7 +66,11 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
     
     this.cargarClientes();
     
-    if (this.clienteData) {
+    // Si estamos en modo edición, cargar datos del aviso existente
+    if (this.modoEdicion && this.avisoExistente) {
+      this.cargarDatosAvisoExistente();
+    } else if (this.clienteData) {
+      // Si no es edición pero hay datos de cliente, usarlos
       this.avisoForm.patchValue({
         cliente: this.clienteData.id || this.clienteData.nombreContacto,
         direccionLocal: this.clienteData.direccionLocal,
@@ -86,6 +92,28 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   /**
+   * Carga los datos del aviso existente en el formulario
+   */
+  cargarDatosAvisoExistente() {
+    if (!this.avisoExistente) return;
+    
+    console.log('Cargando datos del aviso existente:', this.avisoExistente);
+    
+    // Buscar el cliente correspondiente
+    const cliente = this.clientes.find(c => c.id === this.avisoExistente.cliente_id);
+    
+    this.avisoForm.patchValue({
+      tipo: this.avisoExistente.tipo || 'correctivo',
+      cliente: cliente?.id || this.avisoExistente.cliente_id,
+      descripcion: this.avisoExistente.descripcion_problema || '',
+      direccionLocal: this.avisoExistente.direccion_cliente_aviso || '',
+      telefono: this.avisoExistente.telefono_cliente_aviso || '',
+      nombreContacto: this.avisoExistente.nombre_contacto || this.avisoExistente.nombre_cliente_aviso || '',
+      esUrgente: this.avisoExistente.es_urgente || this.avisoExistente.urgencia === 'Alta'
+    });
+  }
+
+  /**
    * Carga la lista de clientes activos
    */
   cargarClientes() {
@@ -103,6 +131,11 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
           this.loadingClientes = false;
           // Habilitar el select de cliente una vez cargados los datos
           this.avisoForm.get('cliente')?.enable();
+          
+          // Si estamos en modo edición, cargar datos del aviso después de tener los clientes
+          if (this.modoEdicion && this.avisoExistente) {
+            this.cargarDatosAvisoExistente();
+          }
         },
         error: (error) => {
           console.error('Error al cargar clientes:', error);
@@ -170,6 +203,12 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
         ...this.avisoForm.value,
         imagenes: this.imagenes
       };
+      
+      // Si estamos en modo edición, incluir el ID del aviso existente
+      if (this.modoEdicion && this.avisoExistente) {
+        avisoData.id = this.avisoExistente.id;
+      }
+      
       await this.modalController.dismiss(avisoData, 'confirm');
     }
   }

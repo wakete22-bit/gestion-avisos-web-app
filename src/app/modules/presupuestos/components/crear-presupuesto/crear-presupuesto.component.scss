@@ -681,6 +681,306 @@ ion-content {
   }
 }
 
+/* Selector de avisos */
+.aviso-selector-section {
+  background: #F8FAFC;
+  border: 2px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+
+  h3 {
+    color: #1F2937;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    color: #6B7280;
+    margin: 0 0 20px 0;
+    font-size: 14px;
+  }
+
+  .btn-select-aviso {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #2563EB;
+      transform: translateY(-1px);
+    }
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+.aviso-selector {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  .selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    h4 {
+      margin: 0;
+      color: #1F2937;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: #6B7280;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #F3F4F6;
+        color: #374151;
+      }
+    }
+  }
+
+  .search-container {
+    position: relative;
+    margin-bottom: 20px;
+
+    .search-input {
+      width: 100%;
+      padding: 12px 40px 12px 16px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #F9FAFB;
+
+      &:focus {
+        outline: none;
+        border-color: #3B82F6;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    ion-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+      font-size: 18px;
+    }
+  }
+
+  .loading-avisos,
+  .error-avisos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #6B7280;
+    font-size: 14px;
+
+    ion-icon {
+      margin-right: 8px;
+      font-size: 20px;
+    }
+
+    &.spinning {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .error-avisos {
+    color: #DC2626;
+
+    ion-icon {
+      color: #DC2626;
+    }
+  }
+
+  .avisos-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #F9FAFB;
+
+    .aviso-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid #E5E7EB;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: #F3F4F6;
+      }
+
+      .aviso-info {
+        flex: 1;
+
+        .aviso-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 4px;
+
+          .aviso-id {
+            font-size: 12px;
+            color: #6B7280;
+            background: #E5E7EB;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+          }
+
+          .aviso-estado {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+            &.estado-pendiente {
+              background: #FEE2E2;
+              color: #DC2626;
+            }
+
+            &.estado-en-curso {
+              background: #FEF3C7;
+              color: #D97706;
+            }
+
+            &.estado-completado {
+              background: #D1FAE5;
+              color: #059669;
+            }
+          }
+        }
+
+        .aviso-cliente {
+          font-weight: 600;
+          color: #1F2937;
+          font-size: 14px;
+          margin-bottom: 4px;
+          display: block;
+        }
+
+        .aviso-details {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+
+          .aviso-fecha {
+            font-size: 12px;
+            color: #6B7280;
+          }
+
+          .aviso-descripcion {
+            font-size: 12px;
+            color: #9CA3AF;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 300px;
+          }
+        }
+      }
+
+      .select-icon {
+        color: #3B82F6;
+        font-size: 20px;
+        margin-left: 12px;
+      }
+    }
+  }
+
+  .no-avisos {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6B7280;
+
+    ion-icon {
+      font-size: 48px;
+      color: #D1D5DB;
+      margin-bottom: 12px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+/* Header de información del aviso mejorado */
+.aviso-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h2 {
+    margin: 0;
+  }
+
+  .btn-change-aviso {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #F3F4F6;
+    color: #6B7280;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #E5E7EB;
+      color: #374151;
+    }
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+}
+
 /* Animaciones */
 @keyframes spin {
   from {

@@ -17,7 +17,7 @@ export interface Presupuesto {
   estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
   // Relaciones
   aviso?: any;
-  materiales?: any;
+  materiales_estimados?: any; // Campo JSONB en la base de datos
 }
 
 export interface MaterialPresupuesto {
@@ -39,6 +39,7 @@ export interface PresupuestoResponse {
 
 export interface CrearPresupuestoRequest {
   aviso_id: string;
+  albaran_id?: string | null; // Campo opcional hasta que se implemente correctamente
   horas_estimadas?: number;
   total_estimado?: number;
   estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
@@ -158,11 +159,26 @@ export class PresupuestosService {
    * Crea un nuevo presupuesto
    */
   crearPresupuesto(presupuesto: CrearPresupuestoRequest): Observable<Presupuesto> {
-    const presupuestoData = {
-      ...presupuesto,
+    // Preparar los datos del presupuesto, mapeando materiales a materiales_estimados
+    const presupuestoData: any = {
+      aviso_id: presupuesto.aviso_id,
+      horas_estimadas: presupuesto.horas_estimadas,
+      total_estimado: presupuesto.total_estimado,
       fecha_creacion: new Date().toISOString(),
       estado: 'Pendiente'
     };
+
+    // Solo incluir albaran_id si está presente y es válido
+    if (presupuesto.albaran_id) {
+      presupuestoData.albaran_id = presupuesto.albaran_id;
+    }
+
+    // Si hay materiales, añadirlos al campo materiales_estimados
+    if (presupuesto.materiales && presupuesto.materiales.length > 0) {
+      presupuestoData.materiales_estimados = presupuesto.materiales;
+    }
+
+    console.log('Servicio: Creando presupuesto con datos:', presupuestoData);
 
     return from(
       this.supabase
@@ -201,13 +217,24 @@ export class PresupuestosService {
     console.log('Servicio: Actualizando presupuesto con ID:', id);
     console.log('Servicio: Datos recibidos:', presupuesto);
     
-    const datosActualizados = {
-      ...presupuesto,
+    // Preparar los datos actualizados, mapeando materiales a materiales_estimados
+    const datosActualizados: any = {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    // Los materiales ahora se almacenan directamente en el campo JSONB materiales_estimados
-    console.log('Servicio: Datos del presupuesto:', datosActualizados);
+    // Añadir campos opcionales solo si están presentes
+    if (presupuesto.aviso_id !== undefined) datosActualizados.aviso_id = presupuesto.aviso_id;
+    if (presupuesto.horas_estimadas !== undefined) datosActualizados.horas_estimadas = presupuesto.horas_estimadas;
+    if (presupuesto.total_estimado !== undefined) datosActualizados.total_estimado = presupuesto.total_estimado;
+    if (presupuesto.estado !== undefined) datosActualizados.estado = presupuesto.estado;
+    if (presupuesto.pdf_url !== undefined) datosActualizados.pdf_url = presupuesto.pdf_url;
+
+    // Si hay materiales, mapearlos al campo materiales_estimados
+    if (presupuesto.materiales && presupuesto.materiales.length > 0) {
+      datosActualizados.materiales_estimados = presupuesto.materiales;
+    }
+
+    console.log('Servicio: Datos del presupuesto a actualizar:', datosActualizados);
 
     return from(
       this.supabase

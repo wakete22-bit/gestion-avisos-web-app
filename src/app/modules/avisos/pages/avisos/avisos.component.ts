@@ -915,6 +915,83 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Abre el modal para editar un aviso
+   */
+  async editarAviso(aviso: Aviso) {
+    if (!aviso?.id) {
+      console.error('No se puede editar el aviso: ID no válido');
+      return;
+    }
+
+    try {
+      console.log('Abriendo modal de edición para aviso:', aviso.id);
+      
+      const modal = await this.modalController.create({
+        component: CrearAvisosModalComponent,
+        cssClass: 'modal-crear-aviso',
+        componentProps: {
+          modoEdicion: true,
+          avisoExistente: aviso
+        }
+      });
+
+      await modal.present();
+
+      const { data, role } = await modal.onWillDismiss();
+      if (role === 'confirm' && data) {
+        try {
+          console.log('Datos del formulario de edición:', data);
+
+          // Preparar datos para actualizar
+          const datosActualizacion = {
+            tipo: data.tipo,
+            nombre_cliente_aviso: data.nombreContacto,
+            direccion_cliente_aviso: data.direccionLocal,
+            telefono_cliente_aviso: data.telefono,
+            nombre_contacto: data.nombreContacto,
+            descripcion_problema: data.descripcion,
+            es_urgente: data.esUrgente,
+            urgencia: data.esUrgente ? 'Alta' : 'Normal'
+          };
+
+          // Actualizar el aviso usando el ID del formulario o del aviso original
+          const avisoId = data.id || aviso.id;
+          
+          // Actualizar el aviso
+          this.loading = true;
+          this.avisosService.actualizarAviso(avisoId, datosActualizacion)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (avisoActualizado) => {
+                console.log('Aviso actualizado exitosamente:', avisoActualizado);
+                this.loading = false;
+
+                // Mostrar mensaje de éxito
+                console.log('✅ Aviso actualizado exitosamente');
+
+                // Recargar la lista de avisos sin caché
+                this.recargarAvisosSinCache();
+              },
+              error: (error) => {
+                console.error('Error al actualizar aviso:', error);
+                this.loading = false;
+
+                // Mostrar mensaje de error
+                this.error = error.message || 'Error al actualizar el aviso. Por favor, inténtalo de nuevo.';
+              }
+            });
+        } catch (error) {
+          console.error('Error al procesar la edición:', error);
+          this.error = 'Error al procesar la edición. Por favor, inténtalo de nuevo.';
+        }
+      }
+    } catch (error) {
+      console.error('Error al abrir el modal de edición:', error);
+      this.error = 'Error al abrir el modal de edición. Por favor, inténtalo de nuevo.';
+    }
+  }
+
 
 
   /**

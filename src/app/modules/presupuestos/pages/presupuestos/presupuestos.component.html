@@ -111,6 +111,15 @@
                 (accionEjecutada)="onAccionFlujoEjecutada($event)">
               </app-flujo-boton>
               
+              <!-- Botón para crear presupuesto desde este aviso -->
+              <button 
+                *ngIf="presupuesto.aviso_id" 
+                class="btn-crear-presupuesto" 
+                title="Crear presupuesto desde este aviso" 
+                (click)="crearPresupuestoDesdeAviso(presupuesto.aviso_id)">
+                <ion-icon name="add-circle-outline"></ion-icon>
+              </button>
+              
               <button class="btn-ver" title="Ver detalles" (click)="verPresupuesto(presupuesto)">
                 <ion-icon name="eye-outline"></ion-icon>
               </button>

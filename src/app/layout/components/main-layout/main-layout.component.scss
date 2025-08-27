@@ -1,3 +1,4 @@
+
 // Header móvil del layout principal - COMPLETAMENTE NATIVO
 .main-layout-mobile-header {
     display: none;
@@ -76,7 +77,7 @@
         background: #ffe7a0;
         border-radius: 50%;
         display: inline-block;
-        background-image: url('https://randomuser.me/api/portraits/men/1.jpg');
+        background-image: var(--default-avatar);
         background-size: cover;
         background-position: center;
         border: 2px solid #fff;

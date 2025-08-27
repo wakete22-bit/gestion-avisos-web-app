@@ -17,15 +17,94 @@
       </div>
     </div>
 
-    <!-- Información del Aviso -->
+    <!-- Selector de Aviso (solo si no hay aviso seleccionado) -->
+    <div *ngIf="!aviso && !loading" class="aviso-selector-section">
+      <h3>Seleccionar Aviso</h3>
+      <p>Para crear un presupuesto, primero debes seleccionar un aviso:</p>
+      
+      <button type="button" class="btn-select-aviso" (click)="abrirSelectorAvisos()">
+        <ion-icon name="list-outline"></ion-icon>
+        Seleccionar Aviso
+      </button>
+
+      <!-- Selector de avisos -->
+      <div *ngIf="mostrarSelectorAvisos" class="aviso-selector">
+        <div class="selector-header">
+          <h4>Seleccionar Aviso para el Presupuesto</h4>
+          <button type="button" class="btn-close" (click)="cerrarSelectorAvisos()">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </div>
+        
+        <!-- Búsqueda de avisos -->
+        <div class="search-container">
+          <input 
+            type="text" 
+            [(ngModel)]="busquedaAviso"
+            (input)="filtrarAvisos($event)"
+            placeholder="Buscar avisos por cliente o descripción..."
+            class="search-input">
+          <ion-icon name="search-outline"></ion-icon>
+        </div>
+
+        <!-- Estado de carga de avisos -->
+        <div *ngIf="loadingAvisos" class="loading-avisos">
+          <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+          <span>Cargando avisos...</span>
+        </div>
+
+        <!-- Error al cargar avisos -->
+        <div *ngIf="errorAvisos" class="error-avisos">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorAvisos }}</span>
+        </div>
+
+        <!-- Lista de avisos -->
+        <div *ngIf="!loadingAvisos && !errorAvisos" class="avisos-list">
+          <div 
+            *ngFor="let avisoItem of avisosFiltrados" 
+            class="aviso-item"
+            (click)="seleccionarAviso(avisoItem)">
+            <div class="aviso-info">
+              <div class="aviso-header">
+                <span class="aviso-id">#{{ avisoItem.id?.substring(0, 8) }}</span>
+                <span class="aviso-estado" [ngClass]="'estado-' + avisoItem.estado?.toLowerCase()">
+                  {{ avisoItem.estado }}
+                </span>
+              </div>
+              <span class="aviso-cliente">{{ avisoItem.nombre_cliente_aviso }}</span>
+              <div class="aviso-details">
+                <span class="aviso-fecha">{{ avisoItem.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+                <span class="aviso-descripcion">{{ avisoItem.descripcion_problema }}</span>
+              </div>
+            </div>
+            <ion-icon name="add-circle-outline" class="select-icon"></ion-icon>
+          </div>
+        </div>
+
+        <!-- Sin avisos -->
+        <div *ngIf="!loadingAvisos && !errorAvisos && avisosFiltrados.length === 0" class="no-avisos">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>No se encontraron avisos</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del Aviso (solo si hay aviso seleccionado) -->
     <div class="aviso-info" *ngIf="aviso && !loading">
-      <h2>Aviso: #{{ aviso.id?.substring(0, 8) }}</h2>
+      <div class="aviso-header-info">
+        <h2>Aviso: #{{ aviso.id?.substring(0, 8) }}</h2>
+        <button type="button" class="btn-change-aviso" (click)="abrirSelectorAvisos()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Cambiar Aviso
+        </button>
+      </div>
       <p><strong>Cliente:</strong> {{ aviso.nombre_cliente_aviso }}</p>
       <p><strong>Descripción:</strong> {{ aviso.descripcion_problema }}</p>
     </div>
 
-    <!-- Formulario -->
-    <form [formGroup]="presupuestoForm" (ngSubmit)="guardarPresupuesto()">
+    <!-- Formulario (solo si hay aviso seleccionado) -->
+    <form *ngIf="aviso" [formGroup]="presupuestoForm" (ngSubmit)="guardarPresupuesto()">
       <div class="form-section">
         <h3>Estimación de Trabajo</h3>
         

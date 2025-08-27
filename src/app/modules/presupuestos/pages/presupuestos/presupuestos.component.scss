@@ -1491,6 +1491,20 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
                   background-color: #D97706;
                 }
               }
+
+              &.btn-crear-presupuesto {
+                &:hover {
+                  background-color: #10B981;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #059669;
+                }
+              }
             }
           }
         }

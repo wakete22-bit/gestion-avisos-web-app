@@ -102,6 +102,15 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Método público para recargar el estado del flujo
+   * Se puede llamar desde el componente padre
+   */
+  recargarFlujo() {
+    console.log('🔄 Recargando flujo desde componente padre...');
+    this.cargarEstadoFlujo();
+  }
+
+  /**
    * Ejecuta una acción del flujo
    */
   ejecutarAccion(accion: string) {

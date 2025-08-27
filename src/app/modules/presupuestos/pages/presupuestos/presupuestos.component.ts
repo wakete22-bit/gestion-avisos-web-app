@@ -96,7 +96,15 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
    * Navega a crear nuevo presupuesto
    */
   crearPresupuesto() {
+    // Navegar sin parámetros para permitir selección de aviso
     this.router.navigate(['/presupuestos/crear']);
+  }
+
+  /**
+   * Crear presupuesto desde un aviso específico
+   */
+  crearPresupuestoDesdeAviso(avisoId: string) {
+    this.router.navigate(['/presupuestos/crear'], { queryParams: { avisoId } });
   }
 
   /**

@@ -22,6 +22,7 @@ import { PresupuestosService, CrearPresupuestoRequest } from '../../services/pre
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { InventarioService } from '../../../inventario/services/inventario.service';
 import { Inventario } from '../../../inventario/models/inventario.model';
+import { SupabaseClientService } from '../../../../core/services/supabase-client.service';
 
 @Component({
   selector: 'app-crear-presupuesto',
@@ -48,6 +49,17 @@ export class CrearPresupuestoComponent implements OnInit {
   busquedaProducto = '';
   mostrarSelectorMateriales = false;
 
+  // Variables para la selección de avisos
+  avisos: any[] = [];
+  avisosFiltrados: any[] = [];
+  loadingAvisos = false;
+  errorAvisos: string | null = null;
+  busquedaAviso = '';
+  mostrarSelectorAvisos = false;
+  
+  // Variable para almacenar albaranes del aviso
+  albaranesAviso: any[] = [];
+
   private destroy$ = new Subject<void>();
   private formStatusSubscription: any;
 
@@ -57,7 +69,8 @@ export class CrearPresupuestoComponent implements OnInit {
     private route: ActivatedRoute,
     private presupuestosService: PresupuestosService,
     private avisosService: AvisosService,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private supabaseClientService: SupabaseClientService
   ) {
     addIcons({
       arrowBackOutline,
@@ -87,8 +100,17 @@ export class CrearPresupuestoComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log('ngOnInit - Iniciando componente crear presupuesto');
     this.cargarAviso();
     this.cargarProductosInventario();
+    
+    // Si no hay avisoId, cargar la lista de avisos
+    if (!this.avisoId) {
+      console.log('ngOnInit - No hay avisoId, cargando lista de avisos...');
+      this.cargarAvisos();
+    } else {
+      console.log('ngOnInit - Hay avisoId:', this.avisoId);
+    }
   }
 
   ngOnDestroy() {
@@ -165,9 +187,9 @@ export class CrearPresupuestoComponent implements OnInit {
           this.verificarPreciosInventario();
           
           // Si estamos en modo edición y tenemos materiales pendientes de procesar
-          if (this.modoEdicion && this.presupuesto && this.presupuesto.materiales) {
+          if (this.modoEdicion && this.presupuesto && this.presupuesto.materiales_estimados) {
             console.log('Reprocesando materiales después de cargar inventario');
-            this.procesarMateriales(this.presupuesto.materiales);
+            this.procesarMateriales(this.presupuesto.materiales_estimados);
           }
         },
         error: (error) => {
@@ -300,16 +322,16 @@ export class CrearPresupuestoComponent implements OnInit {
         });
 
         // Cargar materiales si existen - esperar a que los productos del inventario estén cargados
-        if (presupuesto.materiales && presupuesto.materiales.length > 0) {
-          console.log('Materiales encontrados:', presupuesto.materiales);
+        if (presupuesto.materiales_estimados && presupuesto.materiales_estimados.length > 0) {
+          console.log('Materiales encontrados:', presupuesto.materiales_estimados);
           
           // Esperar a que los productos del inventario estén cargados
           if (this.productosInventario.length > 0) {
-            this.procesarMateriales(presupuesto.materiales);
+            this.procesarMateriales(presupuesto.materiales_estimados);
           } else {
             // Si no están cargados, esperar un poco y reintentar
             setTimeout(() => {
-              this.procesarMateriales(presupuesto.materiales);
+              this.procesarMateriales(presupuesto.materiales_estimados);
             }, 500);
           }
         } else {
@@ -607,8 +629,20 @@ export class CrearPresupuestoComponent implements OnInit {
     } else {
       // Modo creación - crear nuevo presupuesto
       console.log('Modo creación - creando nuevo presupuesto');
+      
+      // Verificar que tenemos un albarán antes de crear el presupuesto
+      if (!this.albaranesAviso || this.albaranesAviso.length === 0) {
+        alert('Error: No se ha creado un albarán. Intente seleccionar el aviso nuevamente.');
+        this.loading = false;
+        return;
+      }
+      
+      const albaranId = this.albaranesAviso[0].id;
+      console.log('Usando albarán ID:', albaranId);
+      
       const presupuestoData: CrearPresupuestoRequest = {
         aviso_id: this.avisoId || '',
+        albaran_id: albaranId,
         horas_estimadas: this.presupuestoForm.get('horas_estimadas')?.value,
         total_estimado: this.presupuestoForm.get('total_estimado')?.value,
         materiales: this.materiales
@@ -634,5 +668,130 @@ export class CrearPresupuestoComponent implements OnInit {
 
   volver() {
     this.router.navigate(['/presupuestos']);
+  }
+
+  /**
+   * Carga la lista de avisos disponibles
+   */
+  cargarAvisos() {
+    this.loadingAvisos = true;
+    this.errorAvisos = null;
+    
+    this.avisosService.getAvisos(1, 1000, '', 'fecha_creacion', 'desc', 'Pendiente')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.avisos = response.avisos || [];
+          this.avisosFiltrados = [...this.avisos];
+          this.loadingAvisos = false;
+          console.log('Avisos cargados:', this.avisos.length);
+        },
+        error: (error) => {
+          console.error('Error al cargar avisos:', error);
+          this.errorAvisos = 'Error al cargar avisos';
+          this.loadingAvisos = false;
+        }
+      });
+  }
+
+  /**
+   * Filtra avisos por búsqueda
+   */
+  filtrarAvisos(event: any) {
+    const termino = event?.target?.value || event || '';
+    this.busquedaAviso = termino;
+    if (!termino.trim()) {
+      this.avisosFiltrados = [...this.avisos];
+    } else {
+      this.avisosFiltrados = this.avisos.filter(aviso =>
+        aviso.nombre_cliente_aviso?.toLowerCase().includes(termino.toLowerCase()) ||
+        aviso.descripcion_problema?.toLowerCase().includes(termino.toLowerCase())
+      );
+    }
+  }
+
+  /**
+   * Abre el selector de avisos
+   */
+  abrirSelectorAvisos() {
+    this.mostrarSelectorAvisos = true;
+    this.avisosFiltrados = [...this.avisos];
+    this.busquedaAviso = '';
+  }
+
+  /**
+   * Cierra el selector de avisos
+   */
+  cerrarSelectorAvisos() {
+    this.mostrarSelectorAvisos = false;
+  }
+
+  /**
+   * Selecciona un aviso para el presupuesto
+   */
+  seleccionarAviso(aviso: any) {
+    this.avisoId = aviso.id;
+    this.aviso = aviso;
+    this.cerrarSelectorAvisos();
+    this.materiales = [];
+    this.calcularTotal(true);
+    console.log('Aviso seleccionado:', aviso);
+    
+    // Cargar albaranes del aviso seleccionado
+    this.cargarAlbaranesAviso(aviso.id);
+  }
+
+  /**
+   * Carga los albaranes del aviso seleccionado
+   */
+  cargarAlbaranesAviso(avisoId: string) {
+    console.log('Cargando albaranes para aviso:', avisoId);
+    
+    // Crear un albarán real en la base de datos
+    this.crearAlbaranParaPresupuesto(avisoId);
+  }
+
+  /**
+   * Crea un albarán real en la base de datos para el presupuesto
+   */
+  crearAlbaranParaPresupuesto(avisoId: string) {
+    const albaranData = {
+      aviso_id: avisoId,
+      fecha_trabajo: new Date().toISOString().split('T')[0],
+      hora_entrada: '09:00:00',
+      hora_salida: '17:00:00',
+      descripcion_trabajo_realizado: 'Presupuesto pendiente - trabajo por realizar',
+      estado_cierre: 'Presupuesto pendiente',
+      presupuesto_necesario: 0
+    };
+
+    console.log('Creando albarán con datos:', albaranData);
+    
+    // Usar Supabase directamente para crear el albarán
+    this.supabaseClientService.getClient()
+      .from('albaranes')
+      .insert([albaranData])
+      .select()
+      .single()
+      .then(({ data: albaran, error }) => {
+        if (error) {
+          console.error('Error al crear albarán:', error);
+          alert('Error al crear albarán: ' + error.message);
+        } else {
+          console.log('Albarán creado exitosamente:', albaran);
+          this.albaranesAviso = [albaran];
+        }
+      });
+  }
+
+  /**
+   * Genera un UUID temporal (formato válido para la base de datos)
+   */
+  generarUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 } 

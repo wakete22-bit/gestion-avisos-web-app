@@ -8,8 +8,10 @@
             <div class="mobile-title">
                 <img src="assets/icon/LogoGestionAvisosLargo.png" alt="Logo" class="mobile-logo">
             </div>
-            <div class="mobile-profile" routerLink="/cuenta">
-                <span class="avatar"></span>
+            <div class="mobile-profile" (click)="miCuenta()">
+                <span class="avatar">
+                    <img src="assets/icon/photo-profile.png" alt="Foto de perfil" class="profile-avatar">
+                </span>
             </div>
         </div>
     </ion-toolbar>

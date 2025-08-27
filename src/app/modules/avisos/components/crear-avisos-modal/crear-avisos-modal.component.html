@@ -1,12 +1,12 @@
 <ion-header>
   <ion-toolbar>
     <div class="header-content">
-      <h2>Añadir aviso</h2>
+      <h2>{{ modoEdicion ? 'Editar aviso' : 'Añadir aviso' }}</h2>
       <button class="close-button" (click)="cerrarModal()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
-    <p class="subtitle">Añade un nuevo aviso</p>
+    <p class="subtitle">{{ modoEdicion ? 'Modifica los datos del aviso' : 'Añade un nuevo aviso' }}</p>
   </ion-toolbar>
 </ion-header>
 
@@ -150,7 +150,7 @@
         class="btn btn-primary" 
         (click)="crearAviso()"
         [disabled]="!avisoForm.valid">
-        Crear aviso
+        {{ modoEdicion ? 'Guardar cambios' : 'Crear aviso' }}
         <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>

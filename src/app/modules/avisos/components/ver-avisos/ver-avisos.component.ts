@@ -27,6 +27,7 @@ addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrow
 })
 export class VerAvisosComponent implements OnInit {
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild(FlujoEstadoComponent, { static: false }) flujoComponent!: FlujoEstadoComponent;
 
   // Añadir la propiedad para controlar la vista
   vistaGaleria: 'grid' | 'list' = 'grid';
@@ -83,7 +84,14 @@ export class VerAvisosComponent implements OnInit {
                 console.log('📊 Albaranes cargados:', aviso.albaranes?.length || 0);
                 this.aviso = aviso;
                 this.loading = false;
-                // Ya no cargamos trabajos - solo albaranes que vienen con el aviso
+                
+                // Recargar el flujo después de cargar el aviso
+                // Esto asegura que las acciones estén actualizadas
+                setTimeout(() => {
+                  if (this.flujoComponent) {
+                    this.flujoComponent.recargarFlujo();
+                  }
+                }, 100);
               },
               error: (error) => {
                 console.error('❌ Error al cargar el aviso:', error);
@@ -108,6 +116,13 @@ export class VerAvisosComponent implements OnInit {
   forzarRecargaDatos() {
     this.error = null;
     this.cargarAviso();
+    
+    // También recargar el flujo después de un breve delay
+    setTimeout(() => {
+      if (this.flujoComponent) {
+        this.flujoComponent.recargarFlujo();
+      }
+    }, 200);
   }
 
   /**
@@ -484,6 +499,15 @@ export class VerAvisosComponent implements OnInit {
       await modal.present();
 
       const { data, role } = await modal.onWillDismiss();
+      
+      // Siempre recargar el aviso y el flujo cuando se cierra el modal
+      // Esto asegura que se detecten cambios en el albarán
+      console.log('Modal de albarán cerrado. Recargando datos...');
+      
+      // Recargar el aviso completo para obtener los datos más recientes
+      this.cargarAviso();
+      
+      // Si hay datos específicos del modal, manejarlos
       if (role === 'confirm' && data) {
         console.log('Modal de albarán cerrado con datos:', data);
         // Aquí se pueden manejar acciones adicionales si es necesario

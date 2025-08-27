@@ -1,6 +1,6 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { IonIcon } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
@@ -27,7 +27,7 @@ export class MainLayoutComponent implements OnInit {
   isAndroid: boolean = false;
   isStandalone: boolean = false;
 
-  constructor(private safeAreaService: SafeAreaService) {
+  constructor(private safeAreaService: SafeAreaService, private router: Router) {
     addIcons({ menuOutline });
     this.checkScreenSize();
   }
@@ -76,6 +76,10 @@ export class MainLayoutComponent implements OnInit {
     if (this.isMobile) {
       this.isSidebarOpen = !this.isSidebarOpen;
     }
+  }
+
+  miCuenta() {
+    this.router.navigate(['/cuenta']);
   }
 
   closeSidebar() {
