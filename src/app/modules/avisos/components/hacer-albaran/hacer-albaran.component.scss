@@ -912,6 +912,22 @@ textarea.form-control {
           .product-stock {
             font-size: 11px;
             color: #6B7280;
+            
+            &.stock-bajo {
+              color: #F59E0B;
+              font-weight: 600;
+            }
+            
+            &.stock-critico {
+              color: #EF4444;
+              font-weight: 700;
+            }
+            
+            .stock-indicador {
+              font-size: 10px;
+              font-style: italic;
+              margin-left: 4px;
+            }
           }
 
           .product-description {

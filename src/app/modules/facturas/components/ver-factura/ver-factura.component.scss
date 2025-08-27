@@ -66,6 +66,41 @@ ion-content {
       }
     }
   }
+  
+  .estado-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4a5568;
+      white-space: nowrap;
+    }
+    
+    .estado-select {
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      color: #4a5568;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 120px;
+      
+      &:hover {
+        border-color: #cbd5e0;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+    }
+  }
 }
 
 .btn-back {
@@ -468,9 +503,44 @@ ion-content {
     flex-direction: column;
     gap: 8px;
     
-    button {
+    .estado-selector {
       width: 100%;
       justify-content: center;
+      
+      .estado-select {
+        min-width: 120px;
+      }
+    }
+    
+    .pdf-options {
+      width: 100%;
+      justify-content: center;
+      
+      .pdf-template-selector {
+        min-width: 120px;
+      }
+    }
+    
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      
+      button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 13px;
+        
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+      
+      .btn-primary {
+        grid-column: 1 / -1; /* El botón principal ocupa toda la fila */
+      }
     }
   }
   

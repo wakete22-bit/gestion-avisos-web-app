@@ -683,6 +683,10 @@ export class AvisosService {
                     f.estado !== 'Completado'
                 ) || [];
                 
+                const facturasCompletadas = avisoCompleto.facturas?.filter((f: any) => 
+                    f.estado === 'Completado'
+                ) || [];
+                
                 // Determinar si tiene presupuesto pendiente
                 const presupuestoPendiente = albaranesPresupuestoPendiente.length > 0;
                 
@@ -702,6 +706,7 @@ export class AvisosService {
                         estadoPresupuesto: presupuestoPendiente ? 'Pendiente' : null,
                         totalFacturas: avisoCompleto.facturas?.length || 0,
                         facturasPendientes: facturasPendientes.length,
+                        facturasCompletadas: facturasCompletadas.length,
                         // Mantener compatibilidad con código existente
                         totalTrabajos: avisoCompleto.albaranes?.length || 0,
                         trabajosConAlbaran: albaranesCerrados.length,
@@ -728,14 +733,19 @@ export class AvisosService {
                 
                 console.log('🔍 Analizando estado del aviso:', {
                     estadoActual: resumen.estado,
-                    estadisticas: resumen.estadisticas,
+                    trabajosFinalizados: resumen.estadisticas.trabajosFinalizados,
+                    totalFacturas: resumen.estadisticas.totalFacturas,
+                    facturasPendientes: resumen.estadisticas.facturasPendientes,
+                    facturasCompletadas: resumen.estadisticas.facturasCompletadas,
                     trabajos: resumen.trabajos?.length || 0,
                     albaranes: resumen.albaranes?.length || 0
                 });
                 
                 // Nueva lógica para determinar el estado automáticamente
-                if (resumen.estadisticas.trabajosFinalizados > 0 && resumen.estadisticas.totalFacturas > 0) {
-                    // Si hay trabajos finalizados y facturas generadas, está completado
+                if (resumen.estadisticas.trabajosFinalizados > 0 && 
+                    resumen.estadisticas.totalFacturas > 0 && 
+                    resumen.estadisticas.facturasPendientes === 0) {
+                    // Si hay trabajos finalizados, facturas generadas Y todas las facturas están completadas
                     nuevoEstado = 'Completado';
                 } else if (resumen.estadisticas.trabajosFinalizados > 0 && resumen.estadisticas.facturasPendientes === 0) {
                     // Si hay trabajos finalizados pero no hay facturas, está listo para facturar

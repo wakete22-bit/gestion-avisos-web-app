@@ -6,22 +6,41 @@
         <ion-icon name="arrow-back-outline"></ion-icon>
         Volver a Facturas
       </button>
-      
+
       <div class="header-actions" *ngIf="factura">
-        <button class="btn-secondary" (click)="editarFactura()">
-          <ion-icon name="create-outline"></ion-icon>
-          Editar
-        </button>
-        <button class="btn-secondary" (click)="imprimirFactura()">
-          <ion-icon name="print-outline"></ion-icon>
-          Imprimir
-        </button>
-        <div class="pdf-options">
-          <select class="pdf-template-selector" [(ngModel)]="plantillaSeleccionada">
-            <option value="completa">Plantilla Completa</option>
-            <option value="simple">Plantilla Simple</option>
-            <option value="profesional">Plantilla Profesional</option>
-          </select>
+
+
+        <!-- Botones de acción -->
+        <div class="action-buttons">
+          <!-- Selector de estado -->
+          <div class="estado-selector">
+            <label for="estado-factura">Estado:</label>
+            <select id="estado-factura" [(ngModel)]="factura.factura.estado" (change)="cambiarEstado($event)"
+              class="estado-select">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En curso">En curso</option>
+              <option value="Completado">Completado</option>
+            </select>
+          </div>
+
+          <!-- Opciones de PDF -->
+          <div class="pdf-options">
+            <select class="pdf-template-selector" [(ngModel)]="plantillaSeleccionada">
+              <option value="completa">Plantilla Completa</option>
+              <option value="simple">Plantilla Simple</option>
+              <option value="profesional">Plantilla Profesional</option>
+            </select>
+          </div>
+          <button class="btn-secondary" (click)="imprimirFactura()">
+            <ion-icon name="print-outline"></ion-icon>
+            Imprimir
+          </button>
+
+          <button class="btn-secondary" (click)="editarFactura()">
+            <ion-icon name="create-outline"></ion-icon>
+            Editar
+          </button>
+
           <button class="btn-primary" (click)="descargarFactura()">
             <ion-icon name="download-outline"></ion-icon>
             Descargar PDF
@@ -194,4 +213,4 @@
       </div>
     </div>
   </div>
-</ion-content> 
+</ion-content>

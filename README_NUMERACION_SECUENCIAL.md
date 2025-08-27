@@ -195,3 +195,4 @@ La implementación incluye fallbacks para casos donde `numero_secuencial` no est
 **📋 Versión**: 1.0.0
 
 
+

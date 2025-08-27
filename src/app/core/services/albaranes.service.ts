@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Observable, from } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, from, forkJoin } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseClientService } from './supabase-client.service';
 import { Albaran, CrearAlbaranRequest } from '../../modules/avisos/models/albaran.model';
+import { InventarioService } from '../../modules/inventario/services/inventario.service';
 
 // Las interfaces ahora se importan del modelo albaran.model.ts
 
@@ -13,7 +14,10 @@ import { Albaran, CrearAlbaranRequest } from '../../modules/avisos/models/albara
 export class AlbaranesService {
   private supabase: SupabaseClient;
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private inventarioService: InventarioService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -21,26 +25,98 @@ export class AlbaranesService {
    * Crea un nuevo albarán
    */
   crearAlbaran(albaranData: CrearAlbaranRequest): Observable<Albaran> {
+    console.log('📋 Creando albarán con datos:', albaranData);
+    
+    // Extraer repuestos para procesarlos por separado
+    const { repuestos_utilizados, ...albaranBasico } = albaranData;
+    
+    // Primero crear el albarán básico (sin repuestos)
     return from(
       this.supabase
         .from('albaranes')
-        .insert([albaranData])
+        .insert([albaranBasico])
         .select()
         .single()
     ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        return data as Albaran;
+      switchMap(({ data: albaran, error: albaranError }) => {
+        if (albaranError) throw albaranError;
+        
+        console.log('✅ Albarán básico creado:', albaran.id);
+        
+        // Si no hay repuestos, devolver directamente el albarán
+        if (!repuestos_utilizados || repuestos_utilizados.length === 0) {
+          console.log('📋 Sin repuestos que procesar');
+          return from([albaran as Albaran]);
+        }
+        
+        // Preparar repuestos para insertar en la tabla repuestos_albaran
+        const repuestosParaInsertar = repuestos_utilizados.map(repuesto => ({
+          albaran_id: albaran.id,
+          nombre: repuesto.nombre,
+          cantidad: repuesto.cantidad,
+          precio_neto: repuesto.precio_neto || 0,
+          precio_pvp: repuesto.precio_pvp || 0,
+          unidad: repuesto.unidad || 'unidad',
+          codigo: repuesto.codigo || ''
+        }));
+        
+        console.log('📋 Insertando repuestos en tabla repuestos_albaran:', repuestosParaInsertar);
+        
+        // Insertar repuestos en la tabla repuestos_albaran
+        return from(
+          this.supabase
+            .from('repuestos_albaran')
+            .insert(repuestosParaInsertar)
+            .select()
+        ).pipe(
+          switchMap(({ data: repuestos, error: repuestosError }) => {
+            if (repuestosError) {
+              console.error('❌ Error al insertar repuestos:', repuestosError);
+              throw repuestosError;
+            }
+            
+            console.log('✅ Repuestos insertados correctamente:', repuestos?.length || 0, 'repuestos');
+            
+            // Actualizar stock del inventario para cada repuesto
+            if (repuestos && repuestos.length > 0) {
+              console.log('📦 Actualizando stock del inventario...');
+              
+              const actualizacionesStock = repuestos.map(repuesto => {
+                // Buscar el producto en inventario por código o nombre
+                return this.actualizarStockInventario(repuesto);
+              });
+              
+              // Ejecutar todas las actualizaciones de stock en paralelo
+              return forkJoin(actualizacionesStock).pipe(
+                map(() => {
+                  console.log('✅ Stock del inventario actualizado correctamente');
+                  
+                  // Devolver el albarán con los repuestos agregados
+                  return {
+                    ...albaran,
+                    repuestos: repuestos || []
+                  } as Albaran;
+                })
+              );
+            }
+            
+            // Si no hay repuestos, devolver directamente el albarán
+            return from([{
+              ...albaran,
+              repuestos: repuestos || []
+            } as Albaran]);
+          })
+        );
       }),
       catchError(error => {
-        console.error('Error al crear albarán:', error);
+        console.error('❌ Error al crear albarán:', error);
         throw error;
       })
     );
   }
 
   /**
-   * Obtiene un albarán por su ID
+   * Obtiene un albarán por su ID con sus repuestos
    */
   getAlbaran(id: string): Observable<Albaran> {
     return from(
@@ -48,13 +124,17 @@ export class AlbaranesService {
         .from('albaranes')
         .select(`
           *,
-          aviso:avisos(*)
+          aviso:avisos(*),
+          repuestos:repuestos_albaran(*)
         `)
         .eq('id', id)
         .single()
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
+        
+        console.log('📋 Albarán obtenido con repuestos:', data);
+        
         return data as Albaran;
       }),
       catchError(error => {
@@ -65,18 +145,90 @@ export class AlbaranesService {
   }
 
   /**
-   * Obtiene todos los albaranes de un aviso
+   * Actualiza el stock del inventario cuando se usa un repuesto
+   */
+  private actualizarStockInventario(repuesto: any): Observable<void> {
+    console.log('📦 Actualizando stock para repuesto:', repuesto);
+    
+    // Buscar el producto en inventario por código o nombre
+    let query = this.supabase
+      .from('inventario')
+      .select('*');
+    
+    if (repuesto.codigo) {
+      // Priorizar búsqueda por código
+      query = query.eq('codigo', repuesto.codigo);
+    } else {
+      // Búsqueda por nombre si no hay código
+      query = query.eq('nombre', repuesto.nombre);
+    }
+    
+    return from(query.single()).pipe(
+      switchMap(({ data: producto, error: productoError }) => {
+        if (productoError) {
+          console.warn('⚠️ Producto no encontrado en inventario:', repuesto.nombre || repuesto.codigo);
+          return from([void 0]); // Continuar sin error
+        }
+        
+        const productoInventario = producto as any;
+        const cantidadActual = productoInventario.cantidad_disponible || 0;
+        const cantidadUsada = repuesto.cantidad || 1;
+        const nuevaCantidad = Math.max(0, cantidadActual - cantidadUsada);
+        
+        console.log(`📦 Stock actual: ${cantidadActual}, Cantidad usada: ${cantidadUsada}, Nueva cantidad: ${nuevaCantidad}`);
+        
+        // Actualizar el stock en inventario
+        return from(
+          this.supabase
+            .from('inventario')
+            .update({ 
+              cantidad_disponible: nuevaCantidad,
+              fecha_actualizacion: new Date().toISOString()
+            })
+            .eq('id', productoInventario.id)
+        ).pipe(
+          map(({ error: updateError }) => {
+            if (updateError) {
+              console.error('❌ Error al actualizar stock:', updateError);
+              throw updateError;
+            }
+            
+            console.log(`✅ Stock actualizado: ${productoInventario.nombre} - ${cantidadActual} → ${nuevaCantidad}`);
+            
+            // Notificar cambio en inventario
+            this.inventarioService.getInventario().subscribe();
+            
+            return void 0;
+          })
+        );
+      }),
+      catchError(error => {
+        console.error('❌ Error en actualizarStockInventario:', error);
+        // No fallar la creación del albarán por errores de stock
+        return from([void 0]);
+      })
+    );
+  }
+
+  /**
+   * Obtiene todos los albaranes de un aviso con sus repuestos
    */
   getAlbaranesAviso(avisoId: string): Observable<Albaran[]> {
     return from(
       this.supabase
         .from('albaranes')
-        .select('*')
+        .select(`
+          *,
+          repuestos:repuestos_albaran(*)
+        `)
         .eq('aviso_id', avisoId)
         .order('fecha_trabajo', { ascending: false })
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
+        
+        console.log('📋 Albaranes obtenidos con repuestos:', data?.length || 0, 'albaranes');
+        
         return data as Albaran[];
       }),
       catchError(error => {

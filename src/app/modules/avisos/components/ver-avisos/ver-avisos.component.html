@@ -205,12 +205,15 @@
               </div>
               <div class="albaran-cell fecha-albaran">{{albaran.fecha_cierre | date:'dd/MM/yyyy'}}</div>
               <div class="albaran-cell repuestos-albaran">
-                <div *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0"
+                <!-- Priorizar repuestos de tabla repuestos_albaran -->
+                <div *ngIf="(albaran.repuestos && albaran.repuestos.length > 0) || (albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0)"
                   class="repuestos-info">
-                  <span class="repuestos-count">{{albaran.repuestos_utilizados.length}}</span>
+                  <span class="repuestos-count">
+                    {{(albaran.repuestos && albaran.repuestos.length > 0) ? albaran.repuestos.length : albaran.repuestos_utilizados.length}}
+                  </span>
                   <span class="repuestos-label">repuestos</span>
                 </div>
-                <div *ngIf="!albaran.repuestos_utilizados || albaran.repuestos_utilizados.length === 0"
+                <div *ngIf="(!albaran.repuestos || albaran.repuestos.length === 0) && (!albaran.repuestos_utilizados || albaran.repuestos_utilizados.length === 0)"
                   class="repuestos-vacio">
                   Sin repuestos
                 </div>

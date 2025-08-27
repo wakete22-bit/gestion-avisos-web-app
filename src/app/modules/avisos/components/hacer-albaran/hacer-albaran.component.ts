@@ -215,10 +215,24 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   agregarRepuesto(producto: Inventario) {
     console.log('🔍 agregarRepuesto - Producto recibido:', producto);
 
+    // Verificar stock disponible
+    const stockDisponible = producto.cantidad_disponible || 0;
+    if (stockDisponible <= 0) {
+      alert(`⚠️ No hay stock disponible para ${producto.nombre}`);
+      return;
+    }
+
     // Verificar si el repuesto ya existe
     const repuestoExistente = this.repuestosSeleccionados.find(r => r.nombre === producto.nombre);
 
     if (repuestoExistente) {
+      // Verificar que no exceda el stock disponible
+      const cantidadTotal = repuestoExistente.cantidad + 1;
+      if (cantidadTotal > stockDisponible) {
+        alert(`⚠️ No hay suficiente stock. Disponible: ${stockDisponible} ${producto.unidad}, Solicitado: ${cantidadTotal} ${producto.unidad}`);
+        return;
+      }
+      
       // Si ya existe, aumentar la cantidad
       repuestoExistente.cantidad += 1;
       console.log('🔍 agregarRepuesto - Repuesto existente, cantidad aumentada a:', repuestoExistente.cantidad);

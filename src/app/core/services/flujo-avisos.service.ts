@@ -480,30 +480,61 @@ export class FlujoAvisosService {
           });
         }
         
-        // También procesar repuestos básicos del array repuestos_utilizados si está disponible
-        if (albaran.repuestos_utilizados && Array.isArray(albaran.repuestos_utilizados)) {
+        // Procesar repuestos_utilizados solo si NO hay repuestos en la tabla repuestos_albaran
+        // Esto es para compatibilidad con albaranes legacy
+        if ((!albaran.repuestos || albaran.repuestos.length === 0) && 
+            albaran.repuestos_utilizados && Array.isArray(albaran.repuestos_utilizados)) {
+          
+          console.log(`🔧 Procesando repuestos_utilizados legacy para albarán #${indexAlbaran + 1}`);
+          
           albaran.repuestos_utilizados.forEach((repuesto: any) => {
             if (repuesto) {
-              const nombreRepuesto = typeof repuesto === 'string' ? repuesto : (repuesto.nombre || 'Repuesto sin nombre');
+              // Manejar tanto strings legacy como objetos serializados incorrectamente
+              let nombreRepuesto: string;
+              let cantidad = 1;
+              let precioUnitario = 0;
+              
+              if (typeof repuesto === 'string') {
+                // Es un string simple (legacy)
+                nombreRepuesto = repuesto;
+              } else if (typeof repuesto === 'object' && repuesto.nombre) {
+                // Es un objeto correctamente formateado
+                nombreRepuesto = repuesto.nombre;
+                cantidad = Number(repuesto.cantidad) || 1;
+                precioUnitario = Number(repuesto.precio_pvp) || Number(repuesto.precio_neto) || 0;
+              } else {
+                // Intentar parsear como JSON si parece ser un string JSON
+                try {
+                  const repuestoParsed = typeof repuesto === 'string' ? JSON.parse(repuesto) : repuesto;
+                  nombreRepuesto = repuestoParsed.nombre || 'Repuesto sin nombre';
+                  cantidad = Number(repuestoParsed.cantidad) || 1;
+                  precioUnitario = Number(repuestoParsed.precio_pvp) || Number(repuestoParsed.precio_neto) || 0;
+                } catch (e) {
+                  console.warn('⚠️ Repuesto mal formateado, ignorando:', repuesto);
+                  return;
+                }
+              }
+              
               const clave = nombreRepuesto.toLowerCase();
               
               if (repuestosConsolidados.has(clave)) {
                 // Sumar a repuesto existente
                 const existente = repuestosConsolidados.get(clave);
-                existente.cantidad_total += 1; // Cantidad por defecto para repuestos básicos
+                existente.cantidad_total += cantidad;
+                existente.precio_total += precioUnitario * cantidad;
                 existente.albaranes.push(indexAlbaran + 1);
-                console.log(`🔧 Repuesto consolidado: ${nombreRepuesto} - Cantidad total: ${existente.cantidad_total}`);
+                console.log(`🔧 Repuesto legacy consolidado: ${nombreRepuesto} - Cantidad total: ${existente.cantidad_total}`);
               } else {
                 // Crear nuevo repuesto consolidado
                 repuestosConsolidados.set(clave, {
                   nombre: nombreRepuesto,
-                  cantidad_total: 1,
-                  precio_unitario: 0, // Precio por defecto para repuestos básicos
-                  precio_total: 0,
+                  cantidad_total: cantidad,
+                  precio_unitario: precioUnitario,
+                  precio_total: precioUnitario * cantidad,
                   unidad: 'unidad',
                   albaranes: [indexAlbaran + 1]
                 });
-                console.log(`🔧 Nuevo repuesto: ${nombreRepuesto}`);
+                console.log(`🔧 Nuevo repuesto legacy: ${nombreRepuesto} - Cantidad: ${cantidad}`);
               }
             }
           });
@@ -513,14 +544,20 @@ export class FlujoAvisosService {
     
     // 4. Convertir materiales consolidados a líneas de factura
     repuestosConsolidados.forEach((material, clave) => {
+      // Calcular precio promedio si tenemos precio total y cantidad
+      const precioPromedio = material.cantidad_total > 0 ? 
+        (material.precio_total / material.cantidad_total) : material.precio_unitario;
+      
       lineasFactura.push({
         tipo: 'repuesto',
         nombre: material.nombre,
         cantidad: material.cantidad_total,
-        precio_neto: material.precio_unitario,
-        precio_pvp: material.precio_unitario > 0 ? material.precio_unitario : 0,
+        precio_neto: material.precio_unitario || 0,
+        precio_pvp: precioPromedio || material.precio_unitario || 0,
         descripcion: `${material.nombre} - ${material.cantidad_total} ${material.unidad} (usado en albaranes: ${material.albaranes.join(', ')})`
       });
+      
+      console.log(`🔧 Línea de factura creada: ${material.nombre} x${material.cantidad_total} = €${(precioPromedio * material.cantidad_total).toFixed(2)}`);
     });
     
     // 5. Calcular totales consolidados

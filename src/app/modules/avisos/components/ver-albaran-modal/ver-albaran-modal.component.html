@@ -79,7 +79,7 @@
   <div class="info-section">
     <h3>Materiales Utilizados</h3>
     <div class="materiales-content">
-      <div *ngIf="repuestosCompletos() && albaran.repuestos_utilizados.length > 0" class="materiales-tabla">
+      <div *ngIf="repuestosCompletos() && materialesUtilizados.length > 0" class="materiales-tabla">
         <table class="materiales-table">
           <thead>
             <tr>
@@ -92,13 +92,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let material of albaran.repuestos_utilizados">
-              <td>{{getMaterialAsRepuesto(material).codigo}}</td>
-              <td>{{getMaterialAsRepuesto(material).nombre}}</td>
-              <td>{{getMaterialAsRepuesto(material).cantidad}}</td>
-              <td>{{getMaterialAsRepuesto(material).unidad}}</td>
-              <td>{{getMaterialAsRepuesto(material).precio_pvp | currency:'EUR':'symbol':'1.2-2'}}</td>
-              <td>{{getMaterialAsRepuesto(material).precio_pvp * getMaterialAsRepuesto(material).cantidad | currency:'EUR':'symbol':'1.2-2'}}</td>
+            <tr *ngFor="let material of materialesUtilizados">
+              <td>{{material.codigo || '-'}}</td>
+              <td>{{material.nombre}}</td>
+              <td>{{material.cantidad}}</td>
+              <td>{{material.unidad}}</td>
+              <td>{{material.precio_pvp | currency:'EUR':'symbol':'1.2-2'}}</td>
+              <td>{{material.precio_pvp * material.cantidad | currency:'EUR':'symbol':'1.2-2'}}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -110,13 +110,13 @@
         </table>
       </div>
       
-      <div *ngIf="!repuestosCompletos() && albaran.repuestos_utilizados.length > 0" class="materiales-lista">
+      <div *ngIf="!repuestosCompletos() && materialesUtilizados.length > 0" class="materiales-lista">
         <ul class="repuestos-list">
-          <li *ngFor="let repuesto of albaran.repuestos_utilizados">{{repuesto}}</li>
+          <li *ngFor="let repuesto of materialesUtilizados">{{repuesto.nombre}}</li>
         </ul>
       </div>
       
-      <div *ngIf="albaran.repuestos_utilizados.length === 0" class="no-materiales">
+      <div *ngIf="materialesUtilizados.length === 0" class="no-materiales">
         <p>No se utilizaron materiales en este trabajo</p>
       </div>
     </div>
