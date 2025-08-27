@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline, bugOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline, bugOutline, informationCircleOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
-import { TrabajosService } from '../../../../core/services/trabajos.service';
-import { Aviso } from '../../models/aviso.model';
-import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
-import { CrearTrabajosRealizadosComponent } from '../crear-trabajos-realizados/crear-trabajos-realizados.component';
+// TrabajosService eliminado - ya no se gestiona
+import { Aviso, Albaran } from '../../models/aviso.model';
+// TrabajoRealizado eliminado - ya no se gestiona
+// CrearTrabajosRealizadosComponent eliminado - ya no se crea trabajos
 import { HacerAlbaranComponent } from '../hacer-albaran/hacer-albaran.component';
 import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
 import { CrearAvisosModalComponent } from '../crear-avisos-modal/crear-avisos-modal.component';
@@ -39,51 +39,23 @@ export class VerAvisosComponent implements OnInit {
 
   private destroy$ = new Subject<void>();
 
-  // Datos de trabajos realizados
-  trabajosRealizados: TrabajoRealizado[] = [];
-  loadingTrabajos = false;
+  // Ya no gestionamos trabajos - directamente albaranes
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private avisosService: AvisosService,
-    private trabajosService: TrabajosService,
     private modalController: ModalController,
     private flujoAvisosService: FlujoAvisosService
   ) {
-    addIcons({ refreshOutline, alertCircleOutline, arrowBackOutline, close, pencilOutline, checkmarkCircleOutline, navigate, person, call, mail, addCircle, constructOutline, bugOutline, documentTextOutline, trashOutline, imagesOutline, personOutline, gridOutline, listOutline, chevronDownOutline, eyeOutline, ellipsisVerticalOutline, ellipsisVertical, add, mapOutline });
+    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,checkmarkCircleOutline,navigate,person,call,mail,addCircle,informationCircleOutline,documentTextOutline,eyeOutline,imagesOutline,trashOutline,constructOutline,bugOutline,personOutline,gridOutline,listOutline,chevronDownOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
     this.cargarAviso();
   }
 
-  /**
-   * Carga los trabajos realizados del aviso
-   */
-  cargarTrabajos() {
-    if (!this.aviso?.id) return;
-
-    console.log('🔄 cargarTrabajos() ejecutándose para aviso:', this.aviso.id);
-    this.loadingTrabajos = true;
-    this.error = null; // ← LIMPIAR ERROR AL RECARGAR TRABAJOS
-    
-    this.trabajosService.getTrabajosAviso(this.aviso.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          console.log('✅ Trabajos cargados exitosamente:', response.trabajos.length, 'trabajos');
-          console.log('📊 Estados de los trabajos:', response.trabajos.map((t: any) => ({ id: t.id, estado: t.estado, albaran_id: t.albaran_id })));
-          this.trabajosRealizados = response.trabajos;
-          this.loadingTrabajos = false;
-        },
-        error: (error) => {
-          console.error('❌ Error al cargar trabajos:', error);
-          this.loadingTrabajos = false;
-          this.error = 'Error al cargar los trabajos realizados';
-        }
-      });
-  }
+  // Método cargarTrabajos eliminado - ya no gestionamos trabajos
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -111,8 +83,7 @@ export class VerAvisosComponent implements OnInit {
                 console.log('📊 Albaranes cargados:', aviso.albaranes?.length || 0);
                 this.aviso = aviso;
                 this.loading = false;
-                // Cargar trabajos realizados después de cargar el aviso
-                this.cargarTrabajos();
+                // Ya no cargamos trabajos - solo albaranes que vienen con el aviso
               },
               error: (error) => {
                 console.error('❌ Error al cargar el aviso:', error);
@@ -343,145 +314,36 @@ export class VerAvisosComponent implements OnInit {
   }
 
   /**
-   * Abre el modal para crear un nuevo trabajo realizado
+   * Abre el modal para crear un nuevo albarán directamente
    */
-  async crearTrabajoRealizado(trabajoExistente?: TrabajoRealizado) {
-    if (!this.aviso?.id) return;
-
-    const modal = await this.modalController.create({
-      component: CrearTrabajosRealizadosComponent,
-      componentProps: {
-        avisoId: this.aviso.id,
-        trabajoExistente: trabajoExistente // Pasar el trabajo existente si se está editando
-      },
-      cssClass: 'modal-crear-trabajo'
-    });
-
-    await modal.present();
-
-    const { data, role } = await modal.onWillDismiss();
-    if (role === 'confirm' && data) {
-      try {
-        if (trabajoExistente) {
-          // Actualizar trabajo existente
-          const resultado = await firstValueFrom(this.trabajosService.actualizarTrabajo(trabajoExistente.id!, data));
-          console.log('Trabajo actualizado exitosamente:', resultado);
-          alert('Trabajo actualizado exitosamente.');
-        } else {
-          // Crear nuevo trabajo
-          const resultado = await firstValueFrom(this.trabajosService.crearTrabajo(data));
-          console.log('Trabajo creado exitosamente:', resultado);
-          alert('Trabajo creado exitosamente. Los materiales han sido descontados del inventario.');
-        }
-
-        // Recargar trabajos para mostrar los cambios
-        this.cargarTrabajos();
-      } catch (error) {
-        console.error('Error al procesar trabajo:', error);
-        alert('Error al procesar el trabajo. Por favor, inténtalo de nuevo.');
-      }
-    }
-  }
-
-  /**
-   * Edita un trabajo existente
-   */
-  async editarTrabajo(trabajo: TrabajoRealizado) {
-    try {
-      // Cargar los datos completos del trabajo con sus materiales
-      const trabajoCompleto = await firstValueFrom(this.trabajosService.getTrabajo(trabajo.id!));
-      await this.crearTrabajoRealizado(trabajoCompleto.trabajo);
-    } catch (error) {
-      console.error('Error al cargar el trabajo para editar:', error);
-      alert('Error al cargar el trabajo para editar. Por favor, inténtalo de nuevo.');
-    }
-  }
-
-  /**
-   * Elimina un trabajo
-   */
-  async eliminarTrabajo(trabajo: TrabajoRealizado) {
-    const confirmacion = confirm(
-      `¿Estás seguro de que quieres eliminar este trabajo?\n\n` +
-      `Fecha: ${trabajo.fecha_trabajo}\n` +
-      `Descripción: ${trabajo.descripcion}\n\n` +
-      `Esta acción no se puede deshacer y los materiales serán devueltos al inventario.`
-    );
-
-    if (confirmacion) {
-      try {
-        await firstValueFrom(this.trabajosService.eliminarTrabajo(trabajo.id!));
-        console.log('Trabajo eliminado exitosamente');
-        alert('Trabajo eliminado exitosamente. Los materiales han sido devueltos al inventario.');
-
-        // Recargar trabajos para actualizar la lista
-        this.cargarTrabajos();
-      } catch (error) {
-        console.error('Error al eliminar el trabajo:', error);
-        alert('Error al eliminar el trabajo. Por favor, inténtalo de nuevo.');
-      }
-    }
-  }
-
-  /**
-   * Abre el modal para hacer albarán
-   */
-  async hacerAlbaran(trabajo: TrabajoRealizado) {
-    console.log('Abriendo modal de hacer albarán para trabajo:', trabajo);
+  async crearAlbaran() {
     if (!this.aviso?.id) return;
 
     const modal = await this.modalController.create({
       component: HacerAlbaranComponent,
       componentProps: {
-        trabajo: trabajo,
         aviso: this.aviso
       },
       cssClass: 'modal-hacer-albaran modal-fullscreen',
       backdropDismiss: false,
       showBackdrop: true,
-      breakpoints: [0, 1], // Solo dos breakpoints: cerrado (0) y abierto (1)
-      initialBreakpoint: 1, // Siempre abierto al máximo
-      backdropBreakpoint: 0, // Backdrop solo cuando está cerrado
-      handle: false, // Deshabilitar el handle de arrastre
-      handleBehavior: 'none' // Sin comportamiento de arrastre
+      breakpoints: [0, 1],
+      initialBreakpoint: 1,
+      backdropBreakpoint: 0,
+      handle: false,
+      handleBehavior: 'none'
     });
 
-    console.log('Modal creado:', modal);
-    console.log('Presentando modal...');
     await modal.present();
-    console.log('Modal presentado');
 
     const { data, role } = await modal.onWillDismiss();
-    console.log('🔍 Modal cerrado con:', { role, data });
-    
     if (role === 'confirm' && data?.success) {
       try {
         console.log('✅ Albarán creado exitosamente:', data.albaran);
-        console.log('✅ Trabajo actualizado:', data.trabajo);
-        console.log('✅ Aviso actualizado:', data.aviso);
         alert(data.mensaje || 'Albarán creado exitosamente');
 
-        console.log('🔄 Recargando datos...');
-        // Recargar trabajos y aviso para mostrar los cambios
-        this.cargarTrabajos();
+        // Recargar aviso para mostrar el nuevo albarán
         this.cargarAviso();
-
-        // Procesar el estado del albarán
-        if (data.albaran.estado_cierre === 'Finalizado') {
-          console.log('Trabajo finalizado, listo para facturar');
-          // El trabajo ya está marcado como "Finalizado" y listo para facturar
-        }
-
-        if (data.albaran.estado_cierre === 'Presupuesto pendiente') {
-          console.log('Presupuesto pendiente, se puede crear presupuesto');
-          // Aquí se podría mostrar opción para crear presupuesto
-        }
-
-        if (data.albaran.estado_cierre === 'Otra visita') {
-          console.log('Otra visita requerida');
-          // Aquí se podría programar nueva visita
-        }
-
       } catch (error) {
         console.error('Error al procesar albarán:', error);
         alert('Error al procesar el albarán. Por favor, inténtalo de nuevo.');
@@ -489,15 +351,16 @@ export class VerAvisosComponent implements OnInit {
     }
   }
 
-  realizarOtraVisita(trabajo: any) {
-    // Implementar lógica para realizar otra visita
-    console.log('Realizar otra visita para el trabajo:', trabajo);
-  }
+  // Métodos editarTrabajo y eliminarTrabajo eliminados - ya no gestionamos trabajos
+
+  // Método hacerAlbaran eliminado - ahora se crea directamente desde crearAlbaran()
+
+  // realizarOtraVisita eliminado - ahora se gestiona con múltiples albaranes
 
   /**
    * Elimina una foto del aviso
    */
-  async eliminarFoto(foto: any) {
+  async eliminarFoto(foto: { id: string; descripcion?: string }) {
     if (!this.aviso?.id || !foto?.id) {
       console.error('No se puede eliminar la foto: faltan datos');
       return;
@@ -520,53 +383,7 @@ export class VerAvisosComponent implements OnInit {
     }
   }
 
-  /**
-   * Calcula las horas de trabajo de un trabajo
-   */
-  calcularHorasTrabajo(trabajo: TrabajoRealizado): number {
-    const inicio = new Date(`2000-01-01T${trabajo.hora_inicio}`);
-    const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
-    const horas = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
-    return Math.max(0, horas);
-  }
-
-  /**
-   * Obtiene el estado del albarán asociado al trabajo
-   */
-  getAlbaranEstado(trabajo: TrabajoRealizado): string {
-    // Validaciones básicas
-    if (!trabajo || !trabajo.albaran_id || !this.aviso?.albaranes) {
-      return 'pendiente';
-    }
-
-    const albaran = this.aviso.albaranes.find(a => a.id === trabajo.albaran_id);
-
-    if (!albaran || !albaran.estado_cierre) {
-      return 'pendiente';
-    }
-
-    // Convertir el estado del albarán a un formato válido para CSS
-    return albaran.estado_cierre.toLowerCase().replace(/ /g, '-');
-  }
-
-  /**
-   * Verifica si se puede crear un albarán para un trabajo
-   */
-  puedeCrearAlbaran(trabajo: TrabajoRealizado): boolean {
-    // Validaciones básicas
-    if (!trabajo || !trabajo.estado) {
-      return false;
-    }
-
-    // No se puede crear si ya tiene albarán
-    if (trabajo.albaran_id) {
-      return false;
-    }
-
-    // Estados válidos para crear albarán
-    const estadosValidos = ['En curso', 'Abierto', 'Pendiente'];
-    return estadosValidos.includes(trabajo.estado);
-  }
+  // Métodos calcularHorasTrabajo, getAlbaranEstado y puedeCrearAlbaran eliminados - ya no gestionamos trabajos
 
   /**
    * Convierte el estado del aviso a una clase CSS válida
@@ -579,12 +396,11 @@ export class VerAvisosComponent implements OnInit {
   /**
    * Maneja las acciones ejecutadas desde el componente de flujo
    */
-  onAccionFlujoEjecutada(resultado: any) {
+  onAccionFlujoEjecutada(resultado: { mensaje?: string; facturaId?: string }) {
     console.log('Acción de flujo ejecutada:', resultado);
 
-    // Recargar aviso y trabajos para reflejar cambios
+    // Recargar aviso para reflejar cambios
     this.cargarAviso();
-    this.cargarTrabajos();
 
     // Mostrar mensaje de éxito (opcional)
     if (resultado.mensaje) {
@@ -644,7 +460,7 @@ export class VerAvisosComponent implements OnInit {
   /**
    * Abre el modal para ver los detalles completos de un albarán
    */
-  async verAlbaran(albaran: any) {
+  async verAlbaran(albaran: Albaran) {
     if (!albaran?.id) {
       console.error('No se puede abrir el albarán: ID no válido');
       return;

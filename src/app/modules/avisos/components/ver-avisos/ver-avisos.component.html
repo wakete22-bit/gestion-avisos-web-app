@@ -59,11 +59,13 @@
         <span>Aviso completado</span>
       </div>
     </div>
-    <span class="mobile-only title">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado') | titlecase}}</span>
+    <span class="mobile-only title">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado')
+      | titlecase}}</span>
   </div>
 
   <h2 class="title">
-    <span class="desktop-only">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado') | titlecase}}</span>
+    <span class="desktop-only">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado') |
+      titlecase}}</span>
   </h2>
 
   <div class="info-grid">
@@ -136,20 +138,20 @@
 <!-- SECCIÓN REORGANIZADA: TRABAJOS Y FLUJO JUNTOS -->
 <!-- ================================= -->
 
-<!-- Trabajos Realizados y Gestión del Flujo -->
+<!-- Gestión de Albaranes -->
 <div class="info-card">
   <div class="card-header">
     <h2 style="text-wrap: nowrap;">Gestión de Albaranes</h2>
     <div class="header-actions-jobs">
-      <button class="btn-primary" (click)="crearTrabajoRealizado()">
+      <button class="btn-primary" (click)="crearAlbaran()">
         <ion-icon name="add-circle"></ion-icon>
-        <span class="desktop-only">Crear parte de trabajo</span>
-        <span class="mobile-only">Crear trabajo</span>
+        <span class="desktop-only">Crear Albarán</span>
+        <span class="mobile-only">Crear Albarán</span>
       </button>
     </div>
   </div>
 
-  <!-- Gestión del Flujo Automático - MOVIDO AQUÍ -->
+  <!-- Gestión del Flujo Automático -->
   <div class="flujo-section" *ngIf="aviso?.id">
     <div class="flujo-container">
       <app-flujo-estado [avisoId]="aviso?.id || ''" (accionEjecutada)="onAccionFlujoEjecutada($event)">
@@ -159,214 +161,71 @@
 
   <!-- Separador visual -->
   <div class="section-divider">
-    <span>Lista de Trabajos Registrados</span>
+    <hr>
+    <span>Albaranes Cerrados</span>
   </div>
 
-  <!-- Tabla de trabajos realizados -->
-  <div class="table-container">
-    <!-- Loading State -->
-    <div *ngIf="loadingTrabajos" class="loading-state">
-      <div class="loading-spinner">
-        <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-        <p>Cargando trabajos...</p>
+  <!-- Albaranes Cerrados - INTEGRADO DENTRO DE GESTIÓN -->
+  <div class="albaranes-section">
+    <div class="albaranes-container">
+      <!-- Mensaje cuando no hay albaranes -->
+      <div *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0" class="no-albaranes">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <p>No hay albaranes cerrados para este aviso</p>
+        <p class="info-text">Los albaranes aparecerán aquí una vez que se cierren los trabajos realizados</p>
       </div>
-    </div>
 
-    <!-- No hay trabajos -->
-    <div *ngIf="!loadingTrabajos && (!trabajosRealizados || trabajosRealizados.length === 0)" class="no-trabajos">
-      <div class="empty-state">
-        <ion-icon name="construct-outline"></ion-icon>
-        <p>No hay trabajos realizados para este aviso</p>
-        <small>Crea el primer parte de trabajo para comenzar</small>
-      </div>
-    </div>
-
-    <!-- Tabla de trabajos -->
-    <table *ngIf="!loadingTrabajos && trabajosRealizados.length > 0" class="custom-mat-table">
-      <thead>
-        <tr>
-          <th>Número</th>
-          <th>Fecha trabajo</th>
-          <th>Horas</th>
-          <th>Descripción</th>
-          <th>Materiales</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let trabajo of trabajosRealizados; let i = index">
-          <td data-label="Número">#{{i + 1}}</td>
-          <td data-label="Fecha trabajo">{{trabajo.fecha_trabajo | date:'dd/MM/yyyy'}}</td>
-          <td data-label="Horas">{{calcularHorasTrabajo(trabajo) | number:'1.1-1'}}h</td>
-          <td data-label="Descripción">
-            <div class="descripcion-trabajo">
-              <p>{{trabajo.descripcion}}</p>
-              <small>{{trabajo.hora_inicio}} - {{trabajo.hora_fin}}</small>
+      <!-- Tabla compacta de albaranes (similar a avisos) -->
+      <div *ngIf="aviso?.albaranes && aviso?.albaranes.length > 0" class="compact-albaranes-table">
+        <div class="albaranes-table">
+          <div class="table-header">
+            <div class="header-row">
+              <div class="header-cell">Número</div>
+              <div class="header-cell">Estado</div>
+              <div class="header-cell">Fecha</div>
+              <div class="header-cell">Repuestos</div>
+              <div class="header-cell">Acciones</div>
             </div>
-          </td>
-          <td data-label="Materiales">
-            <div class="materiales-info">
-              <!-- Mostrar materiales con cantidades reales si están disponibles -->
-              <ul class="repuestos-list" *ngIf="trabajo.materiales && trabajo.materiales.length > 0">
-                <li *ngFor="let material of trabajo.materiales">
-                  {{material.material?.nombre || 'Material'}}: {{material.cantidad_utilizada}}
-                  {{material.material?.unidad || 'unidad'}}
-                </li>
-              </ul>
-              <!-- Fallback a repuestos básicos si no hay materiales detallados -->
-              <ul class="repuestos-list"
-                *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && trabajo.repuestos && trabajo.repuestos.length > 0">
-                <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
-              </ul>
-              <span
-                *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && (!trabajo.repuestos || trabajo.repuestos.length === 0)"
-                class="no-repuestos">
-                Sin materiales
-              </span>
-            </div>
-          </td>
-          <td data-label="Estado">
-            <span class="badge-estado" [class]="'badge-' + trabajo.estado.toLowerCase().replace(' ', '-')">
-              {{trabajo.estado}}
-            </span>
-          </td>
-          <td data-label="Acciones">
-            <div class="estado-actions">
-              <!-- Botón de Hacer Albarán - SOLO VISIBLE CUANDO SE PUEDA CREAR -->
-              <button *ngIf="puedeCrearAlbaran(trabajo)" class="btn-primary btn-small" (click)="hacerAlbaran(trabajo)"
-                title="Hacer albarán" style="background: #4CAF50;">
-                <ion-icon name="document-text-outline"></ion-icon>
-                <span class="desktop-only">Crear Albarán</span>
-                <span class="mobile-only">Albarán</span>
-              </button>
-
-              <!-- Mostrar información del albarán si existe -->
-              <div *ngIf="trabajo.albaran_id" class="albaran-info">
-                <span class="badge-albaran" [class]="'badge-' + getAlbaranEstado(trabajo)">
-                  <ion-icon name="checkmark-circle-outline"></ion-icon>
-                  Albarán Cerrado
+          </div>
+          <div class="table-body">
+            <div *ngFor="let albaran of aviso?.albaranes; let i = index" class="albaran-row" 
+                 [ngClass]="{
+                   'finalizado': albaran.estado_cierre === 'Finalizado',
+                   'presupuesto-pendiente': albaran.estado_cierre === 'Presupuesto pendiente',
+                   'otra-visita': albaran.estado_cierre === 'Otra visita'
+                 }">
+              <div class="albaran-cell numero-albaran">{{i + 1}}</div>
+              <div class="albaran-cell estado-albaran">
+                <span class="badge" [ngClass]="{
+                        'green': albaran.estado_cierre === 'Finalizado',
+                        'yellow': albaran.estado_cierre === 'Presupuesto pendiente',
+                        'blue': albaran.estado_cierre === 'Otra visita'
+                      }">
+                  {{ albaran.estado_cierre }}
                 </span>
-                <!-- <small class="albaran-details">
-                  {{ getAlbaranEstado(trabajo) }}
-                </small> -->
               </div>
-
-              <!-- Botón de Editar (solo si no está cerrado) -->
-              <button *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
-                class="btn-secondary btn-small" (click)="editarTrabajo(trabajo)" title="Editar trabajo">
-                <ion-icon name="pencil-outline"></ion-icon>
-                <span class="desktop-only">Editar</span>
-                <span class="mobile-only">Editar</span>
-              </button>
-
-              <!-- Botón de Eliminar (solo si no está cerrado) -->
-              <button *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
-                class="btn-danger btn-small" (click)="eliminarTrabajo(trabajo)" title="Eliminar trabajo">
-                <ion-icon name="trash-outline"></ion-icon>
-                <span class="desktop-only">Eliminar</span>
-                <span class="mobile-only">Eliminar</span>
-              </button>
+              <div class="albaran-cell fecha-albaran">{{albaran.fecha_cierre | date:'dd/MM/yyyy'}}</div>
+              <div class="albaran-cell repuestos-albaran">
+                <div *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0" class="repuestos-info">
+                  <span class="repuestos-count">{{albaran.repuestos_utilizados.length}}</span>
+                  <span class="repuestos-label">repuestos</span>
+                </div>
+                <div *ngIf="!albaran.repuestos_utilizados || albaran.repuestos_utilizados.length === 0" class="repuestos-vacio">
+                  Sin repuestos
+                </div>
+              </div>
+              <div class="albaran-cell acciones">
+                <button class="btn-ver" title="Ver albarán completo" (click)="verAlbaran(albaran)">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </button>
+                <div class="mobile-info" *ngIf="albaran.presupuesto_necesario > 0">
+                  <span class="presupuesto-mobile">
+                    €{{albaran.presupuesto_necesario | number:'1.2-2'}}
+                  </span>
+                </div>
+              </div>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Albaranes Cerrados -->
-<div class="info-card">
-  <div class="card-header">
-    <h2>Albaranes Cerrados</h2>
-    <div class="header-actions">
-      <span class="badge-info" *ngIf="aviso?.albaranes && aviso?.albaranes.length > 0">Total:
-        {{aviso.albaranes.length}}</span>
-      <span class="badge-info" *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0">Sin albaranes</span>
-      <button class="btn-secondary btn-small" (click)="recargarAlbaranes()" title="Recargar albaranes">
-        <ion-icon name="refresh-outline"></ion-icon>
-        <span class="desktop-only">Recargar</span>
-        <span class="mobile-only">↻</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="albaranes-container">
-    <!-- Mensaje cuando no hay albaranes -->
-    <div *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0" class="no-albaranes">
-      <ion-icon name="document-text-outline"></ion-icon>
-      <p>No hay albaranes cerrados para este aviso</p>
-      <p class="info-text">Los albaranes aparecerán aquí una vez que se cierren los trabajos realizados</p>
-    </div>
-
-    <!-- Lista de albaranes existentes -->
-    <div class="albaran-item" *ngFor="let albaran of aviso?.albaranes; let i = index">
-      <div class="albaran-header">
-        <div class="albaran-info">
-          <h4>Albarán #{{i + 1}}</h4>
-          <span class="fecha-albaran">{{albaran.fecha_cierre | date:'dd/MM/yyyy'}}</span>
-        </div>
-        <div class="estado-albaran">
-          <span class="badge-estado" [class]="'badge-' + albaran.estado_cierre.toLowerCase().replace(' ', '-')">
-            {{albaran.estado_cierre}}
-          </span>
-        </div>
-        <div class="albaran-actions">
-          <button class="btn-primary btn-small" (click)="verAlbaran(albaran)" title="Ver albarán completo">
-            <ion-icon name="eye-outline"></ion-icon>
-            <span class="desktop-only">Ver Albarán</span>
-            <span class="mobile-only">Ver</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="albaran-details">
-        <div class="detail-row">
-          <div class="detail-item">
-            <label>Horario:</label>
-            <span>{{albaran.hora_entrada}} - {{albaran.hora_salida}}</span>
           </div>
-          <div class="detail-item" *ngIf="albaran.presupuesto_necesario > 0">
-            <label>Presupuesto:</label>
-            <span>{{albaran.presupuesto_necesario | currency:'EUR':'symbol':'1.2-2'}}</span>
-          </div>
-        </div>
-
-        <div class="detail-item full-width">
-          <label>Descripción del trabajo:</label>
-          <p>{{albaran.descripcion_trabajo_realizado}}</p>
-        </div>
-
-        <div class="detail-item full-width"
-          *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0">
-          <label>Repuestos utilizados:</label>
-          <div class="repuestos-tags">
-            <!-- Mostrar repuestos con cantidades reales si están disponibles -->
-            <span class="repuesto-tag" *ngFor="let repuesto of albaran.repuestos_utilizados">
-              <ng-container *ngIf="repuesto.cantidad; else repuestoBasico">
-                {{repuesto.nombre}}: {{repuesto.cantidad}} {{repuesto.unidad || 'unidad'}}
-              </ng-container>
-              <ng-template #repuestoBasico>
-                {{repuesto}}
-              </ng-template>
-            </span>
-          </div>
-        </div>
-
-        <div class="detail-row" *ngIf="albaran.dni_cliente || albaran.nombre_firma">
-          <div class="detail-item" *ngIf="albaran.dni_cliente">
-            <label>DNI Cliente:</label>
-            <span>{{albaran.dni_cliente}}</span>
-          </div>
-          <div class="detail-item" *ngIf="albaran.nombre_firma">
-            <label>Firmado por:</label>
-            <span>{{albaran.nombre_firma}}</span>
-          </div>
-        </div>
-
-        <div class="detail-item full-width" *ngIf="albaran.observaciones">
-          <label>Observaciones:</label>
-          <p>{{albaran.observaciones}}</p>
         </div>
       </div>
     </div>

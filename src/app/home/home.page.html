@@ -305,12 +305,12 @@
           </div>
           <div class="table-body">
             <div *ngFor="let aviso of avisos" class="aviso-row" [ngClass]="{
-                   'no-visitado': aviso.estado === 'No visitado',
-                   'visitado-pendiente': aviso.estado === 'Visitado pendiente',
-                   'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
-                   'en-curso': aviso.estado === 'En curso',
                    'pendiente': aviso.estado === 'Pendiente',
-                   'completado': aviso.estado === 'Completado'
+                   'en-curso': aviso.estado === 'En curso',
+                   'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
+                   'listo-para-facturar': aviso.estado === 'Listo para facturar',
+                   'completado': aviso.estado === 'Completado',
+                   'cancelado': aviso.estado === 'Cancelado'
                  }">
               <div class="aviso-cell numero-aviso">#{{ aviso.numero }}</div>
               <div class="aviso-cell estado-aviso desktop-only">
@@ -318,9 +318,9 @@
                         'yellow': aviso.estado === 'En curso',
                         'red': aviso.estado === 'Pendiente',
                         'green': aviso.estado === 'Completado',
-                        'no-visitado': aviso.estado === 'No visitado',
-                        'visitado-pendiente': aviso.estado === 'Visitado pendiente',
-                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto'
+                        'blue': aviso.estado === 'Pendiente de presupuesto',
+                        'purple': aviso.estado === 'Listo para facturar',
+                        'gray': aviso.estado === 'Cancelado'
                       }">
                   {{ aviso.estado }}
                 </span>

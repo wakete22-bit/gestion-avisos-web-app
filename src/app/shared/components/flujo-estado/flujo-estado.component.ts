@@ -256,15 +256,18 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
     if (!this.estadoFlujo) return 'pendiente';
     
     switch (this.estadoFlujo.estadoActual) {
-      case 'No visitado':
-      case 'Visitado pendiente':
+      case 'Pendiente':
         return 'pendiente';
       case 'Pendiente de presupuesto':
         return 'presupuesto';
       case 'En curso':
         return 'en-curso';
+      case 'Listo para facturar':
+        return 'listo-facturar';
       case 'Completado':
         return 'completado';
+      case 'Cancelado':
+        return 'cancelado';
       default:
         return 'pendiente';
     }

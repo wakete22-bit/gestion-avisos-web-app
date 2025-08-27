@@ -17,7 +17,7 @@ $success-color: #10B981;
 
 // Botón de volver
 .back-button {
-  margin-bottom: 24px;
+  margin-bottom: 0px;
 
   .btn-back {
     display: flex;
@@ -882,6 +882,35 @@ $success-color: #10B981;
   padding: 0px 25px;
 }
 
+.info-section {
+  padding: 0 25px 25px;
+  
+  .flow-description {
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 0;
+    color: #0C4A6E;
+    font-size: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+    
+    ion-icon {
+      font-size: 18px;
+      color: #0EA5E9;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    
+    strong {
+      color: #0C4A6E;
+    }
+  }
+}
+
 .flujo-subtitle {
   font-size: 14px;
   color: $secondary-color;
@@ -1291,7 +1320,6 @@ $success-color: #10B981;
 
   // Ajustes para el botón de volver
   .back-button {
-    margin-bottom: 16px;
 
     .btn-back {
       padding: 8px 12px;
@@ -1503,7 +1531,6 @@ $success-color: #10B981;
 
   // Ajustes para el botón de volver
   .back-button {
-    margin-bottom: 12px;
 
     .btn-back {
       padding: 6px 10px;
@@ -1584,438 +1611,6 @@ $success-color: #10B981;
     
     p {
       font-size: 13px;
-    }
-  }
-}
-
-// Estilos adicionales para mejorar la experiencia móvil
-@media (max-width: 768px) {
-  // Mejorar la legibilidad de la tabla en móviles
-  .custom-mat-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    
-    tbody {
-      display: block;
-    }
-
-    thead {
-      display: none;
-    }
-    
-    tr {
-      display: block;
-      margin-bottom: 8px;
-      border-radius: 8px;
-      background: #F9FAFB;
-      padding: 12px;
-    }
-    
-    th, td {
-      display: block;
-      text-align: left;
-      padding: 4px 0;
-      border: none;
-      white-space: normal;
-      
-      &:before {
-        content: attr(data-label) ": ";
-        font-weight: 600;
-        color: #6B7280;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-    }
-    
-    th {
-      display: none;
-    }
-    
-    td {
-      font-size: 13px;
-      line-height: 1.4;
-      
-      &.descripcion-trabajo {
-        p {
-          margin: 0 0 4px 0;
-        }
-      }
-      
-      &.materiales-info {
-        .repuestos-list {
-          margin-top: 4px;
-          
-          li {
-            display: inline-block;
-            margin: 2px 4px 2px 0;
-          }
-        }
-      }
-      
-      &.estado-actions {
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #E5E7EB;
-        
-        &:before {
-          content: "Acciones: ";
-        }
-      }
-    }
-  }
-  
-  // Mejorar los botones de acción en móviles
-  .estado-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    
-    .btn-small {
-      flex: 1;
-      min-width: 80px;
-      max-width: 120px;
-    }
-  }
-  
-  // Mejorar la galería en móviles
-  .gallery-items {
-    .gallery-item {
-      border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      padding: 12px;
-      
-      img {
-        border-radius: 6px;
-      }
-      
-      .image-info {
-        margin: 8px 0;
-        
-        span {
-          display: block;
-          margin-bottom: 2px;
-        }
-      }
-    }
-  }
-  
-  // Mejorar los badges de estado
-  .badge-estado {
-    display: inline-block;
-    margin: 2px 0;
-  }
-  
-  // Mejorar el botón de mapa
-  .btn-map {
-    min-width: 36px;
-    height: 36px;
-    
-    ion-icon {
-      font-size: 16px;
-    }
-  }
-  
-  // Mejorar los elementos de contacto
-  .contacto-items {
-    .contacto-item {
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 13px;
-      
-      ion-icon {
-        font-size: 14px;
-      }
-    }
-  }
-  
-  // Mejorar el estado vacío
-  .empty-state {
-    background: #F9FAFB;
-    border-radius: 8px;
-    margin: 16px 0;
-  }
-  
-  // Mejorar el loading state
-  .loading-state {
-    min-height: 150px;
-  }
-  
-  // Mejorar el error state
-  .error-state {
-    min-height: 150px;
-    
-    .error-message {
-      background: #FEF2F2;
-      border: 1px solid #FECACA;
-      border-radius: 8px;
-      padding: 20px;
-      
-      ion-icon {
-        color: #DC2626;
-      }
-    }
-  }
-  
-  // Mejorar la navegación y botones principales
-  .header-container {
-    .back-button {
-      margin-bottom: 0;
-    }
-  }
-  
-  // Mejorar los segmentos de la galería
-  .gallery-actions {
-    ion-segment {
-      --background: #F3F4F6;
-      --background-checked: white;
-      --color: #6B7280;
-      --color-checked: #4F46E5;
-      
-      ion-segment-button {
-        --background: transparent;
-        --background-checked: white;
-        --color: #6B7280;
-        --color-checked: #4F46E5;
-        --indicator-color: transparent;
-        --border-radius: 50%;
-        --margin: 0;
-        --padding: 0;
-        min-height: 32px;
-        min-width: 32px;
-        
-        ion-icon {
-          font-size: 18px;
-        }
-      }
-    }
-  }
-  
-  // Mejorar el flujo de estado
-  .flujo-section {
-    .flujo-container {
-      padding: 0 16px 16px;
-    }
-  }
-  
-  // Mejorar los separadores
-  .section-divider {
-    margin: 16px 0 12px 0;
-    
-    span {
-      font-size: 12px;
-      padding: 0 10px;
-      background: white;
-      color: #6B7280;
-    }
-  }
-  
-  // Mejorar la información del cliente
-  .cliente-info {
-    .cliente-nombre {
-      font-size: 14px;
-      line-height: 1.3;
-    }
-  }
-  
-  // Mejorar la dirección
-  .direccion-info {
-    .direccion-texto {
-      font-size: 13px;
-      line-height: 1.4;
-    }
-  }
-  
-  // Mejorar la descripción
-  .descripcion-content {
-    .tipo-aviso {
-      font-size: 14px;
-    }
-    
-    .descripcion-texto {
-      font-size: 13px;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  // Ajustes adicionales para pantallas muy pequeñas
-  
-  // Mejorar la tabla en pantallas muy pequeñas
-  .custom-mat-table {
-    td {
-      font-size: 12px;
-      
-      &:before {
-        font-size: 10px;
-      }
-    }
-    
-    .estado-actions {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: end;
-      gap: 20px;
-
-      .btn-small {
-        min-width: 70px;
-        max-width: 100px;
-        font-size: 11px;
-        padding: 6px 8px;
-        
-        ion-icon {
-          font-size: 12px;
-        }
-      }
-    }
-  }
-  
-  // Mejorar la galería en pantallas muy pequeñas
-  .gallery-items {
-    .gallery-item {
-      padding: 8px;
-      
-      img {
-        height: 120px;
-      }
-      
-      .image-info {
-        span {
-          font-size: 11px;
-          
-          &.file-info {
-            font-size: 10px;
-          }
-        }
-      }
-    }
-  }
-  
-  // Mejorar los elementos de contacto en pantallas muy pequeñas
-  .contacto-items {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-
-    .contacto-item {
-      padding: 4px 8px;
-      font-size: 12px;
-      
-      ion-icon {
-        font-size: 12px;
-      }
-    }
-  }
-  
-  // Mejorar el botón de mapa en pantallas muy pequeñas
-  .btn-map {
-    min-width: 32px;
-    height: 32px;
-    
-    ion-icon {
-      font-size: 14px;
-    }
-  }
-  
-  // Mejorar el estado vacío en pantallas muy pequeñas
-  .empty-state {
-    padding: 20px 12px;
-    
-    ion-icon {
-      font-size: 32px;
-    }
-    
-    p {
-      font-size: 12px;
-    }
-    
-    small {
-      font-size: 10px;
-    }
-  }
-  
-  // Mejorar los loading y error states en pantallas muy pequeñas
-  .loading-state,
-  .error-state {
-    min-height: 120px;
-    
-    .loading-spinner,
-    .error-message {
-      ion-icon {
-        font-size: 36px;
-      }
-      
-      p {
-        font-size: 13px;
-      }
-    }
-  }
-  
-  // Mejorar los segmentos en pantallas muy pequeñas
-  .gallery-actions {
-    ion-segment {
-      ion-segment-button {
-        min-height: 28px;
-        min-width: 28px;
-        
-        ion-icon {
-          font-size: 16px;
-        }
-      }
-    }
-  }
-  
-  // Mejorar los botones principales en pantallas muy pequeñas
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger {
-    padding: 8px 12px;
-    font-size: 13px;
-    min-height: 40px;
-  }
-  
-  // Mejorar el flujo en pantallas muy pequeñas
-  .flujo-section {
-    .flujo-container {
-      padding: 0 12px 12px;
-    }
-  }
-  
-  // Mejorar los separadores en pantallas muy pequeñas
-  .section-divider {
-    margin: 12px 0 8px 0;
-    
-    span {
-      font-size: 11px;
-      padding: 0 8px;
-    }
-  }
-  
-  // Mejorar la información del cliente en pantallas muy pequeñas
-  .cliente-info {
-    .cliente-nombre {
-      font-size: 13px;
-    }
-  }
-  
-  // Mejorar la dirección en pantallas muy pequeñas
-  .direccion-info {
-    .direccion-texto {
-      font-size: 12px;
-    }
-  }
-  
-  // Mejorar la descripción en pantallas muy pequeñas
-  .descripcion-content {
-    .tipo-aviso {
-      font-size: 13px;
-    }
-    
-    .descripcion-texto {
-      font-size: 12px;
     }
   }
 }
@@ -2272,6 +1867,562 @@ $success-color: #10B981;
     .detail-row {
       grid-template-columns: 1fr;
       gap: 12px;
+    }
+  }
+}
+
+// ========================================
+// ESTILOS PARA LA NUEVA ESTRUCTURA INTEGRADA
+// ========================================
+
+// Separador visual entre secciones
+.section-divider {
+  position: relative;
+  margin: 32px 0;
+  text-align: center;
+
+  hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #E5E7EB, transparent);
+    margin: 0;
+  }
+
+  span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Sección de albaranes integrada
+.albaranes-section {
+  margin-top: 24px;
+
+  .albaranes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    background: #F9FAFB;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+
+    .albaranes-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .badge-info {
+        padding: 6px 12px;
+        background: #E0F2FE;
+        color: #0C4A6E;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #BAE6FD;
+      }
+    }
+
+    .btn-secondary.btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #6B7280;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      &:hover {
+        background: #4B5563;
+      }
+
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// ========================================
+// ESTILOS PARA LA TABLA COMPACTA DE ALBARANES
+// ========================================
+
+// Tabla compacta de albaranes (similar a la de avisos)
+.compact-albaranes-table {
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  margin-bottom: 16px;
+  width: 100%;
+  overflow-x: hidden;
+
+  .albaranes-table {
+    width: 100%;
+    display: grid;
+    // Móvil por defecto: Número | Estado | Fecha | Repuestos | Acciones
+    grid-template-columns: 1fr 1.5fr 1fr 1.5fr 1fr;
+    font-size: 12px;
+    min-width: 0;
+    gap: 0;
+    align-items: stretch;
+
+    .table-header {
+      display: contents;
+      
+      .header-row {
+        display: contents;
+        
+        .header-cell {
+          padding: 12px 8px;
+          background: #F9FAFB;
+          border-bottom: 1px solid #E5E7EB;
+          font-weight: 500;
+          color: #374151;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+          justify-content: center;
+          text-align: center;
+        }
+      }
+    }
+
+    .table-body {
+      display: contents;
+      
+      .albaran-row {
+        display: contents;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
+
+        &:hover {
+          .albaran-cell {
+            background-color: #F9FAFB;
+          }
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+
+        // Estados de color para diferentes tipos de albaranes
+        &.finalizado {
+          .albaran-cell:first-child {
+            border-left: 4px solid #10B981;
+          }
+          .albaran-cell {
+            background-color: #ECFDF5;
+          }
+          &:hover .albaran-cell {
+            background-color: #D1FAE5;
+          }
+        }
+
+        &.presupuesto-pendiente {
+          .albaran-cell:first-child {
+            border-left: 4px solid #F59E0B;
+          }
+          .albaran-cell {
+            background-color: #FFFBEB;
+          }
+          &:hover .albaran-cell {
+            background-color: #FEF3C7;
+          }
+        }
+
+        &.otra-visita {
+          .albaran-cell:first-child {
+            border-left: 4px solid #3B82F6;
+          }
+          .albaran-cell {
+            background-color: #EFF6FF;
+          }
+          &:hover .albaran-cell {
+            background-color: #DBEAFE;
+          }
+        }
+
+        .albaran-cell {
+          padding: 12px 8px;
+          border-bottom: 1px solid #F3F4F6;
+          display: flex;
+          align-items: center;
+          min-width: 0;
+          justify-content: center;
+          text-align: center;
+
+          &.numero-albaran {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          &.estado-albaran {
+            justify-content: center;
+            flex-shrink: 0;
+            
+            .badge {
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 10px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              white-space: nowrap;
+              max-width: 120px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+
+              &.green {
+                background: #D1FAE5;
+                color: #065F46;
+              }
+
+              &.yellow {
+                background: #FEF3C7;
+                color: #92400E;
+              }
+
+              &.blue {
+                background: #DBEAFE;
+                color: #1E40AF;
+              }
+            }
+          }
+
+          &.fecha-albaran {
+            font-size: 12px;
+            color: #6B7280;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+
+
+          &.repuestos-albaran {
+            justify-content: center;
+            flex-shrink: 0;
+            
+            .repuestos-info {
+              display: flex;
+              align-items: center;
+              gap: 4px;
+
+              .repuestos-count {
+                font-size: 11px;
+                color: #059669;
+                font-weight: 600;
+                padding: 2px 6px;
+                background: #D1FAE5;
+                border-radius: 6px;
+              }
+
+              .repuestos-label {
+                font-size: 10px;
+                color: #6B7280;
+                font-weight: 500;
+              }
+            }
+
+            .repuestos-vacio {
+              font-size: 11px;
+              color: #9CA3AF;
+              font-style: italic;
+            }
+          }
+
+          &.acciones {
+            justify-content: center;
+            gap: 4px;
+            flex-shrink: 0;
+
+            button {
+              width: 28px;
+              height: 28px;
+              border: none;
+              border-radius: 6px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.2s ease;
+              background: transparent;
+              -webkit-tap-highlight-color: transparent;
+              touch-action: manipulation;
+
+              ion-icon {
+                font-size: 16px;
+                color: #6B7280;
+              }
+
+              &.btn-ver {
+                &:hover {
+                  background-color: #10B981;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #059669;
+                }
+              }
+            }
+
+            .mobile-info {
+              display: none;
+              
+              .presupuesto-mobile {
+                font-size: 11px;
+                color: #059669;
+                font-weight: 600;
+                padding: 2px 6px;
+                background: #D1FAE5;
+                border-radius: 6px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Desktop styles - sobrescribir el grid para pantallas grandes
+@media (min-width: 769px) {
+  .compact-albaranes-table {
+    width: 100%;
+    overflow-x: hidden;
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
+    
+    .albaranes-table {
+      // Desktop: Número | Estado | Fecha | Repuestos | Acciones
+      grid-template-columns: 1fr 1.5fr 1fr 1.5fr 1fr;
+      font-size: 13px;
+      min-width: 0;
+      
+      .table-header .header-row .header-cell {
+        font-size: 12px;
+        padding: 12px 8px;
+        min-width: 0;
+      }
+      
+      .table-body .albaran-row .albaran-cell {
+        padding: 12px 8px;
+        min-width: 0;
+        
+        &.numero-albaran {
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+        
+        &.estado-albaran {
+          flex-shrink: 0;
+        }
+        
+        &.fecha-albaran {
+          flex-shrink: 0;
+        }
+        
+        &.repuestos-albaran {
+          flex-shrink: 0;
+        }
+        
+        &.acciones {
+          flex-shrink: 0;
+          
+          button {
+            width: 28px;
+            height: 28px;
+            
+            ion-icon {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive para móviles
+@media (max-width: 768px) {
+  .compact-albaranes-table {
+    border-radius: 0px;
+    border-left: none;
+    border-right: none;
+    max-height: none;
+    
+    .albaranes-table {
+      // Móvil: Número | Estado | Fecha | Repuestos | Acciones
+      grid-template-columns: 0.8fr 1.2fr 1fr 1.2fr 0.8fr;
+      
+      .table-header .header-row .header-cell {
+        font-size: 10px;
+        padding: 8px 4px;
+      }
+      
+      .table-body .albaran-row .albaran-cell {
+        padding: 8px 4px;
+        
+        &.numero-albaran {
+          font-size: 12px;
+        }
+        
+        &.fecha-albaran {
+          font-size: 11px;
+        }
+        
+
+        
+        &.acciones {
+          button {
+            width: 24px;
+            height: 24px;
+            
+            ion-icon {
+              font-size: 14px;
+            }
+          }
+          
+          .mobile-info {
+            display: block;
+            margin-left: 4px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Ajustes para pantallas muy pequeñas
+@media (max-width: 480px) {
+  .compact-albaranes-table .albaranes-table {
+    // Móvil pequeño: Número | Estado | Fecha | Repuestos | Acciones
+    grid-template-columns: 0.6fr 1fr 1fr 1fr 0.8fr;
+    
+    .table-header .header-row .header-cell {
+      font-size: 9px;
+      padding: 6px 2px;
+    }
+    
+    .table-body .albaran-row .albaran-cell {
+      padding: 6px 2px;
+      
+      &.numero-albaran {
+        font-size: 11px;
+      }
+      
+      &.estado-albaran {
+        .badge {
+          font-size: 8px;
+          padding: 2px 4px;
+        }
+      }
+      
+      &.fecha-albaran {
+        font-size: 10px;
+      }
+      
+      &.repuestos-albaran {
+        font-size: 9px;
+        
+        .repuestos-info {
+          .repuestos-count {
+            font-size: 8px;
+            padding: 1px 3px;
+          }
+          
+          .repuestos-label {
+            font-size: 8px;
+          }
+        }
+        
+        .repuestos-vacio {
+          font-size: 8px;
+        }
+      }
+      
+      &.acciones {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+
+        button {
+          width: 22px;
+          height: 22px;
+          
+          ion-icon {
+            font-size: 12px;
+          }
+        }
+
+        .mobile-info {
+          .presupuesto-mobile {
+            font-size: 9px;
+            padding: 1px 4px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive para la nueva estructura
+@media (max-width: 768px) {
+  .section-divider {
+    margin: 24px 0;
+
+    span {
+      font-size: 12px;
+      padding: 0 12px;
+    }
+  }
+
+  .albaranes-section {
+    margin-top: 20px;
+
+    .albaranes-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      padding: 12px 16px;
+
+      .albaranes-info {
+        justify-content: center;
+      }
+
+      .btn-secondary.btn-small {
+        align-self: center;
+        width: fit-content;
+      }
     }
   }
 }

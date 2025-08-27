@@ -4,7 +4,7 @@ import { map, switchMap, tap, catchError } from 'rxjs/operators';
 import { AvisosService } from './avisos.service';
 import { FacturasService } from '../../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../../modules/presupuestos/services/presupuestos.service';
-import { TrabajosService } from './trabajos.service';
+
 
 export interface FlujoEstado {
   avisoId: string;
@@ -25,8 +25,7 @@ export class FlujoAvisosService {
   constructor(
     private avisosService: AvisosService,
     private facturasService: FacturasService,
-    private presupuestosService: PresupuestosService,
-    private trabajosService: TrabajosService
+    private presupuestosService: PresupuestosService
   ) {}
 
   /**
@@ -361,32 +360,22 @@ export class FlujoAvisosService {
 
   private puedeFacturarTrabajos(resumen: any): boolean {
     // Solo se puede facturar si:
-    // 1. Hay trabajos finalizados (con albaranes cerrados)
+    // 1. Hay albaranes cerrados 
     // 2. No hay facturas pendientes
-    // 3. TODOS los trabajos tienen albaranes cerrados (no puede haber trabajos abiertos)
     // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para facturar
-    const todosLosTrabajosTienenAlbaranesCerrados = resumen.trabajos?.every((t: any) => 
-      t.albaran_id && t.albaran?.estado_cierre
-    ) || false;
     
-    return resumen.estadisticas.trabajosFinalizados > 0 && 
-           resumen.estadisticas.facturasPendientes === 0 &&
-           todosLosTrabajosTienenAlbaranesCerrados;
+    return resumen.estadisticas.albaranesCerrados > 0 && 
+           resumen.estadisticas.facturasPendientes === 0;
   }
 
   private puedeCompletarAviso(resumen: any): boolean {
     // Solo se puede completar si:
-    // 1. Hay trabajos finalizados (con albaranes cerrados)
+    // 1. Hay albaranes cerrados
     // 2. Hay facturas generadas
-    // 3. TODOS los trabajos tienen albaranes cerrados (no puede haber trabajos abiertos)
     // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para completar el aviso
-    const todosLosTrabajosTienenAlbaranesCerrados = resumen.trabajos?.every((t: any) => 
-      t.albaran_id && t.albaran?.estado_cierre
-    ) || false;
     
-    return resumen.estadisticas.trabajosFinalizados > 0 && 
-           resumen.estadisticas.totalFacturas > 0 &&
-           todosLosTrabajosTienenAlbaranesCerrados;
+    return resumen.estadisticas.albaranesCerrados > 0 && 
+           resumen.estadisticas.totalFacturas > 0;
   }
 
   private convertirDatosAFactura(datosFactura: any): any {
@@ -399,20 +388,20 @@ export class FlujoAvisosService {
     
     const lineasFactura = [];
     
-    // 1. Calcular horas totales de trabajo desde TODOS los trabajos realizados
+    // 1. Calcular horas totales de trabajo desde TODOS los albaranes realizados
     let horasTotales = 0;
-    if (datosFactura.resumen.trabajos && datosFactura.resumen.trabajos.length > 0) {
-      console.log('🔧 Calculando horas totales de todos los trabajos:', datosFactura.resumen.trabajos.length, 'trabajos');
+    if (datosFactura.resumen.albaranes && datosFactura.resumen.albaranes.length > 0) {
+      console.log('🔧 Calculando horas totales de todos los albaranes:', datosFactura.resumen.albaranes.length, 'albaranes');
       
-      datosFactura.resumen.trabajos.forEach((trabajo: any, index: number) => {
-        if (trabajo.hora_inicio && trabajo.hora_fin) {
-          // Calcular horas del trabajo individual
-          const inicio = new Date(`2000-01-01T${trabajo.hora_inicio}`);
-          const fin = new Date(`2000-01-01T${trabajo.hora_fin}`);
+      datosFactura.resumen.albaranes.forEach((albaran: any, index: number) => {
+        if (albaran.hora_entrada && albaran.hora_salida) {
+          // Calcular horas del albarán individual
+          const inicio = new Date(`2000-01-01T${albaran.hora_entrada}`);
+          const fin = new Date(`2000-01-01T${albaran.hora_salida}`);
           const horasTrabajo = (fin.getTime() - inicio.getTime()) / (1000 * 60 * 60);
           const horasValidas = Math.max(0, horasTrabajo);
           
-          console.log(`🔧 Trabajo #${index + 1}: ${trabajo.hora_inicio} - ${trabajo.hora_fin} = ${horasValidas.toFixed(2)} horas`);
+          console.log(`🔧 Albarán #${index + 1}: ${albaran.hora_entrada} - ${albaran.hora_salida} = ${horasValidas.toFixed(2)} horas`);
           horasTotales += horasValidas;
         }
       });
@@ -428,52 +417,52 @@ export class FlujoAvisosService {
         cantidad: horasTotales,
         precio_neto: 50,
         precio_pvp: 50,
-        descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas (${datosFactura.resumen.trabajos?.length || 0} trabajos)`
+        descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas (${datosFactura.resumen.albaranes?.length || 0} albaranes)`
       });
     }
     
-    // 3. Consolidar repuestos de TODOS los trabajos (no solo albaranes)
+    // 3. Consolidar repuestos de TODOS los albaranes
     const repuestosConsolidados = new Map(); // Usar Map para consolidar por nombre
     
-    if (datosFactura.resumen.trabajos && datosFactura.resumen.trabajos.length > 0) {
-      console.log('🔧 Consolidando repuestos de todos los trabajos...');
+    if (datosFactura.resumen.albaranes && datosFactura.resumen.albaranes.length > 0) {
+      console.log('🔧 Consolidando repuestos de todos los albaranes...');
       
-      datosFactura.resumen.trabajos.forEach((trabajo: any, indexTrabajo: number) => {
-        console.log(`🔧 Procesando trabajo #${indexTrabajo + 1}:`, trabajo.id);
+      datosFactura.resumen.albaranes.forEach((albaran: any, indexAlbaran: number) => {
+        console.log(`🔧 Procesando albarán #${indexAlbaran + 1}:`, albaran.id);
         
-        // Procesar materiales del trabajo (con cantidades reales)
-        if (trabajo.materiales && trabajo.materiales.length > 0) {
-          trabajo.materiales.forEach((material: any) => {
-            if (material && material.cantidad_utilizada && material.cantidad_utilizada > 0) {
-              const nombreMaterial = material.material?.nombre || 'Material sin nombre';
-              const clave = nombreMaterial.toLowerCase();
+        // Procesar repuestos del albarán (tabla repuestos_albaran)
+        if (albaran.repuestos && albaran.repuestos.length > 0) {
+          albaran.repuestos.forEach((repuesto: any) => {
+            if (repuesto && repuesto.cantidad && repuesto.cantidad > 0) {
+              const nombreRepuesto = repuesto.nombre || 'Repuesto sin nombre';
+              const clave = nombreRepuesto.toLowerCase();
               
               if (repuestosConsolidados.has(clave)) {
-                // Sumar a material existente
+                // Sumar a repuesto existente
                 const existente = repuestosConsolidados.get(clave);
-                existente.cantidad_total += parseFloat(material.cantidad_utilizada);
-                existente.precio_total += parseFloat(material.precio_neto_al_momento || 0) * parseFloat(material.cantidad_utilizada);
-                existente.trabajos.push(indexTrabajo + 1);
-                console.log(`🔧 Material consolidado: ${nombreMaterial} - Cantidad total: ${existente.cantidad_total}`);
+                existente.cantidad_total += parseFloat(repuesto.cantidad);
+                existente.precio_total += parseFloat(repuesto.precio_pvp || 0) * parseFloat(repuesto.cantidad);
+                existente.albaranes.push(indexAlbaran + 1);
+                console.log(`🔧 Repuesto consolidado: ${nombreRepuesto} - Cantidad total: ${existente.cantidad_total}`);
               } else {
-                // Crear nuevo material consolidado
+                // Crear nuevo repuesto consolidado
                 repuestosConsolidados.set(clave, {
-                  nombre: nombreMaterial,
-                  cantidad_total: parseFloat(material.cantidad_utilizada),
-                  precio_unitario: parseFloat(material.precio_neto_al_momento || 0),
-                  precio_total: parseFloat(material.precio_neto_al_momento || 0) * parseFloat(material.cantidad_utilizada),
-                  unidad: material.material?.unidad || 'unidad',
-                  trabajos: [indexTrabajo + 1]
+                  nombre: nombreRepuesto,
+                  cantidad_total: parseFloat(repuesto.cantidad),
+                  precio_unitario: parseFloat(repuesto.precio_neto || 0),
+                  precio_total: parseFloat(repuesto.precio_pvp || 0) * parseFloat(repuesto.cantidad),
+                  unidad: repuesto.unidad || 'unidad',
+                  albaranes: [indexAlbaran + 1]
                 });
-                console.log(`🔧 Nuevo material: ${nombreMaterial} - Cantidad: ${material.cantidad_utilizada}`);
+                console.log(`🔧 Nuevo repuesto: ${nombreRepuesto} - Cantidad: ${repuesto.cantidad}`);
               }
             }
           });
         }
         
-        // También procesar repuestos básicos si están disponibles
-        if (trabajo.repuestos && trabajo.repuestos.length > 0) {
-          trabajo.repuestos.forEach((repuesto: any) => {
+        // También procesar repuestos básicos del array repuestos_utilizados si está disponible
+        if (albaran.repuestos_utilizados && Array.isArray(albaran.repuestos_utilizados)) {
+          albaran.repuestos_utilizados.forEach((repuesto: any) => {
             if (repuesto) {
               const nombreRepuesto = typeof repuesto === 'string' ? repuesto : (repuesto.nombre || 'Repuesto sin nombre');
               const clave = nombreRepuesto.toLowerCase();
@@ -482,7 +471,7 @@ export class FlujoAvisosService {
                 // Sumar a repuesto existente
                 const existente = repuestosConsolidados.get(clave);
                 existente.cantidad_total += 1; // Cantidad por defecto para repuestos básicos
-                existente.trabajos.push(indexTrabajo + 1);
+                existente.albaranes.push(indexAlbaran + 1);
                 console.log(`🔧 Repuesto consolidado: ${nombreRepuesto} - Cantidad total: ${existente.cantidad_total}`);
               } else {
                 // Crear nuevo repuesto consolidado
@@ -492,7 +481,7 @@ export class FlujoAvisosService {
                   precio_unitario: 0, // Precio por defecto para repuestos básicos
                   precio_total: 0,
                   unidad: 'unidad',
-                  trabajos: [indexTrabajo + 1]
+                  albaranes: [indexAlbaran + 1]
                 });
                 console.log(`🔧 Nuevo repuesto: ${nombreRepuesto}`);
               }
@@ -510,7 +499,7 @@ export class FlujoAvisosService {
         cantidad: material.cantidad_total,
         precio_neto: material.precio_unitario,
         precio_pvp: material.precio_unitario > 0 ? material.precio_unitario : 0,
-        descripcion: `${material.nombre} - ${material.cantidad_total} ${material.unidad} (usado en trabajos: ${material.trabajos.join(', ')})`
+        descripcion: `${material.nombre} - ${material.cantidad_total} ${material.unidad} (usado en albaranes: ${material.albaranes.join(', ')})`
       });
     });
     

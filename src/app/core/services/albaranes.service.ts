@@ -3,52 +3,9 @@ import { Observable, from } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseClientService } from './supabase-client.service';
+import { Albaran, CrearAlbaranRequest } from '../../modules/avisos/models/albaran.model';
 
-// Nueva interfaz para repuestos con cantidades reales
-export interface RepuestoAlbaran {
-  nombre: string;
-  cantidad: number;
-  precio_neto: number;
-  precio_pvp: number;
-  unidad: string;
-  codigo: string;
-}
-
-export interface Albaran {
-  id?: string;
-  trabajo_id: string;
-  aviso_id: string;
-  fecha_cierre: Date;
-  hora_entrada: string;
-  hora_salida: string;
-  descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
-  estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
-  presupuesto_necesario: number;
-  dni_cliente?: string;
-  nombre_firma?: string;
-  firma_url?: string;
-  observaciones?: string;
-  fecha_creacion?: Date;
-  fecha_actualizacion?: Date;
-}
-
-export interface CrearAlbaranRequest {
-  trabajo_id: string;
-  aviso_id: string;
-  fecha_cierre: Date;
-  hora_entrada: string;
-  hora_salida: string;
-  descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
-  estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
-  presupuesto_necesario: number;
-  dni_cliente?: string;
-  nombre_firma?: string;
-  firma_cliente?: string;
-  firma_url?: string;
-  observaciones?: string;
-}
+// Las interfaces ahora se importan del modelo albaran.model.ts
 
 @Injectable({
   providedIn: 'root'
@@ -91,7 +48,6 @@ export class AlbaranesService {
         .from('albaranes')
         .select(`
           *,
-          trabajo:trabajos_realizados(*),
           aviso:avisos(*)
         `)
         .eq('id', id)
@@ -115,12 +71,9 @@ export class AlbaranesService {
     return from(
       this.supabase
         .from('albaranes')
-        .select(`
-          *,
-          trabajo:trabajos_realizados(*)
-        `)
+        .select('*')
         .eq('aviso_id', avisoId)
-        .order('fecha_cierre', { ascending: false })
+        .order('fecha_trabajo', { ascending: false })
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
@@ -133,27 +86,7 @@ export class AlbaranesService {
     );
   }
 
-  /**
-   * Obtiene todos los albaranes de un trabajo
-   */
-  getAlbaranesTrabajo(trabajoId: string): Observable<Albaran[]> {
-    return from(
-      this.supabase
-        .from('albaranes')
-        .select('*')
-        .eq('trabajo_id', trabajoId)
-        .order('fecha_cierre', { ascending: false })
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        return data as Albaran[];
-      }),
-      catchError(error => {
-        console.error('Error al obtener albaranes del trabajo:', error);
-        throw error;
-      })
-    );
-  }
+  // Método getAlbaranesTrabajo eliminado - ya no gestionamos trabajos
 
   /**
    * Actualiza un albarán existente

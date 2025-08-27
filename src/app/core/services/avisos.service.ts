@@ -164,7 +164,7 @@ export class AvisosService {
             ...aviso,
             urgencia: aviso.es_urgente ? 'Alta' : 'Normal', // Mapear es_urgente a urgencia
             fecha_creacion: new Date().toISOString(),
-            estado: 'No visitado',
+            estado: 'Pendiente', // ✅ Estado válido después de la migración
             requiere_presupuesto: false,
             requiere_nueva_visita: false
         };
@@ -647,17 +647,10 @@ export class AvisosService {
                     cliente:clientes(*),
                     tecnico_asignado:usuarios(*),
                     fotos:fotos_aviso(*),
-                                           trabajos:trabajos_realizados(
-                           *,
-                           materiales:materiales_trabajo(
-                               *,
-                               material:inventario(*)
-                           ),
-                           albaran:albaranes!trabajos_realizados_albaran_id_fkey(*)
-                       ),
                     albaranes:albaranes(
                         *,
-                        repuestos_utilizados
+                        repuestos_utilizados,
+                        repuestos:repuestos_albaran(*)
                     ),
                     presupuestos:presupuestos(*),
                     facturas:facturas(*)
@@ -670,21 +663,17 @@ export class AvisosService {
                 
                 const avisoCompleto = data as any;
                 
-                // Calcular estadísticas para el nuevo flujo
-                const trabajosFinalizados = avisoCompleto.trabajos?.filter((t: any) => 
-                    t.estado === 'Finalizado' || t.albaran?.estado_cierre === 'Finalizado'
+                // Calcular estadísticas basadas en albaranes (nuevo flujo)
+                const albaranesCerrados = avisoCompleto.albaranes?.filter((a: any) => 
+                    a.estado_cierre && a.estado_cierre !== 'Otra visita'
                 ) || [];
                 
-                const trabajosConAlbaran = avisoCompleto.trabajos?.filter((t: any) => 
-                    t.albaran_id !== null
+                const albaranesPresupuestoPendiente = avisoCompleto.albaranes?.filter((a: any) => 
+                    a.estado_cierre === 'Presupuesto pendiente'
                 ) || [];
                 
-                const trabajosPresupuestoPendiente = avisoCompleto.trabajos?.filter((t: any) => 
-                    t.estado === 'Presupuesto pendiente' || t.albaran?.estado_cierre === 'Presupuesto pendiente'
-                ) || [];
-                
-                const trabajosOtraVisita = avisoCompleto.trabajos?.filter((t: any) => 
-                    t.estado === 'Otra visita' || t.albaran?.estado_cierre === 'Otra visita'
+                const albaranesOtraVisita = avisoCompleto.albaranes?.filter((a: any) => 
+                    a.estado_cierre === 'Otra visita'
                 ) || [];
                 
                 const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => 
@@ -692,29 +681,28 @@ export class AvisosService {
                 ) || [];
                 
                 // Determinar si tiene presupuesto pendiente
-                const presupuestoPendiente = avisoCompleto.albaranes?.some((a: any) => 
-                    a.estado_cierre === 'Presupuesto pendiente'
-                ) || false;
+                const presupuestoPendiente = albaranesPresupuestoPendiente.length > 0;
                 
                 // Determinar si requiere otra visita
-                const requiereOtraVisita = avisoCompleto.albaranes?.some((a: any) => 
-                    a.estado_cierre === 'Otra visita'
-                ) || false;
+                const requiereOtraVisita = albaranesOtraVisita.length > 0;
                 
                 return {
                     ...avisoCompleto,
                     estadisticas: {
-                        totalTrabajos: avisoCompleto.trabajos?.length || 0,
-                        trabajosConAlbaran: trabajosConAlbaran.length,
-                        trabajosFinalizados: trabajosFinalizados.length,
-                        trabajosPresupuestoPendiente: trabajosPresupuestoPendiente.length,
-                        trabajosOtraVisita: trabajosOtraVisita.length,
+                        totalAlbaranes: avisoCompleto.albaranes?.length || 0,
+                        albaranesCerrados: albaranesCerrados.length,
+                        albaranesPresupuestoPendiente: albaranesPresupuestoPendiente.length,
+                        albaranesOtraVisita: albaranesOtraVisita.length,
                         tienePresupuesto: presupuestoPendiente,
                         requiereOtraVisita: requiereOtraVisita,
                         estadoPresupuesto: presupuestoPendiente ? 'Pendiente' : null,
                         totalFacturas: avisoCompleto.facturas?.length || 0,
                         facturasPendientes: facturasPendientes.length,
-                        puedeFacturar: trabajosFinalizados.length > 0 && facturasPendientes.length === 0
+                        // Mantener compatibilidad con código existente
+                        totalTrabajos: avisoCompleto.albaranes?.length || 0,
+                        trabajosConAlbaran: albaranesCerrados.length,
+                        trabajosFinalizados: albaranesCerrados.length,
+                        puedeFacturar: albaranesCerrados.length > 0 && facturasPendientes.length === 0
                     }
                 };
             }),
@@ -762,7 +750,7 @@ export class AvisosService {
                     nuevoEstado = 'En curso';
                 } else if (resumen.estadisticas.totalTrabajos === 0 && resumen.estadisticas.trabajosConAlbaran === 0) {
                     // Si no hay trabajos ni albaranes, mantener el estado original o marcarlo como pendiente
-                    if (resumen.estado === 'No visitado' || resumen.estado === 'Pendiente') {
+                    if (resumen.estado === 'Pendiente') {
                         nuevoEstado = resumen.estado; // Mantener el estado actual
                     } else {
                         nuevoEstado = 'Pendiente';

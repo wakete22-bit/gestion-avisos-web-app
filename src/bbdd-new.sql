@@ -50,7 +50,7 @@ CREATE TABLE public.avisos (
   telefono_cliente_aviso text,
   urgencia text NOT NULL,
   descripcion_problema text NOT NULL,
-  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['No visitado'::text, 'Visitado pendiente'::text, 'En curso'::text, 'Pendiente de presupuesto'::text, 'Completado'::text, 'Cancelado'::text])),
+  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'En curso'::text, 'Pendiente de presupuesto'::text, 'Listo para facturar'::text, 'Completado'::text, 'Cancelado'::text])),
   latitud numeric,
   longitud numeric,
   fecha_finalizacion timestamp with time zone,
@@ -65,30 +65,16 @@ CREATE TABLE public.avisos (
   CONSTRAINT avisos_tecnico_asignado_id_fkey FOREIGN KEY (tecnico_asignado_id) REFERENCES public.usuarios(id)
 );
 
--- Tabla de trabajos realizados (referenciada por albaranes)
-CREATE TABLE public.trabajos_realizados (
+-- Tabla de trabajos realizados eliminada - ahora se gestiona directamente con albaranes
+
+-- Tabla de albaranes (cada albarán representa una visita/intervención completa)
+CREATE TABLE public.albaranes (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   aviso_id uuid NOT NULL,
   fecha_trabajo date NOT NULL,
-  hora_inicio time without time zone NOT NULL,
-  hora_fin time without time zone NOT NULL,
-  descripcion text NOT NULL,
-  repuestos text[] DEFAULT '{}'::text[],
-  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'En curso'::text, 'Abierto'::text, 'Cerrado'::text, 'Finalizado'::text, 'Completado'::text, 'Cancelado'::text, 'Presupuesto pendiente'::text, 'Otra visita'::text])),
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT trabajos_realizados_pkey PRIMARY KEY (id),
-  CONSTRAINT trabajos_realizados_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
-);
-
--- Tabla de albaranes (referenciada por presupuestos)
-CREATE TABLE public.albaranes (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  trabajo_id uuid NOT NULL,
-  aviso_id uuid NOT NULL,
   fecha_cierre timestamp with time zone DEFAULT now(),
-  hora_entrada time without time zone,
-  hora_salida time without time zone,
+  hora_entrada time without time zone NOT NULL,
+  hora_salida time without time zone NOT NULL,
   descripcion_trabajo_realizado text NOT NULL,
   repuestos_utilizados text[] DEFAULT '{}'::text[],
   estado_cierre text NOT NULL CHECK (estado_cierre = ANY (ARRAY['Finalizado'::text, 'Presupuesto pendiente'::text, 'Otra visita'::text])),
@@ -101,14 +87,10 @@ CREATE TABLE public.albaranes (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   firma_cliente text,
   CONSTRAINT albaranes_pkey PRIMARY KEY (id),
-  CONSTRAINT albaranes_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
   CONSTRAINT albaranes_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );
 
--- Agregar la referencia del albaran a trabajos_realizados
-ALTER TABLE public.trabajos_realizados ADD COLUMN albaran_id uuid;
-ALTER TABLE public.trabajos_realizados ADD CONSTRAINT trabajos_realizados_albaran_id_fkey 
-  FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id);
+-- Referencias a trabajos_realizados eliminadas - ya no son necesarias
 
 -- Tabla de presupuestos
 CREATE TABLE public.presupuestos (
@@ -166,17 +148,7 @@ CREATE TABLE public.inventario (
   CONSTRAINT inventario_pkey PRIMARY KEY (id)
 );
 
--- Tabla de materiales de trabajo
-CREATE TABLE public.materiales_trabajo (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  trabajo_id uuid NOT NULL,
-  material_id uuid NOT NULL,
-  cantidad_utilizada numeric NOT NULL CHECK (cantidad_utilizada > 0::numeric),
-  precio_neto_al_momento numeric NOT NULL,
-  CONSTRAINT materiales_trabajo_pkey PRIMARY KEY (id),
-  CONSTRAINT materiales_trabajo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
-  CONSTRAINT materiales_trabajo_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id)
-);
+-- Tabla de materiales de trabajo eliminada - ahora se gestiona con repuestos_albaran
 
 -- Tabla de fotos de aviso
 CREATE TABLE public.fotos_aviso (
@@ -228,12 +200,12 @@ CREATE TABLE public.historial_flujo (
   accion_realizada text NOT NULL,
   usuario_id uuid,
   factura_id uuid,
-  trabajo_id uuid,
+  albaran_id uuid,
   observaciones text,
   fecha_cambio timestamp with time zone DEFAULT now(),
   CONSTRAINT historial_flujo_pkey PRIMARY KEY (id),
   CONSTRAINT historial_flujo_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id),
-  CONSTRAINT historial_flujo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
+  CONSTRAINT historial_flujo_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id),
   CONSTRAINT historial_flujo_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id),
   CONSTRAINT historial_flujo_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );

@@ -14,39 +14,15 @@ import {
   cubeOutline,
   addCircleOutline,
   trashOutline, searchOutline, checkmarkCircleOutline, warningOutline, refreshOutline, checkmarkOutline, createOutline, closeOutline } from 'ionicons/icons';
-import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
+// TrabajoRealizado eliminado - ahora trabajamos directamente con albaranes
 import { Aviso } from '../../models/aviso.model';
 import { InventarioService } from '../../../inventario/services/inventario.service';
 import { Inventario } from '../../../inventario/models/inventario.model';
-import { AlbaranesService, CrearAlbaranRequest } from '../../../../core/services/albaranes.service';
-import { TrabajosService } from '../../../../core/services/trabajos.service';
+import { AlbaranesService } from '../../../../core/services/albaranes.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { RepuestoAlbaran, CrearAlbaranRequest, ESTADOS_CIERRE_ALBARAN } from '../../models/albaran.model';
 
-// Nueva interfaz para repuestos con cantidades reales
-export interface RepuestoAlbaran {
-  nombre: string;
-  cantidad: number;
-  precio_neto: number;
-  precio_pvp: number;
-  unidad: string;
-  codigo: string;
-}
-
-export interface AlbaranData {
-  trabajo_id: string;
-  aviso_id: string;
-  fecha_cierre: Date;
-  hora_entrada: string;
-  hora_salida: string;
-  descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // ← CAMBIADO: Ahora incluye cantidades
-  estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
-  presupuesto_necesario: number;
-  dni_cliente: string;
-  nombre_firma: string;
-  firma_url?: string;
-  observaciones?: string;
-}
+// Las interfaces RepuestoAlbaran y CrearAlbaranRequest ahora se importan del modelo
 
 @Component({
   selector: 'app-hacer-albaran',
@@ -70,7 +46,6 @@ export interface AlbaranData {
   ]
 })
 export class HacerAlbaranComponent implements OnInit, AfterViewInit {
-  @Input() trabajo!: TrabajoRealizado;
   @Input() aviso!: Aviso;
 
   albaranForm: FormGroup;
@@ -94,25 +69,21 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   // Fecha actual formateada para mostrar en el input
   public fechaActualFormateada: string = '';
 
-  // Estados de cierre disponibles
-  estadosCierre = [
-    { valor: 'Finalizado', label: 'Finalizado', descripcion: 'Trabajo completado, listo para facturar' },
-    { valor: 'Presupuesto pendiente', label: 'Presupuesto pendiente', descripcion: 'Se requiere presupuesto adicional' },
-    { valor: 'Otra visita', label: 'Otra visita', descripcion: 'Se necesita realizar otra visita' }
-  ];
+  // Estados de cierre disponibles (importados del modelo)
+  estadosCierre = ESTADOS_CIERRE_ALBARAN;
 
   constructor(
     private fb: FormBuilder,
     private modalController: ModalController,
     private inventarioService: InventarioService,
     private albaranesService: AlbaranesService,
-    private trabajosService: TrabajosService,
     private avisosService: AvisosService
   ) {
     console.log('HacerAlbaranComponent constructor called');
     addIcons({close,timeOutline,cubeOutline,addCircleOutline,searchOutline,trashOutline,checkmarkCircleOutline,checkmarkOutline,createOutline,warningOutline,saveOutline,refreshOutline,closeOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
 
     this.albaranForm = this.fb.group({
+      fecha_trabajo: ['', Validators.required],
       fecha_cierre: ['', Validators.required],
       hora_entrada: ['', Validators.required],
       hora_salida: ['', Validators.required],
@@ -128,12 +99,12 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    console.log('🎯 HacerAlbaranComponent ngOnInit - Trabajo:', this.trabajo);
     console.log('🎯 HacerAlbaranComponent ngOnInit - Aviso:', this.aviso);
     console.log('🎯 Formulario inicializado:', this.albaranForm);
     
-    // Establecer la fecha actual inmediatamente
+    // Establecer fechas por defecto
     this.establecerFechaActual();
+    this.establecerFechaTrabajo();
     
     try {
       await this.cargarProductosInventario();
@@ -147,64 +118,34 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     // No inicializar automáticamente el signature pad
     // Solo se inicializará cuando el usuario haga clic en "Comenzar Firma"
     
-    // Asegurar que la fecha se muestre correctamente después de que el DOM esté listo
+    // Asegurar que las fechas se muestren correctamente después de que el DOM esté listo
     setTimeout(() => {
       if (!this.albaranForm.get('fecha_cierre')?.value) {
         this.establecerFechaActual();
+      }
+      if (!this.albaranForm.get('fecha_trabajo')?.value) {
+        this.establecerFechaTrabajo();
       }
     }, 100);
   }
 
   /**
-   * Inicializa el formulario con datos del trabajo
+   * Inicializa el formulario con valores por defecto
    */
   inicializarFormulario() {
-    if (this.trabajo) {
-      // Establecer hora de entrada como hora de inicio del trabajo
-      this.albaranForm.patchValue({
-        hora_entrada: this.trabajo.hora_inicio,
-        hora_salida: this.trabajo.hora_fin,
-        repuestos_utilizados: this.trabajo.repuestos || []
-      });
+    // Establecer valores por defecto para un nuevo albarán
+    const horaActual = this.generarHoraActual();
+    
+    this.albaranForm.patchValue({
+      hora_entrada: horaActual,
+      hora_salida: horaActual,
+      repuestos_utilizados: []
+    });
 
-      // Si ya hay repuestos, convertirlos al nuevo formato con cantidades REALES
-      if (this.trabajo.repuestos && this.trabajo.repuestos.length > 0) {
-        console.log('🔍 inicializarFormulario - Repuestos existentes encontrados:', this.trabajo.repuestos);
-        console.log('🔍 inicializarFormulario - Materiales del trabajo:', this.trabajo.materiales);
-
-        // Convertir repuestos existentes al nuevo formato con cantidades REALES
-        this.repuestosSeleccionados = this.trabajo.repuestos.map(nombre => {
-          // Buscar si existe en el inventario para obtener precio y unidad reales
-          const productoInventario = this.productosInventario.find(p => p.nombre === nombre);
-
-          // Buscar la cantidad REAL utilizada en materiales_trabajo
-          const materialTrabajo = this.trabajo.materiales?.find(m =>
-            m.material?.nombre === nombre
-          );
-
-          const cantidadReal = materialTrabajo?.cantidad_utilizada || 1;
-
-          console.log('🔍 Buscando material:', nombre, 'Material encontrado:', materialTrabajo, 'Cantidad real:', cantidadReal);
-
-          const repuesto: RepuestoAlbaran = {
-            nombre: nombre,
-            cantidad: cantidadReal, // ← CANTIDAD REAL desde materiales_trabajo
-            precio_neto: productoInventario?.precio_neto || 0,
-            precio_pvp: productoInventario?.pvp || productoInventario?.precio_neto || 0,
-            unidad: productoInventario?.unidad || 'unidad',
-            codigo: productoInventario?.codigo || ''
-          };
-
-          console.log('🔍 inicializarFormulario - Repuesto convertido:', repuesto);
-          return repuesto;
-        });
-
-        // Actualizar el formulario con los repuestos convertidos
-        this.albaranForm.patchValue({
-          repuestos_utilizados: this.repuestosSeleccionados
-        });
-      }
-    }
+    // Inicializar lista de repuestos vacía
+    this.repuestosSeleccionados = [];
+    
+    console.log('🔍 Formulario inicializado con valores por defecto');
   }
   /**
    * Carga los productos del inventario
@@ -382,7 +323,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Establece la fecha actual
+   * Establece la fecha actual para el cierre del albarán
    */
   establecerFechaActual() {
     const fechaActual = new Date();
@@ -396,7 +337,22 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     // Actualizar la propiedad local
     this.fechaActualFormateada = fechaFormateada;
     
-    console.log('📅 Fecha establecida:', fechaFormateada);
+    console.log('📅 Fecha de cierre establecida:', fechaFormateada);
+  }
+
+  /**
+   * Establece la fecha actual para el trabajo realizado
+   */
+  establecerFechaTrabajo() {
+    const fechaActual = new Date();
+    const fechaFormateada = this.formatearFechaParaInput(fechaActual);
+    
+    // Establecer la fecha del trabajo en el formulario
+    this.albaranForm.patchValue({
+      fecha_trabajo: fechaFormateada
+    });
+    
+    console.log('📅 Fecha de trabajo establecida:', fechaFormateada);
   }
 
   /**
@@ -408,8 +364,8 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
       this.error = null;
 
       const albaranData: CrearAlbaranRequest = {
-        trabajo_id: this.trabajo.id!,
         aviso_id: this.aviso.id!,
+        fecha_trabajo: this.albaranForm.value.fecha_trabajo,
         fecha_cierre: this.albaranForm.value.fecha_cierre,
         hora_entrada: this.albaranForm.value.hora_entrada,
         hora_salida: this.albaranForm.value.hora_salida,
@@ -427,78 +383,31 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
 
       // Guardar albarán usando el servicio
       this.albaranesService.crearAlbaran(albaranData).subscribe({
-                  next: (albaran) => {
-            console.log('Albarán guardado exitosamente:', albaran);
+        next: (albaran) => {
+          console.log('Albarán guardado exitosamente:', albaran);
 
-            // Determinar el estado del trabajo basado en el estado de cierre del albarán
-            let nuevoEstado: string;
-            switch (albaran.estado_cierre) {
-              case 'Finalizado':
-                nuevoEstado = 'Finalizado';
-                break;
-              case 'Presupuesto pendiente':
-                nuevoEstado = 'Presupuesto pendiente';
-                break;
-              case 'Otra visita':
-                nuevoEstado = 'Otra visita';
-                break;
-              default:
-                nuevoEstado = 'Finalizado'; // Estado por defecto
-            }
-            
-            console.log('🔄 Actualizando estado del trabajo:', {
-              trabajoId: this.trabajo.id,
-              estadoAnterior: this.trabajo.estado,
-              nuevoEstado: nuevoEstado,
-              albaranId: albaran.id,
-              estadoAlbaran: albaran.estado_cierre
-            });
+          // Actualizar automáticamente el estado del aviso
+          this.avisosService.actualizarEstadoAutomatico(this.aviso.id!).subscribe({
+            next: (avisoActualizado) => {
+              this.loading = false;
+              console.log('Estado del aviso actualizado automáticamente:', avisoActualizado);
 
-          // Actualizar el trabajo con el nuevo estado y el ID del albarán
-          this.trabajosService.actualizarEstadoTrabajo(
-            this.trabajo.id!,
-            nuevoEstado,
-            albaran.id
-          ).subscribe({
-            next: (trabajoActualizado) => {
-              console.log('✅ Trabajo actualizado exitosamente:', {
-                id: trabajoActualizado.id,
-                estadoAnterior: this.trabajo.estado,
-                estadoNuevo: trabajoActualizado.estado,
-                albaranId: trabajoActualizado.albaran_id
-              });
-
-              // Actualizar automáticamente el estado del aviso
-              this.avisosService.actualizarEstadoAutomatico(this.aviso.id!).subscribe({
-                next: (avisoActualizado) => {
-                  this.loading = false;
-                  console.log('Estado del aviso actualizado automáticamente:', avisoActualizado);
-
-                  this.modalController.dismiss({
-                    success: true,
-                    albaran: albaran,
-                    trabajo: trabajoActualizado,
-                    aviso: avisoActualizado,
-                    mensaje: 'Albarán guardado exitosamente'
-                  }, 'confirm');
-                },
-                error: (error) => {
-                  console.error('Error al actualizar estado del aviso:', error);
-                  // Aún así, cerrar el modal con éxito
-                  this.loading = false;
-                  this.modalController.dismiss({
-                    success: true,
-                    albaran: albaran,
-                    trabajo: trabajoActualizado,
-                    mensaje: 'Albarán guardado exitosamente'
-                  }, 'confirm');
-                }
-              });
+              this.modalController.dismiss({
+                success: true,
+                albaran: albaran,
+                aviso: avisoActualizado,
+                mensaje: 'Albarán guardado exitosamente'
+              }, 'confirm');
             },
             error: (error) => {
+              console.error('Error al actualizar estado del aviso:', error);
+              // Aún así, cerrar el modal con éxito
               this.loading = false;
-              this.error = 'Error al actualizar el trabajo: ' + (error.message || 'Error desconocido');
-              console.error('Error al actualizar trabajo:', error);
+              this.modalController.dismiss({
+                success: true,
+                albaran: albaran,
+                mensaje: 'Albarán guardado exitosamente'
+              }, 'confirm');
             }
           });
         },
@@ -555,12 +464,11 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Método de depuración para ver la información completa del trabajo
+   * Método de depuración para ver la información del albarán
    */
-  debugTrabajo(trabajo: TrabajoRealizado) {
-    console.log('Trabajo:', trabajo);
-    console.log('Repuestos:', trabajo.repuestos);
-    console.log('Repuestos con cantidades:', trabajo.materiales);
+  debugAlbaran() {
+    console.log('Albarán en progreso:', this.albaranForm.value);
+    console.log('Repuestos seleccionados:', this.repuestosSeleccionados);
     console.log('Precio total repuestos:', this.calcularPrecioTotalRepuestos());
   }
 
