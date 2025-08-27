@@ -4,6 +4,18 @@
     background: #fff;
     border-bottom: 1px solid #e2e8f0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    // Configurar safe areas en el header
+    --padding-top: var(--ion-safe-area-top, 0px) !important;
+    --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+    --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+    
+    // Forzar posicionamiento correcto
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 1000 !important;
 
     ion-toolbar {
         --background: #fff;
@@ -12,12 +24,19 @@
         --padding-bottom: 0;
         --min-height: 60px;
         --height: 60px;
+        
+        // Forzar safe areas en el toolbar
+        --padding-top: var(--ion-safe-area-top, 0px) !important;
+        --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+        --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
     }
 
     // Aplicar safe areas en móviles
     @media (max-width: 768px) {
         ion-toolbar {
-            padding-top: var(--ion-safe-area-top, 0px);
+            --padding-top: var(--ion-safe-area-top, 0px);
+            --min-height: calc(60px + var(--ion-safe-area-top, 0px));
+            --height: calc(60px + var(--ion-safe-area-top, 0px));
         }
     }
 }
@@ -142,15 +161,16 @@
     --padding-bottom: 0;
     --padding-start: 0;
     --padding-end: 0;
-
+    
     // En desktop, agregar margen izquierdo para el sidebar
     @media (min-width: 769px) {
         --padding-start: 250px;
     }
-
+    
     // En móvil, el sidebar se superpone
     @media (max-width: 768px) {
         --padding-start: 0;
+        --padding-top: calc(60px + var(--ion-safe-area-top, 0px));
     }
 }
 
@@ -169,11 +189,23 @@
 @media (max-width: 768px) {
     .mobile-header {
         display: block;
-
+        
+        // Configuración agresiva para móviles
+        --padding-top: var(--ion-safe-area-top, 0px) !important;
+        --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+        --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+        
+        // Forzar posicionamiento correcto en móviles
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1000 !important;
+        
         ion-toolbar {
-            --min-height: 50px;
-            --height: 50px;
-            padding-top: var(--ion-safe-area-top, 0px);
+            --min-height: calc(50px + var(--ion-safe-area-top, 0px)) !important;
+            --height: calc(50px + var(--ion-safe-area-top, 0px)) !important;
+            --padding-top: var(--ion-safe-area-top, 0px) !important;
         }
     }
 
@@ -191,11 +223,27 @@
 /* Configuración específica para PWA standalone */
 @media all and (display-mode: standalone) {
     .mobile-header {
+        // Configuración agresiva para PWA standalone
+        --padding-top: var(--ion-safe-area-top, 0px) !important;
+        --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+        --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+        
+        // Forzar posicionamiento correcto en PWA standalone
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1000 !important;
+        
         ion-toolbar {
-            --min-height: 55px;
-            --height: 55px;
-            padding-top: var(--ion-safe-area-top, 0px);
+            --min-height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+            --height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+            --padding-top: var(--ion-safe-area-top, 0px) !important;
         }
+    }
+    
+    .main-content {
+        --padding-top: calc(60px + var(--ion-safe-area-top, 0px)) !important;
     }
 }
 
@@ -203,11 +251,27 @@
 @supports (-webkit-touch-callout: none) {
     @media all and (display-mode: standalone) {
         .mobile-header {
+            // Configuración agresiva para iOS PWA standalone
+            --padding-top: var(--ion-safe-area-top, 0px) !important;
+            --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+            --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+            
+            // Forzar posicionamiento correcto en iOS PWA standalone
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            
             ion-toolbar {
-                --min-height: 55px;
-                --height: 55px;
-                padding-top: var(--ion-safe-area-top, 0px);
+                --min-height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+                --height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+                --padding-top: var(--ion-safe-area-top, 0px) !important;
             }
+        }
+        
+        .main-content {
+            --padding-top: calc(60px + var(--ion-safe-area-top, 0px)) !important;
         }
     }
 }
@@ -216,11 +280,27 @@
 @supports not (-webkit-touch-callout: none) {
     @media all and (display-mode: standalone) {
         .mobile-header {
+            // Configuración agresiva para Android PWA standalone
+            --padding-top: var(--ion-safe-area-top, 0px) !important;
+            --min-height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+            --height: calc(60px + var(--ion-safe-area-top, 0px)) !important;
+            
+            // Forzar posicionamiento correcto en Android PWA standalone
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+            
             ion-toolbar {
-                --min-height: 55px;
-                --height: 55px;
-                padding-top: var(--ion-safe-area-top, 0px);
+                --min-height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+                --height: calc(55px + var(--ion-safe-area-top, 0px)) !important;
+                --padding-top: var(--ion-safe-area-top, 0px) !important;
             }
+        }
+        
+        .main-content {
+            --padding-top: calc(60px + var(--ion-safe-area-top, 0px)) !important;
         }
     }
 }
