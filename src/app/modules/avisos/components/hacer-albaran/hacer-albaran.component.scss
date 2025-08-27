@@ -1,56 +1,3 @@
-// ========================================
-// ESTRUCTURA BASE DEL MODAL
-// ========================================
-
-// Clase específica para PWA que fuerza el respeto de safe areas
-.hacer-albaran-modal.pwa-safe-areas {
-  /* Variables CSS compatibles con PWA */
-  --header-safe-top: env(safe-area-inset-top, 0px);
-  --footer-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --content-safe-left: env(safe-area-inset-left, 0px);
-  --content-safe-right: env(safe-area-inset-right, 0px);
-  
-  /* Aplicar safe areas solo en móviles cuando es PWA */
-  @media (max-width: 768px) {
-    .modal-header {
-      padding-top: calc(16px + var(--header-safe-top)) !important;
-    }
-    
-    .modal-footer {
-      padding-bottom: calc(16px + var(--footer-safe-bottom)) !important;
-    }
-    
-    .modal-container {
-      height: calc(100vh - var(--header-safe-top) - var(--footer-safe-bottom)) !important;
-      max-height: calc(100vh - var(--header-safe-top) - var(--footer-safe-bottom)) !important;
-    }
-  }
-}
-
-// CSS adicional para dispositivos específicos cuando es PWA standalone
-@media all and (display-mode: standalone) {
-  .hacer-albaran-modal {
-    /* Forzar safe areas en PWA standalone */
-    --header-safe-top: env(safe-area-inset-top, 0px);
-    --footer-safe-bottom: env(safe-area-inset-bottom, 0px);
-    
-    @media (max-width: 768px) {
-      .modal-header {
-        padding-top: calc(16px + var(--header-safe-top)) !important;
-      }
-      
-      .modal-footer {
-        padding-bottom: calc(16px + var(--footer-safe-bottom)) !important;
-      }
-      
-      .modal-container {
-        height: calc(100vh - var(--header-safe-top) - var(--footer-safe-bottom)) !important;
-        max-height: calc(100vh - var(--header-safe-top) - var(--footer-safe-bottom)) !important;
-      }
-    }
-  }
-}
-
 .modal-container {
   display: flex;
   flex-direction: column;
@@ -64,14 +11,6 @@
     height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
     max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
   }
-  
-  /* Configuración específica para PWA standalone */
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-      max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    }
-  }
 }
 
 .modal-header {
@@ -81,14 +20,7 @@
 
   /* Aplicar safe areas al header */
   @media (max-width: 768px) {
-    padding-top: calc(16px + var(--ion-safe-area-top, 0px));
-  }
-  
-  /* Configuración específica para PWA standalone */
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      padding-top: calc(16px + env(safe-area-inset-top, 0px));
-    }
+    padding-top: calc(16px + var(--ion-safe-area-top, 16px));
   }
 
   .header-content {
@@ -220,6 +152,7 @@
     overflow: visible;
     min-height: 300px;
     padding-bottom: 80px;
+    display: none; // Ocultar en móvil por defecto
   }
 
   & {
@@ -246,10 +179,6 @@
   }
 }
 
-// ========================================
-// CONTROLES DE FORMULARIO
-// ========================================
-
 .form-group {
   position: relative;
   margin-bottom: 20px;
@@ -274,24 +203,29 @@
 .form-control {
   position: relative;
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   color: #111827;
-  background-color: #fff;
-  transition: border-color 0.2s;
+  background-color: #FAFAFB;
+  transition: all 0.2s ease;
 
   &:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    background-color: #fff;
   }
 
   &:disabled {
     background-color: #f9fafb;
     color: #6b7280;
     cursor: not-allowed;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
   }
 }
 
@@ -303,49 +237,16 @@ select.form-control {
   background-position: right 12px center;
   background-size: 16px;
   padding-right: 40px;
-  background-color: #FAFAFB;
-  border: 1px solid transparent;
-  padding-top: 10px;
-  padding-bottom: 10px;
-
-  &:focus {
-    outline: none;
-    border-color: #2563eb;
-  }
-
-  &::placeholder {
-    color: #9ca3af;
-  }
 
   option[value=""] {
     color: #9ca3af;
   }
 }
 
-input.form-control {
-  background-color: #FAFAFB;
-  border: 1px solid transparent;
-  padding-top: 10px;
-  padding-bottom: 10px;
-
-  &:focus {
-    outline: none;
-    border-color: #2563eb;
-  }
-}
-
+// Estilos específicos para textarea
 textarea.form-control {
-  background-color: #FAFAFB;
-  border: 1px solid transparent;
-  padding-top: 10px;
-  padding-bottom: 10px;
   resize: vertical;
   min-height: 80px;
-
-  &:focus {
-    outline: none;
-    border-color: #2563eb;
-  }
 }
 
 .form-row {
@@ -374,20 +275,21 @@ textarea.form-control {
     gap: 4px;
     padding: 6px 10px;
     background: none;
-    border: none;
+    border: 1px solid #d2d2d2;
     color: #4F46E5;
     font-size: 14px;
     cursor: pointer;
     white-space: nowrap;
-    border: 1px solid #d2d2d2;
     position: absolute;
     right: 8px;
     top: 6px;
     border-radius: 8px;
     font-weight: 500;
+    transition: all 0.2s ease;
 
     &:hover {
       color: #1d4ed8;
+      background: #f3f4f6;
     }
 
     ion-icon {
@@ -406,408 +308,28 @@ textarea.form-control {
   line-height: 1.4;
 }
 
-// Sección de repuestos especial
+// ========================================
+// SECCIÓN DE REPUESTOS
+// ========================================
+
 .repuestos-section,
 .repuestos-container {
   position: sticky;
   top: 20px;
 
   h3 {
-    border-bottom-color: #10B981;
+    border-bottom: 2px solid #10B981;
+    padding-bottom: 8px;
   }
 }
 
-// En móvil, no usar sticky para la sección de repuestos
+// En móvil, no usar sticky
 @media (max-width: 1199px) {
   .repuestos-section {
     position: static;
     top: auto;
   }
 }
-
-
-
-
-
-// Estados de cierre
-.estados-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-// En escritorio, usar 3 columnas para los estados
-@media (min-width: 1200px) {
-  .estados-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-}
-
-.estado-option {
-  border: 2px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  background: #fff;
-
-  &:hover {
-    border-color: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  &.selected {
-    border-color: #2563eb;
-    background: #EFF6FF;
-
-    ion-icon {
-      color: #2563eb;
-    }
-  }
-
-  .estado-content {
-    h4 {
-      margin: 0 0 8px 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: #111827;
-    }
-
-    p {
-      margin: 0;
-      font-size: 13px;
-      color: #6B7280;
-      line-height: 1.4;
-    }
-  }
-
-  ion-icon {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    font-size: 20px;
-    color: #9CA3AF;
-  }
-}
-
-// Área de firma
-.signature-area {
-  border: 2px dashed #D1D5DB;
-  border-radius: 8px;
-  padding: 20px;
-  text-align: center;
-  background: #F9FAFB;
-  transition: all 0.2s ease;
-  min-height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-
-  &:hover {
-    border-color: #2563eb;
-    background: #EFF6FF;
-  }
-
-  // Canvas de firma
-  .signature-canvas-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-
-    .signature-canvas {
-      border: 1px solid #E5E7EB;
-      border-radius: 6px;
-      background: #fff;
-      cursor: crosshair;
-      touch-action: none; // Importante para móvil
-    }
-
-    .signature-controls {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-
-      button {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        ion-icon {
-          font-size: 14px;
-        }
-      }
-
-      .btn-clear {
-        background: #FEE2E2;
-        color: #DC2626;
-
-        &:hover {
-          background: #FECACA;
-        }
-      }
-
-      .btn-save {
-        background: #10B981;
-        color: white;
-
-        &:hover {
-          background: #059669;
-        }
-      }
-    }
-  }
-
-  // Vista previa de la firma
-  .signature-preview {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-
-    .firma-image {
-      max-width: 100%;
-      max-height: 120px;
-      border: 1px solid #E5E7EB;
-      border-radius: 6px;
-      background: #fff;
-    }
-
-    .signature-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-
-      button {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        ion-icon {
-          font-size: 14px;
-        }
-      }
-
-      .btn-edit {
-        background: #DBEAFE;
-        color: #1D4ED8;
-
-        &:hover {
-          background: #BFDBFE;
-        }
-      }
-
-      .btn-remove {
-        background: #FEE2E2;
-        color: #DC2626;
-
-        &:hover {
-          background: #FECACA;
-        }
-      }
-    }
-  }
-
-  .signature-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    color: #6B7280;
-    margin-top: 15px;
-
-    ion-icon {
-      font-size: 48px;
-      color: #9CA3AF;
-    }
-
-    span {
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    small {
-      font-size: 12px;
-      color: #9CA3AF;
-    }
-
-    .btn-start-signature {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 20px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 8px;
-
-      &:hover {
-        background: #1d4ed8;
-      }
-
-      ion-icon {
-        font-size: 16px;
-      }
-    }
-  }
-}
-
-// Mensaje de error
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  border-radius: 6px;
-  color: #DC2626;
-  margin-bottom: 20px;
-  font-size: 14px;
-
-  ion-icon {
-    font-size: 18px;
-    color: #DC2626;
-    flex-shrink: 0;
-  }
-
-  span {
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-// ========================================
-// FOOTER DEL MODAL
-// ========================================
-
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
-  flex-shrink: 0;
-  z-index: 10;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  /* Aplicar safe areas al footer */
-  @media (max-width: 768px) {
-    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
-  }
-  
-  /* Configuración específica para PWA standalone */
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    }
-  }
-
-  .button-group {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      ion-icon {
-        font-size: 18px;
-      }
-    }
-
-    .btn-outline {
-      background: none;
-      border: 1px solid #d1d5db;
-      color: #374151;
-
-      &:hover:not(:disabled) {
-        background-color: #f8fafc;
-        border-color: #9ca3af;
-      }
-    }
-
-    .btn-primary {
-      background-color: #2563eb;
-      border: 1px solid #2563eb;
-      color: #fff;
-
-      &:hover:not(:disabled) {
-        background-color: #1d4ed8;
-        border-color: #1d4ed8;
-      }
-    }
-  }
-}
-
-// Mensaje de error
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  border-radius: 6px;
-  color: #DC2626;
-  margin-bottom: 20px;
-  font-size: 14px;
-
-  ion-icon {
-    font-size: 18px;
-    color: #DC2626;
-    flex-shrink: 0;
-  }
-
-  span {
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-// ========================================
-// ESTILOS PARA LA SECCIÓN DE REPUESTOS
-// ========================================
 
 // Acciones de repuestos
 .repuestos-actions {
@@ -1087,7 +609,7 @@ textarea.form-control {
       display: flex;
       align-items: center;
       gap: 16px;
-      min-width: 0; // Importante para evitar overflow
+      min-width: 0;
       overflow: hidden;
 
       .repuesto-nombre {
@@ -1172,6 +694,363 @@ textarea.form-control {
   }
 }
 
+// ========================================
+// ESTADOS DE CIERRE
+// ========================================
+
+.estados-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+// En escritorio, usar 3 columnas
+@media (min-width: 1200px) {
+  .estados-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+.estado-option {
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: #fff;
+
+  &:hover {
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &.selected {
+    border-color: #2563eb;
+    background: #EFF6FF;
+
+    ion-icon {
+      color: #2563eb;
+    }
+  }
+
+  .estado-content {
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.4;
+    }
+  }
+
+  ion-icon {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 20px;
+    color: #9CA3AF;
+  }
+}
+
+// ========================================
+// ÁREA DE FIRMA
+// ========================================
+
+.signature-area {
+  border: 2px dashed #D1D5DB;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  background: #F9FAFB;
+  transition: all 0.2s ease;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &:hover {
+    border-color: #2563eb;
+    background: #EFF6FF;
+  }
+
+  // Canvas de firma
+  .signature-canvas-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .signature-canvas {
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      background: #fff;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .signature-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+
+      .btn-clear {
+        background: #FEE2E2;
+        color: #DC2626;
+
+        &:hover {
+          background: #FECACA;
+        }
+      }
+
+      .btn-save {
+        background: #10B981;
+        color: white;
+
+        &:hover {
+          background: #059669;
+        }
+      }
+    }
+  }
+
+  // Vista previa de la firma
+  .signature-preview {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    .firma-image {
+      max-width: 100%;
+      max-height: 120px;
+      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .signature-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        ion-icon {
+          font-size: 14px;
+        }
+      }
+
+      .btn-edit {
+        background: #DBEAFE;
+        color: #1D4ED8;
+
+        &:hover {
+          background: #BFDBFE;
+        }
+      }
+
+      .btn-remove {
+        background: #FEE2E2;
+        color: #DC2626;
+
+        &:hover {
+          background: #FECACA;
+        }
+      }
+    }
+  }
+
+  .signature-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #6B7280;
+    margin-top: 15px;
+
+    ion-icon {
+      font-size: 48px;
+      color: #9CA3AF;
+    }
+
+    span {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    small {
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+
+    .btn-start-signature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+
+      &:hover {
+        background: #1d4ed8;
+      }
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// ========================================
+// FOOTER DEL MODAL
+// ========================================
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  flex-shrink: 0;
+  z-index: 10;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  /* Aplicar safe areas al footer */
+  @media (max-width: 768px) {
+    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
+  }
+
+  .button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+
+    .btn-outline {
+      background: none;
+      border: 1px solid #d1d5db;
+      color: #374151;
+
+      &:hover:not(:disabled) {
+        background-color: #f8fafc;
+        border-color: #9ca3af;
+      }
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      border: 1px solid #2563eb;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+      }
+    }
+  }
+}
+
+// ========================================
+// MENSAJES DE ERROR
+// ========================================
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  color: #DC2626;
+  margin-bottom: 20px;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #DC2626;
+    flex-shrink: 0;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+// ========================================
+// ANIMACIONES Y ESTADOS
+// ========================================
+
 // Animación de carga
 .spinning {
   animation: spin 1s linear infinite;
@@ -1198,8 +1077,6 @@ ion-button[type="submit"] {
     margin-right: 8px;
   }
 }
-
-
 
 // ========================================
 // CLASES DE VISIBILIDAD RESPONSIVA
@@ -1543,5 +1420,69 @@ ion-button[type="submit"] {
   }
 }
 
-// Configuración específica para PWA standalone en móviles - REMOVIDA
-// Esta configuración ya se maneja arriba con env() que es más compatible
+// ========================================
+// CONFIGURACIONES ESPECÍFICAS PARA PWA
+// ========================================
+
+// Configuración específica para PWA standalone
+@media all and (display-mode: standalone) {
+  .modal-container {
+    height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+    max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+  }
+
+  .modal-header {
+    padding-top: calc(16px + var(--ion-safe-area-top, 0px));
+  }
+
+  .modal-footer {
+    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
+  }
+}
+
+// Configuración específica para iOS en PWA standalone
+@supports (-webkit-touch-callout: none) {
+  @media all and (display-mode: standalone) {
+    .modal-container {
+      height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+      max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+    }
+
+    .modal-header {
+      padding-top: calc(16px + var(--ion-safe-area-top, 0px));
+    }
+
+    .modal-footer {
+      padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
+    }
+  }
+}
+
+// Configuración específica para Android
+@supports not (-webkit-touch-callout: none) {
+  .modal-container {
+    height: calc(100vh - var(--ion-safe-area-bottom, 16px));
+    max-height: calc(100vh - var(--ion-safe-area-bottom, 16px));
+  }
+
+  .modal-footer {
+    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
+  }
+}
+
+// Fallback para navegadores que no soportan env()
+@supports not (padding-top: env(safe-area-inset-top)) {
+  @media all and (display-mode: standalone) {
+    ion-modal.hacer-albaran-modal {
+      &::part(content) {
+        padding-top: 36px;
+        padding-bottom: 36px;
+      }
+    }
+    
+    ion-modal.hacer-albaran-modal ion-content {
+      --padding-top: 36px;
+      --padding-bottom: 36px;
+    }
+  }
+}

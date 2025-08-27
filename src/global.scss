@@ -223,42 +223,8 @@ ion-modal.modal-fullscreen {
   --box-shadow: none;
 }
 
-/* Modal para hacer albarán - Prevenir cambios de tamaño */
-ion-modal.modal-hacer-albaran {
-  --width: 100vw !important;
-  --height: 100vh !important;
-  --max-width: 100vw !important;
-  --max-height: 100vh !important;
-  --border-radius: 0 !important;
-  --box-shadow: none !important;
-  
-  /* Aplicar safe areas específicas */
-  &::part(content) {
-    padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    padding-left: var(--ion-safe-area-left, 0px);
-    padding-right: var(--ion-safe-area-right, 0px);
-  }
-  
-  /* Prevenir que el modal cambie de tamaño */
-  ion-content {
-    --overflow: hidden !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
-    max-height: 100vh !important;
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    --padding-start: var(--ion-safe-area-left, 0px);
-    --padding-end: var(--ion-safe-area-right, 0px);
-  }
-  
-  /* Asegurar que el header mantenga su tamaño */
-  ion-header {
-    height: 56px !important;
-    min-height: 56px !important;
-    max-height: 56px !important;
-  }
-}
+/* Modal para hacer albarán - REMOVIDO: Configuración movida al componente */
+/* Las safe areas se manejan directamente en el componente para evitar conflictos */
 
 /* Media queries adicionales para móviles */
 @media (max-width: 768px) {

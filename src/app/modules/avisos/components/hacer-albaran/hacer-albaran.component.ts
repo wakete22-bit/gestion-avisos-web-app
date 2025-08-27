@@ -72,8 +72,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   // Estados de cierre disponibles (importados del modelo)
   estadosCierre = ESTADOS_CIERRE_ALBARAN;
 
-  // Detección de PWA standalone para safe areas
-  public isPwaStandalone = false;
+
 
   constructor(
     private fb: FormBuilder,
@@ -105,8 +104,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     console.log('🎯 HacerAlbaranComponent ngOnInit - Aviso:', this.aviso);
     console.log('🎯 Formulario inicializado:', this.albaranForm);
     
-    // Detectar si estamos en PWA standalone para aplicar safe areas
-    this.detectarPwaStandalone();
+
     
     // Establecer fechas por defecto
     this.establecerFechaActual();
@@ -135,29 +133,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     }, 100);
   }
 
-  /**
-   * Detecta si la aplicación está ejecutándose como PWA standalone
-   */
-  detectarPwaStandalone() {
-    // Detectar PWA standalone usando múltiples métodos
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                        (window.navigator as any).standalone ||
-                        document.referrer.includes('android-app://');
-    
-    this.isPwaStandalone = isStandalone;
-    
-    console.log('🔍 Detección PWA Standalone:', {
-      isPwaStandalone: this.isPwaStandalone,
-      displayMode: window.matchMedia('(display-mode: standalone)').matches,
-      navigatorStandalone: (window.navigator as any).standalone,
-      referrer: document.referrer
-    });
-    
-    // Aplicar clase CSS condicionalmente
-    if (this.isPwaStandalone) {
-      document.documentElement.classList.add('pwa-standalone-detected');
-    }
-  }
+
 
   /**
    * Inicializa el formulario con valores por defecto
