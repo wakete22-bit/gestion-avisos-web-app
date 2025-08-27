@@ -127,6 +127,9 @@
                 (click)="toggleEstadoCliente(cliente)">
                 <ion-icon [name]="cliente.es_activo ? 'pause-circle' : 'play-circle'"></ion-icon>
               </button>
+              <button class="btn-eliminar" title="Eliminar cliente" (click)="eliminarCliente(cliente)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
             </div>
           </div>
         </div>

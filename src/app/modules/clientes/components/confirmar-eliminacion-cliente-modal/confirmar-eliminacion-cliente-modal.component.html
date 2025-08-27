@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="warning-icon">
+        <ion-icon name="warning-outline"></ion-icon>
+      </div>
+      <h2>Confirmar eliminación</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-body">
+  <div class="modal-content">
+    <div class="warning-section">
+      <div class="warning-circle">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <h3>¿Estás seguro de que quieres eliminar este cliente?</h3>
+      <p class="warning-text">Esta acción no se puede deshacer y eliminará permanentemente el cliente y todos sus datos asociados.</p>
+    </div>
+
+    <div class="cliente-details">
+      <div class="cliente-card">
+        <div class="cliente-header">
+          <h4>Detalles del cliente</h4>
+        </div>
+        <div class="cliente-info">
+          <div class="info-row">
+            <span class="label">Nombre/Razón Social:</span>
+            <span class="value">{{ cliente.nombre_completo }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.telefono_contacto">
+            <span class="label">Teléfono:</span>
+            <span class="value">{{ cliente.telefono_contacto }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.email">
+            <span class="label">Correo electrónico:</span>
+            <span class="value">{{ cliente.email }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.direccion">
+            <span class="label">Dirección:</span>
+            <span class="value">{{ cliente.direccion }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Estado:</span>
+            <span class="value estado-value" [class]="getEstadoClass(cliente.es_activo)">
+              {{ cliente.es_activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+          <div class="info-row" *ngIf="cliente.nivel_urgencia_habitual">
+            <span class="label">Nivel de urgencia:</span>
+            <span class="value">{{ cliente.nivel_urgencia_habitual }}</span>
+          </div>
+          <div class="info-row" *ngIf="cliente.fecha_creacion">
+            <span class="label">Fecha de registro:</span>
+            <span class="value">{{ cliente.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="consequences-section">
+      <div class="consequences-card">
+        <h4>Consecuencias de la eliminación:</h4>
+        <ul class="consequences-list">
+          <li>El cliente se eliminará permanentemente de la base de datos</li>
+          <li>Todos los avisos asociados al cliente serán eliminados</li>
+          <li>Las facturas relacionadas con este cliente se verán afectadas</li>
+          <li>No se podrá recuperar la información del cliente</li>
+          <li>Se perderá el historial completo de servicios</li>
+          <li>Los reportes y estadísticas podrían verse afectados</li>
+          <li>Si hay presupuestos pendientes, se perderán</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="button-group">
+      <button type="button" class="btn btn-secondary" (click)="cancelarEliminacion()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()">
+        <ion-icon name="trash-outline"></ion-icon>
+        Eliminar permanentemente
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

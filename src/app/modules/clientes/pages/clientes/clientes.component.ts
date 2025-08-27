@@ -22,9 +22,11 @@ import {
   peopleOutline,
   pauseCircle,
   playCircle,
-  filterOutline
+  filterOutline,
+  trashOutline
 } from 'ionicons/icons';
 import { CrearClienteModalComponent } from 'src/app/modules/clientes/components/crear-cliente-modal/crear-cliente-modal.component';
+import { ConfirmarEliminacionClienteModalComponent } from '../../components/confirmar-eliminacion-cliente-modal/confirmar-eliminacion-cliente-modal.component';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { Cliente } from '../../models/cliente.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -71,7 +73,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private clientesService: ClientesService
   ) {
-    addIcons({searchOutline,filterOutline,addCircle,refreshOutline,alertCircleOutline,peopleOutline,eyeOutline,mapOutline,alertCircle,close,add,addCircleOutline,callOutline,mailOutline,locationOutline,pauseCircle,playCircle});
+    addIcons({searchOutline,filterOutline,addCircle,refreshOutline,alertCircleOutline,peopleOutline,eyeOutline,mapOutline,alertCircle,close,add,addCircleOutline,callOutline,mailOutline,locationOutline,pauseCircle,playCircle,trashOutline});
   }
 
   ngOnInit() {
@@ -337,4 +339,52 @@ export class ClientesComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Elimina un cliente con confirmación
+   */
+  async eliminarCliente(cliente: Cliente) {
+    // Mostrar modal de confirmación antes de eliminar
+    const modal = await this.modalController.create({
+      component: ConfirmarEliminacionClienteModalComponent,
+      cssClass: 'modal-confirmar-eliminacion',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        cliente: cliente
+      }
+    });
+    
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.confirmado) {
+      this.loading = true;
+      this.error = null;
+
+      this.clientesService.eliminarCliente(cliente.id)
+        .subscribe({
+          next: () => {
+            console.log('Cliente eliminado exitosamente');
+            this.loading = false;
+            
+            // Recargar la lista de clientes
+            this.cargarClientes();
+            
+            // Mostrar mensaje de éxito (opcional)
+            // Puedes implementar un toast o notificación aquí
+          },
+          error: (error) => {
+            console.error('Error al eliminar cliente:', error);
+            
+            // Mostrar mensaje de error más específico
+            if (error.code === '23503') {
+              this.error = 'No se puede eliminar el cliente porque tiene datos relacionados (avisos, facturas, etc.). Contacta al administrador.';
+            } else {
+              this.error = 'Error al eliminar el cliente. Por favor, inténtalo de nuevo.';
+            }
+            this.loading = false;
+          }
+        });
+    }
+  }
 }
