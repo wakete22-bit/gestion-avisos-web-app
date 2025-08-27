@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="warning-icon">
+        <ion-icon name="warning-outline"></ion-icon>
+      </div>
+      <h2>Confirmar eliminación</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-body">
+  <div class="modal-content">
+    <div class="warning-section">
+      <div class="warning-circle">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <h3>¿Estás seguro de que quieres eliminar esta factura?</h3>
+      <p class="warning-text">Esta acción no se puede deshacer y eliminará permanentemente la factura y todos sus datos asociados.</p>
+    </div>
+
+    <div class="factura-details">
+      <div class="factura-card">
+        <div class="factura-header">
+          <h4>Detalles de la factura</h4>
+        </div>
+        <div class="factura-info">
+          <div class="info-row">
+            <span class="label">Número:</span>
+            <span class="value">#{{ factura.numero_factura }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Cliente:</span>
+            <span class="value">{{ factura.nombre_cliente }}</span>
+          </div>
+          <div class="info-row" *ngIf="factura.notas">
+            <span class="label">Descripción:</span>
+            <span class="value">{{ factura.notas }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Estado:</span>
+            <span class="value estado-value" [class]="getEstadoClass(factura.estado)">
+              {{ factura.estado }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Fecha emisión:</span>
+            <span class="value">{{ factura.fecha_emision | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Total:</span>
+            <span class="value total-value">{{ factura.total | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="consequences-section">
+      <div class="consequences-card">
+        <h4>Consecuencias de la eliminación:</h4>
+        <ul class="consequences-list">
+          <li>La factura se eliminará permanentemente de la base de datos</li>
+          <li>Todos los datos financieros asociados serán eliminados</li>
+          <li>No se podrá recuperar la información de la factura</li>
+          <li>Si la factura está asociada a otros registros, podrían verse afectados</li>
+          <li>Se perderá el historial de pagos y transacciones</li>
+          <li>Los reportes financieros podrían verse afectados</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="button-group">
+      <button type="button" class="btn btn-secondary" (click)="cancelarEliminacion()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()">
+        <ion-icon name="trash-outline"></ion-icon>
+        Eliminar permanentemente
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="warning-icon">
+        <ion-icon name="warning-outline"></ion-icon>
+      </div>
+      <h2>Confirmar eliminación</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-body">
+  <div class="modal-content">
+    <div class="warning-section">
+      <div class="warning-circle">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <h3>¿Estás seguro de que quieres eliminar este aviso?</h3>
+      <p class="warning-text">Esta acción no se puede deshacer y eliminará permanentemente el aviso y todas sus fotos asociadas.</p>
+    </div>
+
+    <div class="aviso-details">
+      <div class="aviso-card">
+        <div class="aviso-header">
+          <h4>Detalles del aviso</h4>
+        </div>
+        <div class="aviso-info">
+          <div class="info-row">
+            <span class="label">Número:</span>
+            <span class="value">{{ aviso.numero_secuencial || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Cliente:</span>
+            <span class="value">{{ aviso.nombre_cliente_aviso }}</span>
+          </div>
+          <div class="info-row" *ngIf="aviso.descripcion_problema">
+            <span class="label">Descripción:</span>
+            <span class="value">{{ aviso.descripcion_problema }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Estado:</span>
+            <span class="value estado-value" [class]="getEstadoClass(aviso.estado)">
+              {{ aviso.estado }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Dirección:</span>
+            <span class="value">{{ aviso.direccion_cliente_aviso || 'No especificada' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Urgencia:</span>
+            <span class="value urgencia-value" [class.alta]="aviso.es_urgente || aviso.urgencia === 'Alta'">
+              {{ (aviso.es_urgente || aviso.urgencia === 'Alta') ? 'Alta' : 'Normal' }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Fecha creación:</span>
+            <span class="value">{{ aviso.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="consequences-section">
+      <div class="consequences-card">
+        <h4>Consecuencias de la eliminación:</h4>
+        <ul class="consequences-list">
+          <li>El aviso se eliminará permanentemente de la base de datos</li>
+          <li>Todas las fotos asociadas al aviso serán eliminadas</li>
+          <li>No se podrá recuperar la información del aviso</li>
+          <li>Si el aviso está asociado a otros registros, podrían verse afectados</li>
+          <li>Se perderá el historial completo del servicio</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="button-group">
+      <button type="button" class="btn btn-secondary" (click)="cancelarEliminacion()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()">
+        <ion-icon name="trash-outline"></ion-icon>
+        Eliminar permanentemente
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

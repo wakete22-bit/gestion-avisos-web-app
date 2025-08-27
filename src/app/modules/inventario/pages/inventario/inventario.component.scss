@@ -1428,3 +1428,24 @@ color: #26262A !important;
     }
   }
 }
+
+// Alert Button Styles
+.alert-button-cancel {
+  color: #6B7280 !important;
+  font-weight: 500;
+}
+
+.alert-button-delete {
+  color: #DC2626 !important;
+  font-weight: 600;
+}
+
+// Modal de confirmación de eliminación
+.modal-confirmar-eliminacion {
+  --width: 90%;
+  --max-width: 600px;
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --backdrop-opacity: 0.5;
+}

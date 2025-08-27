@@ -9,6 +9,7 @@ import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
+import { ConfirmarEliminacionAvisoModalComponent } from '../../components/confirmar-eliminacion-aviso-modal/confirmar-eliminacion-aviso-modal.component';
 import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
 import { environment } from 'src/environments/environment';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
@@ -998,10 +999,21 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    * Elimina un aviso con confirmación
    */
   async eliminarAviso(aviso: Aviso) {
-    // Mostrar confirmación antes de eliminar
-    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el aviso #${aviso.id}?\n\nEsta acción eliminará también todas las fotos asociadas y no se puede deshacer.`);
+    // Mostrar modal de confirmación antes de eliminar
+    const modal = await this.modalController.create({
+      component: ConfirmarEliminacionAvisoModalComponent,
+      cssClass: 'modal-confirmar-eliminacion',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        aviso: aviso
+      }
+    });
     
-    if (confirmacion) {
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.confirmado) {
       this.loading = true;
       this.error = null;
 

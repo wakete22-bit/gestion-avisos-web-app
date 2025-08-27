@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar>
+    <div class="header-content">
+      <div class="warning-icon">
+        <ion-icon name="warning-outline"></ion-icon>
+      </div>
+      <h2>Confirmar eliminación</h2>
+      <button class="close-button" (click)="cerrarModal()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="modal-body">
+  <div class="modal-content">
+    <div class="warning-section">
+      <div class="warning-circle">
+        <ion-icon name="trash-outline"></ion-icon>
+      </div>
+      <h3>¿Estás seguro de que quieres eliminar este producto?</h3>
+      <p class="warning-text">Esta acción no se puede deshacer y eliminará permanentemente el producto del inventario.</p>
+    </div>
+
+    <div class="product-details">
+      <div class="product-card">
+        <div class="product-header">
+          <h4>Detalles del producto</h4>
+        </div>
+        <div class="product-info">
+          <div class="info-row">
+            <span class="label">Código:</span>
+            <span class="value">{{ producto.codigo }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Nombre:</span>
+            <span class="value">{{ producto.nombre }}</span>
+          </div>
+          <div class="info-row" *ngIf="producto.descripcion">
+            <span class="label">Descripción:</span>
+            <span class="value">{{ producto.descripcion }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Stock actual:</span>
+            <span class="value stock-value" [class.low-stock]="producto.cantidad_disponible <= 5" [class.no-stock]="producto.cantidad_disponible === 0">
+              {{ producto.cantidad_disponible }} {{ producto.unidad }}
+            </span>
+          </div>
+          <div class="info-row">
+            <span class="label">Precio:</span>
+            <span class="value">{{ producto.pvp }}€</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="consequences-section">
+      <div class="consequences-card">
+        <h4>Consecuencias de la eliminación:</h4>
+        <ul class="consequences-list">
+          <li>El producto se eliminará permanentemente de la base de datos</li>
+          <li>No se podrá recuperar la información del producto</li>
+          <li>Si el producto está asociado a otros registros, podrían verse afectados</li>
+          <li>Se perderá el historial de stock y precios</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="button-group">
+      <button type="button" class="btn btn-secondary" (click)="cancelarEliminacion()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-danger" (click)="confirmarEliminacion()">
+        <ion-icon name="trash-outline"></ion-icon>
+        Eliminar permanentemente
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

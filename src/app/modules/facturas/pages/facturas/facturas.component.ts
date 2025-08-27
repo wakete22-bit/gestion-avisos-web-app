@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { addIcons } from 'ionicons';
@@ -16,10 +16,11 @@ import {
   receipt,
   hourglassOutline,
   warning,
-  document, receiptOutline, refreshOutline, alertCircleOutline } from 'ionicons/icons';
+  document, receiptOutline, refreshOutline, alertCircleOutline, trashOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import { FacturasService } from '../../services/facturas.service';
 import { Factura, FacturaResponse } from '../../models/factura.model';
+import { ConfirmarEliminacionFacturaModalComponent } from '../../components/confirmar-eliminacion-factura-modal/confirmar-eliminacion-factura-modal.component';
 
 @Component({
   selector: 'app-facturas',
@@ -46,9 +47,10 @@ export class FacturasComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private facturasService: FacturasService
+    private facturasService: FacturasService,
+    private modalController: ModalController
   ) { 
-    addIcons({refreshOutline,alertCircleOutline,searchOutline,addCircle,eyeOutline,receiptOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document});
+    addIcons({refreshOutline,alertCircleOutline,searchOutline,addCircle,eyeOutline,receiptOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document,trashOutline});
   }
 
   ngOnInit() {
@@ -135,4 +137,52 @@ export class FacturasComponent implements OnInit {
     return Math;
   }
 
+  /**
+   * Elimina una factura con confirmación
+   */
+  async eliminarFactura(factura: Factura) {
+    // Mostrar modal de confirmación antes de eliminar
+    const modal = await this.modalController.create({
+      component: ConfirmarEliminacionFacturaModalComponent,
+      cssClass: 'modal-confirmar-eliminacion',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        factura: factura
+      }
+    });
+    
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.confirmado) {
+      this.loading = true;
+      this.error = null;
+
+      this.facturasService.eliminarFactura(factura.id!)
+        .subscribe({
+          next: () => {
+            console.log('Factura eliminada exitosamente');
+            this.loading = false;
+            
+            // Recargar la lista de facturas
+            this.cargarFacturas();
+            
+            // Mostrar mensaje de éxito (opcional)
+            // Puedes implementar un toast o notificación aquí
+          },
+          error: (error) => {
+            console.error('Error al eliminar factura:', error);
+            
+            // Mostrar mensaje de error más específico
+            if (error.code === '23503') {
+              this.error = 'No se puede eliminar la factura porque tiene datos relacionados. Contacta al administrador.';
+            } else {
+              this.error = 'Error al eliminar la factura. Por favor, inténtalo de nuevo.';
+            }
+            this.loading = false;
+          }
+        });
+    }
+  }
 }

@@ -113,10 +113,7 @@
               <div class="aviso-cell precio-neto-aviso">{{ getPrecioNetoFormateado(producto.precio_neto) }}</div>
               <div class="aviso-cell pvp-aviso">{{ getPvpFormateado(producto.pvp) }}</div>
               <div class="aviso-cell acciones">
-                <button class="btn-ver" title="Ver detalles" (click)="verDetallesProducto(producto)">
-                  <ion-icon name="eye-outline"></ion-icon>
-                </button>
-                <button class="btn-editar" title="Editar producto">
+                <button class="btn-editar" title="Editar producto" (click)="editarProducto(producto)">
                   <ion-icon name="create-outline"></ion-icon>
                 </button>
                 <button class="btn-eliminar" title="Eliminar producto" (click)="confirmarEliminarProducto(producto)">

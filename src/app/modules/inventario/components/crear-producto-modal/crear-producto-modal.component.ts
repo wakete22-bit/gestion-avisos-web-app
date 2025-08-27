@@ -1,10 +1,11 @@
-import { Component, OnInit, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, OnDestroy, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, informationCircleOutline } from 'ionicons/icons';
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { InventarioService } from '../../services/inventario.service';
+import { Inventario } from '../../models/inventario.model';
 import { Subject } from 'rxjs';
 import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
 
@@ -16,8 +17,13 @@ import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalC
   imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
 })
 export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDestroy {
+  @Input() productoParaEditar?: Inventario;
+  
   productoForm: FormGroup;
   codigoGenerado: string = '';
+  modoEdicion = false;
+  tituloModal = 'Añadir producto';
+  subtituloModal = 'Añade un nuevo producto a tu inventario';
 
   private destroy$ = new Subject<void>();
 
@@ -41,7 +47,16 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     addIcons({ closeOutline, saveOutline, informationCircleOutline });
-    this.generarCodigo();
+    
+    // Verificar si estamos en modo edición
+    if (this.productoParaEditar) {
+      this.modoEdicion = true;
+      this.tituloModal = 'Editar producto';
+      this.subtituloModal = 'Modifica los datos del producto seleccionado';
+      this.cargarDatosProducto();
+    } else {
+      this.generarCodigo();
+    }
   }
 
   ngAfterViewInit() {
@@ -52,6 +67,20 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private cargarDatosProducto() {
+    if (this.productoParaEditar) {
+      this.productoForm.patchValue({
+        codigo: this.productoParaEditar.codigo,
+        nombre: this.productoParaEditar.nombre,
+        descripcion: this.productoParaEditar.descripcion || '',
+        stock: this.productoParaEditar.cantidad_disponible,
+        unidad: this.productoParaEditar.unidad,
+        precioNeto: this.productoParaEditar.precio_neto,
+        pvp: this.productoParaEditar.pvp
+      });
+    }
   }
 
   private generarCodigo() {
@@ -67,6 +96,11 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
       if (formData.pvp < formData.precioNeto) {
         // Mostrar error o ajustar automáticamente
         formData.pvp = formData.precioNeto;
+      }
+
+      // Si estamos en modo edición, incluir el ID del producto
+      if (this.modoEdicion && this.productoParaEditar) {
+        formData.id = this.productoParaEditar.id;
       }
 
       await this.modalController.dismiss(formData, 'confirm');

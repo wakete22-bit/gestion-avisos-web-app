@@ -1,12 +1,12 @@
 <ion-header>
   <ion-toolbar>
     <div class="header-content">
-      <h2>Añadir producto</h2>
+      <h2>{{ tituloModal }}</h2>
       <button class="close-button" (click)="cerrarModal()">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
-    <p class="subtitle">Añade un nuevo producto a tu inventario</p>
+    <p class="subtitle">{{ subtituloModal }}</p>
   </ion-toolbar>
 </ion-header>
 
@@ -130,7 +130,7 @@
         class="btn btn-primary" 
         (click)="guardarProducto()"
         [disabled]="!productoForm.valid">
-        Guardar producto
+        {{ modoEdicion ? 'Actualizar producto' : 'Guardar producto' }}
         <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>

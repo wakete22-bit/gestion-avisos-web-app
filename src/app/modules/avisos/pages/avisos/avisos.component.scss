@@ -2047,4 +2047,14 @@ ion-content.refresher-active {
   }
 }
 
+// Modal de confirmación de eliminación
+.modal-confirmar-eliminacion {
+  --width: 90%;
+  --max-width: 600px;
+  --height: auto;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --backdrop-opacity: 0.5;
+}
+
 

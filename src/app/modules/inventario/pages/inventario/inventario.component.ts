@@ -6,6 +6,7 @@ import { IonContent, IonIcon, ModalController, AlertController, ToastController 
 import { addIcons } from 'ionicons';
 import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, receipt, hourglassOutline, warning, document, appsOutline, cubeOutline, alertCircleOutline, checkmarkCircleOutline, searchOutline, trashOutline, createOutline, refreshOutline, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { CrearProductoModalComponent } from '../../components/crear-producto-modal/crear-producto-modal.component';
+import { ConfirmarEliminacionModalComponent } from '../../components/confirmar-eliminacion-modal/confirmar-eliminacion-modal.component';
 import { InventarioService } from '../../services/inventario.service';
 import { Inventario } from '../../models/inventario.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -272,6 +273,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
         <p><strong>Precio Neto:</strong> ${producto.precio_neto}€</p>
         <p><strong>PVP:</strong> ${producto.pvp}€</p>
         <p><strong>Fecha Creación:</strong> ${new Date(producto.fecha_creacion).toLocaleDateString()}</p>
+        <p><strong>Última Actualización:</strong> ${new Date(producto.fecha_actualizacion).toLocaleDateString()}</p>
       `,
       buttons: [
         {
@@ -298,30 +300,76 @@ export class InventarioComponent implements OnInit, OnDestroy {
   }
 
   private editarProducto(producto: Inventario) {
-    // TODO: Implementar modal de edición
-    console.log('Editar producto:', producto);
+    this.abrirModalEditarProducto(producto);
+  }
+
+  async abrirModalEditarProducto(producto: Inventario) {
+    const modal = await this.modalController.create({
+      component: CrearProductoModalComponent,
+      cssClass: 'modal-crear-producto',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        productoParaEditar: producto
+      }
+    });
+    
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+    
+    if (role === 'confirm' && data) {
+      this.actualizarProducto(producto.id, data);
+    }
+  }
+
+  private actualizarProducto(id: string, datosProducto: any) {
+    const producto = {
+      nombre: datosProducto.nombre,
+      descripcion: datosProducto.descripcion || '',
+      cantidad_disponible: datosProducto.stock,
+      unidad: datosProducto.unidad,
+      precio_neto: datosProducto.precioNeto,
+      pvp: datosProducto.pvp
+    };
+
+    this.loading = true;
+    this.error = null;
+
+    this.inventarioService.actualizarProducto(id, producto)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.mostrarToast('Producto actualizado exitosamente', 'success');
+          this.loading = false;
+          // Recargar la lista para mostrar el producto actualizado
+          this.cargarInventario();
+        },
+        error: (error) => {
+          console.error('Error al actualizar producto:', error);
+          this.error = 'Error al actualizar el producto. Por favor, inténtalo de nuevo.';
+          this.loading = false;
+          this.mostrarToast('Error al actualizar el producto', 'danger');
+        }
+      });
   }
 
   async confirmarEliminarProducto(producto: Inventario) {
-    const alert = await this.alertController.create({
-      header: 'Confirmar eliminación',
-      message: `¿Estás seguro de que quieres eliminar el producto "${producto.nombre}"?`,
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: () => {
-            this.eliminarProducto(producto.id);
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: ConfirmarEliminacionModalComponent,
+      cssClass: 'modal-confirmar-eliminacion',
+      showBackdrop: true,
+      backdropDismiss: true,
+      componentProps: {
+        producto: producto
+      }
     });
 
-    await alert.present();
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.confirmado) {
+      this.eliminarProducto(producto.id);
+    }
   }
 
   private eliminarProducto(id: string) {
