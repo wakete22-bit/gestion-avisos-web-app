@@ -922,7 +922,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    */
   async eliminarAviso(aviso: Aviso) {
     // Mostrar confirmación antes de eliminar
-    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el aviso #${aviso.id?.substring(0, 8)}?\n\nEsta acción eliminará también todas las fotos asociadas y no se puede deshacer.`);
+    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el aviso #${aviso.id}?\n\nEsta acción eliminará también todas las fotos asociadas y no se puede deshacer.`);
     
     if (confirmacion) {
       this.loading = true;

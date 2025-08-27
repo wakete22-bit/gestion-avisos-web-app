@@ -1,47 +1,45 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>VISTA CIERRE ALBARÁN</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="cancelar()">
-        <ion-icon name="close"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="modal-container hacer-albaran-modal">
+  <header class="modal-header">
+    <div class="header-content">
+      <h2>Crear Albarán</h2>
+      <button class="close-button" (click)="cancelar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <p class="subtitle">Crear albarán para el trabajo realizado</p>
+  </header>
 
-<ion-content>
-  <div class="albaran-container">
-    <form [formGroup]="albaranForm" (ngSubmit)="guardarAlbaran()">
+  <form [formGroup]="albaranForm" (ngSubmit)="guardarAlbaran()" class="modal-body">
+    <div class="modal-content">
 
       <!-- Layout de dos columnas -->
-      <div class="form-layout">
+      <div class="modal-grid">
 
         <!-- COLUMNA IZQUIERDA: Formulario principal -->
-        <div class="form-main">
+        <div class="form-section">
 
           <!-- Fecha y Horarios -->
-          <div class="form-section">
-            <h3>Fecha y Horarios</h3>
-            <div class="form-row">
-              <div class="form-group">
-                <ion-label>FECHA</ion-label>
-                <ion-input type="date" formControlName="fecha_cierre" (click)="establecerFechaActual()">
-                </ion-input>
-                <small class="help-text">Automática día actual</small>
-              </div>
+          <h3>Fecha y Horarios</h3>
 
-              <div class="form-group">
-                <ion-label>HORA ENTRADA</ion-label>
-                <ion-input type="time" formControlName="hora_entrada" step="900">
-                </ion-input>
-                <small class="help-text">Menú interactivo 15 en 15 min</small>
-              </div>
+          <div class="form-group">
+            <label>Fecha <span class="required">*</span></label>
+            <input type="date" formControlName="fecha_cierre" class="form-control" (click)="establecerFechaActual()">
+            <small class="help-text">Automática día actual</small>
+          </div>
 
-              <div class="form-group">
-                <ion-label>HORA SALIDA</ion-label>
-                <ion-input type="time" formControlName="hora_salida" step="900" (click)="establecerHoraActual()">
-                </ion-input>
-                <button type="button" class="btn-now" (click)="establecerHoraActual()">
+          <div class="form-row">
+            <div class="form-group half">
+              <label>Hora Entrada <span class="required">*</span></label>
+              <input type="time" formControlName="hora_entrada" step="900" class="form-control">
+              <small class="help-text">Menú interactivo 15 en 15 min</small>
+            </div>
+
+            <div class="form-group half">
+              <label>Hora Salida <span class="required">*</span></label>
+              <div class="input-with-button">
+                <input type="time" formControlName="hora_salida" step="900" class="form-control"
+                  (click)="establecerHoraActual()">
+                <button type="button" class="add-button" (click)="establecerHoraActual()">
                   <ion-icon name="time-outline"></ion-icon>
                   Ahora
                 </button>
@@ -50,17 +48,17 @@
           </div>
 
           <!-- Descripción del Trabajo -->
-          <div class="form-section">
-            <h3>Descripción del Trabajo Realizado</h3>
-            <div class="form-group">
-              <ion-textarea formControlName="descripcion_trabajo_realizado"
-                placeholder="Describe detalladamente el trabajo realizado..." rows="3">
-              </ion-textarea>
-            </div>
+          <h3>Descripción del Trabajo Realizado</h3>
+
+          <div class="form-group">
+            <label>Descripción <span class="required">*</span></label>
+            <textarea formControlName="descripcion_trabajo_realizado" class="form-control"
+              placeholder="Describe detalladamente el trabajo realizado..." rows="3">
+            </textarea>
           </div>
 
           <!-- Repuestos Utilizados (visible solo en móvil) -->
-          <div class="form-section repuestos-section mobile-only">
+          <div class="repuestos-section mobile-only">
             <h3>Repuestos Utilizados</h3>
 
             <!-- Botones de acción -->
@@ -113,28 +111,26 @@
             <!-- Lista de repuestos seleccionados -->
             <div class="repuestos-list" *ngIf="repuestosSeleccionados.length > 0">
               <h4>Repuestos Seleccionados:</h4>
-              
+
               <!-- Resumen de precios -->
               <div class="precio-total" *ngIf="repuestosSeleccionados.length > 0">
                 <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
               </div>
-              
+
               <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
                 <div class="repuesto-info">
                   <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
                   <div class="repuesto-cantidad">
                     <label>Cantidad:</label>
-                    <input 
-                      type="number" 
-                      [value]="repuesto.cantidad"
-                      [min]="1"
-                      (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)"
-                      class="cantidad-input">
+                    <input type="number" [value]="repuesto.cantidad" [min]="1"
+                      (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" class="cantidad-input">
                     <span class="unidad">{{ repuesto.unidad }}</span>
                   </div>
                   <div class="repuesto-precio-info">
-                    <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad }}</span>
-                    <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) | currency:'EUR':'symbol':'1.2-2' }}</span>
+                    <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad
+                      }}</span>
+                    <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) |
+                      currency:'EUR':'symbol':'1.2-2' }}</span>
                   </div>
                 </div>
                 <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
@@ -152,75 +148,83 @@
           </div>
 
           <!-- Estado de Cierre -->
-          <div class="form-section">
-            <h3>Estado de Cierre</h3>
-            <div class="estados-grid">
-              <div *ngFor="let estado of estadosCierre" class="estado-option"
-                [class.selected]="albaranForm.get('estado_cierre')?.value === estado.valor"
-                (click)="albaranForm.patchValue({estado_cierre: estado.valor})">
-                <div class="estado-content">
-                  <h4>{{ estado.label }}</h4>
-                  <p>{{ estado.descripcion }}</p>
-                </div>
-                <ion-icon name="checkmark-circle-outline"
-                  *ngIf="albaranForm.get('estado_cierre')?.value === estado.valor"></ion-icon>
-              </div>
-            </div>
+          <h3>Estado de Cierre</h3>
+
+          <div class="form-group">
+            <label>Estado <span class="required">*</span></label>
+            <select formControlName="estado_cierre" class="form-control">
+              <option value="">Selecciona el estado</option>
+              <option *ngFor="let estado of estadosCierre" [value]="estado.valor">
+                {{ estado.label }} - {{ estado.descripcion }}
+              </option>
+            </select>
           </div>
 
           <!-- Presupuesto Necesario (solo si es Presupuesto pendiente) -->
-          <div class="form-section" *ngIf="requierePresupuesto()">
+          <div *ngIf="requierePresupuesto()">
             <h3>Presupuesto Necesario</h3>
             <div class="form-group">
-              <ion-input type="number" formControlName="presupuesto_necesario" placeholder="0.00" step="0.01">
-              </ion-input>
+              <label>Presupuesto (€) <span class="required">*</span></label>
+              <input type="number" formControlName="presupuesto_necesario" placeholder="0.00" step="0.01"
+                class="form-control">
             </div>
           </div>
 
           <!-- Observaciones -->
-          <div class="form-section">
-            <h3>Observaciones Adicionales</h3>
-            <div class="form-group">
-              <ion-textarea formControlName="observaciones" placeholder="Observaciones adicionales..." rows="2">
-              </ion-textarea>
-            </div>
+          <h3>Observaciones Adicionales</h3>
+
+          <div class="form-group">
+            <label>Observaciones</label>
+            <textarea formControlName="observaciones" placeholder="Observaciones adicionales..." rows="2"
+              class="form-control">
+            </textarea>
           </div>
 
           <!-- Identificación y Firma -->
-          <div class="form-section">
-            <h3>Identificación y Firma</h3>
-            <div class="form-row">
-              <div class="form-group">
-                <ion-label>DNI</ion-label>
-                <ion-input type="text" formControlName="dni_cliente" placeholder="DNI del cliente">
-                </ion-input>
-              </div>
+          <h3>Identificación y Firma</h3>
 
-              <div class="form-group">
-                <ion-label>NOMBRE FIRMA</ion-label>
-                <ion-input type="text" formControlName="nombre_firma" placeholder="Nombre de la persona que firma">
-                </ion-input>
-              </div>
+          <div class="form-row">
+            <div class="form-group half">
+              <label>DNI Cliente</label>
+              <input type="text" formControlName="dni_cliente" placeholder="DNI del cliente" class="form-control">
             </div>
 
-            <div class="form-group">
-              <ion-label>FIRMA</ion-label>
+            <div class="form-group half">
+              <label>Nombre Firma</label>
+              <input type="text" formControlName="nombre_firma" placeholder="Nombre de la persona que firma"
+                class="form-control">
+            </div>
+          </div>
+
+                      <div class="form-group">
+              <label>Firma Digital</label>
               <div class="signature-area">
-                                 <!-- Canvas de firma -->
-                 <div class="signature-canvas-container" *ngIf="!firmaCapturada">
-                   <canvas #signaturePad class="signature-canvas"></canvas>
-                   <div class="signature-controls">
-                     <button type="button" class="btn-clear" (click)="limpiarFirma()">
-                       <ion-icon name="trash-outline"></ion-icon>
-                       Limpiar
-                     </button>
-                     <button type="button" class="btn-save" (click)="guardarFirma()">
-                       <ion-icon name="checkmark-outline"></ion-icon>
-                       Guardar Firma
-                     </button>
-                   </div>
-                 </div>
-                
+                <!-- Placeholder cuando no hay firma -->
+                <div class="signature-placeholder" *ngIf="!firmaCapturada && !mostrarCanvas">
+                  <ion-icon name="create-outline"></ion-icon>
+                  <span>Área de firma digital</span>
+                  <small>Haz clic para comenzar a firmar</small>
+                  <button type="button" class="btn-start-signature" (click)="iniciarFirma()">
+                    <ion-icon name="create-outline"></ion-icon>
+                    Comenzar Firma
+                  </button>
+                </div>
+
+                <!-- Canvas de firma -->
+                <div class="signature-canvas-container" *ngIf="mostrarCanvas && !firmaCapturada">
+                  <canvas #signaturePad class="signature-canvas"></canvas>
+                  <div class="signature-controls">
+                    <button type="button" class="btn-clear" (click)="limpiarFirma()">
+                      <ion-icon name="trash-outline"></ion-icon>
+                      Limpiar
+                    </button>
+                    <button type="button" class="btn-save" (click)="guardarFirma()">
+                      <ion-icon name="checkmark-outline"></ion-icon>
+                      Guardar Firma
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Vista previa de la firma -->
                 <div class="signature-preview" *ngIf="firmaCapturada">
                   <img [src]="firmaDataUrl" alt="Firma del cliente" class="firma-image">
@@ -235,140 +239,125 @@
                     </button>
                   </div>
                 </div>
-                
-                <!-- Placeholder cuando no hay firma -->
-                <div class="signature-placeholder" *ngIf="!firmaCapturada && !mostrarCanvas">
-                  <span>Área de firma digital</span>
-                  <small>Haz clic para comenzar a firmar</small>
-                  <button type="button" class="btn-start-signature" (click)="iniciarFirma()">
-                    <ion-icon name="create-outline"></ion-icon>
-                    Comenzar Firma
-                  </button>
-                </div>
               </div>
             </div>
-          </div>
-
         </div>
 
-        <!-- COLUMNA DERECHA: Gestión de repuestos -->
-        <div class="form-sidebar">
+      </div>
 
-          <!-- Sección de Repuestos -->
-          <div class="form-section repuestos-section desktop-only">
-            <h3>Repuestos Utilizados</h3>
+      <!-- COLUMNA DERECHA: Gestión de repuestos -->
+      <div class="images-section">
 
-            <!-- Botones de acción -->
-            <div class="repuestos-actions">
-              <button type="button" class="btn-select-inventory" (click)="abrirSelectorRepuestos()">
-                <ion-icon name="cube-outline"></ion-icon>
-                Seleccionar del Inventario
-              </button>
-              <button type="button" class="btn-add-manual" (click)="agregarRepuestoManual()">
-                <ion-icon name="add-circle-outline"></ion-icon>
-                Agregar Manualmente
-              </button>
-            </div>
+        <!-- Sección de Repuestos -->
+        <div class="repuestos-container desktop-only">
+          <h3>Repuestos Utilizados</h3>
 
-            <!-- Selector de repuestos del inventario -->
-            <div *ngIf="mostrarSelectorRepuestos" class="inventory-selector">
-              <div class="selector-header">
-                <h4>Seleccionar Repuestos</h4>
-                <button type="button" class="btn-close" (click)="cerrarSelectorRepuestos()">
-                  <ion-icon name="close"></ion-icon>
-                </button>
-              </div>
-
-              <div class="search-container">
-                <ion-input type="text" [(ngModel)]="busquedaRepuesto" (ionInput)="filtrarProductos($event)"
-                  placeholder="Buscar repuestos..." class="search-input">
-                </ion-input>
-                <ion-icon name="search-outline"></ion-icon>
-              </div>
-
-              <div class="products-list">
-                <div *ngFor="let producto of productosFiltrados" class="product-item"
-                  (click)="agregarRepuesto(producto)">
-                  <div class="product-info">
-                    <div class="product-header">
-                      <span class="product-code">{{ producto.codigo }}</span>
-                      <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
-                    </div>
-                    <span class="product-name">{{ producto.nombre }}</span>
-                    <div class="product-details">
-                      <span class="product-stock">Stock: {{ producto.cantidad_disponible }} {{ producto.unidad }}</span>
-                      <span class="product-description">{{ producto.descripcion }}</span>
-                    </div>
-                  </div>
-                  <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
-                </div>
-              </div>
-            </div>
-
-            <!-- Lista de repuestos seleccionados -->
-            <div class="repuestos-list" *ngIf="repuestosSeleccionados.length > 0">
-              <h4>Repuestos Seleccionados:</h4>
-              
-              <!-- Resumen de precios -->
-              <div class="precio-total" *ngIf="repuestosSeleccionados.length > 0">
-                <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
-              </div>
-              
-              <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
-                <div class="repuesto-info">
-                  <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
-                  <div class="repuesto-cantidad">
-                    <label>Cantidad:</label>
-                    <input 
-                      type="number" 
-                      [value]="repuesto.cantidad"
-                      [min]="1"
-                      (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)"
-                      class="cantidad-input">
-                    <span class="unidad">{{ repuesto.unidad }}</span>
-                  </div>
-                  <div class="repuesto-precio-info">
-                    <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad }}</span>
-                    <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) | currency:'EUR':'symbol':'1.2-2' }}</span>
-                  </div>
-                </div>
-                <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
-                  <ion-icon name="trash-outline"></ion-icon>
-                </button>
-              </div>
-            </div>
-
-            <!-- Estado vacío -->
-            <div class="repuestos-empty" *ngIf="repuestosSeleccionados.length === 0 && !mostrarSelectorRepuestos">
+          <!-- Botones de acción -->
+          <div class="repuestos-actions">
+            <button type="button" class="btn-select-inventory" (click)="abrirSelectorRepuestos()">
               <ion-icon name="cube-outline"></ion-icon>
-              <p>No hay repuestos seleccionados</p>
-              <small>Selecciona repuestos del inventario o agrega manualmente</small>
+              Seleccionar del Inventario
+            </button>
+            <button type="button" class="btn-add-manual" (click)="agregarRepuestoManual()">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              Agregar Manualmente
+            </button>
+          </div>
+
+          <!-- Selector de repuestos del inventario -->
+          <div *ngIf="mostrarSelectorRepuestos" class="inventory-selector">
+            <div class="selector-header">
+              <h4>Seleccionar Repuestos</h4>
+              <button type="button" class="btn-close" (click)="cerrarSelectorRepuestos()">
+                <ion-icon name="close"></ion-icon>
+              </button>
+            </div>
+
+            <div class="search-container">
+              <ion-input type="text" [(ngModel)]="busquedaRepuesto" (ionInput)="filtrarProductos($event)"
+                placeholder="Buscar repuestos..." class="search-input">
+              </ion-input>
+              <ion-icon name="search-outline"></ion-icon>
+            </div>
+
+            <div class="products-list">
+              <div *ngFor="let producto of productosFiltrados" class="product-item" (click)="agregarRepuesto(producto)">
+                <div class="product-info">
+                  <div class="product-header">
+                    <span class="product-code">{{ producto.codigo }}</span>
+                    <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
+                  </div>
+                  <span class="product-name">{{ producto.nombre }}</span>
+                  <div class="product-details">
+                    <span class="product-stock">Stock: {{ producto.cantidad_disponible }} {{ producto.unidad }}</span>
+                    <span class="product-description">{{ producto.descripcion }}</span>
+                  </div>
+                </div>
+                <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
+              </div>
             </div>
           </div>
 
+          <!-- Lista de repuestos seleccionados -->
+          <div class="repuestos-list" *ngIf="repuestosSeleccionados.length > 0">
+            <h4>Repuestos Seleccionados:</h4>
+
+            <!-- Resumen de precios -->
+            <div class="precio-total" *ngIf="repuestosSeleccionados.length > 0">
+              <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
+            </div>
+
+            <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
+              <div class="repuesto-info">
+                <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
+                <div class="repuesto-cantidad">
+                  <label>Cantidad:</label>
+                  <input type="number" [value]="repuesto.cantidad" [min]="1"
+                    (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" class="cantidad-input">
+                  <span class="unidad">{{ repuesto.unidad }}</span>
+                </div>
+                <div class="repuesto-precio-info">
+                  <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad }}</span>
+                  <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) |
+                    currency:'EUR':'symbol':'1.2-2' }}</span>
+                </div>
+              </div>
+              <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado vacío -->
+          <div class="repuestos-empty" *ngIf="repuestosSeleccionados.length === 0 && !mostrarSelectorRepuestos">
+            <ion-icon name="cube-outline"></ion-icon>
+            <p>No hay repuestos seleccionados</p>
+            <small>Selecciona repuestos del inventario o agrega manualmente</small>
+          </div>
         </div>
 
       </div>
 
-      <!-- Mensaje de error -->
-      <div *ngIf="error" class="error-message">
-        <ion-icon name="warning-outline"></ion-icon>
-        <span>{{ error }}</span>
-      </div>
+    </div>
+  </form>
 
-      <!-- Botones de acción -->
-      <div class="form-actions">
-        <ion-button type="button" fill="outline" (click)="cancelar()">
-          Cancelar
-        </ion-button>
+  <footer class="modal-footer">
+    <!-- Mensaje de error -->
+    <div *ngIf="error" class="error-message">
+      <ion-icon name="warning-outline"></ion-icon>
+      <span>{{ error }}</span>
+    </div>
 
-        <ion-button type="submit" [disabled]="!albaranForm.valid || loading">
-          <ion-icon name="save-outline" *ngIf="!loading"></ion-icon>
-          <ion-icon name="refresh-outline" class="spinning" *ngIf="loading"></ion-icon>
-          {{ loading ? 'Guardando...' : 'Guardar Albarán' }}
-        </ion-button>
-      </div>
-
-    </form>
-  </div>
-</ion-content>
+    <div class="button-group">
+      <button type="button" class="btn btn-outline" (click)="cancelar()">
+        Cancelar
+      </button>
+      <button type="button" class="btn btn-primary" (click)="guardarAlbaran()"
+        [disabled]="!albaranForm.valid || loading">
+        <ion-icon name="save-outline" *ngIf="!loading"></ion-icon>
+        <ion-icon name="refresh-outline" class="spinning" *ngIf="loading"></ion-icon>
+        {{ loading ? 'Guardando...' : 'Guardar Albarán' }}
+      </button>
+    </div>
+  </footer>
+</div>

@@ -13,8 +13,7 @@ import {
   documentTextOutline,
   cubeOutline,
   addCircleOutline,
-  trashOutline, searchOutline, checkmarkCircleOutline, warningOutline, refreshOutline, checkmarkOutline, createOutline
-} from 'ionicons/icons';
+  trashOutline, searchOutline, checkmarkCircleOutline, warningOutline, refreshOutline, checkmarkOutline, createOutline, closeOutline } from 'ionicons/icons';
 import { TrabajoRealizado } from '../../models/trabajo-realizado.model';
 import { Aviso } from '../../models/aviso.model';
 import { InventarioService } from '../../../inventario/services/inventario.service';
@@ -92,6 +91,9 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   public firmaDataUrl = '';
   public mostrarCanvas = false;
 
+  // Fecha actual formateada para mostrar en el input
+  public fechaActualFormateada: string = '';
+
   // Estados de cierre disponibles
   estadosCierre = [
     { valor: 'Finalizado', label: 'Finalizado', descripcion: 'Trabajo completado, listo para facturar' },
@@ -108,10 +110,10 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     private avisosService: AvisosService
   ) {
     console.log('HacerAlbaranComponent constructor called');
-    addIcons({ close, timeOutline, cubeOutline, addCircleOutline, searchOutline, trashOutline, checkmarkCircleOutline, checkmarkOutline, createOutline, warningOutline, saveOutline, refreshOutline, calendarOutline, personOutline, pencilOutline, documentTextOutline });
+    addIcons({close,timeOutline,cubeOutline,addCircleOutline,searchOutline,trashOutline,checkmarkCircleOutline,checkmarkOutline,createOutline,warningOutline,saveOutline,refreshOutline,closeOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
 
     this.albaranForm = this.fb.group({
-      fecha_cierre: [new Date(), Validators.required],
+      fecha_cierre: ['', Validators.required],
       hora_entrada: ['', Validators.required],
       hora_salida: ['', Validators.required],
       descripcion_trabajo_realizado: ['', Validators.required],
@@ -129,6 +131,10 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     console.log('🎯 HacerAlbaranComponent ngOnInit - Trabajo:', this.trabajo);
     console.log('🎯 HacerAlbaranComponent ngOnInit - Aviso:', this.aviso);
     console.log('🎯 Formulario inicializado:', this.albaranForm);
+    
+    // Establecer la fecha actual inmediatamente
+    this.establecerFechaActual();
+    
     try {
       await this.cargarProductosInventario();
       this.inicializarFormulario();
@@ -138,9 +144,14 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Esperar un poco para que el DOM esté listo
+    // No inicializar automáticamente el signature pad
+    // Solo se inicializará cuando el usuario haga clic en "Comenzar Firma"
+    
+    // Asegurar que la fecha se muestre correctamente después de que el DOM esté listo
     setTimeout(() => {
-      this.inicializarSignaturePad();
+      if (!this.albaranForm.get('fecha_cierre')?.value) {
+        this.establecerFechaActual();
+      }
     }, 100);
   }
 
@@ -361,12 +372,31 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Formatea una fecha para el input de tipo date (YYYY-MM-DD)
+   */
+  formatearFechaParaInput(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
    * Establece la fecha actual
    */
   establecerFechaActual() {
+    const fechaActual = new Date();
+    const fechaFormateada = this.formatearFechaParaInput(fechaActual);
+    
+    // Establecer la fecha en el formulario
     this.albaranForm.patchValue({
-      fecha_cierre: new Date()
+      fecha_cierre: fechaFormateada
     });
+    
+    // Actualizar la propiedad local
+    this.fechaActualFormateada = fechaFormateada;
+    
+    console.log('📅 Fecha establecida:', fechaFormateada);
   }
 
   /**
@@ -545,6 +575,11 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     this.mostrarCanvas = true;
     this.firmaCapturada = false;
     this.firmaDataUrl = '';
+    
+    // Esperar a que el DOM se actualice antes de inicializar el canvas
+    setTimeout(() => {
+      this.inicializarSignaturePad();
+    }, 100);
   }
 
   /**
@@ -591,8 +626,8 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
 
     // Obtener dimensiones del contenedor
     const rect = container.getBoundingClientRect();
-    const width = Math.max(rect.width - 40, 200);
-    const height = 150;
+    const width = Math.max(rect.width - 40, 300);
+    const height = 200;
 
     // Establecer dimensiones del canvas
     canvas.width = width;
@@ -638,9 +673,14 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     this.mostrarCanvas = true;
     this.firmaCapturada = false;
 
-    if (this.signaturePad) {
-      this.signaturePad.clear();
-    }
+    // Esperar a que el DOM se actualice antes de inicializar el canvas
+    setTimeout(() => {
+      if (this.signaturePad) {
+        this.signaturePad.clear();
+      } else {
+        this.inicializarSignaturePad();
+      }
+    }, 100);
   }
 
   /**
@@ -662,4 +702,6 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
 
     console.log('Firma eliminada');
   }
+
+
 }

@@ -1,111 +1,399 @@
--- Tablas para el módulo de ajustes
--- Ejecutar este archivo en tu base de datos PostgreSQL
+-- Script de migración para corregir las relaciones entre tablas
+-- Ejecutar en orden para evitar errores de dependencias
 
--- Tabla de configuración de empresa
-CREATE TABLE IF NOT EXISTS public.configuracion_empresa (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  nombre_empresa text NOT NULL,
-  cif text NOT NULL,
-  direccion text NOT NULL,
-  telefono text NOT NULL,
-  email text NOT NULL,
-  web text,
-  logo_url text,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT configuracion_empresa_pkey PRIMARY KEY (id)
-);
+-- 1. Primero, eliminar las foreign keys problemáticas si existen
+DO $$ 
+BEGIN
+    -- Eliminar constraint de trabajos_realizados si existe
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'trabajos_realizados_albaran_id_fkey'
+    ) THEN
+        ALTER TABLE public.trabajos_realizados DROP CONSTRAINT IF EXISTS trabajos_realizados_albaran_id_fkey;
+    END IF;
+    
+    -- Eliminar constraint de albaranes si existe
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'albaranes_trabajo_id_fkey'
+    ) THEN
+        ALTER TABLE public.albaranes DROP CONSTRAINT IF EXISTS albaranes_trabajo_id_fkey;
+    END IF;
+    
+    -- Eliminar constraint de albaranes si existe
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'albaranes_aviso_id_fkey'
+    ) THEN
+        ALTER TABLE public.albaranes DROP CONSTRAINT IF EXISTS albaranes_aviso_id_fkey;
+    END IF;
+END $$;
 
--- Tabla de configuración de facturación
-CREATE TABLE IF NOT EXISTS public.configuracion_facturacion (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  iva_por_defecto numeric NOT NULL DEFAULT 21 CHECK (iva_por_defecto >= 0 AND iva_por_defecto <= 100),
-  moneda text NOT NULL DEFAULT 'EUR',
-  formato_numero_factura text NOT NULL DEFAULT 'FAC-{YEAR}-{NUMBER}',
-  dias_vencimiento integer NOT NULL DEFAULT 30 CHECK (dias_vencimiento >= 1 AND dias_vencimiento <= 365),
-  texto_pie_factura text,
-  condiciones_pago text,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT configuracion_facturacion_pkey PRIMARY KEY (id)
-);
+-- 2. Agregar la columna albaran_id a trabajos_realizados si no existe
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'trabajos_realizados' AND column_name = 'albaran_id'
+    ) THEN
+        ALTER TABLE public.trabajos_realizados ADD COLUMN albaran_id uuid;
+    END IF;
+END $$;
 
--- Tabla de configuración de notificaciones
-CREATE TABLE IF NOT EXISTS public.configuracion_notificaciones (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  email_notificaciones boolean NOT NULL DEFAULT true,
-  email_avisos_nuevos boolean NOT NULL DEFAULT true,
-  email_facturas_generadas boolean NOT NULL DEFAULT true,
-  email_recordatorios boolean NOT NULL DEFAULT false,
-  sms_notificaciones boolean NOT NULL DEFAULT false,
-  sms_avisos_urgentes boolean NOT NULL DEFAULT false,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT configuracion_notificaciones_pkey PRIMARY KEY (id)
-);
+-- 3. Crear las foreign keys correctas
+-- Primero la relación trabajos_realizados -> avisos
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'trabajos_realizados_aviso_id_fkey'
+    ) THEN
+        ALTER TABLE public.trabajos_realizados 
+        ADD CONSTRAINT trabajos_realizados_aviso_id_fkey 
+        FOREIGN KEY (aviso_id) REFERENCES public.avisos(id);
+    END IF;
+END $$;
 
--- Tabla de configuración de avisos
-CREATE TABLE IF NOT EXISTS public.configuracion_avisos (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  tipos_urgencia text[] NOT NULL DEFAULT ARRAY['Baja', 'Media', 'Alta', 'Crítica'],
-  estados_disponibles text[] NOT NULL DEFAULT ARRAY['Pendiente', 'En curso', 'Completado', 'Cancelado'],
-  tiempo_maximo_respuesta integer NOT NULL DEFAULT 24 CHECK (tiempo_maximo_respuesta >= 1 AND tiempo_maximo_respuesta <= 168),
-  asignacion_automatica boolean NOT NULL DEFAULT false,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT configuracion_avisos_pkey PRIMARY KEY (id)
-);
+-- Luego la relación albaranes -> trabajos_realizados
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'albaranes_trabajo_id_fkey'
+    ) THEN
+        ALTER TABLE public.albaranes 
+        ADD CONSTRAINT albaranes_trabajo_id_fkey 
+        FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id);
+    END IF;
+END $$;
 
--- Tabla de configuración del sistema
-CREATE TABLE IF NOT EXISTS public.configuracion_sistema (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  backup_automatico boolean NOT NULL DEFAULT true,
-  frecuencia_backup text NOT NULL DEFAULT 'diario' CHECK (frecuencia_backup IN ('diario', 'semanal', 'mensual')),
-  retencion_backup_dias integer NOT NULL DEFAULT 30 CHECK (retencion_backup_dias >= 1 AND retencion_backup_dias <= 365),
-  modo_mantenimiento boolean NOT NULL DEFAULT false,
-  mensaje_mantenimiento text,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT configuracion_sistema_pkey PRIMARY KEY (id)
-);
+-- Luego la relación albaranes -> avisos
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'albaranes_aviso_id_fkey'
+    ) THEN
+        ALTER TABLE public.albaranes 
+        ADD CONSTRAINT albaranes_aviso_id_fkey 
+        FOREIGN KEY (aviso_id) REFERENCES public.avisos(id);
+    END IF;
+END $$;
 
--- Insertar configuraciones por defecto
-INSERT INTO public.configuracion_empresa (nombre_empresa, cif, direccion, telefono, email) 
-VALUES ('Mi Empresa', 'B12345678', 'Calle Ejemplo 123, 28001 Madrid', '+34 123 456 789', 'info@miempresa.com')
-ON CONFLICT DO NOTHING;
+-- Finalmente la relación trabajos_realizados -> albaranes (circular pero opcional)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'trabajos_realizados_albaran_id_fkey'
+    ) THEN
+        ALTER TABLE public.trabajos_realizados 
+        ADD CONSTRAINT trabajos_realizados_albaran_id_fkey 
+        FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id);
+    END IF;
+END $$;
 
-INSERT INTO public.configuracion_facturacion (iva_por_defecto, moneda, formato_numero_factura, dias_vencimiento, texto_pie_factura, condiciones_pago)
-VALUES (21, 'EUR', 'FAC-{YEAR}-{NUMBER}', 30, 'Gracias por confiar en nuestros servicios', 'Pago a 30 días')
-ON CONFLICT DO NOTHING;
+-- 4. Verificar que todas las tablas necesarias existen
+DO $$ 
+BEGIN
+    -- Crear tabla roles si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'roles') THEN
+        CREATE TABLE public.roles (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            nombre_rol text NOT NULL UNIQUE,
+            CONSTRAINT roles_pkey PRIMARY KEY (id)
+        );
+    END IF;
+    
+    -- Crear tabla usuarios si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'usuarios') THEN
+        CREATE TABLE public.usuarios (
+            id uuid NOT NULL,
+            nombre_completo text NOT NULL,
+            email text NOT NULL UNIQUE,
+            telefono text,
+            rol_id uuid NOT NULL,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            es_activo boolean NOT NULL DEFAULT true,
+            fecha_ultimo_acceso timestamp with time zone,
+            CONSTRAINT usuarios_pkey PRIMARY KEY (id),
+            CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id)
+        );
+    END IF;
+    
+    -- Crear tabla clientes si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'clientes') THEN
+        CREATE TABLE public.clientes (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            nombre_completo text NOT NULL,
+            direccion text,
+            telefono_contacto text,
+            email text,
+            nivel_urgencia_habitual text,
+            es_activo boolean DEFAULT true,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            notas_importantes text,
+            CONSTRAINT clientes_pkey PRIMARY KEY (id)
+        );
+    END IF;
+    
+    -- Crear tabla avisos si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'avisos') THEN
+        CREATE TABLE public.avisos (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            cliente_id uuid NOT NULL,
+            tecnico_asignado_id uuid,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            nombre_cliente_aviso text,
+            direccion_cliente_aviso text,
+            telefono_cliente_aviso text,
+            urgencia text NOT NULL,
+            descripcion_problema text NOT NULL,
+            estado text NOT NULL DEFAULT 'Pendiente'::text,
+            latitud numeric,
+            longitud numeric,
+            fecha_finalizacion timestamp with time zone,
+            requiere_presupuesto boolean DEFAULT false,
+            requiere_nueva_visita boolean DEFAULT false,
+            tipo text DEFAULT 'correctivo'::text,
+            nombre_contacto text,
+            es_urgente boolean DEFAULT false,
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT avisos_pkey PRIMARY KEY (id),
+            CONSTRAINT avisos_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id)
+        );
+    END IF;
+    
+    -- Crear tabla trabajos_realizados si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'trabajos_realizados') THEN
+        CREATE TABLE public.trabajos_realizados (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            aviso_id uuid NOT NULL,
+            fecha_trabajo date NOT NULL,
+            hora_inicio time without time zone NOT NULL,
+            hora_fin time without time zone NOT NULL,
+            descripcion text NOT NULL,
+            repuestos text[] DEFAULT '{}'::text[],
+            estado text NOT NULL DEFAULT 'Pendiente'::text,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT trabajos_realizados_pkey PRIMARY KEY (id),
+            CONSTRAINT trabajos_realizados_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+    
+    -- Crear tabla albaranes si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'albaranes') THEN
+        CREATE TABLE public.albaranes (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            trabajo_id uuid NOT NULL,
+            aviso_id uuid NOT NULL,
+            fecha_cierre timestamp with time zone DEFAULT now(),
+            hora_entrada time without time zone,
+            hora_salida time without time zone,
+            descripcion_trabajo_realizado text NOT NULL,
+            repuestos_utilizados text[] DEFAULT '{}'::text[],
+            estado_cierre text NOT NULL,
+            presupuesto_necesario numeric DEFAULT 0,
+            dni_cliente text,
+            nombre_firma text,
+            firma_url text,
+            observaciones text,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            firma_cliente text,
+            CONSTRAINT albaranes_pkey PRIMARY KEY (id),
+            CONSTRAINT albaranes_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
+            CONSTRAINT albaranes_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+    
+    -- Crear tabla presupuestos si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'presupuestos') THEN
+        CREATE TABLE public.presupuestos (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            albaran_id uuid NOT NULL,
+            aviso_id uuid NOT NULL,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            horas_estimadas numeric DEFAULT 0,
+            total_estimado numeric DEFAULT 0,
+            materiales_estimados jsonb DEFAULT '[]'::jsonb,
+            estado text NOT NULL DEFAULT 'Pendiente'::text,
+            pdf_url text,
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT presupuestos_pkey PRIMARY KEY (id),
+            CONSTRAINT presupuestos_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id),
+            CONSTRAINT presupuestos_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+    
+    -- Crear tabla facturas si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'facturas') THEN
+        CREATE TABLE public.facturas (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            numero_factura text NOT NULL UNIQUE,
+            fecha_emision date NOT NULL,
+            cliente_id uuid,
+            nombre_cliente text NOT NULL,
+            direccion_cliente text NOT NULL,
+            cif_cliente text NOT NULL,
+            email_cliente text NOT NULL,
+            aviso_id uuid,
+            subtotal numeric NOT NULL DEFAULT 0,
+            iva numeric NOT NULL DEFAULT 0,
+            total numeric NOT NULL DEFAULT 0,
+            estado text NOT NULL DEFAULT 'Pendiente'::text,
+            pdf_url text,
+            notas text,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT facturas_pkey PRIMARY KEY (id),
+            CONSTRAINT facturas_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id),
+            CONSTRAINT facturas_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+    
+    -- Crear tabla inventario si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'inventario') THEN
+        CREATE TABLE public.inventario (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            nombre text NOT NULL UNIQUE,
+            unidad text NOT NULL,
+            cantidad_disponible numeric NOT NULL DEFAULT 0,
+            precio_neto numeric NOT NULL,
+            codigo text UNIQUE,
+            descripcion text,
+            pvp numeric,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            fecha_actualizacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT inventario_pkey PRIMARY KEY (id)
+        );
+    END IF;
+    
+    -- Crear tabla materiales_trabajo si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'materiales_trabajo') THEN
+        CREATE TABLE public.materiales_trabajo (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            trabajo_id uuid NOT NULL,
+            material_id uuid NOT NULL,
+            cantidad_utilizada numeric NOT NULL,
+            precio_neto_al_momento numeric NOT NULL,
+            CONSTRAINT materiales_trabajo_pkey PRIMARY KEY (id),
+            CONSTRAINT materiales_trabajo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
+            CONSTRAINT materiales_trabajo_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id)
+        );
+    END IF;
+    
+    -- Crear tabla fotos_aviso si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'fotos_aviso') THEN
+        CREATE TABLE public.fotos_aviso (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            aviso_id uuid NOT NULL,
+            url text NOT NULL,
+            descripcion text,
+            fecha_subida timestamp with time zone DEFAULT now(),
+            CONSTRAINT fotos_aviso_pkey PRIMARY KEY (id),
+            CONSTRAINT fotos_aviso_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+    
+    -- Crear tabla lineas_factura si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'lineas_factura') THEN
+        CREATE TABLE public.lineas_factura (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            factura_id uuid NOT NULL,
+            tipo text NOT NULL,
+            nombre text NOT NULL,
+            cantidad numeric NOT NULL DEFAULT 1,
+            precio_neto numeric,
+            precio_pvp numeric NOT NULL DEFAULT 0,
+            descripcion text,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT lineas_factura_pkey PRIMARY KEY (id),
+            CONSTRAINT lineas_factura_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id)
+        );
+    END IF;
+    
+    -- Crear tabla repuestos_albaran si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'repuestos_albaran') THEN
+        CREATE TABLE public.repuestos_albaran (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            albaran_id uuid NOT NULL,
+            nombre text NOT NULL,
+            cantidad numeric NOT NULL DEFAULT 1,
+            precio_neto numeric NOT NULL DEFAULT 0,
+            precio_pvp numeric NOT NULL DEFAULT 0,
+            unidad text NOT NULL DEFAULT 'unidad'::text,
+            codigo text,
+            fecha_creacion timestamp with time zone DEFAULT now(),
+            CONSTRAINT repuestos_albaran_pkey PRIMARY KEY (id),
+            CONSTRAINT repuestos_albaran_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id)
+        );
+    END IF;
+    
+    -- Crear tabla historial_flujo si no existe
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'historial_flujo') THEN
+        CREATE TABLE public.historial_flujo (
+            id uuid NOT NULL DEFAULT uuid_generate_v4(),
+            aviso_id uuid NOT NULL,
+            estado_anterior text,
+            estado_nuevo text NOT NULL,
+            accion_realizada text NOT NULL,
+            usuario_id uuid,
+            factura_id uuid,
+            trabajo_id uuid,
+            observaciones text,
+            fecha_cambio timestamp with time zone DEFAULT now(),
+            CONSTRAINT historial_flujo_pkey PRIMARY KEY (id),
+            CONSTRAINT historial_flujo_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id),
+            CONSTRAINT historial_flujo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
+            CONSTRAINT historial_flujo_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id),
+            CONSTRAINT historial_flujo_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+        );
+    END IF;
+END $$;
 
-INSERT INTO public.configuracion_notificaciones (email_notificaciones, email_avisos_nuevos, email_facturas_generadas, email_recordatorios, sms_notificaciones, sms_avisos_urgentes)
-VALUES (true, true, true, false, false, false)
-ON CONFLICT DO NOTHING;
+-- 5. Verificar que todas las foreign keys están correctamente configuradas
+SELECT 
+    tc.table_name, 
+    kcu.column_name, 
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name 
+FROM 
+    information_schema.table_constraints AS tc 
+    JOIN information_schema.key_column_usage AS kcu
+      ON tc.constraint_name = kcu.constraint_name
+      AND tc.table_schema = kcu.table_schema
+    JOIN information_schema.constraint_column_usage AS ccu
+      ON ccu.constraint_name = tc.constraint_name
+      AND ccu.table_schema = tc.table_schema
+WHERE tc.constraint_type = 'FOREIGN KEY' 
+    AND tc.table_schema = 'public'
+ORDER BY tc.table_name, kcu.column_name;
 
-INSERT INTO public.configuracion_avisos (tipos_urgencia, estados_disponibles, tiempo_maximo_respuesta, asignacion_automatica)
-VALUES (ARRAY['Baja', 'Media', 'Alta', 'Crítica'], ARRAY['Pendiente', 'En curso', 'Completado', 'Cancelado'], 24, false)
-ON CONFLICT DO NOTHING;
-
-INSERT INTO public.configuracion_sistema (backup_automatico, frecuencia_backup, retencion_backup_dias, modo_mantenimiento, mensaje_mantenimiento)
-VALUES (true, 'diario', 30, false, 'Sistema en mantenimiento. Volveremos pronto.')
-ON CONFLICT DO NOTHING;
-
--- Crear índices para optimizar consultas
-CREATE INDEX IF NOT EXISTS idx_configuracion_empresa_fecha_actualizacion ON public.configuracion_empresa(fecha_actualizacion);
-CREATE INDEX IF NOT EXISTS idx_configuracion_facturacion_fecha_actualizacion ON public.configuracion_facturacion(fecha_actualizacion);
-CREATE INDEX IF NOT EXISTS idx_configuracion_notificaciones_fecha_actualizacion ON public.configuracion_notificaciones(fecha_actualizacion);
-CREATE INDEX IF NOT EXISTS idx_configuracion_avisos_fecha_actualizacion ON public.configuracion_avisos(fecha_actualizacion);
-CREATE INDEX IF NOT EXISTS idx_configuracion_sistema_fecha_actualizacion ON public.configuracion_sistema(fecha_actualizacion);
-
--- Comentarios para documentación
-COMMENT ON TABLE public.configuracion_empresa IS 'Configuración de datos de la empresa para facturas y documentos';
-COMMENT ON TABLE public.configuracion_facturacion IS 'Configuración de parámetros de facturación';
-COMMENT ON TABLE public.configuracion_notificaciones IS 'Configuración de notificaciones por email y SMS';
-COMMENT ON TABLE public.configuracion_avisos IS 'Configuración del sistema de avisos';
-COMMENT ON TABLE public.configuracion_sistema IS 'Configuración avanzada del sistema'; 
-
--- Agregar campo notas_importantes a la tabla clientes
-ALTER TABLE public.clientes ADD COLUMN IF NOT EXISTS notas_importantes text;
-
--- Comentario sobre el campo
-COMMENT ON COLUMN public.clientes.notas_importantes IS 'Notas importantes sobre el cliente para el equipo técnico'; 
+-- 6. Verificar que las tablas principales tienen datos
+SELECT 
+    'roles' as tabla, COUNT(*) as registros FROM public.roles
+UNION ALL
+SELECT 
+    'usuarios' as tabla, COUNT(*) as registros FROM public.usuarios
+UNION ALL
+SELECT 
+    'clientes' as tabla, COUNT(*) as registros FROM public.clientes
+UNION ALL
+SELECT 
+    'avisos' as tabla, COUNT(*) as registros FROM public.avisos
+UNION ALL
+SELECT 
+    'trabajos_realizados' as tabla, COUNT(*) as registros FROM public.trabajos_realizados
+UNION ALL
+SELECT 
+    'albaranes' as tabla, COUNT(*) as registros FROM public.albaranes
+UNION ALL
+SELECT 
+    'presupuestos' as tabla, COUNT(*) as registros FROM public.presupuestos
+UNION ALL
+SELECT 
+    'facturas' as tabla, COUNT(*) as registros FROM public.facturas; 

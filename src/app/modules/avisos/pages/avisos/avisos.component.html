@@ -93,7 +93,7 @@
             </div>
           </div>
           <div class="table-body">
-            <div *ngFor="let aviso of avisos" class="aviso-row" style="justify-content: start;" [ngClass]="{
+                            <div *ngFor="let aviso of avisos; let i = index" class="aviso-row" style="justify-content: start;" [ngClass]="{
                    'no-visitado': aviso.estado === 'No visitado',
                    'visitado-pendiente': aviso.estado === 'Visitado pendiente',
                    'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
@@ -102,7 +102,7 @@
                    'completado': aviso.estado === 'Completado',
                    'listo-para-facturar': aviso.estado === 'Listo para facturar'
                  }">
-              <div class="aviso-cell numero-aviso">#{{ aviso.id?.substring(0, 8) || 'N/A' }}</div>
+              <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i + 1 }}</div>
               <div class="aviso-cell estado-aviso desktop-only" style="justify-content: start;">
                 <span class="badge" [ngClass]="{
                         'yellow': aviso.estado === 'En curso',
@@ -244,13 +244,13 @@
                 </div>
               </div>
               <div class="table-body">
-                <div *ngFor="let aviso of avisos" class="aviso-row" [ngClass]="{
+                <div *ngFor="let aviso of avisos; let i = index" class="aviso-row" [ngClass]="{
                        'no-visitado': aviso.estado === 'No visitado',
                        'visitado-pendiente': aviso.estado === 'Visitado pendiente',
                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
                        'listo-para-facturar': aviso.estado === 'Listo para facturar'
                      }" (click)="centrarAvisoEnMapa(aviso, $event)">
-                  <div class="aviso-cell numero-aviso">#{{ aviso.id?.substring(0, 8) || 'N/A' }}</div>
+                  <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i + 1 }}</div>
                   <div class="aviso-cell nombre-cliente">{{ aviso.nombre_cliente_aviso }}</div>
                   <div class="aviso-cell detalle-servicio">
                     <div class="detalle-texto" [title]="aviso.descripcion_problema">

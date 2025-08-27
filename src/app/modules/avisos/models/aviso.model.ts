@@ -18,6 +18,7 @@ export interface Albaran {
 
 export interface Aviso {
   id: string;
+  numero_secuencial?: number; // Número secuencial para mostrar al usuario
   cliente_id: string;
   tecnico_asignado_id?: string;
   fecha_creacion: Date;

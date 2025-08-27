@@ -2,48 +2,56 @@
 // MODAL SAFE AREAS - Zonas seguras para modales en Ionic
 // ============================================================================
 // Este archivo maneja las zonas seguras específicamente para modales
-// Soluciona el problema de toolbars y footers cortados en modales
+// SOLUCIONADO: Eliminados todos los márgenes innecesarios
 
 // ============================================================================
 // CONFIGURACIÓN BASE PARA MODALES
 // ============================================================================
 
-// Configuración global para todos los modales
-ion-modal {
-  // Asegurar que el modal respete las zonas seguras
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  // Configurar el contenido del modal
-  ion-content {
-    --offset-top: 0;
-    --offset-bottom: 0;
-    --padding-top: 0;
-    --padding-bottom: 0;
-  }
-  
-  // Configurar el header del modal - SIN padding adicional ya que ion-header lo maneja
-  ion-header {
-    // NO añadir padding-top aquí - ion-header maneja las zonas seguras automáticamente
+// Configuración global para todos los modales - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal {
+    // Configuración de altura - solo lo necesario en móvil
+    --height: 100vh;
+    --max-height: 100vh;
+    --min-height: 100vh;
     
-    ion-toolbar {
+    // Configurar el contenido del modal - SIN padding innecesario
+    ion-content {
+      --offset-top: 0;
+      --offset-bottom: 0;
       --padding-top: 0;
       --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
     }
-  }
-  
-  // Configurar el footer del modal - SIN padding adicional ya que ion-footer lo maneja
-  ion-footer {
-    // NO añadir padding-bottom aquí - ion-footer maneja las zonas seguras automáticamente
     
-    ion-toolbar {
-      --padding-top: 0;
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    // Header del modal - SIN padding adicional
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
+    }
+    
+    // Footer del modal - SIN padding adicional
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
@@ -52,53 +60,52 @@ ion-modal {
 // CONFIGURACIÓN ESPECÍFICA PARA iOS
 // ============================================================================
 
-// Configuración específica para iOS (notch, Dynamic Island)
-.ios {
-  ion-modal {
-    // Asegurar que el modal respete las zonas seguras en iOS
-    --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    
-    ion-header {
-      // En iOS, NO añadir padding-top - ion-header maneja las zonas seguras automáticamente
-      padding-top: 0;
+// Configuración específica para iOS (notch, Dynamic Island) - SOLO en móvil
+@media (max-width: 768px) {
+  .ios {
+    ion-modal {
+      // En iOS, usar altura completa
+      --height: 100vh;
+      --max-height: 100vh;
+      --min-height: 100vh;
       
-      ion-toolbar {
+      ion-header {
+        // En iOS, SIN padding - ion-header maneja las zonas seguras automáticamente
+        padding: 0;
+        margin: 0;
+        
+        ion-toolbar {
+          --padding-top: 0;
+          --padding-bottom: 0;
+          --min-height: 56px;
+          --height: 56px;
+          margin: 0;
+          padding: 0;
+        }
+      }
+      
+      ion-footer {
+        // En iOS, SIN padding - ion-footer maneja las zonas seguras automáticamente
+        padding: 0;
+        margin: 0;
+        
+        ion-toolbar {
+          --padding-top: 0;
+          --padding-bottom: 0;
+          --min-height: 56px;
+          --height: 56px;
+          margin: 0;
+          padding: 0;
+        }
+      }
+      
+      ion-content {
+        // Configurar offsets a 0 para iOS
+        --offset-top: 0;
+        --offset-bottom: 0;
         --padding-top: 0;
         --padding-bottom: 0;
-        --min-height: 56px;
-        --height: 56px;
       }
-    }
-    
-    ion-footer {
-      // En iOS, NO añadir padding-bottom - ion-footer maneja las zonas seguras automáticamente
-      padding-bottom: 0;
-      
-      ion-toolbar {
-        --padding-top: 0;
-        --padding-bottom: 0;
-        --min-height: 56px;
-        --height: 56px;
-      }
-    }
-    
-    ion-content {
-      // Configurar offsets mínimos para iOS
-      --offset-top: 0;
-      --offset-bottom: 0;
-      --padding-top: 0;
-      --padding-bottom: 0;
-    }
-  }
-  
-  // Header móvil en iOS - altura estándar
-  .mobile-header {
-    ion-toolbar {
-      --min-height: 60px;
-      --height: 60px;
-      --padding-top: 0;
     }
   }
 }
@@ -107,266 +114,341 @@ ion-modal {
 // CONFIGURACIÓN ESPECÍFICA PARA ANDROID
 // ============================================================================
 
-// Configuración específica para Android
-.android {
-  ion-modal {
+// Configuración específica para Android - SOLO en móvil
+@media (max-width: 768px) {
+  .android {
+    ion-modal {
+      ion-header {
+        // En Android, SIN padding - ion-header lo maneja automáticamente
+        padding: 0;
+        margin: 0;
+        
+        ion-toolbar {
+          --padding-top: 0;
+          --min-height: 56px;
+          --height: 56px;
+          margin: 0;
+          padding: 0;
+        }
+      }
+      
+      ion-footer {
+        // En Android, SIN padding - ion-footer lo maneja automáticamente
+        padding: 0;
+        margin: 0;
+        
+        ion-toolbar {
+          --padding-bottom: 0;
+          --min-height: 56px;
+          --height: 56px;
+          margin: 0;
+          padding: 0;
+        }
+      }
+    }
+  }
+}
+
+// ============================================================================
+// MODALES ESPECÍFICOS - TODOS SIN PADDING ADICIONAL
+// ============================================================================
+
+// Modal para crear aviso - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-aviso {
     ion-header {
-      // En Android, tampoco añadir padding-top - ion-header lo maneja
-      padding-top: 0;
+      padding: 0;
+      margin: 0;
       
       ion-toolbar {
         --padding-top: 0;
         --min-height: 56px;
         --height: 56px;
+        margin: 0;
+        padding: 0;
       }
     }
     
     ion-footer {
-      // En Android, tampoco añadir padding-bottom - ion-footer lo maneja
-      padding-bottom: 0;
+      padding: 0;
+      margin: 0;
       
       ion-toolbar {
         --padding-bottom: 0;
         --min-height: 56px;
         --height: 56px;
+        margin: 0;
+        padding: 0;
       }
     }
   }
-  
-  // Header móvil en Android - altura estándar
-  .mobile-header {
-    ion-toolbar {
-      --min-height: 60px;
-      --height: 60px;
-      --padding-top: 0;
+}
+
+// Modal para crear cliente - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-cliente {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
+    }
+    
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
 
-// ============================================================================
-// MODALES ESPECÍFICOS
-// ============================================================================
-
-// Modal para crear aviso - SIN padding adicional
-ion-modal.modal-crear-aviso {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
+// Modal para ver albarán - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-ver-albaran {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
     
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-}
-
-// Modal para crear cliente
-ion-modal.modal-crear-cliente {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-    
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-}
-
-// Modal para ver albarán
-ion-modal.modal-ver-albaran {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-    
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
 
 // Modal para hacer albarán
 ion-modal.modal-hacer-albaran {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
+  --width: 95%;
+  --height: 90%;
+  --max-width: 1400px;
+  --max-height: 90vh;
+  --border-radius: 16px;
+  --background: #ffffff;
+  --box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  // Ajustes para diferentes tamaños de pantalla
+  @media (min-width: 1200px) {
+    --width: 90%;
+    --height: 85%;
+    --max-width: 1600px;
+    --max-height: 85vh;
   }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
+
+  @media (min-width: 1600px) {
+    --width: 85%;
+    --height: 80%;
+    --max-width: 1800px;
+    --max-height: 80vh;
+  }
+
+  // Asegurar que el contenido del modal sea visible
+  ion-content {
+    --background: transparent;
+    --color: #1f2937;
+  }
+
+  // Asegurar que el modal se muestre correctamente en dispositivos móviles
+  @media (max-width: 768px) {
+    --width: 100%;
+    --height: 100%;
+    --max-width: 100vw;
+    --max-height: 100vh;
+    --border-radius: 0;
+  }
+}
+
+// Modal para crear factura - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-factura {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
+    }
     
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
 
-// Modal para crear factura
-ion-modal.modal-crear-factura {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+// Modal para hacer albarán - Estilos específicos para el nuevo HTML personalizado
+ion-modal.modal-hacer-albaran {
+  --background: #ffffff;
   
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
+  // Asegurar que el contenido sea visible
+  ion-content {
+    --background: transparent;
+    --color: #1f2937;
   }
   
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-    
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+  // Estilos específicos para el HTML personalizado
+  .hacer-albaran-modal {
+    .modal-container {
+      height: 100%;
+      max-height: 90vh;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .modal-header {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+
+    .modal-body {
+      background: #fff;
+      flex: 1;
+    }
+
+    .modal-footer {
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      flex-shrink: 0;
     }
   }
 }
 
-// Modal para crear presupuesto
-ion-modal.modal-crear-presupuesto {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
+// Modal para crear presupuesto - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-presupuesto {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
     
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-}
-
-// Modal para crear técnico
-ion-modal.modal-crear-tecnico {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
-    
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
-    }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-    
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
 
-// Modal para crear producto
-ion-modal.modal-crear-producto {
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
+// Modal para crear técnico - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-tecnico {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
+    }
     
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
+}
+
+// Modal para crear producto - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.modal-crear-producto {
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
+    }
     
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
@@ -378,33 +460,37 @@ ion-modal.modal-crear-producto {
 // Modal fullscreen para móviles
 ion-modal.modal-fullscreen {
   --width: 100vw;
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+  --height: 100vh;
   --max-width: 100vw;
-  --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+  --max-height: 100vh;
   --min-width: 100vw;
-  --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+  --min-height: 100vh;
   --border-radius: 0;
   --box-shadow: none;
   
   ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
+    padding: 0;
+    margin: 0;
     
     ion-toolbar {
       --padding-top: 0;
       --min-height: 56px;
       --height: 56px;
+      margin: 0;
+      padding: 0;
     }
   }
   
   ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
+    padding: 0;
+    margin: 0;
     
     ion-toolbar {
       --padding-bottom: 0;
       --min-height: 56px;
       --height: 56px;
+      margin: 0;
+      padding: 0;
     }
   }
 }
@@ -413,34 +499,40 @@ ion-modal.modal-fullscreen {
 // MODALES LATERALES
 // ============================================================================
 
-// Modal lateral para escritorio
-ion-modal.side-modal {
-  --width: 420px;
-  --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-  --border-radius: 0;
-  --box-shadow: -4px 0 24px rgba(0,0,0,0.08);
-  align-items: flex-end;
-  justify-content: flex-end;
-  
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
+// Modal lateral para escritorio - SOLO en móvil
+@media (max-width: 768px) {
+  ion-modal.side-modal {
+    --width: 420px;
+    --height: 100vh;
+    --border-radius: 0;
+    --box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+    align-items: flex-end;
+    justify-content: flex-end;
     
-    ion-toolbar {
-      --padding-top: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-header {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-top: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
-  }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
     
-    ion-toolbar {
-      --padding-bottom: 0;
-      --min-height: 56px;
-      --height: 56px;
+    ion-footer {
+      padding: 0;
+      margin: 0;
+      
+      ion-toolbar {
+        --padding-bottom: 0;
+        --min-height: 56px;
+        --height: 56px;
+        margin: 0;
+        padding: 0;
+      }
     }
   }
 }
@@ -450,28 +542,21 @@ ion-modal.side-modal {
 // ============================================================================
 
 @media all and (display-mode: standalone) {
-  ion-modal {
-    --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
-    
-    ion-header {
-      // NO añadir padding-top - ion-header maneja las zonas seguras
-      padding-top: 0;
-    }
-    
-    ion-footer {
-      // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-      padding-bottom: 0;
-    }
-  }
-  
-  // Header móvil en modo standalone - altura estándar
-  .mobile-header {
-    ion-toolbar {
-      --min-height: 60px;
-      --height: 60px;
-      --padding-top: 0;
+  @media (max-width: 768px) {
+    ion-modal {
+      --height: 100vh;
+      --max-height: 100vh;
+      --min-height: 100vh;
+      
+      ion-header {
+        padding: 0;
+        margin: 0;
+      }
+      
+      ion-footer {
+        padding: 0;
+        margin: 0;
+      }
     }
   }
 }
@@ -481,28 +566,21 @@ ion-modal.side-modal {
 // ============================================================================
 
 @supports not (padding-top: env(safe-area-inset-top)) {
-  ion-modal {
-    --height: calc(100vh - 40px);
-    --max-height: calc(100vh - 40px);
-    --min-height: calc(100vh - 40px);
-    
-    ion-header {
-      // Solo en navegadores antiguos, añadir padding mínimo
-      padding-top: 20px;
-    }
-    
-    ion-footer {
-      // Solo en navegadores antiguos, añadir padding mínimo
-      padding-bottom: 20px;
-    }
-  }
-  
-  // Header móvil fallback - altura estándar
-  .mobile-header {
-    ion-toolbar {
-      --min-height: 60px;
-      --height: 60px;
-      --padding-top: 24px;
+  @media (max-width: 768px) {
+    ion-modal {
+      --height: 100vh;
+      --max-height: 100vh;
+      --min-height: 100vh;
+      
+      ion-header {
+        // Solo en navegadores antiguos, añadir padding mínimo
+        padding-top: 20px;
+      }
+      
+      ion-footer {
+        // Solo en navegadores antiguos, añadir padding mínimo
+        padding-bottom: 20px;
+      }
     }
   }
 }
@@ -511,45 +589,47 @@ ion-modal.side-modal {
 // UTILIDADES PARA MODALES
 // ============================================================================
 
-// Clase para modales con zonas seguras
-.modal-safe {
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
+// Clase para modales con zonas seguras - SOLO en móvil
+@media (max-width: 768px) {
+  .modal-safe {
+    ion-header {
+      padding: 0;
+      margin: 0;
+    }
+    
+    ion-footer {
+      padding: 0;
+      margin: 0;
+    }
+    
+    ion-content {
+      --offset-top: 0;
+      --offset-bottom: 0;
+    }
   }
-  
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-  }
-  
-  ion-content {
-    --offset-top: 0;
-    --offset-bottom: 0;
-  }
-}
 
-// Clase para modales con header seguro
-.modal-header-safe {
-  ion-header {
-    // NO añadir padding-top - ion-header maneja las zonas seguras
-    padding-top: 0;
+  // Clase para modales con header seguro
+  .modal-header-safe {
+    ion-header {
+      padding: 0;
+      margin: 0;
+    }
+    
+    ion-content {
+      --offset-top: 0;
+    }
   }
-  
-  ion-content {
-    --offset-top: 0;
-  }
-}
 
-// Clase para modales con footer seguro
-.modal-footer-safe {
-  ion-footer {
-    // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-    padding-bottom: 0;
-  }
-  
-  ion-content {
-    --offset-bottom: 0;
+  // Clase para modales con footer seguro
+  .modal-footer-safe {
+    ion-footer {
+      padding: 0;
+      margin: 0;
+    }
+    
+    ion-content {
+      --offset-bottom: 0;
+    }
   }
 }
 
@@ -560,31 +640,31 @@ ion-modal.side-modal {
 @media (max-width: 768px) {
   ion-modal {
     --width: 100vw !important;
-    --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
+    --height: 100vh !important;
     --max-width: 100vw !important;
-    --max-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
+    --max-height: 100vh !important;
     --min-width: 100vw !important;
-    --min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
+    --min-height: 100vh !important;
     --border-radius: 0 !important;
     --box-shadow: none !important;
   }
   
   ion-modal.side-modal {
     --width: 100vw !important;
-    --height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom)) !important;
+    --height: 100vh !important;
   }
 }
 
 @media (max-width: 480px) {
   ion-modal {
     ion-header {
-      // NO añadir padding-top - ion-header maneja las zonas seguras
-      padding-top: 0;
+      padding: 0;
+      margin: 0;
     }
     
     ion-footer {
-      // NO añadir padding-bottom - ion-footer maneja las zonas seguras
-      padding-bottom: 0;
+      padding: 0;
+      margin: 0;
     }
   }
 }

@@ -72,6 +72,7 @@ export class AvisosService {
             .from('avisos')
             .select(`
                 id,
+                numero_secuencial,
                 cliente_id,
                 tecnico_asignado_id,
                 fecha_creacion,
@@ -105,7 +106,7 @@ export class AvisosService {
         const desde = (pagina - 1) * porPagina;
         query = query
             .range(desde, desde + porPagina - 1)
-            .order(ordenarPor || 'fecha_creacion', { ascending: orden === 'asc' });
+            .order(ordenarPor || 'numero_secuencial', { ascending: orden === 'asc' });
 
         return from(query).pipe(
             map(({ data, error, count }) => {

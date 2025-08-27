@@ -33,46 +33,37 @@
     </div>
     <div class="header-actions">
       <!-- Botón de recarga forzada -->
-      <button 
-        class="btn-secondary" 
-        (click)="forzarRecargaDatos()"
-        title="Recargar datos">
+      <button class="btn-secondary" (click)="forzarRecargaDatos()" title="Recargar datos">
         <ion-icon name="refresh-outline"></ion-icon>
         <span class="desktop-only">Recargar</span>
         <span class="mobile-only">Recargar</span>
       </button>
-      
+
       <!-- Solo mostrar botón de completar si el aviso NO está completado -->
-      <button 
-        *ngIf="aviso?.estado !== 'Completado'" 
-        class="btn-secondary" 
-        (click)="completarAviso()">
+      <button *ngIf="aviso?.estado !== 'Completado'" class="btn-secondary" (click)="completarAviso()">
         <ion-icon name="close"></ion-icon>
         <span class="desktop-only">Completar Aviso</span>
         <span class="mobile-only">Completar</span>
       </button>
-      
+
       <!-- Solo mostrar botón de editar si el aviso NO está completado -->
-      <button 
-        *ngIf="aviso?.estado !== 'Completado'" 
-        class="btn-primary" 
-        (click)="editarAviso()">
+      <button *ngIf="aviso?.estado !== 'Completado'" class="btn-primary" (click)="editarAviso()">
         <ion-icon name="pencil-outline"></ion-icon>
         <span class="desktop-only">Editar aviso</span>
         <span class="mobile-only">Editar</span>
       </button>
-      
+
       <!-- Mostrar mensaje cuando el aviso esté completado -->
       <div *ngIf="aviso?.estado === 'Completado'" class="aviso-completado-message">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <span>Aviso completado</span>
       </div>
     </div>
-    <span class="mobile-only title">Aviso #{{aviso.id?.substring(0, 8)}}</span>
+    <span class="mobile-only title">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado') | titlecase}}</span>
   </div>
 
   <h2 class="title">
-    <span class="desktop-only">Información general del Aviso - #{{aviso.id?.substring(0, 8)}}</span>
+    <span class="desktop-only">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado') | titlecase}}</span>
   </h2>
 
   <div class="info-grid">
@@ -92,6 +83,14 @@
         <span>{{aviso.fecha_creacion | date:'dd/MM/yyyy'}}</span>
       </div>
     </div>
+
+    <div class="descripcion-content">
+      <div class="info-item">
+        <label>Descripción Detallada del Problema/Petición</label>
+        <p class="descripcion-texto">{{aviso?.descripcion_problema}}</p>
+      </div>
+    </div>
+
 
     <div class="info-item cliente-section">
       <label>Cliente</label>
@@ -122,35 +121,13 @@
         </div>
         <div class="contacto-item" *ngIf="aviso.telefono_cliente_aviso">
           <ion-icon name="call"></ion-icon>
-          <span>{{aviso.telefono_cliente_aviso}}</span>
+          <a href="tel:{{aviso.telefono_cliente_aviso}}" class="contacto-link">{{aviso.telefono_cliente_aviso}}</a>
         </div>
         <div class="contacto-item" *ngIf="aviso.cliente?.email">
           <ion-icon name="mail"></ion-icon>
-          <span>{{aviso.cliente?.email}}</span>
+          <a href="mailto:{{aviso.cliente?.email}}" class="contacto-link">{{aviso.cliente?.email}}</a>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- Descripción del Aviso -->
-<div class="info-card">
-  <div class="card-header" style="justify-content: space-between!important;">
-    <h2>Descripción del Aviso</h2>
-    <span class="badge-estado-aviso" [class]="getEstadoClass(aviso?.estado)">
-      {{aviso?.estado || 'Pendiente'}}
-    </span>
-  </div>
-
-  <div class="descripcion-content">
-    <div class="info-item">
-      <label>Tipo de Aviso</label>
-      <p class="tipo-aviso">{{aviso?.tipo || 'No especificado'}}</p>
-    </div>
-
-    <div class="info-item">
-      <label>Descripción Detallada del Problema/Petición</label>
-      <p class="descripcion-texto">{{aviso?.descripcion_problema}}</p>
     </div>
   </div>
 </div>
@@ -233,14 +210,18 @@
               <!-- Mostrar materiales con cantidades reales si están disponibles -->
               <ul class="repuestos-list" *ngIf="trabajo.materiales && trabajo.materiales.length > 0">
                 <li *ngFor="let material of trabajo.materiales">
-                  {{material.material?.nombre || 'Material'}}: {{material.cantidad_utilizada}} {{material.material?.unidad || 'unidad'}}
+                  {{material.material?.nombre || 'Material'}}: {{material.cantidad_utilizada}}
+                  {{material.material?.unidad || 'unidad'}}
                 </li>
               </ul>
               <!-- Fallback a repuestos básicos si no hay materiales detallados -->
-              <ul class="repuestos-list" *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && trabajo.repuestos && trabajo.repuestos.length > 0">
+              <ul class="repuestos-list"
+                *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && trabajo.repuestos && trabajo.repuestos.length > 0">
                 <li *ngFor="let repuesto of trabajo.repuestos">{{repuesto}}</li>
               </ul>
-              <span *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && (!trabajo.repuestos || trabajo.repuestos.length === 0)" class="no-repuestos">
+              <span
+                *ngIf="(!trabajo.materiales || trabajo.materiales.length === 0) && (!trabajo.repuestos || trabajo.repuestos.length === 0)"
+                class="no-repuestos">
                 Sin materiales
               </span>
             </div>
@@ -253,17 +234,13 @@
           <td data-label="Acciones">
             <div class="estado-actions">
               <!-- Botón de Hacer Albarán - SOLO VISIBLE CUANDO SE PUEDA CREAR -->
-              <button 
-                *ngIf="puedeCrearAlbaran(trabajo)"
-                class="btn-primary btn-small" 
-                (click)="hacerAlbaran(trabajo)" 
-                title="Hacer albarán"
-                style="background: #4CAF50;">
+              <button *ngIf="puedeCrearAlbaran(trabajo)" class="btn-primary btn-small" (click)="hacerAlbaran(trabajo)"
+                title="Hacer albarán" style="background: #4CAF50;">
                 <ion-icon name="document-text-outline"></ion-icon>
                 <span class="desktop-only">Crear Albarán</span>
                 <span class="mobile-only">Albarán</span>
               </button>
-              
+
               <!-- Mostrar información del albarán si existe -->
               <div *ngIf="trabajo.albaran_id" class="albaran-info">
                 <span class="badge-albaran" [class]="'badge-' + getAlbaranEstado(trabajo)">
@@ -274,24 +251,18 @@
                   {{ getAlbaranEstado(trabajo) }}
                 </small> -->
               </div>
-              
+
               <!-- Botón de Editar (solo si no está cerrado) -->
-              <button 
-                *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
-                class="btn-secondary btn-small" 
-                (click)="editarTrabajo(trabajo)" 
-                title="Editar trabajo">
+              <button *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
+                class="btn-secondary btn-small" (click)="editarTrabajo(trabajo)" title="Editar trabajo">
                 <ion-icon name="pencil-outline"></ion-icon>
                 <span class="desktop-only">Editar</span>
                 <span class="mobile-only">Editar</span>
               </button>
-              
+
               <!-- Botón de Eliminar (solo si no está cerrado) -->
-              <button 
-                *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
-                class="btn-danger btn-small" 
-                (click)="eliminarTrabajo(trabajo)" 
-                title="Eliminar trabajo">
+              <button *ngIf="trabajo.estado !== 'Cerrado' && trabajo.estado !== 'Finalizado'"
+                class="btn-danger btn-small" (click)="eliminarTrabajo(trabajo)" title="Eliminar trabajo">
                 <ion-icon name="trash-outline"></ion-icon>
                 <span class="desktop-only">Eliminar</span>
                 <span class="mobile-only">Eliminar</span>
@@ -309,7 +280,8 @@
   <div class="card-header">
     <h2>Albaranes Cerrados</h2>
     <div class="header-actions">
-      <span class="badge-info" *ngIf="aviso?.albaranes && aviso?.albaranes.length > 0">Total: {{aviso.albaranes.length}}</span>
+      <span class="badge-info" *ngIf="aviso?.albaranes && aviso?.albaranes.length > 0">Total:
+        {{aviso.albaranes.length}}</span>
       <span class="badge-info" *ngIf="!aviso?.albaranes || aviso?.albaranes?.length === 0">Sin albaranes</span>
       <button class="btn-secondary btn-small" (click)="recargarAlbaranes()" title="Recargar albaranes">
         <ion-icon name="refresh-outline"></ion-icon>
@@ -326,7 +298,7 @@
       <p>No hay albaranes cerrados para este aviso</p>
       <p class="info-text">Los albaranes aparecerán aquí una vez que se cierren los trabajos realizados</p>
     </div>
-    
+
     <!-- Lista de albaranes existentes -->
     <div class="albaran-item" *ngFor="let albaran of aviso?.albaranes; let i = index">
       <div class="albaran-header">
@@ -347,7 +319,7 @@
           </button>
         </div>
       </div>
-      
+
       <div class="albaran-details">
         <div class="detail-row">
           <div class="detail-item">
@@ -359,13 +331,14 @@
             <span>{{albaran.presupuesto_necesario | currency:'EUR':'symbol':'1.2-2'}}</span>
           </div>
         </div>
-        
+
         <div class="detail-item full-width">
           <label>Descripción del trabajo:</label>
           <p>{{albaran.descripcion_trabajo_realizado}}</p>
         </div>
-        
-        <div class="detail-item full-width" *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0">
+
+        <div class="detail-item full-width"
+          *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0">
           <label>Repuestos utilizados:</label>
           <div class="repuestos-tags">
             <!-- Mostrar repuestos con cantidades reales si están disponibles -->
@@ -379,7 +352,7 @@
             </span>
           </div>
         </div>
-        
+
         <div class="detail-row" *ngIf="albaran.dni_cliente || albaran.nombre_firma">
           <div class="detail-item" *ngIf="albaran.dni_cliente">
             <label>DNI Cliente:</label>
@@ -390,7 +363,7 @@
             <span>{{albaran.nombre_firma}}</span>
           </div>
         </div>
-        
+
         <div class="detail-item full-width" *ngIf="albaran.observaciones">
           <label>Observaciones:</label>
           <p>{{albaran.observaciones}}</p>

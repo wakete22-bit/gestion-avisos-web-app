@@ -1,119 +1,350 @@
-// Header del modal
-ion-header {
-  ion-toolbar {
-    --background: #fff;
-    --border-color: #e5e7eb;
-    --color: #111827;
+// ========================================
+// ESTRUCTURA BASE DEL MODAL
+// ========================================
 
-    ion-title {
+.modal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 90vh;
+  background: #fff;
+  position: relative;
+
+  /* Aplicar safe areas al container en móviles */
+  @media (max-width: 768px) {
+    height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+    max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+  }
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+
+  /* Aplicar safe areas al header */
+  @media (max-width: 768px) {
+    padding-top: calc(16px + var(--ion-safe-area-top, 16px));
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h2 {
+      margin: 0;
       font-size: 20px;
       font-weight: 600;
       color: #111827;
     }
+  }
 
-    ion-button {
-      --color: #6b7280;
+  .subtitle {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+  }
 
-      &:hover {
-        --color: #111827;
-      }
+  .close-button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: #111827;
+    }
+
+    ion-icon {
+      font-size: 24px;
     }
   }
 }
 
-// Contenedor principal
-.albaran-container {
-  padding: 24px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: #fff;
-}
-
-// Formulario principal
-form {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 20px;
-  overflow-y: auto;
-  padding-right: 4px;
-  padding-bottom: 120px; // Espacio para los botones fijos
-}
-
-// Scrollbar personalizado
-form::-webkit-scrollbar {
-  width: 6px;
-}
-
-form::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-form::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-form::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-// Layout de dos columnas
-.form-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+.modal-body {
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-// En escritorio, usar dos columnas
-@media (min-width: 1200px) {
-  .form-layout {
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
+.modal-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  min-height: 0;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: 100%;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    overflow: visible;
   }
 }
 
-// Columna principal (izquierda)
-.form-main {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  order: 1;
-}
-
-// Sidebar derecha
-.form-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  order: 2;
-}
-
-// Secciones del formulario
 .form-section {
-  background: #fff;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
+
+  @media (max-width: 768px) {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 30px;
+  }
+
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+
+    &:hover {
+      background: #9ca3af;
+    }
+  }
 
   h3 {
     margin: 0 0 20px 0;
-    font-size: 18px;
+    font-size: 16px;
+    color: #374151;
     font-weight: 600;
-    color: #1F2937;
-    border-bottom: 2px solid #4F46E5;
-    padding-bottom: 8px;
   }
 }
 
+.images-section {
+  padding: 24px;
+  background-color: #f9fafb;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
+
+  @media (max-width: 768px) {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 300px;
+    padding-bottom: 80px;
+  }
+
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+
+    &:hover {
+      background: #9ca3af;
+    }
+  }
+}
+
+// ========================================
+// CONTROLES DE FORMULARIO
+// ========================================
+
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+
+    .required {
+      color: #dc2626;
+    }
+  }
+
+  &.half {
+    flex: 1;
+  }
+}
+
+.form-control {
+  position: relative;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+
+  &:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+}
+
+// Estilos específicos para select
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  option[value=""] {
+    color: #9ca3af;
+  }
+}
+
+input.form-control {
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+}
+
+textarea.form-control {
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  resize: vertical;
+  min-height: 80px;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .form-group {
+    margin-bottom: 0;
+    flex: 1;
+  }
+}
+
+.input-with-button {
+  position: relative;
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+  }
+
+  .add-button {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: none;
+    border: none;
+    color: #4F46E5;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid #d2d2d2;
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    border-radius: 8px;
+    font-weight: 500;
+
+    &:hover {
+      color: #1d4ed8;
+    }
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+// Texto de ayuda
+.help-text {
+  display: block;
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 4px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 // Sección de repuestos especial
-.repuestos-section {
+.repuestos-section,
+.repuestos-container {
   position: sticky;
   top: 20px;
 
@@ -130,99 +361,9 @@ form::-webkit-scrollbar-thumb:hover {
   }
 }
 
-// Filas de formulario
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
 
-// En escritorio, usar 3 columnas para mejor aprovechamiento del espacio
-@media (min-width: 1200px) {
-  .form-row {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
-}
 
-// Grupos de formulario
-.form-group {
-  position: relative;
-  margin-bottom: 20px;
 
-  ion-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 8px;
-    text-transform: none;
-    letter-spacing: normal;
-  }
-
-  ion-input,
-  ion-textarea,
-  ion-select {
-    --background: #FAFAFB;
-    --border-radius: 6px;
-    --border-width: 1px;
-    --border-color: transparent;
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --padding-top: 10px;
-    --padding-bottom: 10px;
-    --color: #111827;
-    --placeholder-color: #9CA3AF;
-    font-size: 14px;
-    transition: border-color 0.2s;
-
-    &:focus-within {
-      --border-color: #2563eb;
-      --background: #fff;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-    }
-  }
-
-  ion-textarea {
-    --min-height: 80px;
-    resize: vertical;
-  }
-}
-
-// Texto de ayuda
-.help-text {
-  display: block;
-  font-size: 11px;
-  color: #6B7280;
-  margin-top: 4px;
-  font-style: italic;
-  line-height: 1.4;
-}
-
-// Botón de hora actual
-.btn-now {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #1d4ed8;
-  }
-
-  ion-icon {
-    font-size: 14px;
-  }
-}
 
 // Estados de cierre
 .estados-grid {
@@ -498,54 +639,98 @@ form::-webkit-scrollbar-thumb:hover {
   }
 }
 
-// Botones de acción
-.form-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: auto;
+// ========================================
+// FOOTER DEL MODAL
+// ========================================
+
+.modal-footer {
   padding: 16px 24px;
-  border-top: 1px solid #E5E7EB;
-  flex-shrink: 0;
+  border-top: 1px solid #e5e7eb;
   background: #fff;
-  position: fixed;
+  flex-shrink: 0;
+  z-index: 10;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 
-  ion-button {
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --padding-top: 8px;
-    --padding-bottom: 8px;
-    font-weight: 500;
+  /* Aplicar safe areas al footer */
+  @media (max-width: 768px) {
+    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
+  }
+
+  .button-group {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+
+    .btn-outline {
+      background: none;
+      border: 1px solid #d1d5db;
+      color: #374151;
+
+      &:hover:not(:disabled) {
+        background-color: #f8fafc;
+        border-color: #9ca3af;
+      }
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      border: 1px solid #2563eb;
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+      }
+    }
+  }
+}
+
+// Mensaje de error
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  color: #DC2626;
+  margin-bottom: 20px;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #DC2626;
+    flex-shrink: 0;
+  }
+
+  span {
     font-size: 14px;
-    min-width: 140px;
-    border-radius: 6px;
-    transition: all 0.2s;
-
-    &[fill="outline"] {
-      --border-color: #d1d5db;
-      --color: #374151;
-
-      &:hover {
-        --background: #f8fafc;
-        --border-color: #9ca3af;
-      }
-    }
-
-    &[type="submit"] {
-      --background: #2563eb;
-      --border-color: #2563eb;
-      --color: #fff;
-
-      &:hover {
-        --background: #1d4ed8;
-        --border-color: #1d4ed8;
-      }
-    }
+    font-weight: 500;
   }
 }
 
@@ -823,24 +1008,32 @@ form::-webkit-scrollbar-thumb:hover {
     border: 1px solid #BAE6FD;
     border-radius: 6px;
     margin-bottom: 8px;
+    width: 100%;
+    overflow: hidden;
 
     .repuesto-info {
       flex: 1;
       display: flex;
       align-items: center;
       gap: 16px;
+      min-width: 0; // Importante para evitar overflow
+      overflow: hidden;
 
       .repuesto-nombre {
         font-weight: 500;
         color: #0369A1;
         font-size: 14px;
         min-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .repuesto-cantidad {
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-shrink: 0;
 
         label {
           font-size: 12px;
@@ -872,6 +1065,7 @@ form::-webkit-scrollbar-thumb:hover {
         align-items: flex-end;
         gap: 4px;
         min-width: 100px;
+        flex-shrink: 0;
 
         .precio-unitario {
           font-size: 11px;
@@ -934,6 +1128,8 @@ ion-button[type="submit"] {
   }
 }
 
+
+
 // ========================================
 // CLASES DE VISIBILIDAD RESPONSIVA
 // ========================================
@@ -962,34 +1158,67 @@ ion-button[type="submit"] {
 // RESPONSIVE DESIGN
 // ========================================
 
-// Móvil
 @media (max-width: 768px) {
-  .albaran-container {
-    padding: 16px;
+  .modal-container {
+    height: 100vh;
+    max-height: none;
   }
 
-  // Reorganizar el orden en móvil: repuestos antes de observaciones
-  .form-main {
-    order: 1;
+  .modal-body {
+    overflow-y: auto;
   }
 
-  .form-sidebar {
-    order: 2;
+  .modal-content {
+    height: auto;
+    overflow: auto;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    overflow: visible;
   }
 
   .form-section {
-    padding: 20px;
-    margin-bottom: 20px;
-
-    h3 {
-      font-size: 16px;
-      margin-bottom: 16px;
-    }
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 30px;
   }
 
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .images-section {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 300px;
+    padding-bottom: 80px;
+    display: none;
+  }
+
+  .form-control {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  textarea,
+  select,
+  input {
+    font-size: 14px !important;
+    padding: 12px;
+  }
+
+  .input-with-button {
+    flex-direction: column;
+
+    .add-button {
+      position: static;
+      margin-top: 8px;
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   .estados-grid {
@@ -1027,213 +1256,236 @@ ion-button[type="submit"] {
     }
   }
 
-  .form-actions {
-    gap: 12px;
-    padding: 16px 20px;
+  // Arreglos específicos para repuestos en móvil
+  .repuestos-list {
+    width: 100%;
+    overflow: hidden;
 
-    ion-button {
-      width: 100%;
-      justify-content: center;
+    .repuesto-item {
+      .repuesto-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+
+        .repuesto-nombre {
+          min-width: unset;
+          width: 100%;
+          font-size: 13px;
+        }
+
+        .repuesto-cantidad {
+          align-self: stretch;
+          justify-content: space-between;
+        }
+
+        .repuesto-precio-info {
+          align-self: stretch;
+          align-items: flex-start;
+          min-width: unset;
+        }
+      }
     }
   }
 
   .signature-area {
-    padding: 30px;
-
-    .signature-placeholder {
-      ion-icon {
-        font-size: 36px;
-      }
-
-      span {
-        font-size: 14px;
-      }
-
-      small {
-        font-size: 11px;
-      }
-    }
-  }
-}
-
-// Tablet
-@media (min-width: 769px) and (max-width: 1199px) {
-  .albaran-container {
-    padding: 24px;
-  }
-
-  // Mantener el orden en tablet
-  .form-main {
-    order: 1;
-  }
-
-  .form-sidebar {
-    order: 2;
-  }
-
-  .form-row {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-
-  .estados-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .repuestos-actions {
-    flex-direction: row;
-    gap: 12px;
-
-    button {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-}
-
-// Escritorio
-@media (min-width: 1200px) {
-  .albaran-container {
-    padding: 32px;
-  }
-
-  // Mantener el orden en escritorio (dos columnas)
-  .form-main {
-    order: 1;
-  }
-
-  .form-sidebar {
-    order: 2;
-  }
-
-  .form-section {
-    padding: 28px;
-  }
-
-  .form-row {
-    gap: 28px;
-  }
-
-  .estados-grid {
-    gap: 24px;
-  }
-
-  .repuestos-actions {
-    flex-direction: column;
-    gap: 16px;
-
-    button {
-      padding: 14px 20px;
-      font-size: 15px;
-    }
-  }
-
-  .form-actions {
-    gap: 20px;
-    padding: 20px 32px;
-
-    ion-button {
-      min-width: 160px;
-      --padding-start: 28px;
-      --padding-end: 28px;
-      --padding-top: 14px;
-      --padding-bottom: 14px;
-      font-size: 15px;
-    }
-  }
-}
-
-// Móvil pequeño
-@media (max-width: 480px) {
-  .albaran-container {
-    padding: 12px;
-  }
-
-  // Mantener el orden en móvil pequeño
-  .form-main {
-    order: 1;
-  }
-
-  .form-sidebar {
-    order: 2;
-  }
-
-  .form-section {
-    padding: 16px;
-    margin-bottom: 16px;
-
-    h3 {
-      font-size: 15px;
-      margin-bottom: 12px;
-    }
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-
-    ion-label {
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-  }
-
-  .estado-option {
-    padding: 12px;
-
-    .estado-content {
-      h4 {
-        font-size: 14px;
-      }
-
-      p {
-        font-size: 11px;
-      }
-    }
-
-    ion-icon {
-      font-size: 16px;
-      top: 8px;
-      right: 8px;
-    }
-  }
-
-  .signature-area {
-    padding: 15px 0px;
-    border-color: #2563eb;
-    background: #EFF6FF;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 10px;
+    min-height: 200px;
+    border: 2px dashed #D1D5DB;
+    border-radius: 8px;
+    background: #F9FAFB;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #2563eb;
+      background: #EFF6FF;
+    }
 
     .signature-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: #6B7280;
+      text-align: center;
+
       ion-icon {
-        font-size: 32px;
+        font-size: 48px;
+        color: #9CA3AF;
       }
 
       span {
-        font-size: 13px;
+        font-size: 16px;
+        font-weight: 500;
       }
 
       small {
-        font-size: 10px;
+        font-size: 12px;
+        color: #9CA3AF;
+      }
+
+      .btn-start-signature {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 8px;
+
+        &:hover {
+          background: #1d4ed8;
+        }
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .signature-canvas-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+
+      .signature-canvas {
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        background: #fff;
+        cursor: crosshair;
+        touch-action: none;
+        width: 100%;
+        max-width: 400px;
+        height: 200px;
+      }
+
+      .signature-controls {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+
+        button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          ion-icon {
+            font-size: 14px;
+          }
+        }
+
+        .btn-clear {
+          background: #FEE2E2;
+          color: #DC2626;
+
+          &:hover {
+            background: #FECACA;
+          }
+        }
+
+        .btn-save {
+          background: #10B981;
+          color: white;
+
+          &:hover {
+            background: #059669;
+          }
+        }
+      }
+    }
+
+    .signature-preview {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+
+      .firma-image {
+        max-width: 100%;
+        max-height: 120px;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .signature-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+
+        button {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 16px;
+          border: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          ion-icon {
+            font-size: 14px;
+          }
+        }
+
+        .btn-edit {
+          background: #DBEAFE;
+          color: #1D4ED8;
+
+          &:hover {
+            background: #BFDBFE;
+          }
+        }
+
+        .btn-remove {
+          background: #FEE2E2;
+          color: #DC2626;
+
+          &:hover {
+            background: #FECACA;
+          }
+        }
       }
     }
   }
+}
 
-  .help-text {
-    font-size: 10px;
-  }
-
-  .btn-now {
-    padding: 4px 8px;
-    font-size: 11px;
-
-    ion-icon {
-      font-size: 12px;
+// Configuración específica para PWA standalone en móviles
+@media all and (display-mode: standalone) {
+  @media (max-width: 768px) {
+    .modal-container {
+      height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
+      max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
     }
-  }
 
-  .form-actions {
-    padding: 12px 16px;
+    .modal-header {
+      padding-top: calc(16px + var(--safe-area-top, 0px));
+    }
+
+    .modal-footer {
+      padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+    }
   }
 }
