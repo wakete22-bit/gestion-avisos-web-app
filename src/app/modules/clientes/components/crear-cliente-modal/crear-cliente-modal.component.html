@@ -1,5 +1,5 @@
-<div class="modal-container">
-  <header class="modal-header">
+<ion-header>
+  <ion-toolbar>
     <div class="header-content">
       <h2>{{ tituloModal }}</h2>
       <button class="close-button" (click)="cerrarModal()">
@@ -7,13 +7,16 @@
       </button>
     </div>
     <p class="subtitle">{{ subtituloModal }}</p>
-  </header>
+  </ion-toolbar>
+</ion-header>
 
-  <div class="modal-content">
-    <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()">
+<ion-content class="modal-body">
+  <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()" class="modal-content">
+    <div class="modal-grid">
+      <!-- Sección Izquierda - Formulario -->
       <div class="form-section">
         <div class="form-group">
-          <label>Nombre de contacto</label>
+          <label>Nombre de contacto <span class="required">*</span></label>
           <input 
             type="text" 
             formControlName="nombreContacto" 
@@ -23,7 +26,7 @@
 
         <div class="form-row">
           <div class="form-group half">
-            <label>Teléfono</label>
+            <label>Teléfono <span class="required">*</span></label>
             <input 
               type="tel" 
               formControlName="telefono" 
@@ -31,7 +34,7 @@
               placeholder="Ej: +34 569 23 56 89">
           </div>
           <div class="form-group half">
-            <label>Correo electrónico</label>
+            <label>Correo electrónico <span class="required">*</span></label>
             <input 
               type="email" 
               formControlName="correoElectronico" 
@@ -55,7 +58,7 @@
         -->
 
         <div class="form-group">
-          <label>Direccion local <span class="required">*</span></label>
+          <label>Dirección local <span class="required">*</span></label>
           <input 
             type="text" 
             formControlName="direccionLocal" 
@@ -63,41 +66,71 @@
             placeholder="Ej: Calle Azorin">
         </div>
 
-                  <div class="form-row">
-            <div class="form-group half">
-              <label>Código Postal <span class="required">*</span></label>
-              <input 
-                type="text" 
-                formControlName="codigoPostal" 
-                class="form-control"
-                placeholder="28004">
-            </div>
-            <div class="form-group half">
-              <label>Localidad <span class="required">*</span></label>
-              <input 
-                type="text" 
-                formControlName="localidad" 
-                class="form-control"
-                placeholder="Ej: Madrid">
-            </div>
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Código Postal <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="codigoPostal" 
+              class="form-control"
+              placeholder="28004">
           </div>
+          <div class="form-group half">
+            <label>Localidad <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="localidad" 
+              class="form-control"
+              placeholder="Ej: Madrid">
+          </div>
+        </div>
 
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input 
-                type="checkbox" 
-                formControlName="esActivo"
-                class="form-checkbox">
-              <span class="checkmark"></span>
-              Cliente activo
-            </label>
-            <small class="form-help">Los clientes inactivos no aparecerán en las búsquedas principales</small>
-          </div>
+        <div class="form-group checkbox-group">
+          <label class="checkbox-container">
+            <input type="checkbox" formControlName="esActivo">
+            <span class="checkbox-label">Cliente activo</span>
+          </label>
+          <span class="helper-text">Los clientes inactivos no aparecerán en las búsquedas principales</span>
+        </div>
       </div>
-    </form>
-  </div>
 
-  <footer class="modal-footer">
+      <!-- Sección Derecha - Información adicional -->
+      <div class="info-section">
+        <div class="info-card">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <h4>Información del cliente</h4>
+          <p>Completa todos los campos obligatorios marcados con <span class="required">*</span> para crear el cliente.</p>
+          
+          <div class="info-details">
+            <div class="info-item">
+              <span class="info-label">Nombre:</span>
+              <span class="info-value">Nombre completo del contacto</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Teléfono:</span>
+              <span class="info-value">Número de contacto principal</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email:</span>
+              <span class="info-value">Correo electrónico válido</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Dirección:</span>
+              <span class="info-value">Calle, código postal y localidad</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Estado:</span>
+              <span class="info-value">Cliente activo o inactivo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
     <div class="button-group">
       <button type="button" class="btn btn-outline" (click)="cerrarModal()">
         Cancelar
@@ -108,7 +141,8 @@
         (click)="guardarCliente()"
         [disabled]="botonDeshabilitado">
         {{ textoBotonGuardar }}
+        <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>
-  </footer>
-</div>
+  </ion-toolbar>
+</ion-footer>

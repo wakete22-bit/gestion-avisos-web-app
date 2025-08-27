@@ -145,7 +145,11 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
           next: (resultado) => {
             console.log('Acción ejecutada:', resultado);
             this.accionEjecutada.emit(resultado);
-            this.cargarEstadoFlujo(); // Recargar estado
+            
+            // Actualización automática: recargar estado y acciones inmediatamente
+            this.cargarEstadoFlujo();
+            this.cargarAccionesDisponibles();
+            
             this.loading = false;
           },
           error: (error) => {
@@ -168,7 +172,11 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
         next: (resultado) => {
           console.log('Flujo directo iniciado:', resultado);
           this.accionEjecutada.emit(resultado);
+          
+          // Actualización automática: recargar estado y acciones inmediatamente
           this.cargarEstadoFlujo();
+          this.cargarAccionesDisponibles();
+          
           this.loading = false;
         },
         error: (error) => {
@@ -199,8 +207,12 @@ export class FlujoEstadoComponent implements OnInit, OnDestroy {
         // Mostrar mensaje de éxito
         this.mostrarMensaje('Aviso completado exitosamente', 'success');
         
-        // Recargar el estado del flujo
+        // Actualización automática: recargar estado y acciones inmediatamente
         this.cargarEstadoFlujo();
+        this.cargarAccionesDisponibles();
+        
+        // Emitir evento para que el componente padre sepa que se completó
+        this.accionEjecutada.emit(resultado);
       },
       error: (error) => {
         console.error('❌ Error al completar aviso:', error);

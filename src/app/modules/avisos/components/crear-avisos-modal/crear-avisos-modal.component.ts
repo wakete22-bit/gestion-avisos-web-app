@@ -1,21 +1,21 @@
 import { Component, OnInit, Input, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { arrowForward, personOutline, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline, trashOutline } from 'ionicons/icons';
+import { arrowForward, personOutline, mailOutline, chevronDownOutline, copyOutline, shieldOutline, informationCircleOutline, cloudUploadOutline, closeOutline, save, saveOutline, trashOutline, addCircle, refreshOutline } from 'ionicons/icons';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { Cliente } from '../../../clientes/models/cliente.model';
 import { Subject, takeUntil } from 'rxjs';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-crear-avisos-modal',
   templateUrl: './crear-avisos-modal.component.html',
   styleUrls: ['./crear-avisos-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
 })
 export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() clienteData: any;
@@ -131,13 +131,8 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngAfterViewInit() {
-    // Aplicar safe areas al modal después de que se renderice
-    setTimeout(() => {
-      const modalContainer = this.elementRef.nativeElement.querySelector('.modal-container');
-      if (modalContainer) {
-        this.viewportService.applySafeAreaToModal(modalContainer);
-      }
-    }, 100);
+    // Ya no necesitamos aplicar safe areas manualmente
+    // Ionic las maneja automáticamente con ion-header e ion-footer
   }
 
   onFileSelected(event: any) {

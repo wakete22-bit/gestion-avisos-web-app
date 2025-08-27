@@ -56,3 +56,4 @@ Write-Host "3. Los nuevos avisos mostrarán números secuenciales" -ForegroundCo
 Write-Host ""
 Write-Host "✨ ¡Configuración completada!" -ForegroundColor Green
 
+

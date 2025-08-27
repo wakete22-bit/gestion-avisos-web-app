@@ -664,8 +664,8 @@ export class AvisosService {
                 const avisoCompleto = data as any;
                 
                 // Calcular estadísticas basadas en albaranes (nuevo flujo)
-                const albaranesCerrados = avisoCompleto.albaranes?.filter((a: any) => 
-                    a.estado_cierre && a.estado_cierre !== 'Otra visita'
+                const albaranesFinalizados = avisoCompleto.albaranes?.filter((a: any) => 
+                    a.estado_cierre === 'Finalizado'
                 ) || [];
                 
                 const albaranesPresupuestoPendiente = avisoCompleto.albaranes?.filter((a: any) => 
@@ -675,6 +675,9 @@ export class AvisosService {
                 const albaranesOtraVisita = avisoCompleto.albaranes?.filter((a: any) => 
                     a.estado_cierre === 'Otra visita'
                 ) || [];
+                
+                // Los albaranes cerrados incluyen tanto finalizados como presupuesto pendiente
+                const albaranesCerrados = [...albaranesFinalizados, ...albaranesPresupuestoPendiente];
                 
                 const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => 
                     f.estado !== 'Completado'
@@ -691,6 +694,7 @@ export class AvisosService {
                     estadisticas: {
                         totalAlbaranes: avisoCompleto.albaranes?.length || 0,
                         albaranesCerrados: albaranesCerrados.length,
+                        albaranesFinalizados: albaranesFinalizados.length,
                         albaranesPresupuestoPendiente: albaranesPresupuestoPendiente.length,
                         albaranesOtraVisita: albaranesOtraVisita.length,
                         tienePresupuesto: presupuestoPendiente,
@@ -701,8 +705,8 @@ export class AvisosService {
                         // Mantener compatibilidad con código existente
                         totalTrabajos: avisoCompleto.albaranes?.length || 0,
                         trabajosConAlbaran: albaranesCerrados.length,
-                        trabajosFinalizados: albaranesCerrados.length,
-                        puedeFacturar: albaranesCerrados.length > 0 && facturasPendientes.length === 0
+                        trabajosFinalizados: albaranesFinalizados.length, // Solo los realmente finalizados
+                        puedeFacturar: albaranesFinalizados.length > 0 && facturasPendientes.length === 0
                     }
                 };
             }),

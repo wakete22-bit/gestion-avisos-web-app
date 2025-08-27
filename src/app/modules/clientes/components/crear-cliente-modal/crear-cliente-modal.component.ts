@@ -1,24 +1,26 @@
-import { Component, OnInit, AfterViewInit, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { closeOutline } from 'ionicons/icons';
+import { closeOutline, saveOutline, informationCircleOutline } from 'ionicons/icons';
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { Cliente } from '../../models/cliente.model';
+import { Subject } from 'rxjs';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-crear-cliente-modal',
   templateUrl: './crear-cliente-modal.component.html',
   styleUrls: ['./crear-cliente-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
 })
-export class CrearClienteModalComponent implements OnInit, AfterViewInit {
+export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() modo: 'crear' | 'editar' = 'crear';
   @Input() cliente?: Cliente;
   
   clienteForm: FormGroup;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -39,7 +41,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    addIcons({ closeOutline });
+    addIcons({ closeOutline, saveOutline, informationCircleOutline });
     
     // Si estamos en modo editar y tenemos datos del cliente, cargar los datos
     if (this.modo === 'editar' && this.cliente) {
@@ -48,13 +50,13 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    // Aplicar safe areas al modal después de que se renderice
-    setTimeout(() => {
-      const modalContainer = this.elementRef.nativeElement.querySelector('.modal-container');
-      if (modalContainer) {
-        this.viewportService.applySafeAreaToModal(modalContainer);
-      }
-    }, 100);
+    // Ya no necesitamos aplicar safe areas manualmente
+    // Ionic las maneja automáticamente con ion-header e ion-footer
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private cargarDatosCliente() {

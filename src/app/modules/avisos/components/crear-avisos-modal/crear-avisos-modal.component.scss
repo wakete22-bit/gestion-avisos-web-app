@@ -1,97 +1,147 @@
-.modal-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 90vh;
-  background: #fff;
-  position: relative;
+/* Estilos para el header del modal */
+ion-header {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    --color: #111827;
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
 
-  /* Aplicar safe areas al container en móviles */
-  @media (max-width: 768px) {
-    height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
-    max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+      }
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-top: 0px;
+      font-size: 14px;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #111827;
+      }
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
   }
 }
 
-.modal-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
-
-  /* Aplicar safe areas al header */
-  @media (max-width: 768px) {
-    padding-top: calc(16px + var(--ion-safe-area-top, 16px));
-  }
-
-  .header-content {
+/* Estilos para el contenido del modal */
+ion-content {
+  --background: #fff;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  
+  .modal-body {
+    flex: 1;
+    overflow: hidden;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #111827;
-    }
+    flex-direction: column;
+    min-height: 0;
   }
 
-  .subtitle {
-    margin: 8px 0 0;
-    color: #6b7280;
-    font-size: 14px;
+  .modal-content {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    min-height: 0;
   }
 
-  .close-button {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: 100%;
+    overflow: hidden;
 
-    &:hover {
-      color: #111827;
-    }
-
-    ion-icon {
-      font-size: 24px;
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      height: auto;
+      overflow: visible;
     }
   }
 }
 
-.modal-body {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
+/* Estilos para el footer del modal */
+ion-footer {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
 
-.modal-content {
-  flex: 1;
-  overflow: auto;
-  position: relative;
-  min-height: 0;
-}
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
 
-.modal-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  height: 100%;
-  overflow: hidden;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    height: auto;
-    overflow: visible;
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+
+      .btn-outline {
+        background: none;
+        border: 1px solid #d1d5db;
+        color: #374151;
+
+        &:hover:not(:disabled) {
+          background-color: #f8fafc;
+          border-color: #9ca3af;
+        }
+      }
+
+      .btn-primary {
+        background-color: #2563eb;
+        border: 1px solid #2563eb;
+        color: #fff;
+
+        &:hover:not(:disabled) {
+          background-color: #1d4ed8;
+          border-color: #1d4ed8;
+        }
+      }
+    }
   }
 }
 
+/* Estilos para las secciones del formulario */
 .form-section {
   padding: 24px;
   border-right: 1px solid #e5e7eb;
@@ -171,15 +221,7 @@
   }
 }
 
-.step-indicator {
-  margin-bottom: 24px;
-
-  span {
-    font-size: 14px;
-    color: #6b7280;
-  }
-}
-
+/* Estilos para los grupos de formulario */
 .form-group {
   position: relative;
   margin-bottom: 20px;
@@ -279,7 +321,6 @@ input.form-control {
 
 }
 
-
 textarea.form-control {
   position: relative;
   padding-right: 40px;
@@ -308,7 +349,8 @@ textarea.form-control {
   color: #6b7280;
   position: absolute;
   bottom: 13px;
-  right: 13px;}
+  right: 13px;
+}
 
 .form-row {
   display: flex;
@@ -500,87 +542,8 @@ textarea.form-control {
   }
 }
 
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
-  flex-shrink: 0;
-  z-index: 10;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  /* Aplicar safe areas al footer */
-  @media (max-width: 768px) {
-    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
-  }
-
-  .button-group {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      ion-icon {
-        font-size: 18px;
-      }
-    }
-
-    .btn-outline {
-      background: none;
-      border: 1px solid #d1d5db;
-      color: #374151;
-
-      &:hover:not(:disabled) {
-        background-color: #f8fafc;
-        border-color: #9ca3af;
-      }
-    }
-
-    .btn-primary {
-      background-color: #2563eb;
-      border: 1px solid #2563eb;
-      color: #fff;
-
-      &:hover:not(:disabled) {
-        background-color: #1d4ed8;
-        border-color: #1d4ed8;
-      }
-    }
-  }
-}
-
+/* Media queries para móviles */
 @media (max-width: 768px) {
-  .modal-container {
-    height: 100vh;
-    max-height: none;
-  }
-
-  .modal-body {
-    overflow-y: auto;
-  }
-
-  .modal-content {
-    height: auto;
-    overflow: auto;
-  }
-
   .modal-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
@@ -627,69 +590,6 @@ textarea.form-control {
   }
 }
 
-// Configuración específica para PWA standalone
-@media all and (display-mode: standalone) {
-  .modal-container {
-    height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
-    max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
-  }
-
-  .modal-header {
-    padding-top: calc(16px + var(--ion-safe-area-top, 0px));
-  }
-
-  .modal-footer {
-    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
-  }
-}
-
-// Configuración específica para iOS en PWA standalone
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    .modal-container {
-      height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
-      max-height: calc(100vh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
-    }
-
-    .modal-header {
-      padding-top: calc(16px + var(--ion-safe-area-top, 0px));
-    }
-
-    .modal-footer {
-      padding-bottom: calc(16px + var(--ion-safe-area-bottom, 0px));
-    }
-  }
-}
-
-// Configuración específica para Android
-@supports not (-webkit-touch-callout: none) {
-  .modal-container {
-    height: calc(100vh - var(--ion-safe-area-bottom, 16px));
-    max-height: calc(100vh - var(--ion-safe-area-bottom, 16px));
-  }
-
-  .modal-footer {
-    padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
-  }
-}
-
-// Fallback para navegadores que no soportan env()
-@supports not (padding-top: env(safe-area-inset-top)) {
-  @media all and (display-mode: standalone) {
-    ion-modal.crear-avisos-modal {
-      &::part(content) {
-        padding-top: 36px;
-        padding-bottom: 36px;
-      }
-    }
-    
-    ion-modal.crear-avisos-modal ion-content {
-      --padding-top: 36px;
-      --padding-bottom: 36px;
-    }
-  }
-}
-
 // Loading and Error States for Cliente Select
 .loading-indicator {
   display: flex;
@@ -724,653 +624,5 @@ textarea.form-control {
   &::before {
     content: "⚠";
     font-size: 14px;
-  }
-}
-
-/* ============================================================================
- * REGLAS ADICIONALES PARA SAFE AREAS
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todas las plataformas
- */
-
-/* Aplicar safe areas al modal cuando se abre */
-ion-modal.crear-avisos-modal {
-  &::part(content) {
-    padding-top: var(--ion-safe-area-top, 0px);
-    padding-bottom: var(--ion-safe-area-bottom, 0px);
-    padding-left: var(--ion-safe-area-left, 0px);
-    padding-right: var(--ion-safe-area-right, 0px);
-  }
-}
-
-/* Asegurar que el contenido del modal respete las safe areas */
-ion-modal.crear-avisos-modal ion-content {
-  --padding-top: var(--ion-safe-area-top, 0px);
-  --padding-bottom: var(--ion-safe-area-bottom, 0px);
-  --padding-start: var(--ion-safe-area-left, 0px);
-  --padding-end: var(--ion-safe-area-right, 0px);
-}
-
-/* Reglas específicas para móviles */
-@media (max-width: 768px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* Reglas específicas para tablets */
-@media (min-width: 769px) and (max-width: 1024px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-  }
-}
-
-/* Reglas específicas para desktop */
-@media (min-width: 1025px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-  }
-}
-
-/* Reglas específicas para PWA standalone */
-@media all and (display-mode: standalone) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-  }
-}
-
-/* Reglas específicas para iOS en PWA standalone */
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    ion-modal.crear-avisos-modal {
-      &::part(content) {
-        padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
-        padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
-      }
-    }
-    
-    ion-modal.crear-avisos-modal ion-content {
-      --padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
-      --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
-    }
-  }
-}
-
-/* Reglas específicas para Android */
-@supports not (-webkit-touch-callout: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px);
-  }
-  
-  /* En móviles Android, asegurar margen mínimo para botones de navegación */
-  @media (max-width: 768px) {
-    ion-modal.crear-avisos-modal {
-      &::part(content) {
-        padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-      }
-    }
-    
-    ion-modal.crear-avisos-modal ion-content {
-      --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-    }
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES ORIENTACIONES
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todas las orientaciones
- */
-
-/* Orientación vertical (portrait) */
-@media (orientation: portrait) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* Orientación horizontal (landscape) */
-@media (orientation: landscape) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 8px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 8px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 8px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES DENSIDADES DE PANTALLA
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todas las densidades
- */
-
-/* Pantallas de alta densidad (2x, 3x) */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-  }
-}
-
-/* Pantallas de densidad estándar (1x) */
-@media (-webkit-max-device-pixel-ratio: 1.99), (max-resolution: 191dpi) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TIPOS DE DISPOSITIVOS
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los dispositivos
- */
-
-/* Dispositivos táctiles */
-@media (pointer: coarse) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-  }
-}
-
-/* Dispositivos con mouse */
-@media (pointer: fine) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-  }
-}
-
-/* Dispositivos con hover */
-@media (hover: hover) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-  }
-}
-
-/* Dispositivos sin hover */
-@media (hover: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES NAVEGADORES
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los navegadores
- */
-
-/* Navegadores WebKit (Safari, Chrome) */
-@supports (-webkit-appearance: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* Navegadores Firefox */
-@supports (-moz-appearance: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* Navegadores Edge */
-@supports (-ms-ime-align: auto) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TIPOS DE DISPOSITIVOS MÓVILES
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los dispositivos móviles
- */
-
-/* Dispositivos con notch (iPhone X y posteriores) */
-@supports (padding-top: env(safe-area-inset-top)) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(env(safe-area-inset-top) + 16px);
-      padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-      padding-left: calc(env(safe-area-inset-left) + 16px);
-      padding-right: calc(env(safe-area-inset-right) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(env(safe-area-inset-top) + 16px);
-    --padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-    --padding-start: calc(env(safe-area-inset-left) + 16px);
-    --padding-end: calc(env(safe-area-inset-right) + 16px);
-  }
-}
-
-/* Dispositivos sin notch (iPhone 8 y anteriores) */
-@supports not (padding-top: env(safe-area-inset-top)) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: 16px;
-      padding-bottom: 16px;
-      padding-left: 16px;
-      padding-right: 16px;
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: 16px;
-    --padding-bottom: 16px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-  }
-}
-
-/* Dispositivos con barra de navegación fija (Android) */
-@supports not (-webkit-touch-callout: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-  }
-}
-
-/* Dispositivos con barra de navegación gestual (Android 10+) */
-@supports (-webkit-touch-callout: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 16px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TIPOS DE DISPOSITIVOS DE ESCRITORIO
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los dispositivos de escritorio
- */
-
-/* Dispositivos de escritorio con pantalla de alta resolución */
-@media (min-width: 1025px) and (-webkit-min-device-pixel-ratio: 2) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-  }
-}
-
-/* Dispositivos de escritorio con pantalla de resolución estándar */
-@media (min-width: 1025px) and (-webkit-max-device-pixel-ratio: 1.99) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-  }
-}
-
-/* Dispositivos de escritorio con pantalla ultra ancha */
-@media (min-width: 1920px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 16px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 16px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 16px);
-  }
-}
-
-/* Dispositivos de escritorio con pantalla de 4K */
-@media (min-width: 2560px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 24px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 24px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 24px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 24px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TAMAÑOS DE PANTALLA MÓVIL
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los tamaños de pantalla móvil
- */
-
-/* Dispositivos móviles pequeños (320px - 480px) */
-@media (min-width: 320px) and (max-width: 480px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 8px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 12px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 8px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 8px);
-  }
-}
-
-/* Dispositivos móviles medianos (481px - 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 12px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 12px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 12px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 12px);
-  }
-}
-
-/* Dispositivos móviles grandes (769px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-      padding-left: calc(var(--ion-safe-area-left, 0px) + 16px);
-      padding-right: calc(var(--ion-safe-area-right, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 20px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 20px);
-    --padding-start: calc(var(--ion-safe-area-left, 0px) + 16px);
-    --padding-end: calc(var(--ion-safe-area-right, 0px) + 16px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TIPOS DE ENTRADA
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los tipos de entrada
- */
-
-/* Dispositivos con teclado físico */
-@media (min-width: 1025px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-  }
-}
-
-/* Dispositivos con teclado virtual */
-@media (max-width: 1024px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 16px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
-  }
-}
-
-/* Dispositivos con teclado virtual activo */
-@media (max-width: 1024px) and (max-height: 600px) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-      padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(var(--ion-safe-area-top, 0px) + 8px);
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px);
-  }
-}
-
-/* ============================================================================
- * REGLAS PARA DIFERENTES TIPOS DE PANTALLA
- * ============================================================================
- * Estas reglas aseguran que el modal respete las safe areas en todos los tipos de pantalla
- */
-
-/* Pantallas con notch (iPhone X y posteriores) */
-@supports (padding-top: env(safe-area-inset-top)) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: calc(env(safe-area-inset-top) + 16px);
-      padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-      padding-left: calc(env(safe-area-inset-left) + 16px);
-      padding-right: calc(env(safe-area-inset-right) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: calc(env(safe-area-inset-top) + 16px);
-    --padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
-    --padding-start: calc(env(safe-area-inset-left) + 16px);
-    --padding-end: calc(env(safe-area-inset-right) + 16px);
-  }
-}
-
-/* Pantallas sin notch (iPhone 8 y anteriores) */
-@supports not (padding-top: env(safe-area-inset-top)) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-top: 16px;
-      padding-bottom: 16px;
-      padding-left: 16px;
-      padding-right: 16px;
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-top: 16px;
-    --padding-bottom: 16px;
-    --padding-start: 16px;
-    --padding-end: 16px;
-  }
-}
-
-/* Pantallas con barra de navegación fija (Android) */
-@supports not (-webkit-touch-callout: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
-  }
-}
-
-/* Pantallas con barra de navegación gestual (Android 10+) */
-@supports (-webkit-touch-callout: none) {
-  ion-modal.crear-avisos-modal {
-    &::part(content) {
-      padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 16px);
-    }
-  }
-  
-  ion-modal.crear-avisos-modal ion-content {
-    --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 16px);
   }
 }

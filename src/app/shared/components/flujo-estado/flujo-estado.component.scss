@@ -83,7 +83,6 @@
 }
 
 .estado-actual {
-  margin-bottom: 24px;
   
   .estado-header {
     display: flex;
@@ -150,8 +149,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
@@ -337,6 +336,30 @@
   font-size: 14px;
   text-align: center;
 
+  .waiting-icon {
+    font-size: 20px;
+    color: #F59E0B;
+  }
+
+  .waiting-text {
+    font-weight: 500;
+  }
+}
+
+// Aviso completado
+.aviso-completado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 15px;
+  color: #10B981;
+  background: #ECFDF5;
+  font-size: 14px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid #D1FAE5;
+
   .complete-icon {
     font-size: 20px;
     color: #10B981;
@@ -363,7 +386,6 @@
   }
 
   .estado-actual {
-    margin-bottom: 20px;
     
     .estado-header {
       display: flex;
@@ -504,7 +526,6 @@
   }
 
   .estado-actual {
-    margin-bottom: 16px;
     
     .estado-header {
       flex-direction: row;
@@ -525,11 +546,11 @@
 
     .btn-refresh {
       align-self: center;
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       
       ion-icon {
-        font-size: 12px;
+        font-size: 16px;
       }
     }
   }

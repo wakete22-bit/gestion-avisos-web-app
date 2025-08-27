@@ -72,7 +72,7 @@
     <div class="info-row">
       <div class="info-item">
         <label>Estado</label>
-        <span class="estado-pendiente">{{aviso.estado}}</span>
+        <span class="estado-aviso" [ngClass]="getEstadoClass(aviso.estado)">{{aviso.estado}}</span>
       </div>
       <div class="info-item">
         <label>Urgente</label>
@@ -142,7 +142,7 @@
 <div class="info-card">
   <div class="card-header">
     <h2 style="text-wrap: nowrap;">Gestión de Albaranes</h2>
-    <div class="header-actions-jobs">
+    <div class="header-actions-jobs" *ngIf="aviso?.estado !== 'Completado'">
       <button class="btn-primary" (click)="crearAlbaran()">
         <ion-icon name="add-circle"></ion-icon>
         <span class="desktop-only">Crear Albarán</span>
@@ -188,8 +188,7 @@
             </div>
           </div>
           <div class="table-body">
-            <div *ngFor="let albaran of aviso?.albaranes; let i = index" class="albaran-row" 
-                 [ngClass]="{
+            <div *ngFor="let albaran of aviso?.albaranes; let i = index" class="albaran-row" [ngClass]="{
                    'finalizado': albaran.estado_cierre === 'Finalizado',
                    'presupuesto-pendiente': albaran.estado_cierre === 'Presupuesto pendiente',
                    'otra-visita': albaran.estado_cierre === 'Otra visita'
@@ -206,11 +205,13 @@
               </div>
               <div class="albaran-cell fecha-albaran">{{albaran.fecha_cierre | date:'dd/MM/yyyy'}}</div>
               <div class="albaran-cell repuestos-albaran">
-                <div *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0" class="repuestos-info">
+                <div *ngIf="albaran.repuestos_utilizados && albaran.repuestos_utilizados.length > 0"
+                  class="repuestos-info">
                   <span class="repuestos-count">{{albaran.repuestos_utilizados.length}}</span>
                   <span class="repuestos-label">repuestos</span>
                 </div>
-                <div *ngIf="!albaran.repuestos_utilizados || albaran.repuestos_utilizados.length === 0" class="repuestos-vacio">
+                <div *ngIf="!albaran.repuestos_utilizados || albaran.repuestos_utilizados.length === 0"
+                  class="repuestos-vacio">
                   Sin repuestos
                 </div>
               </div>

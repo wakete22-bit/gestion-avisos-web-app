@@ -1,5 +1,5 @@
-<div class="modal-container">
-  <header class="modal-header">
+<ion-header>
+  <ion-toolbar>
     <div class="header-content">
       <h2>Añadir producto</h2>
       <button class="close-button" (click)="cerrarModal()">
@@ -7,10 +7,13 @@
       </button>
     </div>
     <p class="subtitle">Añade un nuevo producto a tu inventario</p>
-  </header>
+  </ion-toolbar>
+</ion-header>
 
-  <div class="modal-content">
-    <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()">
+<ion-content class="modal-body">
+  <form [formGroup]="productoForm" (ngSubmit)="guardarProducto()" class="modal-content">
+    <div class="modal-grid">
+      <!-- Sección Izquierda - Formulario -->
       <div class="form-section">
         <div class="form-group">
           <label>Código</label>
@@ -18,26 +21,32 @@
         </div>
 
         <div class="form-group">
-          <label>Nombre</label>
+          <label>Nombre <span class="required">*</span></label>
           <input type="text" formControlName="nombre" class="form-control" placeholder="Nombre del repuesto o material">
         </div>
 
         <div class="form-group">
           <label>Descripción</label>
-          <textarea formControlName="descripcion" class="form-control" placeholder="Descripción más detallada del artículo" maxlength="200"></textarea>
+          <textarea 
+            formControlName="descripcion" 
+            class="form-control" 
+            placeholder="Descripción más detallada del artículo" 
+            rows="3"
+            maxlength="200">
+          </textarea>
           <div class="character-count">{{productoForm.get('descripcion')?.value?.length || 0}}/200</div>
         </div>
 
         <div class="form-row">
           <div class="form-group half">
-            <label>Stock</label>
+            <label>Stock <span class="required">*</span></label>
             <select formControlName="stock" class="form-control">
               <option value="">Cantidad disponible</option>
               <option *ngFor="let n of [1,2,3,4,5,10,20,50,100]" [value]="n">{{n}}</option>
             </select>
           </div>
           <div class="form-group half">
-            <label>Unidad</label>
+            <label>Unidad <span class="required">*</span></label>
             <select formControlName="unidad" class="form-control">
               <option value="">Selecciona una unidad</option>
               <option value="unidad">unidad</option>
@@ -52,26 +61,25 @@
               <option value="cm2">cm² (centímetros cuadrados)</option>
               <option value="m3">m³ (metros cúbicos)</option>
               <option value="cm3">cm³ (centímetros cúbicos)</option>
-              <option value="l">l (litros)</option>
               <option value="cl">cl (centilitros)</option>
               <option value="paquete">paquete</option>
               <option value="caja">caja</option>
-                             <option value="rollo">rollo</option>
-               <option value="metro">metro lineal</option>
+              <option value="rollo">rollo</option>
+              <option value="metro">metro lineal</option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group half">
-            <label>Precio Neto (€)</label>
+            <label>Precio Neto (€) <span class="required">*</span></label>
             <div class="input-currency">
               <input type="number" formControlName="precioNeto" class="form-control" placeholder="Precio artículo sin IVA">
               <span class="currency">€</span>
             </div>
           </div>
           <div class="form-group half">
-            <label>PVP (€)</label>
+            <label>PVP (€) <span class="required">*</span></label>
             <div class="input-currency">
               <input type="number" formControlName="pvp" class="form-control" placeholder="Precio de venta al público">
               <span class="currency">€</span>
@@ -79,10 +87,40 @@
           </div>
         </div>
       </div>
-    </form>
-  </div>
 
-  <footer class="modal-footer">
+      <!-- Sección Derecha - Información adicional -->
+      <div class="info-section">
+        <div class="info-card">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <h4>Información del producto</h4>
+          <p>Completa todos los campos obligatorios marcados con <span class="required">*</span> para crear el producto.</p>
+          
+          <div class="info-details">
+            <div class="info-item">
+              <span class="info-label">Código:</span>
+              <span class="info-value">Se genera automáticamente</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Stock:</span>
+              <span class="info-value">Cantidad disponible en inventario</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Precio Neto:</span>
+              <span class="info-value">Precio sin impuestos</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">PVP:</span>
+              <span class="info-value">Precio de venta al público</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
     <div class="button-group">
       <button type="button" class="btn btn-outline" (click)="cerrarModal()">
         Cancelar
@@ -93,7 +131,8 @@
         (click)="guardarProducto()"
         [disabled]="!productoForm.valid">
         Guardar producto
+        <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>
-  </footer>
-</div>
+  </ion-toolbar>
+</ion-footer>

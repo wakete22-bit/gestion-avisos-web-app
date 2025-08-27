@@ -22,7 +22,7 @@
     
     <!-- Estado actual -->
     <div class="estado-actual">
-      <div class="estado-header">
+      <div class="estado-header" *ngIf="estadoFlujo.estadoActual !== 'Completado'">
         <div class="estado-badge" [ngClass]="getEstadoClass()">
           <ion-icon [name]="getEstadoIcon()"></ion-icon>
           <span class="estado-text">{{ estadoFlujo.estadoActual }}</span>
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Acciones disponibles -->
-    <div class="acciones-disponibles" *ngIf="accionesDisponibles.length > 0">
+    <div class="acciones-disponibles" *ngIf="accionesDisponibles.length > 0 && estadoFlujo.estadoActual !== 'Completado'">
       <h4 class="section-title">Acciones disponibles:</h4>
       <div class="acciones-grid">
         <button 
@@ -71,6 +71,12 @@
           <span class="accion-text">{{ getAccionTexto(accion) }}</span>
         </button>
       </div>
+    </div>
+
+    <!-- Mensaje cuando el aviso está completado -->
+    <div class="aviso-completado" *ngIf="estadoFlujo.estadoActual === 'Completado'">
+      <ion-icon name="checkmark-circle-outline" class="complete-icon"></ion-icon>
+      <span class="complete-text">Aviso completado</span>
     </div>
 
     <!-- Información del nuevo flujo -->
@@ -103,10 +109,10 @@
       </div>
     </div> -->
 
-    <!-- Sin acciones disponibles -->
-    <div class="sin-acciones" *ngIf="accionesDisponibles.length === 0 && !estadoFlujo.puedeCrearPresupuesto">
-      <ion-icon name="checkmark-circle-outline" class="complete-icon"></ion-icon>
-      <span class="complete-text">No hay acciones pendientes</span>
+    <!-- Sin acciones disponibles (solo cuando no está completado) -->
+    <div class="sin-acciones" *ngIf="accionesDisponibles.length === 0 && !estadoFlujo.puedeCrearPresupuesto && estadoFlujo.estadoActual !== 'Completado'">
+      <ion-icon name="time-outline" class="waiting-icon"></ion-icon>
+      <span class="waiting-text">Esperando cierre de albaranes o facturación</span>
     </div>
 
   </div>

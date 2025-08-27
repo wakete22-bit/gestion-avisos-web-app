@@ -324,14 +324,8 @@ export class VerAvisosComponent implements OnInit {
       componentProps: {
         aviso: this.aviso
       },
-      cssClass: 'modal-hacer-albaran modal-fullscreen',
       backdropDismiss: false,
       showBackdrop: true,
-      breakpoints: [0, 1],
-      initialBreakpoint: 1,
-      backdropBreakpoint: 0,
-      handle: false,
-      handleBehavior: 'none'
     });
 
     await modal.present();
@@ -389,8 +383,16 @@ export class VerAvisosComponent implements OnInit {
    * Convierte el estado del aviso a una clase CSS válida
    */
   getEstadoClass(estado: string | undefined): string {
-    if (!estado) return 'badge-pendiente';
-    return 'badge-' + estado.toLowerCase().replace(/ /g, '-');
+    if (!estado) return 'estado-pendiente';
+    
+    // Convertir el estado a una clase CSS válida
+    const estadoNormalizado = estado.toLowerCase().replace(/ /g, '-');
+    const claseCSS = `estado-${estadoNormalizado}`;
+    
+    // Debug: mostrar qué clase se está generando
+    console.log(`🔍 Estado: "${estado}" → Clase CSS: "${claseCSS}"`);
+    
+    return claseCSS;
   }
 
   /**

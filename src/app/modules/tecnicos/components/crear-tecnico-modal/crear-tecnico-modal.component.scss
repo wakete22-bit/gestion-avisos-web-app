@@ -1,86 +1,147 @@
-.modal-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 90vh;
-  background: #fff;
-  position: relative;
+/* Estilos para el header del modal */
+ion-header {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    --color: #111827;
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #111827;
+      }
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-top: 0px;
+      font-size: 14px;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        color: #111827;
+      }
+
+      ion-icon {
+        font-size: 24px;
+      }
+    }
+  }
 }
 
-.modal-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #e5e7eb;
-  flex-shrink: 0;
-
-  .header-content {
+/* Estilos para el contenido del modal */
+ion-content {
+  --background: #fff;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  
+  .modal-body {
+    flex: 1;
+    overflow: hidden;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: #111827;
-    }
+    flex-direction: column;
+    min-height: 0;
   }
 
-  .subtitle {
-    margin: 8px 0 0;
-    color: #6b7280;
-    font-size: 14px;
+  .modal-content {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    min-height: 0;
   }
 
-  .close-button {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    color: #6b7280;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: 100%;
+    overflow: hidden;
 
-    &:hover {
-      color: #111827;
-    }
-
-    ion-icon {
-      font-size: 24px;
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      height: auto;
+      overflow: visible;
     }
   }
 }
 
-.modal-body {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
+/* Estilos para el footer del modal */
+ion-footer {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
 
-.modal-content {
-  flex: 1;
-  overflow: auto;
-  position: relative;
-  min-height: 0;
-}
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
 
-.modal-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  height: 100%;
-  overflow: hidden;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-    height: auto;
-    overflow: visible;
+        ion-icon {
+          font-size: 18px;
+        }
+      }
+
+      .btn-outline {
+        background: none;
+        border: 1px solid #d1d5db;
+        color: #374151;
+
+        &:hover:not(:disabled) {
+          background-color: #f8fafc;
+          border-color: #9ca3af;
+        }
+      }
+
+      .btn-primary {
+        background-color: #2563eb;
+        border: 1px solid #2563eb;
+        color: #fff;
+
+        &:hover:not(:disabled) {
+          background-color: #1d4ed8;
+          border-color: #1d4ed8;
+        }
+      }
+    }
   }
 }
 
+/* Estilos para las secciones del formulario */
 .form-section {
   padding: 24px;
   border-right: 1px solid #e5e7eb;
@@ -128,7 +189,7 @@
   }
 }
 
-.images-section {
+.info-section {
   padding: 24px;
   background-color: #f9fafb;
   overflow-y: auto;
@@ -167,6 +228,7 @@
   }
 }
 
+/* Estilos para los grupos de formulario */
 .form-group {
   position: relative;
   margin-bottom: 20px;
@@ -270,8 +332,13 @@ input.form-control {
   color: #6b7280;
 }
 
-// Estilos para la sección de información de acceso
-.repuestos-container {
+/* Estilos para la sección de información */
+.info-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+
   h3 {
     margin: 0 0 16px;
     font-size: 16px;
@@ -407,67 +474,6 @@ input.form-control {
   }
 }
 
-.modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
-  background: #fff;
-  flex-shrink: 0;
-  z-index: 10;
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  right: 0;
-
-  .button-group {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-
-    .btn {
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      ion-icon {
-        font-size: 18px;
-      }
-    }
-
-    .btn-outline {
-      background: none;
-      border: 1px solid #d1d5db;
-      color: #374151;
-
-      &:hover:not(:disabled) {
-        background-color: #f8fafc;
-        border-color: #9ca3af;
-      }
-    }
-
-    .btn-primary {
-      background-color: #2563eb;
-      border: 1px solid #2563eb;
-      color: #fff;
-
-      &:hover:not(:disabled) {
-        background-color: #1d4ed8;
-        border-color: #1d4ed8;
-      }
-    }
-  }
-}
-
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -522,21 +528,8 @@ input.form-control {
   }
 }
 
+/* Media queries para móviles */
 @media (max-width: 768px) {
-  .modal-container {
-    height: 100vh;
-    max-height: none;
-  }
-
-  .modal-body {
-    overflow-y: auto;
-  }
-
-  .modal-content {
-    height: auto;
-    overflow: auto;
-  }
-
   .modal-grid {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
@@ -553,7 +546,7 @@ input.form-control {
     padding-bottom: 30px;
   }
 
-  .images-section {
+  .info-section {
     height: auto;
     max-height: none;
     overflow: visible;
@@ -569,63 +562,5 @@ input.form-control {
   textarea, select, input {
     font-size: 14px!important;
     padding: 12px;
-  }
-}
-
-// Configuración específica para PWA standalone en móviles
-@media all and (display-mode: standalone) {
-  @media (max-width: 768px) {
-    .modal-container {
-      height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-      max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-    }
-
-    .modal-header {
-      padding-top: calc(16px + var(--safe-area-top, 0px));
-    }
-
-    .modal-footer {
-      padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
-    }
-  }
-}
-
-// Configuración específica para iOS en PWA standalone
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      .modal-container {
-        height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-        max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-      }
-
-      .modal-header {
-        padding-top: calc(16px + var(--safe-area-top, 0px));
-      }
-
-      .modal-footer {
-        padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
-      }
-    }
-  }
-}
-
-// Fallback para navegadores que no soportan env()
-@supports not (padding-top: env(safe-area-inset-top)) {
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      .modal-container {
-        height: calc(100vh - 40px);
-        max-height: calc(100vh - 40px);
-      }
-
-      .modal-header {
-        padding-top: 36px;
-      }
-
-      .modal-footer {
-        padding-bottom: 36px;
-      }
-    }
   }
 } 

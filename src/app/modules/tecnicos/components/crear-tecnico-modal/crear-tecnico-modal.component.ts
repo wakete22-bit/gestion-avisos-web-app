@@ -1,7 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonIcon, ModalController, IonHeader, IonToolbar, IonContent, IonFooter, IonModal } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, personOutline, mailOutline, callOutline, shieldOutline, alertCircleOutline, lockClosedOutline, informationCircleOutline, checkmarkCircleOutline, ellipseOutline, refreshOutline } from 'ionicons/icons';
 import { TipoRol } from '../../../../core/models/usuario.model';
@@ -33,10 +33,15 @@ addIcons({
   imports: [
     CommonModule,
     FormsModule,
-    IonIcon
+    IonIcon,
+    IonHeader,
+    IonToolbar,
+    IonContent,
+    IonFooter,
+    IonModal
   ]
 })
-export class CrearTecnicoModalComponent implements OnInit {
+export class CrearTecnicoModalComponent implements OnInit, OnDestroy {
   @Input() modo: 'crear' | 'editar' = 'crear';
   @Input() tecnico?: Tecnico;
   

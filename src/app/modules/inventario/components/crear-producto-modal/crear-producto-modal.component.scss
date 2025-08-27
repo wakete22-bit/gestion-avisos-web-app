@@ -1,21 +1,15 @@
-.modal-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    max-height: 85vh;
-    background: #fff;
-  }
-  
-  .modal-header {
-    padding: 16px 24px;
-    border-bottom: 1px solid #e5e7eb;
-    flex-shrink: 0;
-  
+/* Estilos para el header del modal */
+ion-header {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
+    --color: #111827;
+    
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
-  
+
       h2 {
         margin: 0;
         font-size: 20px;
@@ -23,13 +17,13 @@
         color: #111827;
       }
     }
-  
+
     .subtitle {
-      margin: 8px 0 0;
       color: #6b7280;
+      margin-top: 0px;
       font-size: 14px;
     }
-  
+
     .close-button {
       background: none;
       border: none;
@@ -39,120 +33,68 @@
       display: flex;
       align-items: center;
       justify-content: center;
-  
+
       &:hover {
         color: #111827;
       }
-  
+
       ion-icon {
         font-size: 24px;
       }
     }
   }
+}
+
+/* Estilos para el contenido del modal */
+ion-content {
+  --background: #fff;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
   
+  .modal-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
   .modal-content {
     flex: 1;
+    overflow: auto;
+    position: relative;
     min-height: 0;
-    overflow-y: auto;
-    margin-bottom: 20px;
+  }
+
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    height: 100%;
+    overflow: hidden;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+      height: auto;
+      overflow: visible;
+    }
+  }
+}
+
+/* Estilos para el footer del modal */
+ion-footer {
+  ion-toolbar {
+    --background: #fff;
+    --border-color: #e5e7eb;
     
-    form {
-      height: 100%;
-    }
-  }
-  
-  .form-section {
-    padding: 24px;
-    max-height: calc(85vh - 140px);
-  }
-  
-  .form-group {
-    position: relative;
-    margin-bottom: 20px;
-  
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #374151;
-    }
-  }
-  
-  .form-control {
-    position: relative;
-    width: 100%;
-    padding: 10px 12px;
-    background-color: #FAFAFB;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #111827;
-    transition: border-color 0.2s;
-  
-    &:focus {
-      outline: none;
-      border-color: #2563eb;
-    }
-  
-    &::placeholder {
-      color: #9ca3af;
-    }
-  }
-  
-  textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
-  }
-  
-  .character-count {
-    position: absolute;
-    bottom: 13px;
-    right: 13px;
-    font-size: 12px;
-    color: #6b7280;
-  }
-  
-  .form-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-  
-    .form-group {
-      margin-bottom: 0;
-      flex: 1;
-    }
-  }
-  
-  .input-currency {
-    position: relative;
-    display: flex;
-    align-items: center;
-  
-    .form-control {
-      padding-right: 32px;
-    }
-  
-    .currency {
-      position: absolute;
-      right: 12px;
-      color: #6b7280;
-      font-size: 15px;
-      pointer-events: none;
-    }
-  }
-  
-  .modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    background-color: #fff;
-    flex-shrink: 0;
-  
     .button-group {
       display: flex;
       gap: 12px;
       justify-content: flex-end;
-  
+
       .btn {
         padding: 8px 16px;
         border-radius: 6px;
@@ -163,99 +105,376 @@
         gap: 8px;
         cursor: pointer;
         transition: all 0.2s;
-  
+
         &:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
+
+        ion-icon {
+          font-size: 18px;
+        }
       }
-  
+
       .btn-outline {
         background: none;
         border: 1px solid #d1d5db;
         color: #374151;
-  
+
         &:hover:not(:disabled) {
           background-color: #f8fafc;
           border-color: #9ca3af;
         }
       }
-  
+
       .btn-primary {
-        background-color: #4F46E5;
-        border: 1px solid #4F46E5;
+        background-color: #2563eb;
+        border: 1px solid #2563eb;
         color: #fff;
-  
+
         &:hover:not(:disabled) {
-          background-color: #4338ca;
-          border-color: #4338ca;
+          background-color: #1d4ed8;
+          border-color: #1d4ed8;
         }
       }
     }
   }
+}
+
+/* Estilos para las secciones del formulario */
+.form-section {
+  padding: 24px;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
 
   @media (max-width: 768px) {
-    .modal-container {
-      max-height: none;
-      height: 100vh;
-    }
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 30px;
   }
 
-// Configuración específica para PWA standalone en móviles
-@media all and (display-mode: standalone) {
-  @media (max-width: 768px) {
-    .modal-container {
-      height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-      max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-    }
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
 
-    .modal-header {
-      padding-top: calc(16px + var(--safe-area-top, 0px));
-    }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
-    .modal-footer {
-      padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+
+    &:hover {
+      background: #9ca3af;
     }
   }
 }
 
-// Configuración específica para iOS en PWA standalone
-@supports (-webkit-touch-callout: none) {
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      .modal-container {
-        height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-        max-height: calc(100vh - var(--safe-area-top, 0px) - var(--safe-area-bottom, 0px));
-      }
+.info-section {
+  padding: 24px;
+  background-color: #f9fafb;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 100%;
 
-      .modal-header {
-        padding-top: calc(16px + var(--safe-area-top, 0px));
-      }
+  @media (max-width: 768px) {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 300px;
+    padding-bottom: 80px;
+  }
 
-      .modal-footer {
-        padding-bottom: calc(16px + var(--safe-area-bottom, 0px));
-      }
+  & {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+
+    &:hover {
+      background: #9ca3af;
     }
   }
 }
 
-// Fallback para navegadores que no soportan env()
-@supports not (padding-top: env(safe-area-inset-top)) {
-  @media all and (display-mode: standalone) {
-    @media (max-width: 768px) {
-      .modal-container {
-        height: calc(100vh - 40px);
-        max-height: calc(100vh - 40px);
-      }
+/* Estilos para los grupos de formulario */
+.form-group {
+  position: relative;
+  margin-bottom: 20px;
 
-      .modal-header {
-        padding-top: 36px;
-      }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
 
-      .modal-footer {
-        padding-bottom: 36px;
-      }
+    .required {
+      color: #dc2626;
     }
+  }
+}
+
+.form-control {
+  position: relative;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  }
+
+  &:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+}
+
+// Estilos específicos para select
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+
+  &:disabled {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  option[value=""] {
+    color: #9ca3af;
+  }
+}
+
+select.form-control {
+  padding-right: 40px;
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+}
+
+input.form-control {
+  padding-right: 40px;
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+}
+
+textarea.form-control {
+  position: relative;
+  padding-right: 40px;
+  background-color: #FAFAFB;
+  border: 1px solid transparent;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #111827;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  resize: vertical;
+  min-height: 80px;
+}
+
+.character-count {
+  margin-top: 4px;
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  position: absolute;
+  bottom: 13px;
+  right: 13px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .form-group {
+    margin-bottom: 0;
+    flex: 1;
+  }
+}
+
+.input-currency {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-control {
+    padding-right: 32px;
+  }
+
+  .currency {
+    position: absolute;
+    right: 12px;
+    color: #6b7280;
+    font-size: 15px;
+    pointer-events: none;
+  }
+}
+
+/* Estilos para la sección de información */
+.info-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+
+  ion-icon {
+    font-size: 48px;
+    color: #6b7280;
+    margin-bottom: 16px;
+  }
+
+  h4 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    color: #374151;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.5;
+
+    .required {
+      color: #dc2626;
+    }
+  }
+}
+
+.info-details {
+  text-align: left;
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .info-value {
+      font-size: 12px;
+      color: #6b7280;
+      text-align: right;
+      max-width: 60%;
+    }
+  }
+}
+
+/* Media queries para móviles */
+@media (max-width: 768px) {
+  .modal-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .form-section {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 30px;
+  }
+
+  .info-section {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 300px;
+    padding-bottom: 80px;
+  }
+
+  .form-control {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  textarea, select, input {
+    font-size: 14px!important;
+    padding: 12px;
   }
 }
   

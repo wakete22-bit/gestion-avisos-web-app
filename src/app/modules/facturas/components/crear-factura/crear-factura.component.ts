@@ -6,7 +6,7 @@ import { IonContent } from "@ionic/angular/standalone";
 import { IonIcon } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print, refreshOutline } from 'ionicons/icons';
+import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print, refreshOutline, saveOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { 
   eyeOutline, 
@@ -54,7 +54,7 @@ export class CrearFacturaComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       notas: ['']
     });
-    addIcons({refreshOutline,trash,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
+    addIcons({closeOutline,refreshOutline,trash,sendOutline,saveOutline,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
   }
 
   ngOnInit() {

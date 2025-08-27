@@ -1,22 +1,25 @@
-import { Component, OnInit, AfterViewInit, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { closeOutline } from 'ionicons/icons';
+import { closeOutline, saveOutline, informationCircleOutline } from 'ionicons/icons';
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { InventarioService } from '../../services/inventario.service';
+import { Subject } from 'rxjs';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-crear-producto-modal',
   templateUrl: './crear-producto-modal.component.html',
   styleUrls: ['./crear-producto-modal.component.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
 })
-export class CrearProductoModalComponent implements OnInit, AfterViewInit {
+export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDestroy {
   productoForm: FormGroup;
   codigoGenerado: string = '';
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -37,18 +40,18 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    addIcons({ closeOutline });
+    addIcons({ closeOutline, saveOutline, informationCircleOutline });
     this.generarCodigo();
   }
 
   ngAfterViewInit() {
-    // Aplicar safe areas al modal después de que se renderice
-    setTimeout(() => {
-      const modalContainer = this.elementRef.nativeElement.querySelector('.modal-container');
-      if (modalContainer) {
-        this.viewportService.applySafeAreaToModal(modalContainer);
-      }
-    }, 100);
+    // Ya no necesitamos aplicar safe areas manualmente
+    // Ionic las maneja automáticamente con ion-header e ion-footer
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private generarCodigo() {

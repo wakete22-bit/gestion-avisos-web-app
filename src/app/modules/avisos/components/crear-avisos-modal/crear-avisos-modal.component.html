@@ -1,5 +1,5 @@
-<div class="modal-container crear-avisos-modal">
-  <header class="modal-header">
+<ion-header>
+  <ion-toolbar>
     <div class="header-content">
       <h2>Añadir aviso</h2>
       <button class="close-button" (click)="cerrarModal()">
@@ -7,138 +7,140 @@
       </button>
     </div>
     <p class="subtitle">Añade un nuevo aviso</p>
-  </header>
+  </ion-toolbar>
+</ion-header>
 
-  <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()" class="modal-body">
-    <div class="modal-content">
-      <div class="modal-grid">
-        <!-- Sección Izquierda - Formulario -->
-        <div class="form-section">
-          <div class="form-group">
-            <label>Tipo</label>
-            <select formControlName="tipo" class="form-control">
-              <option value="">Selecciona un tipo</option>
-              <option value="correctivo">Correctivo</option>
-              <option value="preventivo">Preventivo</option>
-            </select>
-          </div>
+<ion-content class="modal-body">
+  <form [formGroup]="avisoForm" (ngSubmit)="crearAviso()" class="modal-content">
+    <div class="modal-grid">
+      <!-- Sección Izquierda - Formulario -->
+      <div class="form-section">
+        <div class="form-group">
+          <label>Tipo</label>
+          <select formControlName="tipo" class="form-control">
+            <option value="">Selecciona un tipo</option>
+            <option value="correctivo">Correctivo</option>
+            <option value="preventivo">Preventivo</option>
+          </select>
+        </div>
 
-          <div class="form-group">
-            <label>Cliente <span class="required">*</span></label>
-            <div class="input-with-button">
-              <select 
-                formControlName="cliente" 
-                class="form-control"
-                (change)="onClienteChange($event)">
-                <option value="">Seleccionar cliente</option>
-                <option *ngFor="let cliente of clientes" [value]="cliente.id">
-                  {{ cliente.nombre_completo }}
-                </option>
-              </select>
-              <button type="button" class="add-button" (click)="crearCliente()">
-                <ion-icon name="add-circle"></ion-icon>
-                Añadir cliente
-              </button>
-            </div>
-            <div *ngIf="loadingClientes" class="loading-indicator">
-              <ion-icon name="refresh-outline" class="spinning"></ion-icon>
-              Cargando clientes...
-            </div>
-            <div *ngIf="errorClientes" class="error-message">
-              {{ errorClientes }}
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Detalles descripción <span class="required">*</span></label>
-            <textarea 
-              formControlName="descripcion" 
+        <div class="form-group">
+          <label>Cliente <span class="required">*</span></label>
+          <div class="input-with-button">
+            <select 
+              formControlName="cliente" 
               class="form-control"
-              placeholder="Ejemplo: 'El trabajador Mathias ha informado que no pudo fichar por error en la app. Adjuntamos justificante.'"
-              rows="3"
-              maxlength="200">
-            </textarea>
-            <div class="character-count">{{avisoForm.get('descripcion')?.value?.length || 0}}/200</div>
+              (change)="onClienteChange($event)">
+              <option value="">Seleccionar cliente</option>
+              <option *ngFor="let cliente of clientes" [value]="cliente.id">
+                {{ cliente.nombre_completo }}
+              </option>
+            </select>
+            <button type="button" class="add-button" (click)="crearCliente()">
+              <ion-icon name="add-circle"></ion-icon>
+              Añadir cliente
+            </button>
           </div>
-
-          <div class="form-group">
-            <label>Dirección local <span class="required">*</span></label>
-            <input 
-              type="text" 
-              formControlName="direccionLocal" 
-              placeholder="Ej: Calle Madrid"
-              class="form-control">
+          <div *ngIf="loadingClientes" class="loading-indicator">
+            <ion-icon name="refresh-outline" class="spinning"></ion-icon>
+            Cargando clientes...
           </div>
-
-          <div class="form-row">
-            <div class="form-group half">
-              <label>Teléfono <span class="required">*</span></label>
-              <input 
-                type="tel" 
-                formControlName="telefono" 
-                placeholder="Ej: +34 569 23 56 89"
-                class="form-control">
-            </div>
-            <div class="form-group half">
-              <label>Nombre contacto <span class="required">*</span></label>
-              <input 
-                type="text" 
-                formControlName="nombreContacto" 
-                placeholder="Ej: David"
-                class="form-control">
-            </div>
-          </div>
-
-          <div class="form-group checkbox-group">
-            <label class="checkbox-container">
-              <input type="checkbox" formControlName="esUrgente">
-              <span class="checkbox-label">Aviso Urgente</span>
-            </label>
-            <span class="helper-text">Marque si este aviso requiere atención inmediata.</span>
+          <div *ngIf="errorClientes" class="error-message">
+            {{ errorClientes }}
           </div>
         </div>
 
-        <!-- Sección Derecha - Imágenes -->
-        <div class="images-section">
-          <div class="imagen-upload-container">
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              #fileInput
-              (change)="onFileSelected($event)"
-              style="display: none">
-            
-            <div class="drop-zone" (click)="fileInput.click()">
-              <ion-icon name="cloud-upload-outline"></ion-icon>
-              <h3>Selecciona una o varias imágenes</h3>
-              <p>Solo se admiten archivos .jpg, .png, .svg y z...</p>
-            </div>
-          </div>
+        <div class="form-group">
+          <label>Detalles descripción <span class="required">*</span></label>
+          <textarea 
+            formControlName="descripcion" 
+            class="form-control"
+            placeholder="Ejemplo: 'El trabajador Mathias ha informado que no pudo fichar por error en la app. Adjuntamos justificante.'"
+            rows="3"
+            maxlength="200">
+          </textarea>
+          <div class="character-count">{{avisoForm.get('descripcion')?.value?.length || 0}}/200</div>
+        </div>
 
-          <div class="uploaded-files" *ngIf="imagenes.length > 0">
-            <h4>Archivos adjuntos</h4> 
-            <div class="file-list">
-              <div class="file-item" *ngFor="let imagen of imagenes; let i = index">
-                <div class="file-preview">
-                  <img [src]="getImagePreview(imagen)" alt="Preview">
-                </div>
-                <div class="file-info">
-                  <span class="file-name">{{imagen.name}}</span>
-                  <span class="file-size">{{imagen.size / 1024 / 1024 | number:'1.1-1'}}MB</span>
-                </div>
-                <button type="button" class="remove-file" (click)="removeImage(i)">
-                  <ion-icon name="trash-outline"></ion-icon>
-                </button>
+        <div class="form-group">
+          <label>Dirección local <span class="required">*</span></label>
+          <input 
+            type="text" 
+            formControlName="direccionLocal" 
+            placeholder="Ej: Calle Madrid"
+            class="form-control">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half">
+            <label>Teléfono <span class="required">*</span></label>
+            <input 
+              type="tel" 
+              formControlName="telefono" 
+              placeholder="Ej: +34 569 23 56 89"
+              class="form-control">
+          </div>
+          <div class="form-group half">
+            <label>Nombre contacto <span class="required">*</span></label>
+            <input 
+              type="text" 
+              formControlName="nombreContacto" 
+              placeholder="Ej: David"
+              class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-container">
+            <input type="checkbox" formControlName="esUrgente">
+            <span class="checkbox-label">Aviso Urgente</span>
+          </label>
+          <span class="helper-text">Marque si este aviso requiere atención inmediata.</span>
+        </div>
+      </div>
+
+      <!-- Sección Derecha - Imágenes -->
+      <div class="images-section">
+        <div class="imagen-upload-container">
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            #fileInput
+            (change)="onFileSelected($event)"
+            style="display: none">
+          
+          <div class="drop-zone" (click)="fileInput.click()">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            <h3>Selecciona una o varias imágenes</h3>
+            <p>Solo se admiten archivos .jpg, .png, .svg y z...</p>
+          </div>
+        </div>
+
+        <div class="uploaded-files" *ngIf="imagenes.length > 0">
+          <h4>Archivos adjuntos</h4> 
+          <div class="file-list">
+            <div class="file-item" *ngFor="let imagen of imagenes; let i = index">
+              <div class="file-preview">
+                <img [src]="getImagePreview(imagen)" alt="Preview">
               </div>
+              <div class="file-info">
+                <span class="file-name">{{imagen.name}}</span>
+                <span class="file-size">{{imagen.size / 1024 / 1024 | number:'1.1-1'}}MB</span>
+              </div>
+              <button type="button" class="remove-file" (click)="removeImage(i)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </form>
+</ion-content>
 
-  <footer class="modal-footer">
+<ion-footer>
+  <ion-toolbar>
     <div class="button-group">
       <button type="button" class="btn btn-outline" (click)="cerrarModal()">
         Cancelar
@@ -152,5 +154,5 @@
         <ion-icon name="save-outline"></ion-icon>
       </button>
     </div>
-  </footer>
-</div>
+  </ion-toolbar>
+</ion-footer>

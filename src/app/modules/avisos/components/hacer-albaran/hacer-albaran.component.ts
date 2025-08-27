@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption, IonDatetime, IonLabel, IonItem, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonModal, ModalController } from '@ionic/angular/standalone';
+import { IonIcon, IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption, IonDatetime, IonLabel, IonItem, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonModal, ModalController, IonFooter } from '@ionic/angular/standalone';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
@@ -42,7 +42,8 @@ import { RepuestoAlbaran, CrearAlbaranRequest, ESTADOS_CIERRE_ALBARAN } from '..
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonButtons
+    IonButtons,
+    IonFooter,
   ]
 })
 export class HacerAlbaranComponent implements OnInit, AfterViewInit {

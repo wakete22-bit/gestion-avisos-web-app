@@ -194,3 +194,4 @@ La implementación incluye fallbacks para casos donde `numero_secuencial` no est
 **👨‍💻 Desarrollador**: Sistema de Gestión de Avisos
 **📋 Versión**: 1.0.0
 
+

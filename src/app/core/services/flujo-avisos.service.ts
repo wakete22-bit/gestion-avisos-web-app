@@ -157,21 +157,23 @@ export class FlujoAvisosService {
       switchMap(resumen => {
         console.log('🔧 Resumen completo obtenido:', resumen);
         
-        if (!resumen.estadisticas.trabajosFinalizados) {
-          throw new Error('No hay trabajos finalizados para facturar. Debes crear un albarán primero.');
+        if (!resumen.estadisticas.albaranesFinalizados) {
+          throw new Error('No hay albaranes finalizados para facturar. Solo los albaranes marcados como "Finalizado" se pueden facturar automáticamente.');
         }
 
-        // Validar que TODOS los trabajos tengan albaranes cerrados
-        const trabajosSinAlbaranCerrado = resumen.trabajos?.filter((t: any) => 
-          !t.albaran_id || !t.albaran?.estado_cierre || t.albaran.estado_cierre === 'Otra visita'
+        // Validar que TODOS los trabajos finalizados tengan albaranes finalizados (no presupuesto pendiente)
+        const trabajosSinAlbaranFinalizado = resumen.trabajos?.filter((t: any) => 
+          !t.albaran_id || 
+          !t.albaran?.estado_cierre || 
+          t.albaran.estado_cierre !== 'Finalizado'
         ) || [];
         
-        if (trabajosSinAlbaranCerrado.length > 0) {
-          const trabajosPendientes = trabajosSinAlbaranCerrado.map((t: any) => 
-            `Trabajo #${t.id?.substring(0, 8)} (${t.descripcion})`
+        if (trabajosSinAlbaranFinalizado.length > 0) {
+          const trabajosPendientes = trabajosSinAlbaranFinalizado.map((t: any) => 
+            `Trabajo #${t.id?.substring(0, 8)} (${t.descripcion}) - Estado: ${t.albaran?.estado_cierre || 'Sin cerrar'}`
           ).join(', ');
           
-          throw new Error(`No se puede facturar. Los siguientes trabajos no tienen albaranes cerrados: ${trabajosPendientes}. Debes cerrar todos los albaranes antes de facturar.`);
+          throw new Error(`No se puede facturar. Solo se pueden facturar trabajos con albaranes marcados como "Finalizado". Trabajos pendientes: ${trabajosPendientes}`);
         }
 
         console.log('🔧 Cliente del resumen:', resumen.cliente);
@@ -275,17 +277,20 @@ export class FlujoAvisosService {
         }
 
         // Validación adicional: verificar que TODOS los trabajos tengan albaranes cerrados
-        // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para completar el aviso
+        // Los estados "Finalizado" y "Presupuesto pendiente" son válidos para completar el aviso
+        // El estado "Otra visita" NO es válido para completar el aviso
         const trabajosSinAlbaranCerrado = resumen.trabajos?.filter((t: any) => 
-          !t.albaran_id || !t.albaran?.estado_cierre
+          !t.albaran_id || 
+          !t.albaran?.estado_cierre || 
+          t.albaran.estado_cierre === 'Otra visita'
         ) || [];
         
         if (trabajosSinAlbaranCerrado.length > 0) {
           const trabajosPendientes = trabajosSinAlbaranCerrado.map((t: any) => 
-            `Trabajo #${t.id?.substring(0, 8)} (${t.descripcion})`
+            `Trabajo #${t.id?.substring(0, 8)} (${t.descripcion}) - Estado: ${t.albaran?.estado_cierre || 'Sin cerrar'}`
           ).join(', ');
           
-          throw new Error(`No se puede completar el aviso. Los siguientes trabajos no tienen albaranes cerrados: ${trabajosPendientes}. Debes cerrar todos los albaranes antes de completar el aviso.`);
+          throw new Error(`No se puede completar el aviso. Los siguientes trabajos necesitan albaranes cerrados (Finalizado o Presupuesto pendiente): ${trabajosPendientes}`);
         }
 
         // Actualizar el aviso a estado "Completado"
@@ -360,22 +365,37 @@ export class FlujoAvisosService {
 
   private puedeFacturarTrabajos(resumen: any): boolean {
     // Solo se puede facturar si:
-    // 1. Hay albaranes cerrados 
+    // 1. Hay albaranes finalizados específicamente (no presupuesto pendiente)
     // 2. No hay facturas pendientes
-    // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para facturar
+    // Los albaranes con "Presupuesto pendiente" NO se facturan automáticamente
     
-    return resumen.estadisticas.albaranesCerrados > 0 && 
+    return resumen.estadisticas.albaranesFinalizados > 0 && 
            resumen.estadisticas.facturasPendientes === 0;
   }
 
   private puedeCompletarAviso(resumen: any): boolean {
-    // Solo se puede completar si:
-    // 1. Hay albaranes cerrados
-    // 2. Hay facturas generadas
-    // Los estados "Otra visita" y "Presupuesto pendiente" son válidos para completar el aviso
+    // El aviso se puede completar en estos casos:
+    // 1. Hay albaranes finalizados Y hay facturas generadas (flujo normal)
+    // 2. Hay albaranes con "Presupuesto pendiente" (sin necesidad de factura)
+    // 3. NO se puede completar si hay albaranes pendientes de "Otra visita"
     
-    return resumen.estadisticas.albaranesCerrados > 0 && 
-           resumen.estadisticas.totalFacturas > 0;
+    const tieneAlbaranesFinalizadosConFacturas = 
+      resumen.estadisticas.albaranesFinalizados > 0 && 
+      resumen.estadisticas.totalFacturas > 0;
+      
+    const tienePresupuestosPendientes = 
+      resumen.estadisticas.albaranesPresupuestoPendiente > 0;
+      
+    const tieneOtraVisitaPendiente = 
+      resumen.estadisticas.albaranesOtraVisita > 0;
+    
+    // No se puede completar si hay visitas pendientes
+    if (tieneOtraVisitaPendiente) {
+      return false;
+    }
+    
+    // Se puede completar si tiene albaranes finalizados con facturas O presupuestos pendientes
+    return tieneAlbaranesFinalizadosConFacturas || tienePresupuestosPendientes;
   }
 
   private convertirDatosAFactura(datosFactura: any): any {

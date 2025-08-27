@@ -424,10 +424,65 @@ $success-color: #10B981;
   }
 }
 
-// Estado pendiente
-.estado-pendiente {
-  color: $pending-color !important;
+// Estado del aviso con colores específicos - SOLO COLORES DE TEXTO
+.info-item .estado-aviso {
   font-weight: 500;
+  
+  &.estado-pendiente {
+    color: #F59E0B !important; // Amarillo/Naranja para pendiente
+  }
+  
+  &.estado-en-curso {
+    color: #3B82F6 !important; // Azul para en curso
+  }
+  
+  &.estado-completado {
+    color: #10B981 !important; // Verde para completado
+  }
+  
+  &.estado-cancelado {
+    color: #EF4444 !important; // Rojo para cancelado
+  }
+  
+  &.estado-pendiente-de-presupuesto {
+    color: #F59E0B !important; // Amarillo/Naranja para presupuesto pendiente
+  }
+  
+  &.estado-listo-para-facturar {
+    color: #059669 !important; // Verde oscuro para listo para facturar
+  }
+  
+  // Estado por defecto si no coincide con ninguno
+  &:not([class*="estado-"]) {
+    color: #6B7280 !important; // Gris para estados no definidos
+  }
+}
+
+// Estilos adicionales para asegurar que los colores se apliquen
+.info-grid .info-item .estado-aviso {
+  &.estado-pendiente {
+    color: #F59E0B !important;
+  }
+  
+  &.estado-en-curso {
+    color: #3B82F6 !important;
+  }
+  
+  &.estado-completado {
+    color: #10B981 !important;
+  }
+  
+  &.estado-cancelado {
+    color: #EF4444 !important;
+  }
+  
+  &.estado-pendiente-de-presupuesto {
+    color: #F59E0B !important;
+  }
+  
+  &.estado-listo-para-facturar {
+    color: #059669 !important;
+  }
 }
 
 // Sección de descripción
@@ -928,8 +983,8 @@ $success-color: #10B981;
 
 // Nuevos estilos para la sección reorganizada
 .flujo-section {
-  margin-top: 25px;
-  margin-bottom: 5px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 
   .flujo-header {
     margin-bottom: 16px;
@@ -1154,6 +1209,19 @@ $success-color: #10B981;
           width: 100%;
           justify-content: center;
         }
+      }
+      
+      .aviso-completado-message {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #10B981;
+        font-size: 14px;
+        font-weight: 500;
+        
+        ion-icon {
+          font-size: 18px;
+        }
       } 
     }
 
@@ -1305,7 +1373,6 @@ $success-color: #10B981;
   }
 
   .flujo-section {
-    margin-top: 20px;
     margin-bottom: 0;
   }
 
@@ -1517,7 +1584,6 @@ $success-color: #10B981;
   }
 
   .flujo-section {
-    margin-top: 16px;
   }
 
   .section-divider {
@@ -1916,6 +1982,26 @@ $success-color: #10B981;
     background: #F9FAFB;
     border-radius: 8px;
     border: 1px solid #E5E7EB;
+  }
+}
+
+// Mensaje de aviso completado en gestión de albaranes
+.aviso-completado-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #10B981;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #ECFDF5;
+  border: 1px solid #D1FAE5;
+  border-radius: 8px;
+  
+  ion-icon {
+    font-size: 18px;
+  }
+}
 
     .albaranes-info {
       display: flex;
@@ -1954,8 +2040,6 @@ $success-color: #10B981;
         font-size: 14px;
       }
     }
-  }
-}
 
 // ========================================
 // ESTILOS PARA LA TABLA COMPACTA DE ALBARANES
