@@ -9,14 +9,16 @@ import { DataUpdateService } from '../../../core/services/data-update.service';
 export interface Presupuesto {
   id: string;
   aviso_id: string;
+  albaran_id?: string;
   fecha_creacion: Date;
   fecha_actualizacion?: Date;
   horas_estimadas?: number;
   total_estimado?: number;
   pdf_url?: string;
-  estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
+  estado: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
   // Relaciones
   aviso?: any;
+  albaran?: any;
   materiales_estimados?: any; // Campo JSONB en la base de datos
 }
 
@@ -42,7 +44,7 @@ export interface CrearPresupuestoRequest {
   albaran_id?: string | null; // Campo opcional hasta que se implemente correctamente
   horas_estimadas?: number;
   total_estimado?: number;
-  estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
+  estado?: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
   pdf_url?: string;
   materiales?: any[];
 }
@@ -51,7 +53,7 @@ export interface ActualizarPresupuestoRequest {
   aviso_id?: string;
   horas_estimadas?: number;
   total_estimado?: number;
-  estado?: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado';
+  estado?: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
   pdf_url?: string;
   materiales?: any[];
 }
@@ -142,6 +144,7 @@ export class PresupuestosService {
             *,
             cliente:clientes(*)
           ),
+          albaran:albaranes(*),
           materiales_estimados
         `)
         .eq('id', id)
@@ -279,21 +282,36 @@ export class PresupuestosService {
    * Elimina un presupuesto
    */
   eliminarPresupuesto(id: string): Observable<void> {
+    console.log('🔍 eliminarPresupuesto llamado con ID:', id);
+    
     return from(
       this.supabase
         .from('presupuestos')
         .delete()
         .eq('id', id)
     ).pipe(
-      map(({ error }) => {
-        if (error) throw error;
+      map(({ data, error }) => {
+        console.log('🔍 Respuesta de Supabase:', { data, error });
+        
+        if (error) {
+          console.error('❌ Error de Supabase:', error);
+          throw error;
+        }
 
+        console.log('✅ Presupuesto eliminado exitosamente de la BD');
+        
         const presupuestosActuales = this.presupuestosSubject.value;
         const presupuestosFiltrados = presupuestosActuales.filter(p => p.id !== id);
         this.presupuestosSubject.next(presupuestosFiltrados);
 
         // Notificar eliminación y limpiar cache
         this.dataUpdateService.notifyDeleted('presupuestos');
+        
+        console.log('✅ Estado local actualizado');
+      }),
+      catchError(error => {
+        console.error('❌ Error en eliminarPresupuesto:', error);
+        throw error;
       })
     );
   }

@@ -174,13 +174,13 @@
           </select>
         </div>
 
-        <!-- Presupuesto Necesario (solo si es Presupuesto pendiente) -->
-        <div *ngIf="requierePresupuesto()">
-          <h3>Presupuesto Necesario</h3>
-          <div class="form-group">
-            <label>Presupuesto (€) <span class="required">*</span></label>
-            <input type="number" formControlName="presupuesto_necesario" placeholder="0.00" step="0.01"
-              class="form-control">
+        <!-- Información sobre presupuesto pendiente -->
+        <div *ngIf="requierePresupuesto()" class="presupuesto-info">
+          <h3>Presupuesto Pendiente</h3>
+          <div class="info-box">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <p>Se creará automáticamente un presupuesto para este trabajo.</p>
+            <small>Podrás editarlo después desde la sección de presupuestos.</small>
           </div>
         </div>
 

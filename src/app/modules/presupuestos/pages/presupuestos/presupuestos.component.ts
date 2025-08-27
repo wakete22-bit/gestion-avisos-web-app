@@ -14,7 +14,7 @@ import {
   eyeOutline,
   add,
   addCircleOutline, 
-  searchOutline, hourglassOutline, alertCircleOutline, refreshOutline, createOutline, documentOutline } from 'ionicons/icons';
+  searchOutline, hourglassOutline, alertCircleOutline, refreshOutline, createOutline, documentOutline, trashOutline } from 'ionicons/icons';
 
 import { PresupuestosService, Presupuesto, PresupuestoResponse } from '../../services/presupuestos.service';
 import { FlujoBotonComponent } from '../../../../shared/components/flujo-boton/flujo-boton.component';
@@ -50,7 +50,7 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
     private router: Router,
     private presupuestosService: PresupuestosService
   ) { 
-    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,searchOutline,addCircle,eyeOutline,createOutline,documentOutline,mapOutline,alertCircle,close,add,addCircleOutline});
+    addIcons({hourglassOutline,alertCircleOutline,refreshOutline,searchOutline,addCircle,eyeOutline,createOutline,trashOutline,documentOutline,mapOutline,alertCircle,close,add,addCircleOutline});
   }
 
   ngOnInit() {
@@ -101,10 +101,25 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Crear presupuesto desde un aviso específico
+   * Eliminar un presupuesto
    */
-  crearPresupuestoDesdeAviso(avisoId: string) {
-    this.router.navigate(['/presupuestos/crear'], { queryParams: { avisoId } });
+  eliminarPresupuesto(presupuesto: Presupuesto) {
+    if (confirm(`¿Estás seguro de que quieres eliminar el presupuesto #${this.getNumeroPresupuesto(presupuesto)}?\n\nEsta acción no se puede deshacer.`)) {
+      this.loading = true;
+      
+      this.presupuestosService.eliminarPresupuesto(presupuesto.id).subscribe({
+        next: () => {
+          console.log('Presupuesto eliminado exitosamente');
+          this.loading = false;
+          this.cargarPresupuestos(); // Recargar la lista
+        },
+        error: (error) => {
+          console.error('Error al eliminar presupuesto:', error);
+          this.loading = false;
+          alert('Error al eliminar el presupuesto: ' + (error.message || 'Error desconocido'));
+        }
+      });
+    }
   }
 
   /**

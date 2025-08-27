@@ -140,7 +140,7 @@ ion-content {
     margin-bottom: 6px;
   }
   
-  input {
+  input, select {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #e2e8f0;
@@ -163,6 +163,24 @@ ion-content {
     &.ng-invalid.ng-touched {
       border-color: #e53e3e;
       box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+    }
+  }
+  
+  select {
+    cursor: pointer;
+    
+    option {
+      padding: 8px;
+    }
+    
+    // Estilos especiales para el estado
+    &[formControlName="estado"] {
+      font-weight: 500;
+      
+      option[value="Pendiente"] { color: #F59E0B; }
+      option[value="Aprobado"] { color: #10B981; }
+      option[value="Rechazado"] { color: #EF4444; }
+      option[value="Cancelado"] { color: #6B7280; }
     }
   }
   
@@ -321,6 +339,91 @@ ion-content {
   
   ion-icon {
     font-size: 16px;
+  }
+}
+
+.btn-success {
+  background: #10B981;
+  color: white;
+  border: 1px solid #10B981;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  &:hover:not(:disabled) {
+    background: #059669;
+    border-color: #059669;
+  }
+  
+  &:disabled {
+    background: #a0aec0;
+    border-color: #a0aec0;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.presupuesto-completado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #D1FAE5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 16px;
+    color: #10B981;
+  }
+}
+
+.presupuesto-rechazado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 16px;
+    color: #EF4444;
+  }
+}
+
+.presupuesto-cancelado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #F3F4F6;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  
+  ion-icon {
+    font-size: 16px;
+    color: #6B7280;
   }
 }
 

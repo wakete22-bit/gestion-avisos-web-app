@@ -195,13 +195,21 @@
                  }">
               <div class="albaran-cell numero-albaran">{{i + 1}}</div>
               <div class="albaran-cell estado-albaran">
-                <span class="badge" [ngClass]="{
-                        'green': albaran.estado_cierre === 'Finalizado',
-                        'yellow': albaran.estado_cierre === 'Presupuesto pendiente',
-                        'blue': albaran.estado_cierre === 'Otra visita'
-                      }">
-                  {{ albaran.estado_cierre }}
-                </span>
+                <div class="estado-container">
+                  <span class="badge" [ngClass]="{
+                          'green': albaran.estado_cierre === 'Finalizado',
+                          'yellow': albaran.estado_cierre === 'Presupuesto pendiente',
+                          'blue': albaran.estado_cierre === 'Otra visita'
+                        }">
+                    {{ albaran.estado_cierre }}
+                  </span>
+                  <!-- Indicador de presupuesto asociado -->
+                  <span *ngIf="tienePresupuestoAsociado(albaran)" 
+                        class="badge badge-presupuesto" 
+                        title="Presupuesto creado">
+                    <ion-icon name="calculator"></ion-icon>
+                  </span>
+                </div>
               </div>
               <div class="albaran-cell fecha-albaran">{{albaran.fecha_cierre | date:'dd/MM/yyyy'}}</div>
               <div class="albaran-cell repuestos-albaran">
@@ -221,6 +229,9 @@
               <div class="albaran-cell acciones">
                 <button class="btn-ver" title="Ver albarán completo" (click)="verAlbaran(albaran)">
                   <ion-icon name="eye-outline"></ion-icon>
+                </button>
+                <button class="btn-eliminar" title="Eliminar albarán" (click)="eliminarAlbaran(albaran)">
+                  <ion-icon name="trash-outline"></ion-icon>
                 </button>
                 <div class="mobile-info" *ngIf="albaran.presupuesto_necesario > 0">
                   <span class="presupuesto-mobile">

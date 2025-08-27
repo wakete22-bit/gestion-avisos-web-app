@@ -999,49 +999,82 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    * Elimina un aviso con confirmación
    */
   async eliminarAviso(aviso: Aviso) {
-    // Mostrar modal de confirmación antes de eliminar
-    const modal = await this.modalController.create({
-      component: ConfirmarEliminacionAvisoModalComponent,
-      cssClass: 'modal-confirmar-eliminacion',
-      showBackdrop: true,
-      backdropDismiss: true,
-      componentProps: {
-        aviso: aviso
-      }
-    });
-    
-    await modal.present();
-    const { data, role } = await modal.onWillDismiss();
+    // Primero verificar si se puede eliminar
+    this.loading = true;
+    this.error = null;
 
-    if (role === 'confirm' && data?.confirmado) {
-      this.loading = true;
-      this.error = null;
-
-      this.avisosService.eliminarAviso(aviso.id!)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            console.log('Aviso eliminado exitosamente');
-            this.loading = false;
-            
-            // Recargar la lista de avisos sin caché
-            this.recargarAvisosSinCache();
-            
-            // Mostrar mensaje de éxito (opcional)
-            // Puedes implementar un toast o notificación aquí
-          },
-          error: (error) => {
-            console.error('Error al eliminar aviso:', error);
-            
-            // Mostrar mensaje de error más específico
-            if (error.code === '23503') {
-              this.error = 'No se puede eliminar el aviso porque tiene datos relacionados (fotos, facturas, etc.). Contacta al administrador.';
-            } else {
-              this.error = 'Error al eliminar el aviso. Por favor, inténtalo de nuevo.';
-            }
-            this.loading = false;
+    this.avisosService.verificarDependenciasAviso(aviso.id!)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (verificacion) => {
+          this.loading = false;
+          
+          if (!verificacion.puedeEliminar) {
+            // No se puede eliminar - mostrar mensaje específico
+            const dependenciasTexto = verificacion.dependencias.join(', ');
+            this.error = `No se puede eliminar el aviso porque tiene los siguientes elementos asociados: ${dependenciasTexto}. Debes eliminar primero estos elementos o contactar al administrador.`;
+            return;
           }
-        });
-    }
+
+          // Se puede eliminar - mostrar modal de confirmación
+          const modal = await this.modalController.create({
+            component: ConfirmarEliminacionAvisoModalComponent,
+            cssClass: 'modal-confirmar-eliminacion',
+            showBackdrop: true,
+            backdropDismiss: true,
+            componentProps: {
+              aviso: aviso,
+              dependencias: verificacion.dependencias
+            }
+          });
+          
+          await modal.present();
+          const { data, role } = await modal.onWillDismiss();
+
+          if (role === 'confirm' && data?.confirmado) {
+            this.loading = true;
+            this.error = null;
+
+            this.avisosService.eliminarAviso(aviso.id!)
+              .pipe(takeUntil(this.destroy$))
+              .subscribe({
+                next: () => {
+                  console.log('Aviso eliminado exitosamente');
+                  this.loading = false;
+                  
+                  // Recargar la lista de avisos sin caché
+                  this.recargarAvisosSinCache();
+                  
+                  // Mostrar mensaje de éxito (opcional)
+                  // Puedes implementar un toast o notificación aquí
+                },
+                error: (error) => {
+                  console.error('Error al eliminar aviso:', error);
+                  
+                  // Mostrar mensaje de error más específico
+                  if (error.code === '23503') {
+                    if (error.message.includes('presupuestos')) {
+                      this.error = 'No se puede eliminar el aviso porque tiene presupuestos asociados. Elimina primero los presupuestos.';
+                    } else if (error.message.includes('facturas')) {
+                      this.error = 'No se puede eliminar el aviso porque tiene facturas asociadas. Elimina primero las facturas.';
+                    } else if (error.message.includes('albaranes')) {
+                      this.error = 'No se puede eliminar el aviso porque tiene albaranes asociados. Elimina primero los albaranes.';
+                    } else {
+                      this.error = 'No se puede eliminar el aviso porque tiene datos relacionados. Contacta al administrador.';
+                    }
+                  } else {
+                    this.error = 'Error al eliminar el aviso. Por favor, inténtalo de nuevo.';
+                  }
+                  this.loading = false;
+                }
+              });
+          }
+        },
+        error: (error) => {
+          console.error('Error al verificar dependencias:', error);
+          this.error = 'Error al verificar las dependencias del aviso. Por favor, inténtalo de nuevo.';
+          this.loading = false;
+        }
+      });
   }
 }

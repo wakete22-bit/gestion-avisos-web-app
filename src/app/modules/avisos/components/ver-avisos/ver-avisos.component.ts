@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSegment, IonSegmentButton, ModalController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { addIcons } from 'ionicons';
-import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline, bugOutline, informationCircleOutline } from 'ionicons/icons';
+import { close, pencilOutline, mapOutline, navigate, person, call, mail, add, addCircle, gridOutline, listOutline, chevronDownOutline, eyeOutline, arrowBackOutline, refreshOutline, alertCircleOutline, ellipsisVertical, ellipsisVerticalOutline, trashOutline, constructOutline, personOutline, imagesOutline, documentTextOutline, checkmarkCircleOutline, bugOutline, informationCircleOutline, calculator } from 'ionicons/icons';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { AlbaranesService } from '../../../../core/services/albaranes.service';
 // TrabajosService eliminado - ya no se gestiona
 import { Aviso, Albaran } from '../../models/aviso.model';
 // TrabajoRealizado eliminado - ya no se gestiona
@@ -46,10 +47,11 @@ export class VerAvisosComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private avisosService: AvisosService,
+    private albaranesService: AlbaranesService,
     private modalController: ModalController,
     private flujoAvisosService: FlujoAvisosService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,checkmarkCircleOutline,navigate,person,call,mail,addCircle,informationCircleOutline,documentTextOutline,eyeOutline,imagesOutline,trashOutline,constructOutline,bugOutline,personOutline,gridOutline,listOutline,chevronDownOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
+    addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,checkmarkCircleOutline,navigate,person,call,mail,addCircle,documentTextOutline,calculator,eyeOutline,imagesOutline,trashOutline,informationCircleOutline,constructOutline,bugOutline,personOutline,gridOutline,listOutline,chevronDownOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
@@ -349,6 +351,15 @@ export class VerAvisosComponent implements OnInit {
     if (role === 'confirm' && data?.success) {
       try {
         console.log('✅ Albarán creado exitosamente:', data.albaran);
+        
+        // Verificar si también se creó un presupuesto
+        if (data.presupuesto && data.accion === 'presupuesto_creado') {
+          console.log('✅ Presupuesto creado junto con el albarán:', data.presupuesto);
+          
+          // Mostrar mensaje simple sin preguntar
+          alert(data.mensaje || 'Albarán y presupuesto creados exitosamente. Puedes editarlo desde la sección de presupuestos.');
+        }
+        
         alert(data.mensaje || 'Albarán creado exitosamente');
 
         // Recargar aviso para mostrar el nuevo albarán
@@ -500,21 +511,88 @@ export class VerAvisosComponent implements OnInit {
 
       const { data, role } = await modal.onWillDismiss();
       
+      // Manejar acciones específicas del modal
+      if (role === 'confirm' && data) {
+        console.log('Modal de albarán cerrado con datos:', data);
+        
+        if (data.accion === 'presupuesto_creado') {
+          console.log('✅ Presupuesto creado desde el modal del albarán:', data.presupuesto);
+          
+          if (data.mensaje) {
+            alert(data.mensaje);
+          }
+          
+          // El modal ya navegó al presupuesto si el usuario quiso editarlo
+          // Solo recargar si no se navegó
+          if (!data.navegoAPresupuesto) {
+            this.cargarAviso();
+          }
+          return;
+        }
+      }
+      
       // Siempre recargar el aviso y el flujo cuando se cierra el modal
       // Esto asegura que se detecten cambios en el albarán
       console.log('Modal de albarán cerrado. Recargando datos...');
       
       // Recargar el aviso completo para obtener los datos más recientes
       this.cargarAviso();
-      
-      // Si hay datos específicos del modal, manejarlos
-      if (role === 'confirm' && data) {
-        console.log('Modal de albarán cerrado con datos:', data);
-        // Aquí se pueden manejar acciones adicionales si es necesario
-      }
     } catch (error) {
       console.error('Error al abrir el modal del albarán:', error);
       this.mostrarMensaje('Error al abrir el albarán. Por favor, inténtalo de nuevo.', 'error');
+    }
+  }
+
+  /**
+   * Verifica si un albarán tiene un presupuesto asociado
+   */
+  tienePresupuestoAsociado(albaran: any): boolean {
+    if (!this.aviso?.presupuestos || this.aviso.presupuestos.length === 0) {
+      return false;
+    }
+    
+    // Buscar si hay algún presupuesto que tenga el ID de este albarán
+    return this.aviso.presupuestos.some((presupuesto: any) => 
+      presupuesto.albaran_id === albaran.id
+    );
+  }
+
+  /**
+   * Elimina un albarán
+   */
+  eliminarAlbaran(albaran: Albaran) {
+    if (!albaran?.id) {
+      console.error('No se puede eliminar el albarán: ID no válido');
+      return;
+    }
+
+    // Verificar si tiene presupuesto asociado
+    if (this.tienePresupuestoAsociado(albaran)) {
+      alert('⚠️ No se puede eliminar este albarán porque tiene un presupuesto asociado.\n\nPrimero debes eliminar el presupuesto.');
+      return;
+    }
+
+    // Confirmar antes de eliminar
+    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el albarán #${albaran.id?.substring(0, 8)}?\n\nEsta acción no se puede deshacer.`);
+
+    if (confirmacion) {
+      this.loading = true;
+      
+      // Usar el servicio de albaranes para eliminar
+      this.albaranesService.eliminarAlbaran(albaran.id).subscribe({
+        next: () => {
+          console.log('Albarán eliminado exitosamente');
+          this.loading = false;
+          
+          // Recargar el aviso para actualizar la lista
+          this.cargarAviso();
+        },
+        error: (error) => {
+          console.error('Error al eliminar albarán:', error);
+          this.loading = false;
+          alert('Error al eliminar el albarán: ' + (error.message || 'Error desconocido'));
+        }
+      });
     }
   }
 

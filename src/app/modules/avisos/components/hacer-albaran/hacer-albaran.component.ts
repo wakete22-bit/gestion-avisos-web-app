@@ -13,14 +13,16 @@ import {
   documentTextOutline,
   cubeOutline,
   addCircleOutline,
-  trashOutline, searchOutline, checkmarkCircleOutline, warningOutline, refreshOutline, checkmarkOutline, createOutline, closeOutline } from 'ionicons/icons';
+  trashOutline, searchOutline, checkmarkCircleOutline, warningOutline, refreshOutline, checkmarkOutline, createOutline, closeOutline, informationCircleOutline } from 'ionicons/icons';
 // TrabajoRealizado eliminado - ahora trabajamos directamente con albaranes
 import { Aviso } from '../../models/aviso.model';
 import { InventarioService } from '../../../inventario/services/inventario.service';
 import { Inventario } from '../../../inventario/models/inventario.model';
 import { AlbaranesService } from '../../../../core/services/albaranes.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { PresupuestosService } from '../../../presupuestos/services/presupuestos.service';
 import { RepuestoAlbaran, CrearAlbaranRequest, ESTADOS_CIERRE_ALBARAN } from '../../models/albaran.model';
+import { Router } from '@angular/router';
 
 // Las interfaces RepuestoAlbaran y CrearAlbaranRequest ahora se importan del modelo
 
@@ -80,10 +82,12 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     private modalController: ModalController,
     private inventarioService: InventarioService,
     private albaranesService: AlbaranesService,
-    private avisosService: AvisosService
+    private avisosService: AvisosService,
+    private presupuestosService: PresupuestosService,
+    private router: Router
   ) {
     console.log('HacerAlbaranComponent constructor called');
-    addIcons({close,timeOutline,cubeOutline,addCircleOutline,searchOutline,trashOutline,checkmarkCircleOutline,checkmarkOutline,createOutline,warningOutline,saveOutline,refreshOutline,closeOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
+    addIcons({closeOutline,timeOutline,cubeOutline,addCircleOutline,close,searchOutline,trashOutline,informationCircleOutline,createOutline,checkmarkOutline,warningOutline,saveOutline,refreshOutline,checkmarkCircleOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
 
     this.albaranForm = this.fb.group({
       fecha_trabajo: ['', Validators.required],
@@ -93,7 +97,6 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
       descripcion_trabajo_realizado: ['', Validators.required],
       repuestos_utilizados: [[]],
       estado_cierre: ['', Validators.required],
-      presupuesto_necesario: [0, [Validators.min(0)]],
       dni_cliente: [''],
       nombre_firma: [''],
       firma_cliente: [''],
@@ -393,7 +396,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         descripcion_trabajo_realizado: this.albaranForm.value.descripcion_trabajo_realizado,
         repuestos_utilizados: this.albaranForm.value.repuestos_utilizados,
         estado_cierre: this.albaranForm.value.estado_cierre,
-        presupuesto_necesario: this.albaranForm.value.presupuesto_necesario,
+        presupuesto_necesario: 0, // Fijo en 0 ya que ahora se maneja automáticamente
         dni_cliente: this.albaranForm.value.dni_cliente,
         nombre_firma: this.albaranForm.value.nombre_firma,
         firma_cliente: this.albaranForm.value.firma_cliente,
@@ -407,30 +410,13 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         next: (albaran) => {
           console.log('Albarán guardado exitosamente:', albaran);
 
-          // Actualizar automáticamente el estado del aviso
-          this.avisosService.actualizarEstadoAutomatico(this.aviso.id!).subscribe({
-            next: (avisoActualizado) => {
-              this.loading = false;
-              console.log('Estado del aviso actualizado automáticamente:', avisoActualizado);
-
-              this.modalController.dismiss({
-                success: true,
-                albaran: albaran,
-                aviso: avisoActualizado,
-                mensaje: 'Albarán guardado exitosamente'
-              }, 'confirm');
-            },
-            error: (error) => {
-              console.error('Error al actualizar estado del aviso:', error);
-              // Aún así, cerrar el modal con éxito
-              this.loading = false;
-              this.modalController.dismiss({
-                success: true,
-                albaran: albaran,
-                mensaje: 'Albarán guardado exitosamente'
-              }, 'confirm');
-            }
-          });
+          // Si el estado es "Presupuesto pendiente", preguntar si crear presupuesto
+          if (albaranData.estado_cierre === 'Presupuesto pendiente') {
+            this.manejarPresupuestoPendiente(albaran);
+          } else {
+            // Flujo normal para otros estados
+            this.finalizarGuardadoAlbaran(albaran);
+          }
         },
         error: (error) => {
           this.loading = false;
@@ -630,6 +616,150 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     });
 
     console.log('Firma eliminada');
+  }
+
+  /**
+   * Maneja el flujo cuando el albarán se cierra como "Presupuesto pendiente"
+   */
+  private manejarPresupuestoPendiente(albaran: any) {
+    console.log('🔄 Manejando albarán con presupuesto pendiente:', albaran);
+    
+    // Crear el presupuesto automáticamente
+    this.crearPresupuestoDesdeAlbaran(albaran);
+  }
+
+  /**
+   * Crea un presupuesto basado en el albarán
+   */
+  private crearPresupuestoDesdeAlbaran(albaran: any) {
+    console.log('🎯 Creando presupuesto desde albarán:', albaran);
+    
+    // Preparar materiales para el presupuesto basados en los repuestos utilizados
+    const materiales = this.prepararMaterialesParaPresupuesto();
+    
+    // Datos del presupuesto con valores por defecto inteligentes
+    const presupuestoData = {
+      aviso_id: this.aviso.id!,
+      albaran_id: albaran.id,
+      horas_estimadas: this.calcularHorasEstimadas(),
+      total_estimado: this.calcularTotalEstimado(),
+      materiales: materiales
+    };
+
+    console.log('📋 Datos para el presupuesto:', presupuestoData);
+
+    this.presupuestosService.crearPresupuesto(presupuestoData).subscribe({
+      next: (presupuesto) => {
+        console.log('✅ Presupuesto creado exitosamente:', presupuesto);
+        this.loading = false;
+        
+        // Cerrar modal con información del presupuesto creado
+        this.modalController.dismiss({
+          success: true,
+          albaran: albaran,
+          presupuesto: presupuesto,
+          mensaje: 'Albarán guardado y presupuesto creado exitosamente',
+          accion: 'presupuesto_creado'
+        }, 'confirm');
+      },
+      error: (error) => {
+        console.error('❌ Error al crear presupuesto:', error);
+        
+        // Mostrar error pero mantener el albarán como exitoso
+        alert('⚠️ El albarán se guardó correctamente, pero hubo un error al crear el presupuesto automáticamente.\n\nPuedes crear el presupuesto manualmente desde la sección de presupuestos.');
+        
+        this.finalizarGuardadoAlbaran(albaran);
+      }
+    });
+  }
+
+  /**
+   * Prepara los materiales del albarán para el presupuesto
+   */
+  private prepararMaterialesParaPresupuesto(): any[] {
+    return this.repuestosSeleccionados.map(repuesto => ({
+      material_id: repuesto.codigo || this.generarIdTemporal(),
+      cantidad_estimada: repuesto.cantidad,
+      precio_neto_al_momento: repuesto.precio_neto,
+      producto: {
+        id: repuesto.codigo || this.generarIdTemporal(),
+        nombre: repuesto.nombre,
+        precio_neto: repuesto.precio_neto,
+        unidad: repuesto.unidad
+      }
+    }));
+  }
+
+  /**
+   * Calcula horas estimadas basadas en el tiempo trabajado
+   */
+  private calcularHorasEstimadas(): number {
+    const horaEntrada = this.albaranForm.value.hora_entrada;
+    const horaSalida = this.albaranForm.value.hora_salida;
+    
+    if (horaEntrada && horaSalida) {
+      const [horasEntrada, minutosEntrada] = horaEntrada.split(':').map(Number);
+      const [horasSalida, minutosSalida] = horaSalida.split(':').map(Number);
+      
+      const minutosEntradaTotal = horasEntrada * 60 + minutosEntrada;
+      const minutosSalidaTotal = horasSalida * 60 + minutosSalida;
+      
+      const diferenciaMinutos = minutosSalidaTotal - minutosEntradaTotal;
+      const horas = diferenciaMinutos / 60;
+      
+      return Math.max(horas, 1); // Mínimo 1 hora
+    }
+    
+    return 2; // Valor por defecto
+  }
+
+  /**
+   * Calcula total estimado basado en repuestos + trabajo
+   */
+  private calcularTotalEstimado(): number {
+    const costoRepuestos = this.calcularPrecioTotalRepuestos();
+    const horas = this.calcularHorasEstimadas();
+    const costoPorHora = 50; // Esto debería venir de configuración
+    const costoManoObra = horas * costoPorHora;
+    
+    return costoRepuestos + costoManoObra;
+  }
+
+  /**
+   * Genera un ID temporal para materiales sin código
+   */
+  private generarIdTemporal(): string {
+    return 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  /**
+   * Finaliza el guardado del albarán sin crear presupuesto
+   */
+  private finalizarGuardadoAlbaran(albaran: any) {
+    // Actualizar automáticamente el estado del aviso
+    this.avisosService.actualizarEstadoAutomatico(this.aviso.id!).subscribe({
+      next: (avisoActualizado) => {
+        this.loading = false;
+        console.log('Estado del aviso actualizado automáticamente:', avisoActualizado);
+
+        this.modalController.dismiss({
+          success: true,
+          albaran: albaran,
+          aviso: avisoActualizado,
+          mensaje: 'Albarán guardado exitosamente'
+        }, 'confirm');
+      },
+      error: (error) => {
+        console.error('Error al actualizar estado del aviso:', error);
+        // Aún así, cerrar el modal con éxito
+        this.loading = false;
+        this.modalController.dismiss({
+          success: true,
+          albaran: albaran,
+          mensaje: 'Albarán guardado exitosamente'
+        }, 'confirm');
+      }
+    });
   }
 
 

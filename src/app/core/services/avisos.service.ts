@@ -238,6 +238,52 @@ export class AvisosService {
     }
 
     /**
+     * Verifica si un aviso tiene dependencias que impidan su eliminación
+     */
+    verificarDependenciasAviso(id: string): Observable<{puedeEliminar: boolean, dependencias: string[]}> {
+        return from(Promise.all([
+            // Verificar presupuestos
+            this.supabase
+                .from('presupuestos')
+                .select('id')
+                .eq('aviso_id', id),
+            // Verificar facturas
+            this.supabase
+                .from('facturas')
+                .select('id')
+                .eq('aviso_id', id),
+            // Verificar albaranes
+            this.supabase
+                .from('albaranes')
+                .select('id')
+                .eq('aviso_id', id)
+        ])).pipe(
+            map(([presupuestos, facturas, albaranes]) => {
+                if (presupuestos.error) throw presupuestos.error;
+                if (facturas.error) throw facturas.error;
+                if (albaranes.error) throw albaranes.error;
+
+                const dependencias: string[] = [];
+                
+                if (presupuestos.data && presupuestos.data.length > 0) {
+                    dependencias.push(`${presupuestos.data.length} presupuesto(s)`);
+                }
+                if (facturas.data && facturas.data.length > 0) {
+                    dependencias.push(`${facturas.data.length} factura(s)`);
+                }
+                if (albaranes.data && albaranes.data.length > 0) {
+                    dependencias.push(`${albaranes.data.length} albarán(es)`);
+                }
+
+                return {
+                    puedeEliminar: dependencias.length === 0,
+                    dependencias
+                };
+            })
+        );
+    }
+
+    /**
      * Elimina un aviso
      */
     eliminarAviso(id: string): Observable<void> {

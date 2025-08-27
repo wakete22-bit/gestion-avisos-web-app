@@ -1492,9 +1492,9 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
                 }
               }
 
-              &.btn-crear-presupuesto {
+              &.btn-eliminar {
                 &:hover {
-                  background-color: #10B981;
+                  background-color: #EF4444;
                   ion-icon {
                     color: white;
                   }
@@ -1502,7 +1502,7 @@ $shadow: 0 2px 8px 0 #e0e7ef33;
                 
                 &:active {
                   transform: scale(0.9);
-                  background-color: #059669;
+                  background-color: #DC2626;
                 }
               }
             }

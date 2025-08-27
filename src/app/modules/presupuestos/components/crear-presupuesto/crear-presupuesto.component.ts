@@ -16,8 +16,7 @@ import {
   searchOutline,
   addCircle,
   cubeOutline,
-  alertCircleOutline
-} from 'ionicons/icons';
+  alertCircleOutline, informationCircleOutline, checkmarkCircleOutline, closeCircleOutline, banOutline } from 'ionicons/icons';
 import { PresupuestosService, CrearPresupuestoRequest } from '../../services/presupuestos.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { InventarioService } from '../../../inventario/services/inventario.service';
@@ -72,23 +71,12 @@ export class CrearPresupuestoComponent implements OnInit {
     private inventarioService: InventarioService,
     private supabaseClientService: SupabaseClientService
   ) {
-    addIcons({
-      arrowBackOutline,
-      saveOutline,
-      addCircleOutline,
-      trashOutline,
-      refreshOutline,
-      listOutline,
-      close,
-      searchOutline,
-      addCircle,
-      cubeOutline,
-      alertCircleOutline
-    });
+    addIcons({arrowBackOutline,refreshOutline,listOutline,close,searchOutline,alertCircleOutline,addCircleOutline,cubeOutline,trashOutline,saveOutline,checkmarkCircleOutline,closeCircleOutline,banOutline,informationCircleOutline,addCircle});
     
     this.presupuestoForm = this.fb.group({
       horas_estimadas: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
-      total_estimado: [0, [Validators.required, Validators.min(0), Validators.max(1000000)]]
+      total_estimado: [0, [Validators.required, Validators.min(0), Validators.max(1000000)]],
+      estado: ['Pendiente', Validators.required]
     });
 
     // Suscribirse a cambios en el formulario para debugging
@@ -101,15 +89,20 @@ export class CrearPresupuestoComponent implements OnInit {
 
   ngOnInit() {
     console.log('ngOnInit - Iniciando componente crear presupuesto');
-    this.cargarAviso();
+    
+    // Cargar productos del inventario primero
     this.cargarProductosInventario();
     
-    // Si no hay avisoId, cargar la lista de avisos
-    if (!this.avisoId) {
-      console.log('ngOnInit - No hay avisoId, cargando lista de avisos...');
+    // Cargar aviso si existe en la URL
+    this.cargarAviso();
+    
+    // Solo cargar la lista de avisos si NO estamos en modo edición
+    // En modo edición, ya tenemos el aviso y no necesitamos el selector
+    if (!this.modoEdicion) {
+      console.log('ngOnInit - Cargando lista de avisos para selector...');
       this.cargarAvisos();
     } else {
-      console.log('ngOnInit - Hay avisoId:', this.avisoId);
+      console.log('ngOnInit - Modo edición: no se cargan avisos para selector');
     }
   }
 
@@ -133,18 +126,26 @@ export class CrearPresupuestoComponent implements OnInit {
         modoEdicion: this.modoEdicion
       });
 
+      // Solo cargar aviso si hay avisoId en la URL
       if (this.avisoId) {
+        console.log('Cargando aviso específico:', this.avisoId);
         this.avisosService.getAviso(this.avisoId).subscribe({
           next: (aviso: any) => {
             this.aviso = aviso;
-            console.log('Aviso cargado:', aviso);
+            console.log('Aviso específico cargado:', aviso);
           },
           error: (error: any) => {
-            console.error('Error al cargar aviso:', error);
+            console.error('Error al cargar aviso específico:', error);
           }
         });
+      } else if (!this.modoEdicion) {
+        // Solo mostrar selector de avisos si NO estamos editando
+        console.log('No hay avisoId en la URL y no es edición, se mostrará el selector de avisos');
+      } else {
+        console.log('Modo edición sin avisoId: se espera que se cargue desde el presupuesto');
       }
 
+      // Cargar presupuesto para editar si es necesario
       if (this.presupuestoId && this.modoEdicion) {
         this.cargarPresupuestoParaEditar();
       }
@@ -314,11 +315,23 @@ export class CrearPresupuestoComponent implements OnInit {
         if (presupuesto.aviso_id) {
           this.avisoId = presupuesto.aviso_id;
           console.log('AvisoId establecido:', this.avisoId);
+          
+          // Cargar el aviso correspondiente
+          this.avisosService.getAviso(this.avisoId).subscribe({
+            next: (aviso: any) => {
+              this.aviso = aviso;
+              console.log('Aviso cargado desde presupuesto:', aviso);
+            },
+            error: (error: any) => {
+              console.error('Error al cargar aviso desde presupuesto:', error);
+            }
+          });
         }
         
         this.presupuestoForm.patchValue({
           horas_estimadas: presupuesto.horas_estimadas,
-          total_estimado: presupuesto.total_estimado
+          total_estimado: presupuesto.total_estimado,
+          estado: presupuesto.estado || 'Pendiente'
         });
 
         // Cargar materiales si existen - esperar a que los productos del inventario estén cargados
@@ -605,6 +618,7 @@ export class CrearPresupuestoComponent implements OnInit {
       const presupuestoData = {
         horas_estimadas: this.presupuestoForm.get('horas_estimadas')?.value,
         total_estimado: this.presupuestoForm.get('total_estimado')?.value,
+        estado: this.presupuestoForm.get('estado')?.value,
         materiales: this.materiales // Incluir materiales en la actualización
       };
 
@@ -617,8 +631,9 @@ export class CrearPresupuestoComponent implements OnInit {
         next: (presupuesto) => {
           console.log('Presupuesto actualizado exitosamente:', presupuesto);
           this.loading = false;
-          alert('Presupuesto actualizado correctamente');
-          this.router.navigate(['/presupuestos']);
+          
+          // Mostrar mensaje de éxito sin navegación automática
+          alert('✅ Presupuesto actualizado correctamente');
         },
         error: (error) => {
           console.error('Error al actualizar presupuesto:', error);
@@ -645,6 +660,7 @@ export class CrearPresupuestoComponent implements OnInit {
         albaran_id: albaranId,
         horas_estimadas: this.presupuestoForm.get('horas_estimadas')?.value,
         total_estimado: this.presupuestoForm.get('total_estimado')?.value,
+        estado: this.presupuestoForm.get('estado')?.value,
         materiales: this.materiales
       };
 
@@ -654,8 +670,14 @@ export class CrearPresupuestoComponent implements OnInit {
         next: (presupuesto) => {
           console.log('Presupuesto creado exitosamente:', presupuesto);
           this.loading = false;
-          alert('Presupuesto creado correctamente');
-          this.router.navigate(['/presupuestos']);
+          
+          // Mostrar mensaje de éxito sin navegación automática  
+          alert('✅ Presupuesto creado correctamente');
+          
+          // Cambiar a modo edición para poder continuar editando
+          this.modoEdicion = true;
+          this.presupuestoId = presupuesto.id;
+          this.presupuesto = presupuesto;
         },
         error: (error) => {
           console.error('Error al crear presupuesto:', error);
@@ -671,12 +693,127 @@ export class CrearPresupuestoComponent implements OnInit {
   }
 
   /**
+   * Vuelve al aviso desde el que se creó el presupuesto
+   */
+  volverAlAviso() {
+    if (this.avisoId) {
+      console.log('🔄 Volviendo al aviso:', this.avisoId);
+      this.router.navigate(['/avisos', this.avisoId]);
+    } else {
+      console.warn('No hay avisoId para volver');
+      this.volver();
+    }
+  }
+
+  /**
+   * Aprueba el presupuesto (marca como aprobado)
+   */
+  aprobarPresupuesto() {
+    if (!this.modoEdicion || !this.presupuestoId) {
+      alert('Primero debes guardar el presupuesto antes de aprobarlo');
+      return;
+    }
+
+    const confirmar = confirm(
+      '¿Estás seguro de que quieres aprobar este presupuesto?\n\n' +
+      'Al aprobarlo:\n' +
+      '• El presupuesto se marcará como "Aprobado"\n' +
+      '• El albarán asociado cambiará de "Presupuesto pendiente" a "Finalizado"\n' +
+      '• Esta acción no se puede deshacer'
+    );
+
+    if (confirmar) {
+      this.loading = true;
+      
+      // Primero, obtener el presupuesto actual para saber qué albarán actualizar
+      this.presupuestosService.getPresupuesto(this.presupuestoId).subscribe({
+        next: (presupuestoActual) => {
+          console.log('Presupuesto actual:', presupuestoActual);
+          
+          // Actualizar el estado del presupuesto
+          const presupuestoData = {
+            estado: 'Aprobado' as const
+          };
+
+          this.presupuestosService.actualizarPresupuesto(this.presupuestoId!, presupuestoData).subscribe({
+            next: (presupuesto) => {
+              console.log('Presupuesto aprobado exitosamente:', presupuesto);
+              
+              // Ahora actualizar el albarán asociado
+              if (presupuestoActual.albaran_id || presupuestoActual.albaran?.id) {
+                const albaranId = presupuestoActual.albaran_id || presupuestoActual.albaran.id;
+                this.actualizarAlbaranAsociado(albaranId);
+              } else {
+                console.warn('No se encontró albaran_id en el presupuesto');
+                this.finalizarAprobacion();
+              }
+            },
+            error: (error) => {
+              console.error('Error al aprobar presupuesto:', error);
+              this.loading = false;
+              alert('Error al aprobar el presupuesto: ' + (error.message || 'Error desconocido'));
+            }
+          });
+        },
+        error: (error) => {
+          console.error('Error al obtener presupuesto actual:', error);
+          this.loading = false;
+          alert('Error al obtener los datos del presupuesto: ' + (error.message || 'Error desconocido'));
+        }
+      });
+    }
+  }
+
+  /**
+   * Actualiza el albarán asociado cuando se aprueba el presupuesto
+   */
+  private actualizarAlbaranAsociado(albaranId: string) {
+    console.log('Actualizando albarán asociado:', albaranId);
+    
+    // Usar Supabase directamente para actualizar el albarán
+    this.supabaseClientService.getClient()
+      .from('albaranes')
+      .update({
+        estado_cierre: 'Finalizado',
+        fecha_actualizacion: new Date().toISOString()
+      })
+      .eq('id', albaranId)
+      .select()
+      .single()
+      .then(({ data: albaranActualizado, error }) => {
+        if (error) {
+          console.error('Error al actualizar albarán:', error);
+          // Aunque falle la actualización del albarán, el presupuesto ya está aprobado
+          alert('⚠️ Presupuesto aprobado, pero hubo un error al actualizar el albarán. Contacta al administrador.');
+        } else {
+          console.log('Albarán actualizado exitosamente:', albaranActualizado);
+        }
+        
+        this.finalizarAprobacion();
+      });
+  }
+
+  /**
+   * Finaliza el proceso de aprobación
+   */
+  private finalizarAprobacion() {
+    this.loading = false;
+    
+    // Actualizar el formulario
+    this.presupuestoForm.patchValue({ estado: 'Aprobado' });
+    
+    alert('✅ Presupuesto aprobado exitosamente. El albarán ha sido marcado como finalizado.');
+  }
+
+  /**
    * Carga la lista de avisos disponibles
    */
   cargarAvisos() {
+    console.log('🔄 Iniciando carga de avisos...');
     this.loadingAvisos = true;
     this.errorAvisos = null;
     
+    // Cargar avisos con estado 'Pendiente' y 'En curso'
     this.avisosService.getAvisos(1, 1000, '', 'fecha_creacion', 'desc', 'Pendiente')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -684,11 +821,19 @@ export class CrearPresupuestoComponent implements OnInit {
           this.avisos = response.avisos || [];
           this.avisosFiltrados = [...this.avisos];
           this.loadingAvisos = false;
-          console.log('Avisos cargados:', this.avisos.length);
+          console.log('✅ Avisos cargados exitosamente:', this.avisos.length);
+          console.log('📋 Primeros 3 avisos:', this.avisos.slice(0, 3));
+          
+          // Verificar que el selector se muestre correctamente
+          if (this.avisos.length === 0) {
+            console.log('⚠️ No se encontraron avisos');
+          } else {
+            console.log('🎯 Selector de avisos listo para mostrar');
+          }
         },
         error: (error) => {
-          console.error('Error al cargar avisos:', error);
-          this.errorAvisos = 'Error al cargar avisos';
+          console.error('❌ Error al cargar avisos:', error);
+          this.errorAvisos = 'Error al cargar avisos: ' + (error.message || 'Error desconocido');
           this.loadingAvisos = false;
         }
       });
@@ -714,6 +859,12 @@ export class CrearPresupuestoComponent implements OnInit {
    * Abre el selector de avisos
    */
   abrirSelectorAvisos() {
+    // No permitir abrir selector en modo edición
+    if (this.modoEdicion) {
+      console.log('No se puede abrir selector de avisos en modo edición');
+      return;
+    }
+    
     this.mostrarSelectorAvisos = true;
     this.avisosFiltrados = [...this.avisos];
     this.busquedaAviso = '';
@@ -730,6 +881,12 @@ export class CrearPresupuestoComponent implements OnInit {
    * Selecciona un aviso para el presupuesto
    */
   seleccionarAviso(aviso: any) {
+    // No permitir seleccionar aviso si estamos editando
+    if (this.modoEdicion) {
+      console.log('No se puede cambiar el aviso en modo edición');
+      return;
+    }
+    
     this.avisoId = aviso.id;
     this.aviso = aviso;
     this.cerrarSelectorAvisos();
@@ -755,6 +912,12 @@ export class CrearPresupuestoComponent implements OnInit {
    * Crea un albarán real en la base de datos para el presupuesto
    */
   crearAlbaranParaPresupuesto(avisoId: string) {
+    // No permitir crear albarán en modo edición
+    if (this.modoEdicion) {
+      console.log('No se puede crear albarán en modo edición');
+      return;
+    }
+    
     const albaranData = {
       aviso_id: avisoId,
       fecha_trabajo: new Date().toISOString().split('T')[0],
@@ -793,5 +956,23 @@ export class CrearPresupuestoComponent implements OnInit {
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+  }
+
+  /**
+   * Método de depuración para ver el estado del componente
+   */
+  debugEstado() {
+    console.log('=== DEBUG ESTADO COMPONENTE ===');
+    console.log('avisoId:', this.avisoId);
+    console.log('aviso:', this.aviso);
+    console.log('loading:', this.loading);
+    console.log('loadingAvisos:', this.loadingAvisos);
+    console.log('errorAvisos:', this.errorAvisos);
+    console.log('avisos.length:', this.avisos?.length);
+    console.log('avisosFiltrados.length:', this.avisosFiltrados?.length);
+    console.log('mostrarSelectorAvisos:', this.mostrarSelectorAvisos);
+    console.log('modoEdicion:', this.modoEdicion);
+    console.log('presupuestoId:', this.presupuestoId);
+    console.log('================================');
   }
 } 

@@ -270,17 +270,26 @@ export class AlbaranesService {
    * Elimina un albarán
    */
   eliminarAlbaran(id: string): Observable<void> {
+    console.log('🔍 eliminarAlbaran llamado con ID:', id);
+    
     return from(
       this.supabase
         .from('albaranes')
         .delete()
         .eq('id', id)
     ).pipe(
-      map(({ error }) => {
-        if (error) throw error;
+      map(({ data, error }) => {
+        console.log('🔍 Respuesta de Supabase:', { data, error });
+        
+        if (error) {
+          console.error('❌ Error de Supabase:', error);
+          throw error;
+        }
+
+        console.log('✅ Albarán eliminado exitosamente de la BD');
       }),
       catchError(error => {
-        console.error('Error al eliminar albarán:', error);
+        console.error('❌ Error en eliminarAlbaran:', error);
         throw error;
       })
     );

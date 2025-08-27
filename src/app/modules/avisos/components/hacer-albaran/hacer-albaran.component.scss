@@ -1691,3 +1691,40 @@ textarea.form-control {
     padding-bottom: calc(16px + var(--ion-safe-area-bottom, 16px));
   }
 }
+
+// Estilos para información de presupuesto pendiente
+.presupuesto-info {
+  margin-bottom: 20px;
+  
+  .info-box {
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    
+    ion-icon {
+      color: #0EA5E9;
+      font-size: 20px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    
+    p {
+      margin: 0 0 4px 0;
+      color: #0C4A6E;
+      font-size: 14px;
+      font-weight: 500;
+      flex: 1;
+    }
+    
+    small {
+      color: #0369A1;
+      font-size: 12px;
+      margin: 0;
+      display: block;
+    }
+  }
+}

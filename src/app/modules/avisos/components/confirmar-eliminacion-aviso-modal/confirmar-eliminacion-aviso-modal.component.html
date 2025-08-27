@@ -71,9 +71,19 @@
           <li>El aviso se eliminará permanentemente de la base de datos</li>
           <li>Todas las fotos asociadas al aviso serán eliminadas</li>
           <li>No se podrá recuperar la información del aviso</li>
-          <li>Si el aviso está asociado a otros registros, podrían verse afectados</li>
           <li>Se perderá el historial completo del servicio</li>
         </ul>
+        
+        <!-- Mostrar dependencias si existen -->
+        <div *ngIf="dependencias && dependencias.length > 0" class="dependencies-warning">
+          <h5>⚠️ Elementos que serán afectados:</h5>
+          <ul class="dependencies-list">
+            <li *ngFor="let dependencia of dependencias">{{ dependencia }}</li>
+          </ul>
+          <p class="warning-text">
+            <strong>IMPORTANTE:</strong> Estos elementos también se verán afectados por la eliminación.
+          </p>
+        </div>
       </div>
     </div>
   </div>

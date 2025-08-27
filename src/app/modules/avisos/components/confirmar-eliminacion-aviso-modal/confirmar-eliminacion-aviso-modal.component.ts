@@ -14,6 +14,7 @@ import { Aviso } from '../../models/aviso.model';
 })
 export class ConfirmarEliminacionAvisoModalComponent implements OnInit {
   @Input() aviso!: Aviso;
+  @Input() dependencias?: string[];
   
   constructor(private modalController: ModalController) {
     addIcons({ warningOutline, closeOutline, trashOutline });

@@ -17,10 +17,23 @@
       </div>
     </div>
 
-    <!-- Selector de Aviso (solo si no hay aviso seleccionado) -->
-    <div *ngIf="!aviso && !loading" class="aviso-selector-section">
+    <!-- Selector de Aviso (solo si no hay aviso seleccionado y NO estamos editando) -->
+    <div *ngIf="!aviso && !loading && !modoEdicion" class="aviso-selector-section">
       <h3>Seleccionar Aviso</h3>
       <p>Para crear un presupuesto, primero debes seleccionar un aviso:</p>
+      
+      <!-- Botón de depuración -->
+      <button type="button" class="btn-debug" (click)="debugEstado()" style="margin-bottom: 16px; background: #6B7280; padding: 8px 16px; border-radius: 4px; color: white; border: none; cursor: pointer;">
+        🐛 Debug Estado
+      </button>
+      
+      <!-- Información de depuración -->
+      <div class="debug-info" style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-family: monospace; font-size: 12px; text-align: left;">
+        <div><strong>Estado:</strong> aviso={{aviso ? 'SÍ' : 'NO'}}, loading={{loading}}, loadingAvisos={{loadingAvisos}}</div>
+        <div><strong>Avisos:</strong> {{avisos?.length || 0}} cargados, {{avisosFiltrados?.length || 0}} filtrados</div>
+        <div><strong>Error:</strong> {{errorAvisos || 'Ninguno'}}</div>
+        <div><strong>Selector:</strong> {{mostrarSelectorAvisos ? 'Abierto' : 'Cerrado'}}</div>
+      </div>
       
       <button type="button" class="btn-select-aviso" (click)="abrirSelectorAvisos()">
         <ion-icon name="list-outline"></ion-icon>
@@ -138,6 +151,7 @@
             <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['max']">El total no puede exceder 1,000,000</span>
           </div>
         </div>
+
       </div>
 
       <!-- Materiales -->
@@ -265,28 +279,74 @@
         </div>
       </div>
 
-      <!-- Botones -->
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="volver()">
-          Cancelar
-        </button>
-        <button 
-          type="submit" 
-          class="btn-primary" 
-          [disabled]="!presupuestoForm.valid || loading || !avisoId"
-          [class.btn-disabled]="!presupuestoForm.valid || loading || !avisoId">
-          <ion-icon name="save-outline"></ion-icon>
-          {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
-        </button>
-      </div>
+             <!-- Botones -->
+       <div class="form-actions">
+         <button type="button" class="btn-secondary" (click)="volver()">
+           <ion-icon name="arrow-back-outline"></ion-icon>
+           Volver a Presupuestos
+         </button>
+         
+         <button 
+           type="submit" 
+           class="btn-primary" 
+           [disabled]="!presupuestoForm.valid || loading || !avisoId"
+           [class.btn-disabled]="!presupuestoForm.valid || loading || !avisoId">
+           <ion-icon name="save-outline"></ion-icon>
+           {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
+         </button>
+
+         <!-- Botón para aprobar presupuesto (solo en modo edición y si está pendiente) -->
+         <button 
+           *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Pendiente'" 
+           type="button" 
+           class="btn-success" 
+           (click)="aprobarPresupuesto()"
+           [disabled]="loading">
+           <ion-icon name="checkmark-circle-outline"></ion-icon>
+           Aprobar Presupuesto
+         </button>
+
+         <!-- Indicador si ya está aprobado -->
+         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Aprobado'" class="presupuesto-completado">
+           <ion-icon name="checkmark-circle-outline"></ion-icon>
+           Presupuesto Aprobado
+         </div>
+
+         <!-- Indicador si está rechazado -->
+         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Rechazado'" class="presupuesto-rechazado">
+           <ion-icon name="close-circle-outline"></ion-icon>
+           Presupuesto Rechazado
+         </div>
+
+         <!-- Indicador si está cancelado -->
+         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Cancelado'" class="presupuesto-cancelado">
+           <ion-icon name="ban-outline"></ion-icon>
+           Presupuesto Cancelado
+         </div>
+       </div>
       
-      <!-- Información de estado -->
-      <div *ngIf="!presupuestoForm.valid && presupuestoForm.touched" class="form-status">
-        <p class="status-error">Por favor, complete todos los campos requeridos correctamente</p>
-      </div>
-      <div *ngIf="!avisoId" class="form-status">
-        <p class="status-error">No se ha seleccionado un aviso</p>
-      </div>
+             <!-- Información de estado -->
+       <div *ngIf="!presupuestoForm.valid && presupuestoForm.touched" class="form-status">
+         <p class="status-error">Por favor, complete todos los campos requeridos correctamente</p>
+       </div>
+       <div *ngIf="!avisoId" class="form-status">
+         <p class="status-error">No se ha seleccionado un aviso</p>
+       </div>
+       
+       <!-- Información del aviso asociado -->
+       <div *ngIf="avisoId && aviso" class="aviso-info-status" style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 16px; margin-top: 16px;">
+         <h4 style="margin: 0 0 8px 0; color: #0C4A6E; font-size: 14px;">
+           <ion-icon name="information-circle-outline" style="margin-right: 8px;"></ion-icon>
+           Aviso Asociado
+         </h4>
+         <p style="margin: 0; color: #0C4A6E; font-size: 13px;">
+           Este presupuesto está asociado al aviso <strong>#{{ aviso.id?.substring(0, 8) }}</strong> 
+           del cliente <strong>{{ aviso.nombre_cliente_aviso }}</strong>.
+         </p>
+         <p style="margin: 8px 0 0 0; color: #0C4A6E; font-size: 13px;">
+           Puedes usar el botón "Volver al Aviso" para regresar y continuar con el trabajo.
+         </p>
+       </div>
     </form>
   </div>
 </ion-content> 
