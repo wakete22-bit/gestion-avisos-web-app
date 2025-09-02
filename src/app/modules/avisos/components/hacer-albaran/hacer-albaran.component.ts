@@ -112,8 +112,8 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit, OnDestroy {
     // Inicializar formulario para repuesto manual
     this.repuestoManualForm = this.fb.group({
       denominacion: ['', Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(1)]],
-      precio: [0, [Validators.required, Validators.min(0)]]
+      cantidad: ['', [Validators.required, Validators.min(1)]],
+      precio: ['', [Validators.required, Validators.min(0)]]
     });
   }
 

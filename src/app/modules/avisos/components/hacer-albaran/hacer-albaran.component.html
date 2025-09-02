@@ -198,8 +198,10 @@
           <h3>Presupuesto Pendiente</h3>
           <div class="info-box">
             <ion-icon name="information-circle-outline"></ion-icon>
-            <p>Se creará automáticamente un presupuesto para este trabajo.</p>
-            <small>Podrás editarlo después desde la sección de presupuestos.</small>
+            <div class="info-content">
+              <p>Se creará automáticamente un presupuesto para este trabajo.</p>
+              <small>Podrás editarlo después desde la sección de presupuestos.</small>
+            </div>
           </div>
         </div>
 
@@ -314,7 +316,7 @@
             
             <div class="campo-cantidad">
               <input type="number" formControlName="cantidad" 
-                     placeholder="Cantidad" min="1" class="input-cantidad">
+                     placeholder="Cantidad" min="0" class="input-cantidad">
             </div>
             
             <div class="campo-precio">

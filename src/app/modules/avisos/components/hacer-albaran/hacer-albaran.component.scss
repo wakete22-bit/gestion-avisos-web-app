@@ -52,6 +52,7 @@ ion-content {
   --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
+  overflow-x: hidden; /* Bloquear scroll horizontal */
   
   .modal-body {
     flex: 1;
@@ -59,11 +60,13 @@ ion-content {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow-x: hidden; /* Bloquear scroll horizontal */
   }
 
   .modal-content {
     flex: 1;
     overflow: auto;
+    overflow-x: hidden; /* Bloquear scroll horizontal */
     position: relative;
     min-height: 0;
     height: 100%;
@@ -75,6 +78,7 @@ ion-content {
     gap: 0;
     height: 100%;
     overflow: hidden;
+    overflow-x: hidden; /* Bloquear scroll horizontal */
 
     @media (max-width: 768px) {
       grid-template-columns: 1fr;
@@ -1622,7 +1626,7 @@ textarea.form-control {
         align-self: flex-start;
 
         .input-cantidad {
-          width: 40px;
+          width: 60px;
           font-size: 16px; // Prevenir zoom en iOS
           padding: 10px 6px;
         }
@@ -1632,8 +1636,8 @@ textarea.form-control {
         align-self: flex-start;
 
         .input-precio {
-          width: 40px;
-          font-sze: 16px; // Prevenir zoom en iOS
+          width: 60px;
+          font-size: 16px; // Prevenir zoom en iOS
           padding: 10px 6px;
         }
       }
@@ -1882,6 +1886,10 @@ textarea.form-control {
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    word-wrap: break-word;
     
     ion-icon {
       color: #0EA5E9;
@@ -1890,12 +1898,20 @@ textarea.form-control {
       flex-shrink: 0;
     }
     
+    .info-content {
+      flex: 1;
+      min-width: 0; // Permite que el contenido se encoja
+      overflow: hidden;
+    }
+    
     p {
       margin: 0 0 4px 0;
       color: #0C4A6E;
       font-size: 14px;
       font-weight: 500;
-      flex: 1;
+      line-height: 1.4;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     
     small {
@@ -1903,6 +1919,9 @@ textarea.form-control {
       font-size: 12px;
       margin: 0;
       display: block;
+      line-height: 1.3;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
   }
 }

@@ -390,7 +390,7 @@ export class CrearPresupuestoComponent implements OnInit {
         material_id: material.material_id,
         cantidad_estimada: material.cantidad_estimada || 1,
         precio_neto_al_momento: material.precio_neto_al_momento || 0,
-        producto: material.material // Guardar referencia al producto del inventario
+        producto: material.producto || material.material // Usar producto si existe, sino material
       };
       
       console.log('Material procesado:', materialProcesado);
