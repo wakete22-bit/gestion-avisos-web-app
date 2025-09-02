@@ -1210,6 +1210,20 @@ ion-content.refresher-active {
                     background-color: #059669;
                   }
                 }
+
+                &.btn-navegar {
+                  &:hover {
+                    background-color: #3B82F6;
+                    ion-icon {
+                      color: white;
+                    }
+                  }
+                  
+                  &:active {
+                    transform: scale(0.9);
+                    background-color: #2563EB;
+                  }
+                }
               }
             }
           }
@@ -1898,6 +1912,20 @@ ion-content.refresher-active {
                 &:active {
                   transform: scale(0.9);
                   background-color: #059669;
+                }
+              }
+
+              &.btn-navegar {
+                &:hover {
+                  background-color: #3B82F6;
+                  ion-icon {
+                    color: white;
+                  }
+                }
+                
+                &:active {
+                  transform: scale(0.9);
+                  background-color: #2563EB;
                 }
               }
 

@@ -6,7 +6,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline, navigateOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { ConfirmarEliminacionAvisoModalComponent } from '../../components/confirmar-eliminacion-aviso-modal/confirmar-eliminacion-aviso-modal.component';
@@ -20,6 +20,7 @@ import { ImageOptimizationService } from '../../../../core/services/image-optimi
 import { PrefetchService } from '../../../../core/services/prefetch.service';
 import { NavigationService } from '../../../../core/services/navigation.service';
 import { DebugService } from '../../../../core/services/debug.service';
+import { MapsIntegrationService, MapCoordinates } from '../../../../core/services/maps-integration.service';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
@@ -73,9 +74,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private prefetchService: PrefetchService,
     private router: Router,
     private navigationService: NavigationService,
-    private debugService: DebugService
+    private debugService: DebugService,
+    private mapsIntegrationService: MapsIntegrationService
   ) {
-    addIcons({addCircle,searchOutline,refreshOutline,alertCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,chevronDownCircleOutline,mapOutline,expandOutline,listOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    addIcons({refreshOutline,alertCircleOutline,addCircle,searchOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,navigateOutline,expandOutline,listOutline,chevronDownCircleOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
     
     // Configurar debounce para búsqueda
     this.configurarBusqueda();
@@ -575,6 +577,123 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         marker.togglePopup();
       }, 500);
     }
+  }
+
+  /**
+   * Abre el aviso en mapas nativos (Google Maps o Apple Maps)
+   */
+  abrirEnMapasNativos(aviso: Aviso, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!aviso.direccion_cliente_aviso) {
+      console.warn('El aviso no tiene dirección');
+      return;
+    }
+
+    // Obtener coordenadas del marcador si existe
+    const marker = this.avisoMarkers.get(aviso.id);
+    let coordinates: MapCoordinates;
+
+    if (marker) {
+      const lngLat = marker.getLngLat();
+      coordinates = {
+        latitude: lngLat.lat,
+        longitude: lngLat.lng,
+        address: aviso.direccion_cliente_aviso
+      };
+    } else {
+      // Si no hay marcador, usar la dirección para geocodificación
+      coordinates = {
+        latitude: 0, // Se usará la dirección
+        longitude: 0,
+        address: aviso.direccion_cliente_aviso
+      };
+    }
+
+    // Mostrar opciones de mapas
+    this.mapsIntegrationService.showMapsOptions(coordinates, {
+      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
+      zoom: 15
+    });
+  }
+
+  /**
+   * Abre directamente en Google Maps
+   */
+  abrirEnGoogleMaps(aviso: Aviso, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!aviso.direccion_cliente_aviso) {
+      console.warn('El aviso no tiene dirección');
+      return;
+    }
+
+    const marker = this.avisoMarkers.get(aviso.id);
+    let coordinates: MapCoordinates;
+
+    if (marker) {
+      const lngLat = marker.getLngLat();
+      coordinates = {
+        latitude: lngLat.lat,
+        longitude: lngLat.lng,
+        address: aviso.direccion_cliente_aviso
+      };
+    } else {
+      coordinates = {
+        latitude: 0,
+        longitude: 0,
+        address: aviso.direccion_cliente_aviso
+      };
+    }
+
+    this.mapsIntegrationService.openGoogleMaps(coordinates, {
+      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
+      zoom: 15
+    });
+  }
+
+  /**
+   * Abre directamente en Apple Maps
+   */
+  abrirEnAppleMaps(aviso: Aviso, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!aviso.direccion_cliente_aviso) {
+      console.warn('El aviso no tiene dirección');
+      return;
+    }
+
+    const marker = this.avisoMarkers.get(aviso.id);
+    let coordinates: MapCoordinates;
+
+    if (marker) {
+      const lngLat = marker.getLngLat();
+      coordinates = {
+        latitude: lngLat.lat,
+        longitude: lngLat.lng,
+        address: aviso.direccion_cliente_aviso
+      };
+    } else {
+      coordinates = {
+        latitude: 0,
+        longitude: 0,
+        address: aviso.direccion_cliente_aviso
+      };
+    }
+
+    this.mapsIntegrationService.openAppleMaps(coordinates, {
+      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
+      zoom: 15
+    });
   }
 
   private initMap(): void {

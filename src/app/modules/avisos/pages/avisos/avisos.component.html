@@ -132,6 +132,9 @@
                 <button class="btn-ver" title="Ver detalles" (click)="verDetalleAviso(aviso)">
                   <ion-icon name="eye-outline"></ion-icon>
                 </button>
+                <button class="btn-navegar" title="Abrir en mapas nativos" (click)="abrirEnMapasNativos(aviso, $event)">
+                  <ion-icon name="navigate-outline"></ion-icon>
+                </button>
                 <button class="btn-editar" title="Editar aviso" (click)="editarAviso(aviso)">
                   <ion-icon name="create-outline"></ion-icon>
                 </button>
@@ -259,6 +262,9 @@
                   <div class="aviso-cell acciones">
                     <button class="btn-mapa" (click)="centrarAvisoEnMapa(aviso, $event)" title="Ir al punto en el mapa">
                       <ion-icon name="map-outline"></ion-icon>
+                    </button>
+                    <button class="btn-navegar" (click)="$event.stopPropagation(); abrirEnMapasNativos(aviso, $event)" title="Abrir en mapas nativos">
+                      <ion-icon name="navigate-outline"></ion-icon>
                     </button>
                     <button class="btn-ver" (click)="$event.stopPropagation(); verDetalleAviso(aviso)" title="Ver detalles">
                       <ion-icon name="eye-outline"></ion-icon>
