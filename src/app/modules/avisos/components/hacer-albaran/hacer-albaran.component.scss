@@ -112,6 +112,32 @@ ion-footer {
       span {
         font-size: 14px;
         font-weight: 500;
+        flex: 1;
+      }
+
+      .btn-retry {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 12px;
+        background: #DC2626;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-left: 8px;
+
+        &:hover {
+          background: #B91C1C;
+        }
+
+        ion-icon {
+          font-size: 14px;
+          color: white;
+        }
       }
     }
     
@@ -354,6 +380,7 @@ input.form-control {
     outline: none;
     border-color: #2563eb;
   }
+
 
 }
 
@@ -745,7 +772,7 @@ textarea.form-control {
 // Estado vacío de repuestos
 .repuestos-empty {
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
   color: #9CA3AF;
 
   ion-icon {
@@ -771,11 +798,8 @@ textarea.form-control {
 // Selector de inventario
 .inventory-selector {
   background: #fff;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 0px;
+  margin-bottom: 15px;
   max-height: 400px;
   overflow: hidden;
   display: flex;
@@ -785,7 +809,7 @@ textarea.form-control {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 5px;
 
     h4 {
       margin: 0;
@@ -813,7 +837,7 @@ textarea.form-control {
 
   .search-container {
     position: relative;
-    margin-bottom: 16px;
+    margin-bottom: 5px;
 
     .search-input {
       --background: #FAFAFB;
@@ -823,6 +847,7 @@ textarea.form-control {
       --padding-start: 40px 12px 12px;
       --padding-end: 12px;
       --padding-top: 10px;
+      --padding-left: 12px;
       --padding-bottom: 10px;
       --color: #111827;
       --placeholder-color: #9CA3AF;
@@ -869,6 +894,13 @@ textarea.form-control {
 
       &:hover {
         background: #F3F4F6;
+      }
+
+      
+      .product-price {
+        font-weight: 600;
+        color: #059669;
+        font-size: 13px;
       }
 
       .product-info {
@@ -974,103 +1006,201 @@ textarea.form-control {
     }
   }
 
-  .repuesto-item {
+  // Estilo compacto para repuestos
+  .repuesto-item-compacto {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
+    gap: 12px;
+    padding: 8px 12px;
     background: #F0F9FF;
     border: 1px solid #BAE6FD;
     border-radius: 6px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     width: 100%;
-    overflow: hidden;
 
-    .repuesto-info {
+    .repuesto-denominacion {
       flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      min-width: 0;
+      font-weight: 500;
+      color: #0369A1;
+      font-size: 14px;
       overflow: hidden;
-
-      .repuesto-nombre {
-        font-weight: 500;
-        color: #0369A1;
-        font-size: 14px;
-        min-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .repuesto-cantidad {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-shrink: 0;
-
-        label {
-          font-size: 12px;
-          color: #6B7280;
-          font-weight: 500;
-        }
-
-        .cantidad-input {
-          width: 60px;
-          padding: 4px 8px;
-          border: 1px solid #D1D5DB;
-          border-radius: 4px;
-          font-size: 12px;
-          text-align: center;
-          background-color: #FAFAFB;
-          color: #111827;
-        }
-
-        .unidad {
-          font-size: 11px;
-          color: #6B7280;
-          font-weight: 500;
-        }
-      }
-
-      .repuesto-precio-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
-        min-width: 100px;
-        flex-shrink: 0;
-
-        .precio-unitario {
-          font-size: 11px;
-          color: #6B7280;
-          font-weight: 500;
-        }
-
-        .precio-total-item {
-          font-weight: 600;
-          color: #059669;
-          font-size: 13px;
-        }
-      }
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .btn-remove {
+    .cantidad-input-compacto {
+      width: 50px;
+      padding: 4px 6px;
+      border: 1px solid #D1D5DB;
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: center;
+      background-color: #FAFAFB;
+      color: #111827;
+    }
+
+    .btn-remove-compacto {
       background: #FEE2E2;
       color: #DC2626;
       border: none;
-      padding: 6px;
-      border-radius: 6px;
+      padding: 4px;
+      border-radius: 4px;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
 
       &:hover {
         background: #FECACA;
       }
 
       ion-icon {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+// ========================================
+// FORMULARIO MANUAL DE REPUESTOS
+// ========================================
+
+.formulario-repuesto-manual {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .formulario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h4 {
+      margin: 0;
+      color: #1F2937;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      color: #6B7280;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 4px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: #F3F4F6;
+        color: #374151;
+      }
+    }
+  }
+
+  .formulario-campos {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    .campo-input {
+      flex: 1;
+
+      .input-denominacion {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #D1D5DB;
+        border-radius: 6px;
         font-size: 14px;
+        background-color: #FAFAFB;
+        color: #111827;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #2563eb;
+        }
+
+        &::placeholder {
+          color: #9CA3AF;
+        }
+      }
+    }
+
+    .campo-cantidad {
+      .input-cantidad {
+        width: 60px;
+        padding: 8px 6px;
+        border: 1px solid #D1D5DB;
+        border-radius: 6px;
+        font-size: 14px;
+        text-align: center;
+        background-color: #FAFAFB;
+        color: #111827;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #2563eb;
+        }
+
+        &::placeholder {
+          color: #9CA3AF;
+        }
+      }
+    }
+
+    .campo-precio {
+      .input-precio {
+        width: 70px;
+        padding: 8px 6px;
+        border: 1px solid #D1D5DB;
+        border-radius: 6px;
+        font-size: 14px;
+        text-align: center;
+        background-color: #FAFAFB;
+        color: #111827;
+        transition: border-color 0.2s;
+
+        &:focus {
+          outline: none;
+          border-color: #2563eb;
+        }
+
+        &::placeholder {
+          color: #9CA3AF;
+        }
+      }
+    }
+
+    .btn-agregar {
+      background: #10B981;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+
+      &:hover {
+        background: #059669;
+      }
+
+      ion-icon {
+        font-size: 16px;
       }
     }
   }
@@ -1446,27 +1576,75 @@ textarea.form-control {
     width: 100%;
     overflow: hidden;
 
-    .repuesto-item {
-      .repuesto-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+    .repuesto-item-compacto {
+      padding: 6px 8px;
+      gap: 8px;
 
-        .repuesto-nombre {
-          min-width: unset;
-          width: 100%;
-          font-size: 13px;
+      .repuesto-denominacion {
+        font-size: 13px;
+      }
+
+      .cantidad-input-compacto {
+        width: 45px;
+        font-size: 12px;
+      }
+
+      .btn-remove-compacto {
+        width: 24px;
+        height: 24px;
+
+        ion-icon {
+          font-size: 10px;
         }
+      }
+    }
+  }
 
-        .repuesto-cantidad {
-          align-self: stretch;
-          justify-content: space-between;
+  // Formulario manual en móvil
+  .formulario-repuesto-manual {
+    padding: 12px;
+    margin-bottom: 12px;
+
+    .formulario-campos {
+      flex-direction: row;
+      gap: 8px;
+
+      .campo-input {
+        width: 100%;
+
+        .input-denominacion {
+          font-size: 16px; // Prevenir zoom en iOS
+          padding: 10px 12px;
         }
+      }
 
-        .repuesto-precio-info {
-          align-self: stretch;
-          align-items: flex-start;
-          min-width: unset;
+      .campo-cantidad {
+        align-self: flex-start;
+
+        .input-cantidad {
+          width: 40px;
+          font-size: 16px; // Prevenir zoom en iOS
+          padding: 10px 6px;
+        }
+      }
+
+      .campo-precio {
+        align-self: flex-start;
+
+        .input-precio {
+          width: 40px;
+          font-sze: 16px; // Prevenir zoom en iOS
+          padding: 10px 6px;
+        }
+      }
+
+      .btn-agregar {
+        align-self: flex-end;
+        width: 40px;
+        height: 43px;
+
+        ion-icon {
+          font-size: 18px;
         }
       }
     }

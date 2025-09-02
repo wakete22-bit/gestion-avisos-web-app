@@ -37,14 +37,13 @@
         <div class="form-row">
           <div class="form-group half">
             <label>Hora Entrada <span class="required">*</span></label>
-            <input type="time" formControlName="hora_entrada" step="900" class="form-control">
-            <small class="help-text">Menú interactivo 15 en 15 min</small>
+            <input type="time" formControlName="hora_entrada" class="form-control">
           </div>
 
           <div class="form-group half">
             <label>Hora Salida <span class="required">*</span></label>
             <div class="input-with-button">
-              <input type="time" formControlName="hora_salida" step="900" class="form-control"
+              <input type="time" formControlName="hora_salida" class="form-control"
                 (click)="establecerHoraActual()">
               <button type="button" class="add-button" (click)="establecerHoraActual()">
                 <ion-icon name="time-outline"></ion-icon>
@@ -74,10 +73,41 @@
               <ion-icon name="cube-outline"></ion-icon>
               Seleccionar del Inventario
             </button>
-            <button type="button" class="btn-add-manual" (click)="agregarRepuestoManual()">
+            <button type="button" class="btn-add-manual" (click)="mostrarFormularioManual()">
               <ion-icon name="add-circle-outline"></ion-icon>
               Agregar Manualmente
             </button>
+          </div>
+
+          <!-- Formulario para agregar repuesto manual -->
+          <div *ngIf="mostrarFormularioRepuesto" class="formulario-repuesto-manual">
+            <div class="formulario-header">
+              <h4>Agregar Repuesto</h4>
+              <button type="button" class="btn-close" (click)="cerrarFormularioManual()">
+                <ion-icon name="close"></ion-icon>
+              </button>
+            </div>
+            
+            <div class="formulario-campos" [formGroup]="repuestoManualForm">
+              <div class="campo-input">
+                <input type="text" formControlName="denominacion" 
+                       placeholder="Denominación del repuesto" class="input-denominacion">
+              </div>
+              
+              <div class="campo-cantidad">
+                <input type="number" formControlName="cantidad" 
+                       placeholder="Cantidad" min="1" class="input-cantidad">
+              </div>
+              
+              <div class="campo-precio">
+                <input type="number" formControlName="precio" 
+                       placeholder="Precio €" min="0" step="0.01" class="input-precio">
+              </div>
+              
+              <button type="button" class="btn-agregar" (click)="agregarRepuestoDesdeFormulario()">
+                <ion-icon name="checkmark-outline"></ion-icon>
+              </button>
+            </div>
           </div>
 
           <!-- Selector de repuestos del inventario -->
@@ -99,10 +129,9 @@
             <div class="products-list">
               <div *ngFor="let producto of productosFiltrados" class="product-item" (click)="agregarRepuesto(producto)">
                 <div class="product-info">
-                  <div class="product-header">
+                  <!-- <div class="product-header">
                     <span class="product-code">{{ producto.codigo }}</span>
-                    <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
-                  </div>
+                  </div> -->
                   <span class="product-name">{{ producto.nombre }}</span>
                   <div class="product-details">
                     <span class="product-stock" [ngClass]="{
@@ -117,6 +146,7 @@
                     <span class="product-description">{{ producto.descripcion }}</span>
                   </div>
                 </div>
+                <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
                 <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
               </div>
             </div>
@@ -131,23 +161,12 @@
               <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
             </div>
 
-            <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
-              <div class="repuesto-info">
-                <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
-                <div class="repuesto-cantidad">
-                  <label>Cantidad:</label>
-                  <input type="number" [value]="repuesto.cantidad" [min]="1"
-                    (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" class="cantidad-input">
-                  <span class="unidad">{{ repuesto.unidad }}</span>
-                </div>
-                <div class="repuesto-precio-info">
-                  <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad
-                    }}</span>
-                  <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) |
-                    currency:'EUR':'symbol':'1.2-2' }}</span>
-                </div>
-              </div>
-              <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
+            <div class="repuesto-item-compacto" *ngFor="let repuesto of repuestosSeleccionados">
+              <span class="repuesto-denominacion">{{ repuesto.nombre }}</span>
+              <input type="number" [value]="repuesto.cantidad" [min]="1"
+                     (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" 
+                     class="cantidad-input-compacto">
+              <button type="button" class="btn-remove-compacto" (click)="eliminarRepuesto(repuesto)">
                 <ion-icon name="trash-outline"></ion-icon>
               </button>
             </div>
@@ -272,10 +291,41 @@
             <ion-icon name="cube-outline"></ion-icon>
             Seleccionar del Inventario
           </button>
-          <button type="button" class="btn-add-manual" (click)="agregarRepuestoManual()">
+          <button type="button" class="btn-add-manual" (click)="mostrarFormularioManual()">
             <ion-icon name="add-circle-outline"></ion-icon>
             Agregar Manualmente
           </button>
+        </div>
+
+        <!-- Formulario para agregar repuesto manual -->
+        <div *ngIf="mostrarFormularioRepuesto" class="formulario-repuesto-manual">
+          <div class="formulario-header">
+            <h4>Agregar Repuesto</h4>
+            <button type="button" class="btn-close" (click)="cerrarFormularioManual()">
+              <ion-icon name="close"></ion-icon>
+            </button>
+          </div>
+          
+          <div class="formulario-campos" [formGroup]="repuestoManualForm">
+            <div class="campo-input">
+              <input type="text" formControlName="denominacion" 
+                     placeholder="Denominación del repuesto" class="input-denominacion">
+            </div>
+            
+            <div class="campo-cantidad">
+              <input type="number" formControlName="cantidad" 
+                     placeholder="Cantidad" min="1" class="input-cantidad">
+            </div>
+            
+            <div class="campo-precio">
+              <input type="number" formControlName="precio" 
+                     placeholder="Precio €" min="0" step="0.01" class="input-precio">
+            </div>
+            
+            <button type="button" class="btn-agregar" (click)="agregarRepuestoDesdeFormulario()">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </button>
+          </div>
         </div>
 
         <!-- Selector de repuestos del inventario -->
@@ -298,7 +348,7 @@
             <div *ngFor="let producto of productosFiltrados" class="product-item" (click)="agregarRepuesto(producto)">
               <div class="product-info">
                 <div class="product-header">
-                  <span class="product-code">{{ producto.codigo }}</span>
+                  <!-- <span class="product-code">{{ producto.codigo }}</span> -->
                   <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
                 </div>
                 <span class="product-name">{{ producto.nombre }}</span>
@@ -321,22 +371,12 @@
             <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
           </div>
 
-          <div class="repuesto-item" *ngFor="let repuesto of repuestosSeleccionados">
-            <div class="repuesto-info">
-              <span class="repuesto-nombre">{{ repuesto.nombre }}</span>
-              <div class="repuesto-cantidad">
-                <label>Cantidad:</label>
-                <input type="number" [value]="repuesto.cantidad" [min]="1"
-                  (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" class="cantidad-input">
-                <span class="unidad">{{ repuesto.unidad }}</span>
-              </div>
-              <div class="repuesto-precio-info">
-                <span class="precio-unitario">€{{ repuesto.precio_pvp | number:'1.2-2' }}/{{ repuesto.unidad }}</span>
-                <span class="precio-total-item">{{ (repuesto.precio_pvp * repuesto.cantidad) |
-                  currency:'EUR':'symbol':'1.2-2' }}</span>
-              </div>
-            </div>
-            <button type="button" class="btn-remove" (click)="eliminarRepuesto(repuesto)">
+          <div class="repuesto-item-compacto" *ngFor="let repuesto of repuestosSeleccionados">
+            <span class="repuesto-denominacion">{{ repuesto.nombre }}</span>
+            <input type="number" [value]="repuesto.cantidad" [min]="1"
+                   (change)="actualizarCantidadRepuesto(repuesto, $any($event.target).value)" 
+                   class="cantidad-input-compacto">
+            <button type="button" class="btn-remove-compacto" (click)="eliminarRepuesto(repuesto)">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
           </div>
@@ -360,6 +400,11 @@
     <div *ngIf="error" class="error-message">
       <ion-icon name="warning-outline"></ion-icon>
       <span>{{ error }}</span>
+      <button *ngIf="error.includes('conexión') || error.includes('Sesión expirada')" 
+              type="button" class="btn-retry" (click)="reintentarOperacion()">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Reintentar
+      </button>
     </div>
 
     <div class="button-group">

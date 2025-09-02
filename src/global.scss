@@ -140,6 +140,13 @@ ion-modal ion-content {
   --padding-end: var(--ion-safe-area-right, 0px);
 }
 
+/* Aplicar safe areas a los footers de los modales */
+ion-modal ion-footer {
+  ion-toolbar {
+    --padding-bottom: var(--ion-safe-area-bottom, 0px) !important;
+  }
+}
+
 /* Modal lateral para escritorio */
 ion-modal.side-modal {
   --width: 420px;
@@ -176,6 +183,13 @@ ion-modal.side-modal {
     --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 16px);
     --padding-start: var(--ion-safe-area-left, 0px);
     --padding-end: var(--ion-safe-area-right, 0px);
+  }
+  
+  /* Aplicar safe areas más agresivas a los footers en móviles */
+  ion-modal ion-footer {
+    ion-toolbar {
+      --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px) !important;
+    }
   }
   
   ion-modal.side-modal {
@@ -658,7 +672,12 @@ section {
     --padding-end: var(--ion-safe-area-right, 0px);
   }
   
-
+  /* Aplicar safe areas más agresivas a los footers en PWA standalone */
+  ion-modal ion-footer {
+    ion-toolbar {
+      --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 12px) !important;
+    }
+  }
 }
 
 /* Configuración específica para iOS en PWA standalone */
@@ -689,6 +708,13 @@ section {
       --padding-top: calc(var(--ion-safe-area-top, 0px) + 24px);
       --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 24px);
     }
+    
+    /* Safe areas específicas para footers en iOS */
+    ion-modal ion-footer {
+      ion-toolbar {
+        --padding-bottom: calc(var(--ion-safe-area-bottom, 0px) + 8px) !important;
+      }
+    }
   }
 }
 
@@ -703,6 +729,13 @@ section {
     --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px);
   }
   
+  /* Safe areas específicas para footers en Android */
+  ion-modal ion-footer {
+    ion-toolbar {
+      --padding-bottom: calc(var(--ion-safe-area-bottom, 16px) + 8px) !important;
+    }
+  }
+  
   /* En móviles Android, asegurar margen mínimo para botones de navegación */
   @media (max-width: 768px) {
     ion-modal::part(content) {
@@ -711,6 +744,13 @@ section {
     
     ion-modal ion-content {
       --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px);
+    }
+    
+    /* Safe areas más agresivas para footers en móviles Android */
+    ion-modal ion-footer {
+      ion-toolbar {
+        --padding-bottom: calc(var(--ion-safe-area-bottom, 24px) + 16px) !important;
+      }
     }
   }
 }

@@ -14,6 +14,7 @@ import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
 import { environment } from 'src/environments/environment';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { ClientesService } from '../../../../core/services/clientes.service';
 import { CacheService } from '../../../../core/services/cache.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
 import { PrefetchService } from '../../../../core/services/prefetch.service';
@@ -66,6 +67,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private geocodingService: GeocodingService,
     private avisosService: AvisosService,
+    private clientesService: ClientesService,
     private cacheService: CacheService,
     private imageOptimizationService: ImageOptimizationService,
     private prefetchService: PrefetchService,
@@ -656,8 +658,25 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       await clienteModal.present();
       const { data: cliente, role: clienteRole } = await clienteModal.onWillDismiss();
       if (clienteRole === 'confirm' && cliente) {
-        // Reabrir modal de aviso con los datos del cliente
-        this.abrirModalCrearAviso(cliente);
+        // Crear el cliente en la base de datos
+        this.loading = true;
+        this.error = null;
+        
+        this.clientesService.crearCliente(cliente).subscribe({
+          next: (clienteCreado) => {
+            console.log('✅ Cliente creado exitosamente:', clienteCreado);
+            this.loading = false;
+            // Reabrir modal de aviso con los datos del cliente creado
+            this.abrirModalCrearAviso(clienteCreado);
+          },
+          error: (error) => {
+            console.error('❌ Error al crear cliente:', error);
+            this.loading = false;
+            this.error = 'Error al crear el cliente: ' + (error.message || 'Error desconocido');
+            // Reabrir modal de aviso sin datos de cliente
+            this.abrirModalCrearAviso(clienteData);
+          }
+        });
       } else {
         this.abrirModalCrearAviso(clienteData);
       }

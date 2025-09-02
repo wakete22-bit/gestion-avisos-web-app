@@ -16,7 +16,7 @@ import {
   searchOutline,
   addCircle,
   cubeOutline,
-  alertCircleOutline, informationCircleOutline, checkmarkCircleOutline, closeCircleOutline, banOutline } from 'ionicons/icons';
+  alertCircleOutline, informationCircleOutline, checkmarkCircleOutline, closeCircleOutline, banOutline, checkmarkOutline } from 'ionicons/icons';
 import { PresupuestosService, CrearPresupuestoRequest } from '../../services/presupuestos.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { InventarioService } from '../../../inventario/services/inventario.service';
@@ -48,6 +48,10 @@ export class CrearPresupuestoComponent implements OnInit {
   busquedaProducto = '';
   mostrarSelectorMateriales = false;
 
+  // Variables para el formulario manual de materiales
+  mostrarFormularioMaterial = false;
+  materialManualForm: FormGroup;
+
   // Variables para la selección de avisos
   avisos: any[] = [];
   avisosFiltrados: any[] = [];
@@ -71,12 +75,19 @@ export class CrearPresupuestoComponent implements OnInit {
     private inventarioService: InventarioService,
     private supabaseClientService: SupabaseClientService
   ) {
-    addIcons({arrowBackOutline,refreshOutline,listOutline,close,searchOutline,alertCircleOutline,addCircleOutline,cubeOutline,trashOutline,saveOutline,checkmarkCircleOutline,closeCircleOutline,banOutline,informationCircleOutline,addCircle});
+    addIcons({arrowBackOutline,refreshOutline,listOutline,close,searchOutline,alertCircleOutline,addCircleOutline,cubeOutline,checkmarkOutline,trashOutline,saveOutline,checkmarkCircleOutline,closeCircleOutline,banOutline,informationCircleOutline,addCircle});
     
     this.presupuestoForm = this.fb.group({
       horas_estimadas: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
       total_estimado: [0, [Validators.required, Validators.min(0), Validators.max(1000000)]],
       estado: ['Pendiente', Validators.required]
+    });
+
+    // Inicializar formulario para material manual
+    this.materialManualForm = this.fb.group({
+      denominacion: ['', Validators.required],
+      cantidad: [1, [Validators.required, Validators.min(1)]],
+      precio: [0, [Validators.required, Validators.min(0)]]
     });
 
     // Suscribirse a cambios en el formulario para debugging
@@ -388,12 +399,79 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('Materiales procesados:', this.materiales);
   }
 
-  agregarMaterial() {
-    this.materiales.push({
-      material_id: '',
-      cantidad_estimada: 1,
-      precio_neto_al_momento: 0
+  /**
+   * Muestra el formulario para agregar material manual
+   */
+  mostrarFormularioManual() {
+    this.mostrarFormularioMaterial = true;
+    this.materialManualForm.reset({
+      denominacion: '',
+      cantidad: 1,
+      precio: 0
     });
+  }
+
+  /**
+   * Cierra el formulario manual
+   */
+  cerrarFormularioManual() {
+    this.mostrarFormularioMaterial = false;
+    this.materialManualForm.reset({
+      denominacion: '',
+      cantidad: 1,
+      precio: 0
+    });
+  }
+
+  /**
+   * Agrega un material desde el formulario manual
+   */
+  agregarMaterialDesdeFormulario() {
+    console.log('🔍 Debug - materialManualForm value:', this.materialManualForm.value);
+    console.log('🔍 Debug - materialManualForm valid:', this.materialManualForm.valid);
+    
+    // Validar el formulario
+    if (this.materialManualForm.invalid) {
+      // Marcar todos los campos como tocados para mostrar errores
+      this.materialManualForm.markAllAsTouched();
+      
+      if (this.materialManualForm.get('denominacion')?.invalid) {
+        alert('Por favor, introduce la denominación del material');
+        return;
+      }
+      
+      if (this.materialManualForm.get('cantidad')?.invalid) {
+        alert('La cantidad debe ser mayor a 0');
+        return;
+      }
+      
+      if (this.materialManualForm.get('precio')?.invalid) {
+        alert('El precio debe ser mayor o igual a 0');
+        return;
+      }
+      
+      return;
+    }
+
+    const formValue = this.materialManualForm.value;
+    const materialManual = {
+      material_id: this.generarUUID(), // Generar ID temporal
+      cantidad_estimada: formValue.cantidad,
+      precio_neto_al_momento: formValue.precio || 0,
+      producto: {
+        id: this.generarUUID(),
+        nombre: formValue.denominacion.trim(),
+        precio_neto: formValue.precio || 0,
+        unidad: 'unidad'
+      }
+    };
+
+    console.log('🔍 agregarMaterialDesdeFormulario - Material manual creado:', materialManual);
+    this.materiales.push(materialManual);
+    this.calcularTotal(true);
+
+    // Cerrar formulario y limpiar
+    this.cerrarFormularioManual();
   }
 
   eliminarMaterial(index: number) {

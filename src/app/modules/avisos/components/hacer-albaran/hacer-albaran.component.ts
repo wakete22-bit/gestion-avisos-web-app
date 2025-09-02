@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, IonButton, IonInput, IonTextarea, IonSelect, IonSelectOption, IonDatetime, IonLabel, IonItem, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonModal, ModalController, IonFooter } from '@ionic/angular/standalone';
+import { IonIcon, IonInput, IonContent, IonHeader, IonToolbar, IonModal, ModalController, IonFooter } from '@ionic/angular/standalone';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import {
@@ -23,6 +23,8 @@ import { AvisosService } from '../../../../core/services/avisos.service';
 import { PresupuestosService } from '../../../presupuestos/services/presupuestos.service';
 import { RepuestoAlbaran, CrearAlbaranRequest, ESTADOS_CIERRE_ALBARAN } from '../../models/albaran.model';
 import { Router } from '@angular/router';
+import { ReconnectionService } from '../../../../core/services/reconnection.service';
+import { Subscription } from 'rxjs';
 
 // Las interfaces RepuestoAlbaran y CrearAlbaranRequest ahora se importan del modelo
 
@@ -36,19 +38,14 @@ import { Router } from '@angular/router';
     ReactiveFormsModule,
     FormsModule,
     IonIcon,
-    IonButton,
     IonInput,
-    IonTextarea,
-    IonLabel,
     IonContent,
     IonHeader,
     IonToolbar,
-    IonTitle,
-    IonButtons,
     IonFooter,
   ]
 })
-export class HacerAlbaranComponent implements OnInit, AfterViewInit {
+export class HacerAlbaranComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() aviso!: Aviso;
 
   albaranForm: FormGroup;
@@ -61,6 +58,10 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   busquedaRepuesto = '';
   mostrarSelectorRepuestos = false;
   repuestosSeleccionados: RepuestoAlbaran[] = []; // ← CAMBIADO: Ahora incluye cantidades
+
+  // Variables para el formulario manual de repuestos
+  mostrarFormularioRepuesto = false;
+  repuestoManualForm: FormGroup;
 
   // Variables para la firma digital
   @ViewChild('signaturePad') signaturePadElement!: ElementRef;
@@ -75,6 +76,10 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   // Estados de cierre disponibles (importados del modelo)
   estadosCierre = ESTADOS_CIERRE_ALBARAN;
 
+  // Variables para manejo de reconexión
+  private reconnectionSubscription?: Subscription;
+  private isComponentActive = true;
+
 
 
   constructor(
@@ -84,7 +89,8 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     private albaranesService: AlbaranesService,
     private avisosService: AvisosService,
     private presupuestosService: PresupuestosService,
-    private router: Router
+    private router: Router,
+    private reconnectionService: ReconnectionService
   ) {
     console.log('HacerAlbaranComponent constructor called');
     addIcons({closeOutline,timeOutline,cubeOutline,addCircleOutline,close,searchOutline,trashOutline,informationCircleOutline,createOutline,checkmarkOutline,warningOutline,saveOutline,refreshOutline,checkmarkCircleOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
@@ -102,13 +108,21 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
       firma_cliente: [''],
       observaciones: ['']
     });
+
+    // Inicializar formulario para repuesto manual
+    this.repuestoManualForm = this.fb.group({
+      denominacion: ['', Validators.required],
+      cantidad: [1, [Validators.required, Validators.min(1)]],
+      precio: [0, [Validators.required, Validators.min(0)]]
+    });
   }
 
   async ngOnInit() {
     console.log('🎯 HacerAlbaranComponent ngOnInit - Aviso:', this.aviso);
     console.log('🎯 Formulario inicializado:', this.albaranForm);
     
-
+    // Configurar manejo de reconexión
+    this.setupReconnectionHandling();
     
     // Establecer fechas por defecto
     this.establecerFechaActual();
@@ -135,6 +149,15 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         this.establecerFechaTrabajo();
       }
     }, 100);
+  }
+
+  ngOnDestroy() {
+    console.log('🧹 HacerAlbaranComponent ngOnDestroy - Limpiando suscripciones');
+    this.isComponentActive = false;
+    
+    if (this.reconnectionSubscription) {
+      this.reconnectionSubscription.unsubscribe();
+    }
   }
 
 
@@ -286,36 +309,77 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Agrega un repuesto manualmente
+   * Muestra el formulario para agregar repuesto manual
    */
-  agregarRepuestoManual() {
-    const nombreRepuesto = prompt('Introduce el nombre del repuesto:');
-    if (nombreRepuesto && nombreRepuesto.trim()) {
-      const cantidadStr = prompt('Introduce la cantidad utilizada:');
-      const cantidad = parseInt(cantidadStr || '1');
+  mostrarFormularioManual() {
+    this.mostrarFormularioRepuesto = true;
+    this.repuestoManualForm.reset({
+      denominacion: '',
+      cantidad: 1,
+      precio: 0
+    });
+  }
 
-      if (cantidad > 0) {
-        const precioStr = prompt('Introduce el precio por unidad (€):');
-        const precio = parseFloat(precioStr || '0');
+  /**
+   * Cierra el formulario manual
+   */
+  cerrarFormularioManual() {
+    this.mostrarFormularioRepuesto = false;
+    this.repuestoManualForm.reset({
+      denominacion: '',
+      cantidad: 1,
+      precio: 0
+    });
+  }
 
-        const unidad = prompt('Introduce la unidad (unidad, kg, m, etc.):') || 'unidad';
-
-        const repuestoManual: RepuestoAlbaran = {
-          nombre: nombreRepuesto.trim(),
-          cantidad: cantidad,
-          precio_neto: precio,
-          precio_pvp: precio, // Usar el mismo precio para PVP
-          unidad: unidad,
-          codigo: ''
-        };
-
-        console.log('🔍 agregarRepuestoManual - Repuesto manual creado:', repuestoManual);
-        this.repuestosSeleccionados.push(repuestoManual);
-        this.albaranForm.patchValue({
-          repuestos_utilizados: this.repuestosSeleccionados
-        });
+  /**
+   * Agrega un repuesto desde el formulario manual
+   */
+  agregarRepuestoDesdeFormulario() {
+    console.log('🔍 Debug - repuestoManualForm value:', this.repuestoManualForm.value);
+    console.log('🔍 Debug - repuestoManualForm valid:', this.repuestoManualForm.valid);
+    
+    // Validar el formulario
+    if (this.repuestoManualForm.invalid) {
+      // Marcar todos los campos como tocados para mostrar errores
+      this.repuestoManualForm.markAllAsTouched();
+      
+      if (this.repuestoManualForm.get('denominacion')?.invalid) {
+        alert('Por favor, introduce la denominación del repuesto');
+        return;
       }
+      
+      if (this.repuestoManualForm.get('cantidad')?.invalid) {
+        alert('La cantidad debe ser mayor a 0');
+        return;
+      }
+      
+      if (this.repuestoManualForm.get('precio')?.invalid) {
+        alert('El precio debe ser mayor o igual a 0');
+        return;
+      }
+      
+      return;
     }
+
+    const formValue = this.repuestoManualForm.value;
+    const repuestoManual: RepuestoAlbaran = {
+      nombre: formValue.denominacion.trim(),
+      cantidad: formValue.cantidad,
+      precio_neto: formValue.precio || 0,
+      precio_pvp: formValue.precio || 0,
+      unidad: 'unidad', // Unidad por defecto
+      codigo: ''
+    };
+
+    console.log('🔍 agregarRepuestoDesdeFormulario - Repuesto manual creado:', repuestoManual);
+    this.repuestosSeleccionados.push(repuestoManual);
+    this.albaranForm.patchValue({
+      repuestos_utilizados: this.repuestosSeleccionados
+    });
+
+    // Cerrar formulario y limpiar
+    this.cerrarFormularioManual();
   }
 
   /**
@@ -325,6 +389,8 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
     const ahora = new Date();
     return `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
   }
+
+
 
   /**
    * Establece la hora actual
@@ -420,8 +486,21 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           this.loading = false;
-          this.error = 'Error al guardar el albarán: ' + (error.message || 'Error desconocido');
-          console.error('Error al guardar albarán:', error);
+          
+          // Manejar diferentes tipos de errores
+          if (error.status === 0 || error.status === 408 || error.name === 'TimeoutError') {
+            // Error de conexión o timeout
+            this.error = 'Error de conexión. Verifica tu conexión a internet e intenta de nuevo.';
+            console.error('Error de conexión al guardar albarán:', error);
+          } else if (error.status === 401) {
+            // Error de autenticación - no redirigir automáticamente
+            this.error = 'Sesión expirada. Por favor, recarga la página e intenta de nuevo.';
+            console.error('Error de autenticación al guardar albarán:', error);
+          } else {
+            // Otros errores
+            this.error = 'Error al guardar el albarán: ' + (error.message || 'Error desconocido');
+            console.error('Error al guardar albarán:', error);
+          }
         }
       });
     } else {
@@ -445,6 +524,22 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
    */
   cancelar() {
     this.modalController.dismiss();
+  }
+
+  /**
+   * Reintenta la operación cuando hay errores de conexión
+   */
+  reintentarOperacion() {
+    console.log('🔄 Reintentando operación...');
+    this.error = null;
+    
+    // Si había un albarán en proceso de guardado, reintentarlo
+    if (this.albaranForm.valid) {
+      this.guardarAlbaran();
+    } else {
+      // Si el formulario no es válido, mostrar mensaje
+      this.error = 'Por favor, complete todos los campos requeridos antes de reintentar';
+    }
   }
 
   /**
@@ -760,6 +855,86 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit {
         }, 'confirm');
       }
     });
+  }
+
+  // ========================================
+  // MÉTODOS PARA MANEJO DE RECONEXIÓN
+  // ========================================
+
+  /**
+   * Configura el manejo de reconexión para evitar navegación automática
+   */
+  private setupReconnectionHandling() {
+    console.log('🔄 Configurando manejo de reconexión en HacerAlbaranComponent');
+    
+    // Suscribirse a eventos de reconexión
+    this.reconnectionSubscription = this.reconnectionService.appResumed.subscribe({
+      next: (isResumed) => {
+        if (isResumed && this.isComponentActive) {
+          console.log('🔄 App reanudada - verificando estado del componente');
+          this.handleAppResume();
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error en suscripción de reconexión:', error);
+      }
+    });
+  }
+
+  /**
+   * Maneja cuando la app se reanuda
+   */
+  private async handleAppResume() {
+    if (!this.isComponentActive) {
+      console.log('🔄 Componente no activo, saltando manejo de reconexión');
+      return;
+    }
+
+    try {
+      console.log('🔄 HacerAlbaranComponent: App reanudada, verificando conexión...');
+      
+      // Verificar si hay datos del formulario que podrían perderse
+      const formData = this.albaranForm.value;
+      const hasData = Object.values(formData).some(value => 
+        value !== null && value !== undefined && value !== '' && 
+        (Array.isArray(value) ? value.length > 0 : true)
+      );
+
+      if (hasData) {
+        console.log('🔄 Formulario tiene datos, evitando navegación automática');
+        
+        // Mostrar mensaje de reconexión si es necesario
+        if (this.loading) {
+          this.loading = false;
+          this.error = 'Conexión restablecida. Puedes continuar con el albarán.';
+          
+          // Limpiar el error después de 3 segundos
+          setTimeout(() => {
+            if (this.isComponentActive) {
+              this.error = null;
+            }
+          }, 3000);
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en handleAppResume:', error);
+    }
+  }
+
+  /**
+   * Verifica si el componente debe mantenerse activo
+   */
+  private shouldKeepComponentActive(): boolean {
+    // Verificar si hay datos importantes en el formulario
+    const formData = this.albaranForm.value;
+    const hasImportantData = 
+      formData.descripcion_trabajo_realizado ||
+      formData.repuestos_utilizados?.length > 0 ||
+      formData.firma_cliente ||
+      formData.observaciones;
+
+    return hasImportantData;
   }
 
 
