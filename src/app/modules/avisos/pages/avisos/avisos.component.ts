@@ -6,12 +6,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline, navigateOutline } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline, navigateOutline, checkmarkCircleOutline, closeCircleOutline, play, stop, arrowForward } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { ConfirmarEliminacionAvisoModalComponent } from '../../components/confirmar-eliminacion-aviso-modal/confirmar-eliminacion-aviso-modal.component';
-import { Map as MapLibreMap, Marker, Popup } from 'maplibre-gl';
-import { environment } from 'src/environments/environment';
+import { ModalOpcionesNavegacionComponent } from '../../components/modal-opciones-navegacion/modal-opciones-navegacion.component';
 import { GeocodingService } from 'src/app/core/services/geocoding.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
@@ -20,9 +19,14 @@ import { ImageOptimizationService } from '../../../../core/services/image-optimi
 import { PrefetchService } from '../../../../core/services/prefetch.service';
 import { NavigationService } from '../../../../core/services/navigation.service';
 import { DebugService } from '../../../../core/services/debug.service';
-import { MapsIntegrationService, MapCoordinates } from '../../../../core/services/maps-integration.service';
+import { MapboxNavigationService, MapboxCoordinates } from '../../../../core/services/mapbox-navigation.service';
+import { MapboxNavigationPanelComponent } from '../../../../shared/components/mapbox-navigation-panel/mapbox-navigation-panel.component';
+import mapboxgl from 'mapbox-gl';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+
+// Importar CSS de Mapbox directamente
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 @Component({
   selector: 'app-avisos',
@@ -37,13 +41,14 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
     MatTableModule,
     MatIconModule,
     ScrollingModule,
+    MapboxNavigationPanelComponent,
   ],
 })
 export class AvisosComponent implements AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'urgente', 'direccion', 'acciones'];
   isMapView = false;
-  private map: MapLibreMap | null = null;
-  private avisoMarkers: Map<string, Marker> = new Map();
+  private map: mapboxgl.Map | null = null;
+  private avisoMarkers: Map<string, mapboxgl.Marker> = new Map();
   selectedAviso: string | null = null;
 
   avisos: Aviso[] = [];
@@ -56,6 +61,17 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   ordenarPor = 'fecha_creacion';
   orden: 'asc' | 'desc' = 'desc';
   estadoFiltro = '';
+
+  // Estado para selección de avisos
+  avisosSeleccionados: Set<string> = new Set();
+  modoSeleccion = false;
+  
+  // Navegación en tiempo real
+  showNavigationPanel = false;
+  navigationWaypoints: MapboxCoordinates[] = [];
+  isMobile = false;
+  isNavigating = false;
+  showFullscreenMap = false;
 
   private destroy$ = new Subject<void>();
   private busquedaSubject = new Subject<string>();
@@ -75,15 +91,37 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private router: Router,
     private navigationService: NavigationService,
     private debugService: DebugService,
-    private mapsIntegrationService: MapsIntegrationService
+    private mapboxService: MapboxNavigationService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,addCircle,searchOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,navigateOutline,expandOutline,listOutline,chevronDownCircleOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    addIcons({refreshOutline,alertCircleOutline,checkmarkCircleOutline,navigateOutline,addCircle,searchOutline,closeCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,play,stop,arrowForward,chevronDownCircleOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
     
     // Configurar debounce para búsqueda
     this.configurarBusqueda();
   }
 
   ngAfterViewInit() {
+    // Detectar si es móvil
+    this.isMobile = window.innerWidth <= 768;
+    
+    // Escuchar cambios de tamaño de ventana
+    window.addEventListener('resize', () => {
+      this.isMobile = window.innerWidth <= 768;
+    });
+
+    // Suscribirse a cambios de navegación de Mapbox
+    this.mapboxService.getCurrentNavigation()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(navigationRoute => {
+        if (navigationRoute) {
+          this.isNavigating = navigationRoute.isNavigating;
+          console.log('🧭 Estado de navegación actualizado:', {
+            navegando: this.isNavigating,
+            pasoActual: navigationRoute.currentStepIndex + 1,
+            totalPasos: navigationRoute.steps.length
+          });
+        }
+      });
+    
     // Primero probar la conexión a Supabase
     this.probarConexionSupabase();
     
@@ -238,13 +276,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     
-    // Limpiar mapa y marcadores
-    if (this.map) {
-      this.avisoMarkers.forEach(marker => marker.remove());
-      this.avisoMarkers.clear();
-      this.map.remove();
-      this.map = null;
-    }
+    // Limpiar mapa y marcadores usando Mapbox
+    this.mapboxService.destroyMap();
+    this.avisoMarkers.clear();
+    this.map = null;
     
     // Remover listeners de eventos
     document.removeEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
@@ -482,7 +517,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     this.avisoMarkers.forEach(marker => marker.remove());
     this.avisoMarkers.clear();
 
-    if (!this.avisos || this.avisos.length === 0) {
+    // Obtener avisos para mostrar (seleccionados o todos)
+    const avisosParaMostrar = this.getAvisosParaMapa();
+
+    if (!avisosParaMostrar || avisosParaMostrar.length === 0) {
       console.log('No hay avisos para mostrar en el mapa');
       return;
     }
@@ -490,9 +528,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     // Cache local para geocodificación
     const geocodeCache = new Map<string, [number, number]>();
     let processedCount = 0;
-    const totalAvisos = this.avisos.length;
+    const totalAvisos = avisosParaMostrar.length;
 
-    this.avisos.forEach((aviso, index) => {
+    avisosParaMostrar.forEach((aviso, index) => {
       if (!aviso.direccion_cliente_aviso) {
         console.log(`Aviso ${aviso.id} no tiene dirección`);
         processedCount++;
@@ -530,24 +568,47 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         });
       }, index * 200); // Delay de 200ms entre requests
     });
+
+    // Si hay avisos seleccionados, crear líneas de ruta después de un delay
+    if (this.avisosSeleccionados.size > 1) {
+      setTimeout(() => {
+        this.crearLineasDeRuta();
+        // Mostrar panel de navegación automáticamente
+        this.showNavigationPanel = true;
+      }, (avisosParaMostrar.length * 200) + 1000); // Esperar a que se procesen todos los marcadores
+    } else {
+      // Ocultar panel si no hay avisos seleccionados
+      this.showNavigationPanel = false;
+    }
   }
 
   /**
-   * Añade un marcador al mapa
+   * Añade un marcador al mapa con funcionalidades mejoradas
    */
   private addMarkerToMap(aviso: Aviso, coordinates: [number, number]): void {
     if (!this.map) return;
 
-    const popup = new Popup({ offset: 25 }).setHTML(
-      `<h3>${aviso.nombre_cliente_aviso}</h3><p>${aviso.descripcion_problema}</p>`
-    );
+    const isSelected = this.estaSeleccionado(aviso);
+    const markerColor = isSelected ? '#10B981' : '#4F46E5';
+    const markerSize = isSelected ? 'large' : 'medium';
 
-    const marker = new Marker({color: '#4F46E5'})
-      .setLngLat(coordinates)
-      .setPopup(popup)
-      .addTo(this.map);
+    // Crear marcador personalizado con Mapbox
+    const marker = this.mapboxService.addMarker({
+      latitude: coordinates[1],
+      longitude: coordinates[0],
+      address: aviso.direccion_cliente_aviso
+    }, {
+      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
+      color: markerColor,
+      size: markerSize as 'small' | 'medium' | 'large'
+    });
 
-    this.avisoMarkers.set(aviso.id, marker);
+    // Añadir evento de click al marcador
+    marker.getElement().addEventListener('click', () => {
+      this.centrarAvisoEnMapa(aviso);
+    });
+
+    this.avisoMarkers.set(aviso.id!, marker);
   }
 
   centrarAvisoEnMapa(aviso: Aviso, event?: Event) {
@@ -560,16 +621,15 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     // Establecer el aviso seleccionado
     this.selectedAviso = aviso.id;
 
-    const marker = this.avisoMarkers.get(aviso.id);
+    const marker = this.avisoMarkers.get(aviso.id!);
     if (marker && this.map) {
       const lngLat = marker.getLngLat();
       
-      // Usar una transición más suave y evitar scroll
-      this.map.flyTo({ 
-        center: [lngLat.lng, lngLat.lat], 
-        zoom: 15, 
-        essential: true,
-        duration: 1000 // Transición más suave
+      // Usar una transición más suave con Mapbox
+      this.map.flyTo({
+        center: [lngLat.lng, lngLat.lat],
+        zoom: 15,
+        duration: 1000
       });
       
       // Mostrar popup después de un pequeño delay
@@ -594,8 +654,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     }
 
     // Obtener coordenadas del marcador si existe
-    const marker = this.avisoMarkers.get(aviso.id);
-    let coordinates: MapCoordinates;
+    const marker = this.avisoMarkers.get(aviso.id!);
+    let coordinates: MapboxCoordinates;
 
     if (marker) {
       const lngLat = marker.getLngLat();
@@ -613,10 +673,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       };
     }
 
-    // Mostrar opciones de mapas
-    this.mapsIntegrationService.showMapsOptions(coordinates, {
-      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
-      zoom: 15
+    // Usar el servicio de Mapbox para abrir Google Maps
+    this.mapboxService.openGoogleMaps(coordinates, {
+      label: aviso.nombre_cliente_aviso
     });
   }
 
@@ -624,38 +683,7 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    * Abre directamente en Google Maps
    */
   abrirEnGoogleMaps(aviso: Aviso, event?: Event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    if (!aviso.direccion_cliente_aviso) {
-      console.warn('El aviso no tiene dirección');
-      return;
-    }
-
-    const marker = this.avisoMarkers.get(aviso.id);
-    let coordinates: MapCoordinates;
-
-    if (marker) {
-      const lngLat = marker.getLngLat();
-      coordinates = {
-        latitude: lngLat.lat,
-        longitude: lngLat.lng,
-        address: aviso.direccion_cliente_aviso
-      };
-    } else {
-      coordinates = {
-        latitude: 0,
-        longitude: 0,
-        address: aviso.direccion_cliente_aviso
-      };
-    }
-
-    this.mapsIntegrationService.openGoogleMaps(coordinates, {
-      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
-      zoom: 15
-    });
+    this.abrirEnMapasNativos(aviso, event);
   }
 
   /**
@@ -672,8 +700,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const marker = this.avisoMarkers.get(aviso.id);
-    let coordinates: MapCoordinates;
+    const marker = this.avisoMarkers.get(aviso.id!);
+    let coordinates: MapboxCoordinates;
 
     if (marker) {
       const lngLat = marker.getLngLat();
@@ -690,9 +718,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       };
     }
 
-    this.mapsIntegrationService.openAppleMaps(coordinates, {
-      label: `${aviso.nombre_cliente_aviso} - ${aviso.descripcion_problema}`,
-      zoom: 15
+    // Usar el servicio de Mapbox para abrir Apple Maps
+    this.mapboxService.openAppleMaps(coordinates, {
+      label: aviso.nombre_cliente_aviso
     });
   }
 
@@ -702,23 +730,15 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       setTimeout(() => {
         const mapContainer = document.getElementById('map');
         if (mapContainer && !this.map) {
-          console.log('Inicializando mapa...');
-          this.map = new MapLibreMap({
-            container: 'map',
-            style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${environment.maptilerApiKey}`,
-            center: [ -3.703790, 40.416775 ], // MapLibre usa [lng, lat]
+          console.log('Inicializando mapa con Mapbox...');
+          this.map = this.mapboxService.initializeMap('map', {
+            center: [-3.703790, 40.416775], // Mapbox usa [lng, lat]
             zoom: 12
           });
 
-          this.map.on('load', () => {
-            console.log('Mapa cargado correctamente');
-            this.map!.resize();
-            this.plotAvisosOnMap(); // Llamar a la función para pintar los marcadores
-          });
-
-          this.map.on('error', (error) => {
-            console.error('Error al cargar el mapa:', error);
-          });
+          // El mapa de Mapbox se inicializa inmediatamente
+          console.log('Mapa Mapbox cargado correctamente');
+          this.plotAvisosOnMap(); // Llamar a la función para pintar los marcadores
         } else if (this.isMapView && !this.map) {
           // Si el contenedor no está disponible, reintentar después de un delay
           console.log('Contenedor del mapa no disponible, reintentando...');
@@ -743,11 +763,9 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
       }, 50);
     } else {
       if (this.map) {
-        // Limpiar marcadores antes de remover el mapa
-        this.avisoMarkers.forEach(marker => marker.remove());
+        // Limpiar marcadores y mapa usando Mapbox
+        this.mapboxService.destroyMap();
         this.avisoMarkers.clear();
-        
-        this.map.remove();
         this.map = null;
       }
       this.cdr.detectChanges();
@@ -1039,6 +1057,174 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Activa/desactiva el modo de selección de avisos
+   */
+  toggleModoSeleccion() {
+    this.modoSeleccion = !this.modoSeleccion;
+    if (!this.modoSeleccion) {
+      this.avisosSeleccionados.clear();
+    }
+    this.actualizarMapaConSeleccion();
+  }
+
+  /**
+   * Selecciona o deselecciona un aviso
+   */
+  toggleSeleccionAviso(aviso: Aviso, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    if (!this.modoSeleccion) {
+      this.modoSeleccion = true;
+    }
+
+    const avisoId = aviso.id!;
+    if (this.avisosSeleccionados.has(avisoId)) {
+      this.avisosSeleccionados.delete(avisoId);
+    } else {
+      this.avisosSeleccionados.add(avisoId);
+    }
+
+    this.actualizarMapaConSeleccion();
+  }
+
+  /**
+   * Verifica si un aviso está seleccionado
+   */
+  estaSeleccionado(aviso: Aviso): boolean {
+    return this.avisosSeleccionados.has(aviso.id!);
+  }
+
+  /**
+   * Obtiene el número de avisos seleccionados
+   */
+  getNumeroAvisosSeleccionados(): number {
+    return this.avisosSeleccionados.size;
+  }
+
+  /**
+   * Limpia la selección de avisos
+   */
+  limpiarSeleccion() {
+    this.avisosSeleccionados.clear();
+    this.actualizarMapaConSeleccion();
+    this.ocultarPanelNavegacion();
+  }
+
+  /**
+   * Muestra el panel de navegación
+   */
+  mostrarPanelNavegacion() {
+    this.showNavigationPanel = true;
+  }
+
+  /**
+   * Oculta el panel de navegación
+   */
+  ocultarPanelNavegacion() {
+    this.showNavigationPanel = false;
+    this.mapboxService.stopNavigation();
+  }
+
+  /**
+   * Alterna la visibilidad del panel de navegación (para debug)
+   */
+  toggleNavigationPanel() {
+    this.showNavigationPanel = !this.showNavigationPanel;
+    console.log('Panel de navegación:', this.showNavigationPanel ? 'Mostrado' : 'Oculto');
+    console.log('Waypoints:', this.navigationWaypoints);
+  }
+
+  /**
+   * Obtiene los avisos que deben mostrarse en el mapa
+   */
+  getAvisosParaMapa(): Aviso[] {
+    if (this.avisosSeleccionados.size === 0) {
+      // Si no hay avisos seleccionados, mostrar todos
+      return this.avisos;
+    } else {
+      // Mostrar solo los avisos seleccionados
+      return this.avisos.filter(aviso => this.avisosSeleccionados.has(aviso.id!));
+    }
+  }
+
+  /**
+   * Actualiza el mapa con la selección actual
+   */
+  private actualizarMapaConSeleccion() {
+    if (this.isMapView && this.map) {
+      this.plotAvisosOnMap();
+    }
+  }
+
+  /**
+   * Crea líneas de conexión entre los avisos seleccionados usando Mapbox
+   */
+  private crearLineasDeRuta() {
+    if (!this.map || this.avisosSeleccionados.size < 2) {
+      return;
+    }
+
+    console.log('🛣️ Creando ruta real con Mapbox para', this.avisosSeleccionados.size, 'avisos seleccionados');
+
+    // Obtener puntos de ruta de los avisos seleccionados
+    const routePoints: MapboxCoordinates[] = [];
+    
+    this.avisosSeleccionados.forEach(avisoId => {
+      const marker = this.avisoMarkers.get(avisoId);
+      if (marker) {
+        const lngLat = marker.getLngLat();
+        const aviso = this.avisos.find(a => a.id === avisoId);
+        routePoints.push({
+          latitude: lngLat.lat,
+          longitude: lngLat.lng,
+          address: aviso?.direccion_cliente_aviso
+        });
+      }
+    });
+
+    if (routePoints.length < 2) {
+      console.log('⚠️ No hay suficientes coordenadas para crear la ruta');
+      return;
+    }
+
+    // Preparar waypoints para navegación en tiempo real
+    this.navigationWaypoints = routePoints;
+
+    // Usar Mapbox para crear ruta real
+    this.mapboxService.createRoute(routePoints).then(route => {
+      console.log('✅ Ruta real creada con Mapbox:', {
+        distancia: this.mapboxService.formatDistance(route.totalDistance),
+        duracion: this.mapboxService.formatTime(route.totalDuration),
+        pasos: route.steps.length
+      });
+      
+      // Mostrar panel de navegación
+      this.showNavigationPanel = true;
+      
+      // Iniciar navegación en tiempo real automáticamente
+      console.log('🚀 Iniciando navegación en tiempo real...');
+      this.mapboxService.startNavigation(routePoints).subscribe(navigationRoute => {
+        if (navigationRoute) {
+          console.log('🧭 Navegación activa:', {
+            pasoActual: navigationRoute.currentStepIndex + 1,
+            totalPasos: navigationRoute.steps.length,
+            navegando: navigationRoute.isNavigating,
+            progreso: `${navigationRoute.progress.toFixed(1)}%`
+          });
+        }
+      });
+    }).catch(error => {
+      console.error('❌ Error al crear ruta con Mapbox:', error);
+      // Mostrar mensaje de error al usuario
+      this.error = 'Error al crear la ruta. Verifica tu conexión a internet.';
+    });
+  }
+
+
+  /**
    * Maneja la búsqueda de avisos con debounce
    */
   onBuscar(termino: string) {
@@ -1214,5 +1400,419 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
           this.loading = false;
         }
       });
+  }
+
+  /**
+   * Obtiene el paso actual de navegación
+   */
+  getCurrentStep() {
+    return this.mapboxService.getCurrentStep();
+  }
+
+  /**
+   * Obtiene los próximos pasos para mostrar en móvil
+   */
+  getUpcomingSteps() {
+    const currentRoute = this.mapboxService.getCurrentNavigationValue();
+    if (!currentRoute?.steps) return [];
+    
+    const currentIndex = currentRoute.currentStepIndex || 0;
+    return currentRoute.steps.slice(currentIndex + 1, currentIndex + 4); // Mostrar hasta 3 próximos pasos
+  }
+
+  /**
+   * Obtiene el icono de la maniobra
+   */
+  getManeuverIcon(maneuver: any): string {
+    return this.mapboxService.getManeuverIcon(maneuver);
+  }
+
+  /**
+   * Formatea la distancia
+   */
+  formatDistance(meters: number): string {
+    return this.mapboxService.formatDistance(meters);
+  }
+
+  /**
+   * Inicia la navegación
+   */
+  startNavigation() {
+    if (this.navigationWaypoints.length < 2) {
+      console.warn('Se necesitan al menos 2 waypoints para la navegación');
+      return;
+    }
+
+    console.log('🚀 Iniciando navegación desde componente avisos...');
+    this.mapboxService.startNavigation(this.navigationWaypoints);
+    // El estado isNavigating se actualizará automáticamente via la suscripción
+  }
+
+  /**
+   * Detiene la navegación
+   */
+  stopNavigation() {
+    console.log('🛑 Deteniendo navegación desde componente avisos...');
+    this.mapboxService.stopNavigation();
+    // El estado isNavigating se actualizará automáticamente via la suscripción
+  }
+
+  /**
+   * Avanza al siguiente paso
+   */
+  nextStep() {
+    console.log('➡️ Siguiente paso desde componente avisos...');
+    this.mapboxService.nextStep();
+  }
+
+  /**
+   * Abre el modal de opciones de navegación profesional
+   */
+  async abrirModalOpcionesNavegacion() {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado para la navegación');
+      return;
+    }
+
+    const avisosSeleccionados = this.avisos.filter(aviso => this.avisosSeleccionados.has(aviso.id!));
+
+    console.log('🚀 Abriendo modal de navegación profesional para', avisosSeleccionados.length, 'avisos');
+
+    const modal = await this.modalController.create({
+      component: ModalOpcionesNavegacionComponent,
+      cssClass: 'modal-opciones-navegacion',
+      componentProps: {
+        avisosSeleccionados: avisosSeleccionados
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    if (data?.opcion) {
+      console.log('🎯 Opción de navegación seleccionada:', data.opcion);
+      
+      switch (data.opcion) {
+        case 'google':
+          this.abrirRutaEnGoogleMaps();
+          break;
+        case 'apple':
+          this.abrirRutaEnAppleMaps();
+          break;
+        case 'app':
+          this.abrirModalMapaNavegacion();
+          break;
+      }
+    }
+  }
+
+  /**
+   * Abre el modal de mapa de navegación en pantalla completa
+   */
+  async abrirModalMapaNavegacion() {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado');
+      return;
+    }
+
+    console.log('🗺️ Abriendo modal de mapa de navegación...');
+
+    try {
+      // Obtener ubicación actual del usuario PRIMERO
+      const currentLocation = await this.obtenerUbicacionActual();
+      if (!currentLocation) {
+        console.error('❌ No se pudo obtener la ubicación actual del usuario');
+        this.error = 'No se pudo obtener tu ubicación actual. Verifica que tengas habilitado el GPS.';
+        return;
+      }
+
+      console.log('📍 Ubicación actual obtenida:', currentLocation);
+
+      // Crear array de waypoints empezando por la ubicación actual
+      const waypoints: MapboxCoordinates[] = [
+        {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          address: 'Tu ubicación actual'
+        }
+      ];
+      
+      // Agregar avisos seleccionados como destinos
+      for (const avisoId of this.avisosSeleccionados) {
+        const aviso = this.avisos.find(a => a.id === avisoId);
+        if (aviso && aviso.direccion_cliente_aviso) {
+          // Usar coordenadas del marcador si existe, sino geocodificar la dirección
+          const marker = this.avisoMarkers.get(avisoId);
+          if (marker) {
+            const lngLat = marker.getLngLat();
+            waypoints.push({
+              latitude: lngLat.lat,
+              longitude: lngLat.lng,
+              address: aviso.direccion_cliente_aviso
+            });
+          } else {
+            // Si no hay marcador, geocodificar la dirección
+            try {
+              const coordinates = await this.geocodingService.geocode(`${aviso.direccion_cliente_aviso}, España`).toPromise();
+              if (coordinates && coordinates.length === 2) {
+                waypoints.push({
+                  latitude: coordinates[1],
+                  longitude: coordinates[0],
+                  address: aviso.direccion_cliente_aviso
+                });
+                console.log(`✅ Dirección geocodificada para aviso ${avisoId}:`, coordinates);
+              } else {
+                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId}: ${aviso.direccion_cliente_aviso}`);
+                continue;
+              }
+            } catch (geocodeError) {
+              console.error(`❌ Error al geocodificar aviso ${avisoId}:`, geocodeError);
+              continue;
+            }
+          }
+        }
+      }
+
+      console.log('🎯 Waypoints para navegación:', waypoints.length, 'puntos');
+
+      // Validar que tenemos al menos un destino válido
+      if (waypoints.length < 2) {
+        console.error('❌ No se encontraron destinos válidos para la navegación');
+        this.error = 'No se pudieron geocodificar las direcciones de los avisos seleccionados. Verifica que las direcciones sean válidas.';
+        return;
+      }
+
+      // Importar el componente dinámicamente
+      const { ModalMapaNavegacionComponent } = await import('../../components/modal-mapa-navegacion/modal-mapa-navegacion.component');
+      
+      // Usar ModalController de Ionic para abrir el modal
+      const modal = await this.modalController.create({
+        component: ModalMapaNavegacionComponent,
+        cssClass: 'modal-mapa-navegacion-fullscreen',
+        componentProps: {
+          waypoints: waypoints
+        }
+      });
+
+      await modal.present();
+      console.log('✅ Modal de mapa presentado');
+
+    } catch (error) {
+      console.error('❌ Error al abrir modal de mapa:', error);
+      this.error = 'Error al preparar la navegación. Verifica tu conexión a internet y el GPS.';
+    }
+  }
+
+  /**
+   * Cierra el modal de mapa de navegación
+   */
+  cerrarModalMapaNavegacion() {
+    console.log('❌ Cerrando modal de mapa de navegación...');
+    this.showFullscreenMap = false;
+    this.mapboxService.stopNavigation();
+  }
+
+  /**
+   * Inicia la navegación profesional con Mapbox
+   */
+  private async iniciarNavegacionProfesional() {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado');
+      return;
+    }
+
+    console.log('🚀 Iniciando navegación profesional...');
+
+    try {
+      // Obtener ubicación actual del usuario PRIMERO
+      const currentLocation = await this.obtenerUbicacionActual();
+      if (!currentLocation) {
+        console.error('❌ No se pudo obtener la ubicación actual del usuario');
+        this.error = 'No se pudo obtener tu ubicación actual. Verifica que tengas habilitado el GPS.';
+        return;
+      }
+
+      console.log('📍 Ubicación actual obtenida:', currentLocation);
+
+      // Crear array de waypoints empezando por la ubicación actual
+      const waypoints: MapboxCoordinates[] = [
+        {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          address: 'Tu ubicación actual'
+        }
+      ];
+      
+      // Agregar avisos seleccionados como destinos
+      for (const avisoId of this.avisosSeleccionados) {
+        const aviso = this.avisos.find(a => a.id === avisoId);
+        if (aviso && aviso.direccion_cliente_aviso) {
+          // Usar coordenadas del marcador si existe, sino geocodificar la dirección
+          const marker = this.avisoMarkers.get(avisoId);
+          if (marker) {
+            const lngLat = marker.getLngLat();
+            waypoints.push({
+              latitude: lngLat.lat,
+              longitude: lngLat.lng,
+              address: aviso.direccion_cliente_aviso
+            });
+          } else {
+            // Si no hay marcador, geocodificar la dirección
+            try {
+              const coordinates = await this.geocodingService.geocode(`${aviso.direccion_cliente_aviso}, España`).toPromise();
+              if (coordinates && coordinates.length === 2) {
+                waypoints.push({
+                  latitude: coordinates[1],
+                  longitude: coordinates[0],
+                  address: aviso.direccion_cliente_aviso
+                });
+                console.log(`✅ Dirección geocodificada para aviso ${avisoId}:`, coordinates);
+              } else {
+                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId}: ${aviso.direccion_cliente_aviso}`);
+                // Saltar este aviso si no se puede geocodificar
+                continue;
+              }
+            } catch (geocodeError) {
+              console.error(`❌ Error al geocodificar aviso ${avisoId}:`, geocodeError);
+              // Saltar este aviso si hay error de geocodificación
+              continue;
+            }
+          }
+        }
+      }
+
+      console.log('🎯 Waypoints para navegación:', waypoints.length, 'puntos');
+      console.log('📍 Punto de partida:', waypoints[0]);
+      console.log('🎯 Destinos:', waypoints.slice(1));
+
+      // Validar que tenemos al menos un destino válido
+      if (waypoints.length < 2) {
+        console.error('❌ No se encontraron destinos válidos para la navegación');
+        this.error = 'No se pudieron geocodificar las direcciones de los avisos seleccionados. Verifica que las direcciones sean válidas.';
+        return;
+      }
+
+      // Crear ruta profesional
+      const route = await this.mapboxService.createRoute(waypoints);
+      console.log('✅ Ruta profesional creada:', route);
+
+      // Mostrar panel de navegación
+      this.showNavigationPanel = true;
+      this.navigationWaypoints = waypoints;
+      
+      console.log('🎯 Panel de navegación activado:', this.showNavigationPanel);
+      console.log('🎯 Waypoints para panel:', this.navigationWaypoints);
+      
+      // Forzar detección de cambios para renderizar el DOM
+      this.cdr.detectChanges();
+
+      // Si no estamos en vista de mapa, inicializar el mapa para la navegación
+      if (!this.isMapView) {
+        console.log('🗺️ Inicializando mapa para navegación...');
+        
+        // Esperar a que el DOM se renderice
+        setTimeout(() => {
+          const mapContainer = document.getElementById('map');
+          if (mapContainer) {
+            this.map = this.mapboxService.initializeMap('map', {
+              center: [currentLocation.longitude, currentLocation.latitude],
+              zoom: 15
+            });
+            
+            // Plotear waypoints en el mapa después de un pequeño delay
+            setTimeout(() => {
+              this.plotAvisosOnMap();
+            }, 500);
+          } else {
+            console.error('❌ Contenedor del mapa no encontrado después del delay');
+          }
+        }, 100);
+      }
+
+      // Iniciar navegación en tiempo real
+      this.mapboxService.startNavigation(waypoints).subscribe(navigationRoute => {
+        if (navigationRoute) {
+          console.log('🧭 Navegación profesional activa:', {
+            pasoActual: navigationRoute.currentStepIndex + 1,
+            totalPasos: navigationRoute.steps.length,
+            navegando: navigationRoute.isNavigating,
+            progreso: `${navigationRoute.progress.toFixed(1)}%`
+          });
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error al iniciar navegación profesional:', error);
+      this.error = 'Error al crear la ruta de navegación. Verifica tu conexión a internet y el GPS.';
+    }
+  }
+
+  /**
+   * Obtiene la ubicación actual del usuario
+   */
+  private async obtenerUbicacionActual(): Promise<{ latitude: number; longitude: number } | null> {
+    return new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        console.error('❌ Geolocalización no soportada');
+        resolve(null);
+        return;
+      }
+
+      console.log('📍 Obteniendo ubicación actual del usuario...');
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000 // 30 segundos de cache máximo
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          console.log('✅ Ubicación actual obtenida:', location);
+          resolve(location);
+        },
+        (error) => {
+          console.error('❌ Error al obtener ubicación:', error);
+          resolve(null);
+        },
+        options
+      );
+    });
+  }
+
+  /**
+   * Abre ruta en Google Maps
+   */
+  abrirRutaEnGoogleMaps() {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado');
+      return;
+    }
+
+    const avisosSeleccionados = this.avisos.filter(aviso => this.avisosSeleccionados.has(aviso.id!));
+    console.log('Abriendo ruta en Google Maps para', avisosSeleccionados.length, 'avisos');
+    
+    // La funcionalidad real se maneja en el modal
+    // Este método se mantiene para compatibilidad
+  }
+
+  /**
+   * Abre ruta en Apple Maps
+   */
+  abrirRutaEnAppleMaps() {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado');
+      return;
+    }
+
+    const avisosSeleccionados = this.avisos.filter(aviso => this.avisosSeleccionados.has(aviso.id!));
+    console.log('Abriendo ruta en Apple Maps para', avisosSeleccionados.length, 'avisos');
+    
+    // La funcionalidad real se maneja en el modal
+    // Este método se mantiene para compatibilidad
   }
 }

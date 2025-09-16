@@ -122,6 +122,14 @@ ion-modal {
   --max-height: 90vh;
   --min-width: 300px;
   --min-height: 400px;
+
+  &.modal-opciones-navegacion {
+    --width: 90%!important;
+    --max-width: 400px!important;
+    --height: auto!important;
+    --max-height: 70vh!important;
+    --border-radius: 20px!important;
+  }
 }
 
 /* Aplicar safe areas a todos los modales */
@@ -168,6 +176,14 @@ ion-modal.side-modal {
     --min-height: 100vh !important;
     --border-radius: 0 !important;
     --box-shadow: none !important;
+
+    &.modal-opciones-navegacion {
+      --width: 90%!important;
+      --max-width: 400px!important;
+      --height: auto!important;
+      --max-height: 70vh!important;
+      --border-radius: 20px!important;
+      }
   }
   
   /* Aplicar safe areas específicas para móviles */

@@ -1,11 +1,8 @@
 <ion-content>
   <!-- IonRefresher para pull-to-refresh -->
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
-    <ion-refresher-content
-      pullingIcon="chevron-down-circle-outline"
-      pullingText="Desliza hacia abajo para actualizar"
-      refreshingSpinner="circles"
-      refreshingText="Actualizando avisos...">
+    <ion-refresher-content pullingIcon="chevron-down-circle-outline" pullingText="Desliza hacia abajo para actualizar"
+      refreshingSpinner="circles" refreshingText="Actualizando avisos...">
     </ion-refresher-content>
   </ion-refresher>
 
@@ -36,10 +33,29 @@
       <div class="table-header-container">
         <div class="table-header-left desktop-only">
           <div class="table-title">{{ isMapView ? 'Mapa de avisos' : 'Lista de avisos' }}</div>
-          <div class="table-meta">Avisos: {{ totalAvisos }}</div>
+          <div class="table-meta">
+            Avisos: {{ totalAvisos }}
+            <span *ngIf="getNumeroAvisosSeleccionados() > 0" class="seleccionados-info">
+              | Seleccionados: {{ getNumeroAvisosSeleccionados() }}
+              <span *ngIf="getNumeroAvisosSeleccionados() > 1" class="ruta-info">
+                | Ruta activa - Usa los botones para navegación real
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div class="mobile-search-nav">
+          <div class="mobile-search">
+            <input type="text" placeholder="Buscar aviso..." />
+            <ion-icon name="search-outline"></ion-icon>
+          </div>
         </div>
 
         <div class="mobile-buttons">
+          <button class="btn-seleccion" [class.active]="modoSeleccion" (click)="toggleModoSeleccion()"
+            title="Modo selección">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </button>
           <button class="btn-map" (click)="toggleView()">
             <ion-icon [name]="isMapView ? 'list-outline' : 'map-outline'"></ion-icon>
           </button>
@@ -47,14 +63,18 @@
             <ion-icon name="add-circle"></ion-icon>
           </button>
         </div>
-
       </div>
 
-      <!-- Mobile Search Bar -->
-      <div class="mobile-search">
-        <input type="text" placeholder="Buscar aviso..." />
-        <ion-icon name="search-outline"></ion-icon>
-      </div>
+      <!-- Mobile Search and Navigation -->
+
+
+       <!-- Mobile Navigation Button -->
+       <div *ngIf="getNumeroAvisosSeleccionados() > 0" class="mobile-navigation-button">
+         <button class="btn-navegacion-mobile" (click)="abrirModalOpcionesNavegacion()">
+           <ion-icon name="navigate-outline"></ion-icon>
+           <span>Navegar ({{ getNumeroAvisosSeleccionados() }})</span>
+         </button>
+       </div>
 
       <!-- Desktop Search and Actions -->
       <div class="table-search desktop-only">
@@ -63,6 +83,21 @@
           <option>Ordenar por: Recientes</option>
         </select>
         <div class="header-actions">
+          <button class="btn-seleccion" [class.active]="modoSeleccion" (click)="toggleModoSeleccion()"
+            title="Modo selección">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            {{ modoSeleccion ? 'Salir selección' : 'Seleccionar avisos' }}
+          </button>
+          <button *ngIf="getNumeroAvisosSeleccionados() > 0" class="btn-limpiar" (click)="limpiarSeleccion()"
+            title="Limpiar selección">
+            <ion-icon name="close-circle-outline"></ion-icon>
+            Limpiar ({{ getNumeroAvisosSeleccionados() }})
+          </button>
+          <button *ngIf="getNumeroAvisosSeleccionados() > 0" class="btn-navegacion-desktop" (click)="abrirModalOpcionesNavegacion()"
+            title="Opciones de navegación">
+            <ion-icon name="navigate-outline"></ion-icon>
+            Navegar ({{ getNumeroAvisosSeleccionados() }})
+          </button>
           <button class="btn-map" (click)="toggleView()">
             <ion-icon [name]="isMapView ? 'list-outline' : 'map-outline'"></ion-icon>
             {{ isMapView ? 'Lista de avisos' : 'Mapa de avisos' }}
@@ -80,9 +115,10 @@
     <ng-container *ngIf="!isMapView">
       <!-- Compact Table View (replaces desktop table and mobile cards) -->
       <div *ngIf="avisos.length > 0" class="compact-avisos-table">
-        <div class="avisos-table">
+        <div class="avisos-table" [class.modo-seleccion]="modoSeleccion">
           <div class="table-header">
             <div class="header-row">
+              <div class="header-cell" *ngIf="modoSeleccion">Seleccionar</div>
               <div class="header-cell">Número</div>
               <div class="header-cell desktop-only">Estado</div>
               <div class="header-cell">Cliente</div>
@@ -93,15 +129,22 @@
             </div>
           </div>
           <div class="table-body">
-                            <div *ngFor="let aviso of avisos; let i = index" class="aviso-row" style="justify-content: start;" [ngClass]="{
+            <div *ngFor="let aviso of avisos; let i = index" class="aviso-row" style="justify-content: start;"
+              [ngClass]="{
                    'pendiente': aviso.estado === 'Pendiente',
                    'en-curso': aviso.estado === 'En curso',
                    'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
                    'listo-para-facturar': aviso.estado === 'Listo para facturar',
                    'completado': aviso.estado === 'Completado',
-                   'cancelado': aviso.estado === 'Cancelado'
+                   'cancelado': aviso.estado === 'Cancelado',
+                   'seleccionado': estaSeleccionado(aviso)
                  }">
-              <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i + 1 }}</div>
+              <div class="aviso-cell seleccion-cell" *ngIf="modoSeleccion">
+                <input type="checkbox" [checked]="estaSeleccionado(aviso)"
+                  (change)="toggleSeleccionAviso(aviso, $event)" class="checkbox-seleccion">
+              </div>
+              <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i +
+                1 }}</div>
               <div class="aviso-cell estado-aviso desktop-only" style="justify-content: start;">
                 <span class="badge" [ngClass]="{
                         'yellow': aviso.estado === 'En curso',
@@ -123,9 +166,11 @@
               </div>
               <div class="aviso-cell fecha-aviso desktop-only">{{ aviso.fecha_creacion | date:'dd/MM/yyyy' }}</div>
               <div class="aviso-cell urgente-aviso desktop-only">
-                <ion-icon *ngIf="aviso.urgencia === 'Alta' || aviso.es_urgente" name="alert-circle" class="urgente-icon" title="Aviso urgente">
+                <ion-icon *ngIf="aviso.urgencia === 'Alta' || aviso.es_urgente" name="alert-circle" class="urgente-icon"
+                  title="Aviso urgente">
                 </ion-icon>
-                <ion-icon *ngIf="aviso.urgencia !== 'Alta' && !aviso.es_urgente" name="close" class="no-urgente-icon" title="No urgente">
+                <ion-icon *ngIf="aviso.urgencia !== 'Alta' && !aviso.es_urgente" name="close" class="no-urgente-icon"
+                  title="No urgente">
                 </ion-icon>
               </div>
               <div class="aviso-cell acciones">
@@ -163,53 +208,37 @@
       <!-- Pagination -->
       <div *ngIf="avisos.length > 0 && totalAvisos > 0" class="table-pagination">
         <span class="pagination-info">
-          Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina, totalAvisos) }} de {{ totalAvisos }} avisos
+          Mostrando datos {{ ((paginaActual - 1) * porPagina) + 1 }} a {{ Math.min(paginaActual * porPagina,
+          totalAvisos) }} de {{ totalAvisos }} avisos
         </span>
         <div class="pagination">
           <!-- Botón Primera Página -->
-          <button 
-            class="pagination-btn" 
-            [disabled]="!puedeAnterior()"
-            (click)="primeraPagina()"
-            title="Primera página">
+          <button class="pagination-btn" [disabled]="!puedeAnterior()" (click)="primeraPagina()" title="Primera página">
             <ion-icon name="chevron-back-outline"></ion-icon>
             <ion-icon name="chevron-back-outline"></ion-icon>
           </button>
 
           <!-- Botón Página Anterior -->
-          <button 
-            class="pagination-btn" 
-            [disabled]="!puedeAnterior()"
-            (click)="paginaAnterior()"
+          <button class="pagination-btn" [disabled]="!puedeAnterior()" (click)="paginaAnterior()"
             title="Página anterior">
             <ion-icon name="chevron-back-outline"></ion-icon>
           </button>
 
           <!-- Páginas -->
           <ng-container *ngFor="let pagina of obtenerRangoPaginas()">
-            <button 
-              class="pagination-btn" 
-              [class.active]="pagina === paginaActual"
-              (click)="cambiarPagina(pagina)">
+            <button class="pagination-btn" [class.active]="pagina === paginaActual" (click)="cambiarPagina(pagina)">
               {{ pagina }}
             </button>
           </ng-container>
 
           <!-- Botón Página Siguiente -->
-          <button 
-            class="pagination-btn" 
-            [disabled]="!puedeSiguiente()"
-            (click)="paginaSiguiente()"
+          <button class="pagination-btn" [disabled]="!puedeSiguiente()" (click)="paginaSiguiente()"
             title="Página siguiente">
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </button>
 
           <!-- Botón Última Página -->
-          <button 
-            class="pagination-btn" 
-            [disabled]="!puedeSiguiente()"
-            (click)="ultimaPagina()"
-            title="Última página">
+          <button class="pagination-btn" [disabled]="!puedeSiguiente()" (click)="ultimaPagina()" title="Última página">
             <ion-icon name="chevron-forward-outline"></ion-icon>
             <ion-icon name="chevron-forward-outline"></ion-icon>
           </button>
@@ -236,9 +265,10 @@
         <div class="map-list-container">
 
           <div class="map-avisos-table">
-            <div class="avisos-table">
+            <div class="avisos-table" [class.modo-seleccion]="modoSeleccion">
               <div class="table-header">
                 <div class="header-row">
+                  <div class="header-cell" *ngIf="modoSeleccion">Seleccionar</div>
                   <div class="header-cell">Número</div>
                   <div class="header-cell">Cliente</div>
                   <div class="header-cell">Detalle</div>
@@ -250,9 +280,15 @@
                        'pendiente': aviso.estado === 'Pendiente',
                        'en-curso': aviso.estado === 'En curso',
                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
-                       'listo-para-facturar': aviso.estado === 'Listo para facturar'
+                       'listo-para-facturar': aviso.estado === 'Listo para facturar',
+                       'seleccionado': estaSeleccionado(aviso)
                      }" (click)="centrarAvisoEnMapa(aviso, $event)">
-                  <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i + 1 }}</div>
+                  <div class="aviso-cell seleccion-cell" *ngIf="modoSeleccion">
+                    <input type="checkbox" [checked]="estaSeleccionado(aviso)"
+                      (change)="toggleSeleccionAviso(aviso, $event)" class="checkbox-seleccion">
+                  </div>
+                  <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) +
+                    i + 1 }}</div>
                   <div class="aviso-cell nombre-cliente">{{ aviso.nombre_cliente_aviso }}</div>
                   <div class="aviso-cell detalle-servicio">
                     <div class="detalle-texto" [title]="aviso.descripcion_problema">
@@ -263,13 +299,16 @@
                     <button class="btn-mapa" (click)="centrarAvisoEnMapa(aviso, $event)" title="Ir al punto en el mapa">
                       <ion-icon name="map-outline"></ion-icon>
                     </button>
-                    <button class="btn-navegar" (click)="$event.stopPropagation(); abrirEnMapasNativos(aviso, $event)" title="Abrir en mapas nativos">
+                    <button class="btn-navegar" (click)="$event.stopPropagation(); abrirEnMapasNativos(aviso, $event)"
+                      title="Abrir en mapas nativos">
                       <ion-icon name="navigate-outline"></ion-icon>
                     </button>
-                    <button class="btn-ver" (click)="$event.stopPropagation(); verDetalleAviso(aviso)" title="Ver detalles">
+                    <button class="btn-ver" (click)="$event.stopPropagation(); verDetalleAviso(aviso)"
+                      title="Ver detalles">
                       <ion-icon name="eye-outline"></ion-icon>
                     </button>
-                    <button class="btn-eliminar" (click)="$event.stopPropagation(); eliminarAviso(aviso)" title="Eliminar aviso">
+                    <button class="btn-eliminar" (click)="$event.stopPropagation(); eliminarAviso(aviso)"
+                      title="Eliminar aviso">
                       <ion-icon name="trash-outline"></ion-icon>
                     </button>
                   </div>
@@ -286,6 +325,46 @@
             <ion-icon name="list-outline"></ion-icon>
             <span class="desktop-only">Volver a lista</span>
           </button>
+
+          <!-- Panel de navegación móvil integrado -->
+          <div class="mobile-navigation" *ngIf="showNavigationPanel && isMobile">
+            <div class="mobile-header">
+              <div class="current-instruction" *ngIf="getCurrentStep()">
+                <div class="instruction-row">
+                  <span class="maneuver-icon">{{ getManeuverIcon(getCurrentStep()?.maneuver) }}</span>
+                  <span class="instruction-text">{{ getCurrentStep()?.instruction }}</span>
+                </div>
+                <div class="instruction-distance">{{ formatDistance(getCurrentStep()?.distance || 0) }}</div>
+              </div>
+
+              <div class="mobile-controls">
+                <ion-button *ngIf="!isNavigating" color="success" size="small" (click)="startNavigation()">
+                  <ion-icon name="play"></ion-icon>
+                </ion-button>
+                <ion-button *ngIf="isNavigating" color="danger" size="small" (click)="stopNavigation()">
+                  <ion-icon name="stop"></ion-icon>
+                </ion-button>
+                <ion-button *ngIf="isNavigating" color="warning" size="small" (click)="nextStep()">
+                  <ion-icon name="arrow-forward"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+
+            <div class="upcoming-steps" *ngIf="getUpcomingSteps().length > 0">
+              <div class="step-item" *ngFor="let step of getUpcomingSteps(); let i = index">
+                <span class="maneuver-icon">{{ getManeuverIcon(step.maneuver) }}</span>
+                <span class="instruction-text">{{ step.instruction }}</span>
+                <span class="step-distance">{{ formatDistance(step.distance) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel de navegación desktop -->
+          <div class="desktop-navigation" *ngIf="showNavigationPanel && !isMobile">
+            <app-mapbox-navigation-panel [waypoints]="navigationWaypoints" class="navigation-panel">
+            </app-mapbox-navigation-panel>
+          </div>
+
           <!-- El mapa se renderizará aquí -->
           <div id="map"></div>
         </div>
@@ -314,3 +393,28 @@
 
   </section>
 </ion-content>
+
+<!-- Panel de navegación global (se muestra en cualquier vista) -->
+<div *ngIf="showNavigationPanel" class="global-navigation-panel">
+  <div style="padding: 10px; background: #4F46E5; color: white; text-align: center; font-weight: bold;">
+    🧭 PANEL DE NAVEGACIÓN ACTIVO
+  </div>
+  <app-mapbox-navigation-panel [waypoints]="navigationWaypoints" class="navigation-panel">
+  </app-mapbox-navigation-panel>
+</div>
+
+<!-- Mapa para navegación (se muestra cuando hay navegación activa) -->
+<div *ngIf="showNavigationPanel && !isMapView" class="navigation-map-container">
+  <div style="padding: 5px; background: #10B981; color: white; text-align: center; font-size: 12px; font-weight: bold;">
+    🗺️ MAPA DE NAVEGACIÓN
+  </div>
+  <div id="map" class="navigation-map"></div>
+</div>
+
+
+<!-- Indicador de debug temporal -->
+<div *ngIf="showNavigationPanel" style="position: fixed; top: 10px; left: 10px; background: red; color: white; padding: 10px; z-index: 10000; border-radius: 5px;">
+  DEBUG: Panel activo = {{ showNavigationPanel }}<br>
+  Waypoints = {{ navigationWaypoints.length }}<br>
+  Vista mapa = {{ isMapView }}
+</div>

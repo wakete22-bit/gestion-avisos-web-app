@@ -1,0 +1,401 @@
+.modal-mapa-navegacion {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #1a1a2e;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10001;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .header-icon {
+        font-size: 24px;
+        color: white;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: white;
+      }
+    }
+
+    .btn-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .modal-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    .instructions-panel {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      max-height: 40vh;
+      overflow-y: auto;
+
+      .btn-close {
+        border-radius: 50%;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: scale(1.1);
+        }
+      }
+
+      .current-instruction {
+        margin-bottom: 16px;
+
+        .instruction-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+
+          .step-number {
+            font-size: 14px;
+            color: #10B981;
+            font-weight: 600;
+          }
+
+          .progress-percentage {
+            font-size: 16px;
+            color: #4F46E5;
+            font-weight: 700;
+          }
+        }
+
+        .instruction-content {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+
+          .maneuver-icon {
+            font-size: 32px;
+            color: #4F46E5;
+            flex-shrink: 0;
+            margin-top: 4px;
+          }
+
+          .instruction-text {
+            flex: 1;
+
+            h3 {
+              margin: 0 0 8px 0;
+              font-size: 16px;
+              font-weight: 600;
+              color: white;
+              line-height: 1.4;
+            }
+
+            .instruction-distance {
+              font-size: 14px;
+              color: #10B981;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+
+      .upcoming-steps {
+        h4 {
+          margin: 0 0 12px 0;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          font-weight: 500;
+        }
+
+        .step-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .step-icon {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            flex-shrink: 0;
+          }
+
+          .step-text {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .step-instruction {
+              font-size: 13px;
+              color: rgba(255, 255, 255, 0.8);
+              line-height: 1.3;
+            }
+
+            .step-distance {
+              font-size: 12px;
+              color: #10B981;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+
+    .map-container {
+      flex: 1;
+      position: relative;
+      background: #2d3748;
+
+      .fullscreen-map {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 300px;
+        background: #2d3748;
+        border-radius: 8px;
+      }
+
+      .route-info-overlay {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 12px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        .route-stats {
+          display: flex;
+          gap: 16px;
+
+          .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+
+            ion-icon {
+              font-size: 14px;
+              color: #4F46E5;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .navigation-controls {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .btn-nav {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 48px;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      ion-icon {
+        font-size: 18px;
+      }
+
+      &.btn-start {
+        background: #10B981;
+        color: white;
+
+        &.active {
+          background: #EF4444;
+        }
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+      }
+
+      &.btn-next {
+        background: #F59E0B;
+        color: white;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+      }
+
+      &.btn-refresh {
+        background: #6B7280;
+        color: white;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+        }
+      }
+    }
+  }
+
+  .progress-bar-container {
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4F46E5 0%, #10B981 100%);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+    }
+
+    .progress-text {
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
+    }
+  }
+}
+
+// Responsive para móvil
+@media (max-width: 768px) {
+  .modal-mapa-navegacion {
+    .modal-header {
+      padding: 12px 16px;
+
+      .header-left h2 {
+        font-size: 16px;
+      }
+    }
+
+    .modal-content {
+      .instructions-panel {
+        padding: 12px 16px;
+        max-height: 32vh;
+
+        .current-instruction {
+          .instruction-content {
+            gap: 12px;
+
+            .maneuver-icon {
+              font-size: 28px;
+            }
+
+            .instruction-text h3 {
+              font-size: 15px;
+            }
+          }
+        }
+      }
+
+      .map-container {
+        .route-info-overlay {
+          top: 12px;
+          right: 12px;
+          padding: 8px 12px;
+
+          .route-stats {
+            gap: 12px;
+
+            .stat-item {
+              font-size: 11px;
+            }
+          }
+        }
+      }
+    }
+
+    .navigation-controls {
+      padding: 12px 16px;
+      gap: 8px;
+
+      .btn-nav {
+        padding: 10px 12px;
+        font-size: 13px;
+        min-height: 44px;
+
+        ion-icon {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .progress-bar-container {
+      padding: 8px 16px;
+    }
+  }
+}

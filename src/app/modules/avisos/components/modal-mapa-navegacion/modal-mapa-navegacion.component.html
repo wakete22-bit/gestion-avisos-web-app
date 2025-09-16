@@ -1,0 +1,104 @@
+<div class="modal-mapa-navegacion">
+  <!-- Header del modal -->
+  <!-- <div class="modal-header">
+    <div class="header-left">
+      <ion-icon name="navigate-outline" class="header-icon"></ion-icon>
+      <h2>Navegación en Tiempo Real</h2>
+    </div>
+    <button class="btn-close" (click)="closeModal()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div> -->
+
+  <!-- Contenido principal -->
+  <div class="modal-content">
+    <!-- Panel de instrucciones -->
+    <div class="instructions-panel" *ngIf="navigationRoute">
+      <div class="current-instruction">
+        <div class="instruction-header">
+          <span class="step-number">Paso {{ currentStepIndex + 1 }} de {{ navigationRoute.steps.length }}</span>
+          <span class="progress-percentage">{{ progress.toFixed(0) }}%</span>
+        </div>
+        
+        <div class="instruction-content" *ngIf="getCurrentStep()">
+          <div class="maneuver-icon">{{ getManeuverIcon(getCurrentStep()?.maneuver) }}</div>
+          <div class="instruction-text">
+            <h3>{{ getCurrentStep()?.instruction }}</h3>
+            <div class="instruction-distance">{{ formatDistance(getCurrentStep()?.distance || 0) }}</div>
+          </div>
+          <button class="btn-close" (click)="closeModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Próximos pasos -->
+      <div class="upcoming-steps" *ngIf="getUpcomingSteps().length > 0">
+        <h4>Próximos pasos:</h4>
+        <div class="step-item" *ngFor="let step of getUpcomingSteps(); let i = index">
+          <div class="step-icon">{{ getManeuverIcon(step.maneuver) }}</div>
+          <div class="step-text">
+            <span class="step-instruction">{{ step.instruction }}</span>
+            <span class="step-distance">{{ formatDistance(step.distance) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mapa de pantalla completa -->
+    <div class="map-container">
+      <div id="fullscreen-map" class="fullscreen-map"></div>
+      
+      <!-- Overlay de información de ruta -->
+      <div class="route-info-overlay" *ngIf="navigationRoute">
+        <div class="route-stats">
+          <div class="stat-item">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ formatDistance(remainingDistance) }}</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ formatTime(remainingTime) }}</span>
+          </div>
+          <div class="stat-item">
+            <ion-icon name="speedometer-outline"></ion-icon>
+            <span>{{ progress.toFixed(0) }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles de navegación -->
+  <div class="navigation-controls">
+    <button class="btn-nav btn-start" 
+            [class.active]="isNavigating" 
+            (click)="isNavigating ? stopNavigation() : startNavigation()">
+      <ion-icon [name]="isNavigating ? 'stop-outline' : 'play-outline'"></ion-icon>
+      <span>{{ isNavigating ? 'Detener' : 'Iniciar' }}</span>
+    </button>
+    
+    <button class="btn-nav btn-next" 
+            [disabled]="!isNavigating" 
+            (click)="nextStep()">
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+      <span>Siguiente</span>
+    </button>
+    
+    <button class="btn-nav btn-refresh" (click)="createRoute()">
+      <ion-icon name="refresh-outline"></ion-icon>
+      <span>Recalcular</span>
+    </button>
+  </div>
+
+  <!-- Barra de progreso -->
+  <!-- <div class="progress-bar-container" *ngIf="navigationRoute">
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="progress"></div>
+    </div>
+    <div class="progress-text">
+      {{ formatDistance(remainingDistance) }} restantes • {{ formatTime(remainingTime) }} restantes
+    </div>
+  </div> -->
+</div>

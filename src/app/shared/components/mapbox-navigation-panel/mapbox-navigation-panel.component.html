@@ -1,0 +1,183 @@
+<!-- Vista móvil compacta -->
+<div class="mobile-navigation" *ngIf="isMobile && navigationRoute">
+  <div class="mobile-header">
+    <div class="current-instruction" *ngIf="getCurrentStep()">
+      <div class="instruction-row">
+        <span class="maneuver-icon">{{ getManeuverIcon(getCurrentStep()?.maneuver) }}</span>
+        <span class="instruction-text">{{ getCurrentStep()?.instruction }}</span>
+      </div>
+      <div class="instruction-distance">{{ formatDistance(getCurrentStep()?.distance || 0) }}</div>
+    </div>
+    
+    <div class="mobile-controls">
+      <ion-button *ngIf="!isNavigating" color="success" size="small" (click)="startNavigation()">
+        <ion-icon name="play"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="isNavigating" color="danger" size="small" (click)="stopNavigation()">
+        <ion-icon name="stop"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="isNavigating" color="warning" size="small" (click)="nextStep()">
+        <ion-icon name="arrow-forward"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="upcoming-steps" *ngIf="getUpcomingSteps().length > 0">
+    <div class="step-item" 
+         *ngFor="let step of getUpcomingSteps(); let i = index">
+      <span class="maneuver-icon">{{ getManeuverIcon(step.maneuver) }}</span>
+      <span class="instruction-text">{{ step.instruction }}</span>
+      <span class="step-distance">{{ formatDistance(step.distance) }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Vista desktop completa -->
+<ion-card *ngIf="!isMobile && navigationRoute" class="mapbox-navigation-panel">
+  <ion-card-header>
+    <ion-card-title class="navigation-title">
+      <ion-icon name="navigate-outline"></ion-icon>
+      Navegación Profesional
+      <span class="route-status" [class.navigating]="isNavigating">
+        {{ isNavigating ? '🟢 Navegando' : '⏸️ Pausado' }}
+      </span>
+    </ion-card-title>
+  </ion-card-header>
+  
+  <ion-card-content>
+    <!-- Progreso de navegación mejorado -->
+    <div class="navigation-progress">
+      <div class="progress-header">
+        <ion-text class="progress-label">Progreso de la ruta</ion-text>
+        <ion-text class="progress-percentage">{{ getNavigationProgress().toFixed(0) }}%</ion-text>
+      </div>
+      <ion-progress-bar 
+        [value]="getNavigationProgress() / 100" 
+        color="primary"
+        class="progress-bar">
+      </ion-progress-bar>
+      <div class="progress-details">
+        <ion-text class="progress-distance">{{ formatDistance(getRemainingDistance()) }} restantes</ion-text>
+        <ion-text class="progress-time">{{ formatTime(getRemainingTime()) }} restantes</ion-text>
+      </div>
+    </div>
+
+    <!-- Información de la ruta profesional -->
+    <div class="route-info">
+      <div class="route-stats">
+        <div class="stat primary">
+          <ion-icon name="speedometer-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <ion-text class="stat-label">Distancia total</ion-text>
+            <ion-text class="stat-value">{{ formatDistance(navigationRoute?.totalDistance || 0) }}</ion-text>
+          </div>
+        </div>
+        <div class="stat primary">
+          <ion-icon name="time-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <ion-text class="stat-label">Tiempo total</ion-text>
+            <ion-text class="stat-value">{{ formatTime(navigationRoute?.totalDuration || 0) }}</ion-text>
+          </div>
+        </div>
+        <div class="stat secondary">
+          <ion-icon name="location-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <ion-text class="stat-label">Distancia restante</ion-text>
+            <ion-text class="stat-value">{{ formatDistance(getRemainingDistance()) }}</ion-text>
+          </div>
+        </div>
+        <div class="stat secondary">
+          <ion-icon name="hourglass-outline" class="stat-icon"></ion-icon>
+          <div class="stat-content">
+            <ion-text class="stat-label">Tiempo restante</ion-text>
+            <ion-text class="stat-value">{{ formatTime(getRemainingTime()) }}</ion-text>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso actual de navegación -->
+    <div *ngIf="getCurrentStep()" class="current-step">
+      <div class="step-header">
+        <ion-text class="step-number">Paso {{ (navigationRoute?.currentStepIndex || 0) + 1 }} de {{ navigationRoute?.steps.length || 0 }}</ion-text>
+        <ion-text class="step-status" [class.navigating]="isNavigating">
+          {{ isNavigating ? 'Navegando...' : 'Listo para navegar' }}
+        </ion-text>
+      </div>
+      
+      <div class="step-instruction">
+        <ion-icon 
+          [name]="getManeuverIcon(getCurrentStep()?.maneuver)" 
+          [style.color]="getManeuverColor(getCurrentStep()?.maneuver)"
+          class="maneuver-icon">
+        </ion-icon>
+        <ion-text class="instruction-text">
+          {{ getCurrentStep()?.instruction }}
+        </ion-text>
+      </div>
+      
+      <div class="step-details">
+        <ion-text class="step-distance">
+          {{ formatDistance(getCurrentStep()?.distance || 0) }}
+        </ion-text>
+        <ion-text class="step-duration">
+          {{ formatTime(getCurrentStep()?.duration || 0) }}
+        </ion-text>
+      </div>
+    </div>
+
+    <!-- Controles de navegación -->
+    <div class="navigation-controls">
+      <ion-button 
+        *ngIf="!isNavigating" 
+        (click)="startNavigation()" 
+        color="primary" 
+        fill="solid"
+        class="nav-btn-start">
+        <ion-icon name="play-outline" slot="start"></ion-icon>
+        Iniciar Navegación
+      </ion-button>
+      
+      <div *ngIf="isNavigating" class="nav-controls-active">
+        <ion-button 
+          (click)="stopNavigation()" 
+          color="danger" 
+          fill="outline"
+          class="nav-btn-stop">
+          <ion-icon name="stop-outline" slot="start"></ion-icon>
+          Detener
+        </ion-button>
+        
+        <ion-button 
+          (click)="nextStep()" 
+          color="warning" 
+          fill="outline"
+          class="nav-btn-next">
+          <ion-icon name="chevron-forward-outline" slot="start"></ion-icon>
+          Siguiente
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Lista de pasos -->
+    <div class="steps-list" *ngIf="navigationRoute">
+      <ion-text class="steps-title">Instrucciones de navegación:</ion-text>
+      <div class="step-item" 
+           *ngFor="let step of navigationRoute.steps; let i = index"
+           [class.current]="i === navigationRoute.currentStepIndex"
+           [class.completed]="i < navigationRoute.currentStepIndex">
+        <div class="step-number">{{ i + 1 }}</div>
+        <div class="step-content">
+          <ion-text class="step-instruction-text">{{ step.instruction }}</ion-text>
+          <ion-text class="step-distance-text">{{ formatDistance(step.distance) }}</ion-text>
+        </div>
+        <ion-icon 
+          *ngIf="i === navigationRoute.currentStepIndex" 
+          [name]="getManeuverIcon(step.maneuver)"
+          [style.color]="getManeuverColor(step.maneuver)"
+          class="current-step-icon">
+        </ion-icon>
+      </div>
+    </div>
+  </ion-card-content>
+</ion-card>

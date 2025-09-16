@@ -1,0 +1,558 @@
+.mapbox-navigation-panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 420px;
+  max-height: 85vh;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 50vh;
+    border-radius: 0;
+    font-size: 14px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.navigation-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  
+  .route-status {
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    
+    &.navigating {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10B981;
+      animation: pulse 2s infinite;
+    }
+  }
+}
+
+.navigation-progress {
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    
+    .progress-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .progress-percentage {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #10B981;
+    }
+  }
+  
+  .progress-bar {
+    margin-bottom: 12px;
+    --background: rgba(255, 255, 255, 0.1);
+    --progress-background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+    height: 8px;
+    border-radius: 4px;
+  }
+  
+  .progress-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .progress-distance,
+    .progress-time {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 500;
+    }
+  }
+}
+
+.route-info {
+  margin-bottom: 20px;
+  
+  .route-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-2px);
+      }
+      
+      &.primary {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+      
+      &.secondary {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.2);
+      }
+      
+      .stat-icon {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        flex-shrink: 0;
+      }
+      
+      .stat-content {
+        flex: 1;
+        min-width: 0;
+      }
+      
+      .stat-label {
+        display: block;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      
+      .stat-value {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        line-height: 1.2;
+      }
+    }
+  }
+}
+
+.current-step {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(10px);
+  
+  .step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    
+    .step-number {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .step-status {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+      
+      &.navigating {
+        color: #10B981;
+        font-weight: 600;
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+  
+  .step-instruction {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    
+    .maneuver-icon {
+      font-size: 1.5rem;
+    }
+    
+    .instruction-text {
+      font-size: 1rem;
+      font-weight: 500;
+      color: white;
+    }
+  }
+  
+  .step-details {
+    display: flex;
+    justify-content: space-between;
+    
+    .step-distance,
+    .step-duration {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+.navigation-controls {
+  margin-bottom: 16px;
+  
+  ion-button {
+    --background: rgba(255, 255, 255, 0.2);
+    --color: white;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+  
+  .nav-btn-start {
+    width: 100%;
+  }
+  
+  .nav-controls-active {
+    display: flex;
+    gap: 8px;
+    
+    ion-button {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.steps-list {
+  .steps-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 12px;
+  }
+  
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    &.current {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 0 -12px;
+      animation: pulse 2s infinite;
+    }
+    
+    &.completed {
+      opacity: 0.6;
+    }
+    
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    
+    .step-content {
+      flex: 1;
+      
+      .step-instruction-text {
+        display: block;
+        font-size: 0.9rem;
+        color: white;
+        margin-bottom: 2px;
+      }
+      
+      .step-distance-text {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+    
+    .current-step-icon {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+// Animaciones
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+// Estilos para navegación móvil compacta
+.mobile-navigation {
+  background: #1a1a2e;
+  color: white;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: #1a1a2e;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    
+    .current-instruction {
+      flex: 1;
+      
+      .instruction-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 4px;
+        
+        .maneuver-icon {
+          font-size: 1.5rem;
+          color: #4F46E5;
+        }
+        
+        .instruction-text {
+          font-size: 1rem;
+          font-weight: 500;
+          color: white;
+          flex: 1;
+        }
+      }
+      
+      .instruction-distance {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin-left: 27px;
+      }
+    }
+    
+    .mobile-controls {
+      display: flex;
+      gap: 8px;
+      
+      ion-button {
+        --padding-start: 8px;
+        --padding-end: 8px;
+        --border-radius: 20px;
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+  
+  .upcoming-steps {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #1a1a2e;
+    
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .maneuver-icon {
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.6);
+        width: 20px;
+        text-align: center;
+      }
+      
+      .instruction-text {
+        flex: 1;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.3;
+      }
+      
+      .step-distance {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+// Responsive mejorado para móvil
+@media (max-width: 768px) {
+  .route-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .current-step {
+    padding: 12px;
+    
+    .step-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .step-instruction {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+  
+  .navigation-controls {
+    .nav-controls-active {
+      flex-direction: column;
+      gap: 8px;
+      
+      ion-button {
+        width: 100%;
+        font-size: 0.85rem;
+        --padding-start: 12px;
+        --padding-end: 12px;
+      }
+    }
+  }
+  
+  .steps-list {
+    .step-item {
+      padding: 8px 0;
+      
+      .step-content {
+        .step-instruction-text {
+          font-size: 0.85rem;
+          line-height: 1.3;
+        }
+        
+        .step-distance-text {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .mapbox-navigation-panel {
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    max-height: 65vh;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  
+  .route-stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    
+    .stat {
+      padding: 8px;
+      
+      .stat-label {
+        font-size: 0.75rem;
+      }
+      
+      .stat-value {
+        font-size: 1rem;
+      }
+    }
+  }
+  
+  .current-step {
+    padding: 10px;
+    margin-bottom: 12px;
+    
+    .step-instruction {
+      .instruction-text {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+    }
+    
+    .step-details {
+      flex-direction: column;
+      gap: 4px;
+      
+      .step-distance,
+      .step-duration {
+        font-size: 0.8rem;
+      }
+    }
+  }
+  
+  .steps-list {
+    .steps-title {
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+    
+    .step-item {
+      padding: 6px 0;
+      
+      .step-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.7rem;
+      }
+      
+      .step-content {
+        .step-instruction-text {
+          font-size: 0.8rem;
+        }
+        
+        .step-distance-text {
+          font-size: 0.7rem;
+        }
+      }
+    }
+  }
+}

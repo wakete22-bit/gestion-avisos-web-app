@@ -53,7 +53,7 @@
             "styles": [
               "src/global.scss",
               "src/theme/variables.scss",
-              "node_modules/maplibre-gl/dist/maplibre-gl.css"
+              "node_modules/mapbox-gl/dist/mapbox-gl.css"
             ],
             "scripts": [],
             "browser": "src/main.ts"

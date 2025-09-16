@@ -1,0 +1,48 @@
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Opciones de Navegación</h2>
+      <button class="btn-cerrar" (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <p class="descripcion">
+        Has seleccionado <strong>{{ avisosSeleccionados.length }} aviso{{ avisosSeleccionados.length > 1 ? 's' : '' }}</strong>. 
+        <br>
+        <span class="route-info">La ruta partirá desde tu ubicación actual hacia {{ avisosSeleccionados.length === 1 ? 'el destino' : 'todos los destinos' }} seleccionado{{ avisosSeleccionados.length > 1 ? 's' : '' }}.</span>
+      </p>
+
+      <div class="opciones-navegacion">
+        <button class="opcion-btn google-maps" (click)="abrirGoogleMaps()">
+          <div class="opcion-icon">
+            <ion-icon name="logo-google"></ion-icon>
+          </div>
+          <div class="opcion-content">
+            <h3>Google Maps</h3>
+            <p>Abrir ruta en Google Maps</p>
+          </div>
+        </button>
+
+        <button class="opcion-btn apple-maps" (click)="abrirAppleMaps()">
+          <div class="opcion-icon">
+            <ion-icon name="logo-apple"></ion-icon>
+          </div>
+          <div class="opcion-content">
+            <h3>Apple Maps</h3>
+            <p>Abrir ruta en Apple Maps</p>
+          </div>
+        </button>
+
+        <button class="opcion-btn app-navegacion" (click)="iniciarNavegacionApp()">
+          <div class="opcion-icon">
+            <ion-icon name="play-outline"></ion-icon>
+          </div>
+          <div class="opcion-content">
+            <h3>Navegación en la App</h3>
+            <p>Iniciar modo conducción en la aplicación</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
