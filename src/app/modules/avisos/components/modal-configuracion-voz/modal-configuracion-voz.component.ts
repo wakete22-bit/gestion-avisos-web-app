@@ -70,6 +70,13 @@ export class ModalConfiguracionVozComponent implements OnInit {
     // Buscar la voz actual
     const voices = this.mapboxService.getAvailableVoices();
     this.selectedVoice = voices.find(v => v.name === settings.voice) || voices[0] || null;
+    
+    // Si no hay voz seleccionada, esperar a que se carguen las voces
+    if (!this.selectedVoice && voices.length === 0) {
+      setTimeout(() => {
+        this.loadVoiceSettings();
+      }, 1000);
+    }
   }
 
   /**
@@ -78,10 +85,14 @@ export class ModalConfiguracionVozComponent implements OnInit {
   private loadAvailableVoices() {
     this.availableVoices = this.mapboxService.getAvailableVoices();
     
-    // Si no hay voces cargadas, esperar un poco
+    // Si no hay voces cargadas, esperar un poco y reintentar
     if (this.availableVoices.length === 0) {
       setTimeout(() => {
         this.availableVoices = this.mapboxService.getAvailableVoices();
+        // Recargar configuración si ahora hay voces
+        if (this.availableVoices.length > 0) {
+          this.loadVoiceSettings();
+        }
       }, 1000);
     }
   }
@@ -127,6 +138,9 @@ export class ModalConfiguracionVozComponent implements OnInit {
     if (voice) {
       this.selectedVoice = voice;
       this.mapboxService.setVoice(voice);
+      console.log('🎤 Voz seleccionada:', voice.name, voice.lang);
+    } else {
+      console.log('🎤 Voz no encontrada:', voiceName);
     }
   }
 

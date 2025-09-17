@@ -22,7 +22,24 @@ export class VoiceNavigationService {
 
   constructor() {
     this.speechSynthesis = window.speechSynthesis;
+    this.loadSavedVoice();
     this.initializeVoice();
+  }
+
+  /**
+   * Carga la voz guardada desde localStorage
+   */
+  private loadSavedVoice() {
+    try {
+      const savedVoice = localStorage.getItem('selectedVoice');
+      if (savedVoice) {
+        const voiceData = JSON.parse(savedVoice);
+        console.log('🎤 Cargando voz guardada:', voiceData.name);
+        // La voz se aplicará cuando estén disponibles
+      }
+    } catch (error) {
+      console.log('🎤 No se pudo cargar voz guardada:', error);
+    }
   }
 
   /**
@@ -33,8 +50,39 @@ export class VoiceNavigationService {
     if (this.speechSynthesis.getVoices().length === 0) {
       this.speechSynthesis.addEventListener('voiceschanged', () => {
         this.selectBestVoice();
+        this.applySavedVoice();
       });
     } else {
+      this.selectBestVoice();
+      this.applySavedVoice();
+    }
+  }
+
+  /**
+   * Aplica la voz guardada si está disponible
+   */
+  private applySavedVoice() {
+    try {
+      const savedVoice = localStorage.getItem('selectedVoice');
+      if (savedVoice) {
+        const voiceData = JSON.parse(savedVoice);
+        const voices = this.speechSynthesis.getVoices();
+        
+        // Buscar la voz guardada por nombre y URI
+        const foundVoice = voices.find(voice => 
+          voice.name === voiceData.name && voice.voiceURI === voiceData.voiceURI
+        );
+        
+        if (foundVoice) {
+          this.voice = foundVoice;
+          console.log('🎤 Voz guardada aplicada:', foundVoice.name);
+        } else {
+          // Si no se encuentra, seleccionar la mejor voz en español
+          this.selectBestVoice();
+        }
+      }
+    } catch (error) {
+      console.log('🎤 Error aplicando voz guardada:', error);
       this.selectBestVoice();
     }
   }
@@ -45,15 +93,30 @@ export class VoiceNavigationService {
   private selectBestVoice() {
     const voices = this.speechSynthesis.getVoices();
     
-    // Buscar voz en español
-    const spanishVoice = voices.find(voice => 
+    // Buscar voz en español con prioridad específica
+    let spanishVoice = voices.find(voice => 
       voice.lang.startsWith('es') && 
-      (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('Samantha'))
+      (voice.name.includes('Google') || voice.name.includes('Microsoft'))
     );
     
+    // Si no encuentra Google/Microsoft, buscar cualquier voz en español
+    if (!spanishVoice) {
+      spanishVoice = voices.find(voice => 
+        voice.lang.startsWith('es')
+      );
+    }
+    
+    // Si encuentra voz en español, usarla
     if (spanishVoice) {
       this.voice = spanishVoice;
-      console.log('🎤 Voz seleccionada:', spanishVoice.name, spanishVoice.lang);
+      console.log('🎤 Voz en español seleccionada:', spanishVoice.name, spanishVoice.lang);
+      
+      // Guardar la selección en localStorage
+      localStorage.setItem('selectedVoice', JSON.stringify({
+        name: spanishVoice.name,
+        lang: spanishVoice.lang,
+        voiceURI: spanishVoice.voiceURI
+      }));
     } else {
       // Fallback a la voz por defecto
       this.voice = voices[0] || null;
@@ -292,7 +355,18 @@ export class VoiceNavigationService {
    */
   setVoice(voice: SpeechSynthesisVoice) {
     this.voice = voice;
-    console.log('🎤 Voz cambiada a:', voice.name);
+    
+    // Guardar la selección en localStorage
+    try {
+      localStorage.setItem('selectedVoice', JSON.stringify({
+        name: voice.name,
+        lang: voice.lang,
+        voiceURI: voice.voiceURI
+      }));
+      console.log('🎤 Voz cambiada y guardada:', voice.name);
+    } catch (error) {
+      console.log('🎤 Error guardando voz:', error);
+    }
   }
 
   /**
