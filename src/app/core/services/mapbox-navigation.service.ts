@@ -55,6 +55,11 @@ export class MapboxNavigationService {
   private isInitialized = false;
   private htmlArrows: mapboxgl.Marker[] = [];
   private lastArrowUpdate = 0;
+  
+  // Control de notificaciones para evitar duplicados
+  private lastNotificationStepIndex = -1;
+  private lastNotificationTime = 0;
+  private notificationCooldown = 3000; // 3 segundos entre notificaciones
 
   constructor() {
     // Configurar token de Mapbox
@@ -762,13 +767,37 @@ export class MapboxNavigationService {
   }
 
   /**
-   * Envía notificación de navegación
+   * Envía notificación de navegación con control de duplicados
    */
   private sendNavigationNotification(route: MapboxNavigationRoute) {
     if (!route || !route.steps || route.steps.length === 0) return;
 
     const currentStep = route.steps[route.currentStepIndex];
     if (!currentStep) return;
+
+    const currentTime = Date.now();
+    const currentStepIndex = route.currentStepIndex;
+
+    // Verificar si ya se envió una notificación para este paso
+    if (this.lastNotificationStepIndex === currentStepIndex) {
+      return;
+    }
+
+    // Verificar cooldown para evitar notificaciones muy frecuentes
+    if (currentTime - this.lastNotificationTime < this.notificationCooldown) {
+      return;
+    }
+
+    // Solo enviar notificación si hay un cambio significativo de paso
+    // o si es la primera notificación
+    if (this.lastNotificationStepIndex !== -1 && 
+        Math.abs(currentStepIndex - this.lastNotificationStepIndex) < 1) {
+      return;
+    }
+
+    // Actualizar control de notificaciones
+    this.lastNotificationStepIndex = currentStepIndex;
+    this.lastNotificationTime = currentTime;
 
     // Crear notificación personalizada
     const notification = new Notification('🧭 Instrucción de Navegación', {
@@ -790,6 +819,8 @@ export class MapboxNavigationService {
       window.focus();
       notification.close();
     };
+
+    console.log('📱 Notificación de navegación enviada:', currentStep.instruction);
   }
 
   /**
@@ -2098,6 +2129,10 @@ export class MapboxNavigationService {
     this.currentRoute = null;
     this.currentPosition = null;
     this.navigationSubject.next(null);
+    
+    // Resetear control de notificaciones
+    this.lastNotificationStepIndex = -1;
+    this.lastNotificationTime = 0;
     
     console.log('✅ Navegación detenida y recursos limpiados');
   }
