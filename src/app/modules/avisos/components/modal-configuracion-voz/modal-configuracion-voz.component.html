@@ -1,103 +1,125 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Configuración de Voz</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="cerrar()">
-        <ion-icon name="close-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Configuración de Voz</h2>
+    <button class="btn-cerrar" (click)="cerrar()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
 
-<ion-content class="ion-padding">
-  <div class="config-container">
-    
+  <div class="modal-body">
+    <p class="descripcion">
+      Configura las notificaciones de voz para la navegación. 
+      <br>
+      <span class="voice-info">Las instrucciones se reproducirán automáticamente durante la navegación.</span>
+    </p>
+
     <!-- Toggle principal -->
-    <ion-item>
-      <ion-label>
-        <h2>Notificaciones de Voz</h2>
-        <p>Activar instrucciones de navegación por voz</p>
-      </ion-label>
-      <ion-toggle 
-        [(ngModel)]="voiceEnabled" 
-        (ionChange)="onVoiceEnabledChange()"
-        slot="end">
-      </ion-toggle>
-    </ion-item>
+    <div class="voice-toggle-section">
+      <div class="toggle-item">
+        <div class="toggle-content">
+          <h3>Notificaciones de Voz</h3>
+          <p>Activar instrucciones de navegación por voz</p>
+        </div>
+        <label class="toggle-switch">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="voiceEnabled" 
+            (change)="onVoiceEnabledChange()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
 
     <!-- Configuración de voz -->
     <div class="voice-settings" [class.disabled]="!voiceEnabled">
       
       <!-- Volumen -->
-      <ion-item>
-        <ion-icon name="volume-high-outline" slot="start"></ion-icon>
-        <ion-label>
-          <h3>Volumen</h3>
-          <p>{{ formatRangeValue(volume, 'volume') }}</p>
-        </ion-label>
-        <ion-range 
-          [(ngModel)]="volume" 
-          (ionChange)="onVolumeChange($event)"
-          min="0" 
-          max="100" 
-          step="5"
-          [disabled]="!voiceEnabled">
-        </ion-range>
-      </ion-item>
+      <div class="setting-item">
+        <div class="setting-icon">
+          <ion-icon name="volume-high-outline"></ion-icon>
+        </div>
+        <div class="setting-content">
+          <h4>Volumen</h4>
+          <div class="range-container">
+            <input 
+              type="range" 
+              [(ngModel)]="volume" 
+              (input)="onVolumeChange($event)"
+              min="0" 
+              max="100" 
+              step="5"
+              [disabled]="!voiceEnabled"
+              class="range-slider">
+            <span class="range-value">{{ formatRangeValue(volume, 'volume') }}</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Velocidad -->
-      <ion-item>
-        <ion-icon name="speedometer-outline" slot="start"></ion-icon>
-        <ion-label>
-          <h3>Velocidad</h3>
-          <p>{{ formatRangeValue(rate, 'rate') }}</p>
-        </ion-label>
-        <ion-range 
-          [(ngModel)]="rate" 
-          (ionChange)="onRateChange($event)"
-          min="10" 
-          max="200" 
-          step="10"
-          [disabled]="!voiceEnabled">
-        </ion-range>
-      </ion-item>
+      <div class="setting-item">
+        <div class="setting-icon">
+          <ion-icon name="speedometer-outline"></ion-icon>
+        </div>
+        <div class="setting-content">
+          <h4>Velocidad</h4>
+          <div class="range-container">
+            <input 
+              type="range" 
+              [(ngModel)]="rate" 
+              (input)="onRateChange($event)"
+              min="10" 
+              max="200" 
+              step="10"
+              [disabled]="!voiceEnabled"
+              class="range-slider">
+            <span class="range-value">{{ formatRangeValue(rate, 'rate') }}</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Tono -->
-      <ion-item>
-        <ion-icon name="musical-notes-outline" slot="start"></ion-icon>
-        <ion-label>
-          <h3>Tono</h3>
-          <p>{{ formatRangeValue(pitch, 'pitch') }}</p>
-        </ion-label>
-        <ion-range 
-          [(ngModel)]="pitch" 
-          (ionChange)="onPitchChange($event)"
-          min="50" 
-          max="200" 
-          step="10"
-          [disabled]="!voiceEnabled">
-        </ion-range>
-      </ion-item>
+      <div class="setting-item">
+        <div class="setting-icon">
+          <ion-icon name="musical-notes-outline"></ion-icon>
+        </div>
+        <div class="setting-content">
+          <h4>Tono</h4>
+          <div class="range-container">
+            <input 
+              type="range" 
+              [(ngModel)]="pitch" 
+              (input)="onPitchChange($event)"
+              min="50" 
+              max="200" 
+              step="10"
+              [disabled]="!voiceEnabled"
+              class="range-slider">
+            <span class="range-value">{{ formatRangeValue(pitch, 'pitch') }}</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Voz -->
-      <ion-item>
-        <ion-icon name="person-outline" slot="start"></ion-icon>
-        <ion-label>
-          <h3>Voz</h3>
-          <p>Selecciona la voz para las instrucciones</p>
-        </ion-label>
-        <ion-select 
-          [(ngModel)]="selectedVoice" 
-          (ionChange)="onVoiceChange($event)"
-          [disabled]="!voiceEnabled"
-          interface="popover">
-          <ion-select-option 
-            *ngFor="let voice of availableVoices" 
-            [value]="voice">
-            {{ getVoiceDisplayName(voice) }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
+      <div class="setting-item">
+        <div class="setting-icon">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="setting-content">
+          <h4>Voz</h4>
+          <select 
+            [(ngModel)]="selectedVoice" 
+            (change)="onVoiceChange($event)"
+            [disabled]="!voiceEnabled"
+            class="voice-select">
+            <option 
+              *ngFor="let voice of availableVoices" 
+              [value]="voice"
+              [selected]="selectedVoice === voice">
+              {{ getVoiceDisplayName(voice) }}
+            </option>
+          </select>
+        </div>
+      </div>
 
     </div>
 
@@ -107,45 +129,34 @@
       <p class="test-text">{{ testText }}</p>
       
       <div class="test-controls">
-        <ion-button 
+        <button 
+          class="btn-test btn-play" 
           (click)="playTest()" 
-          [disabled]="!voiceEnabled"
-          [fill]="isPlaying ? 'outline' : 'solid'"
-          color="primary">
-          <ion-icon 
-            [name]="isPlaying ? 'pause-outline' : 'play-outline'" 
-            slot="start">
-          </ion-icon>
+          [disabled]="!voiceEnabled">
+          <ion-icon [name]="isPlaying ? 'pause-outline' : 'play-outline'"></ion-icon>
           {{ isPlaying ? 'Pausar' : 'Reproducir' }}
-        </ion-button>
+        </button>
         
-        <ion-button 
+        <button 
+          class="btn-test btn-stop" 
           (click)="stopTest()" 
-          [disabled]="!voiceEnabled || !isPlaying"
-          fill="outline" 
-          color="medium">
-          <ion-icon name="stop-outline" slot="start"></ion-icon>
+          [disabled]="!voiceEnabled || !isPlaying">
+          <ion-icon name="stop-outline"></ion-icon>
           Detener
-        </ion-button>
+        </button>
       </div>
     </div>
 
     <!-- Botones de acción -->
     <div class="action-buttons">
-      <ion-button 
-        (click)="cerrar()" 
-        fill="outline" 
-        color="medium">
+      <button class="btn-action btn-cancel" (click)="cerrar()">
         Cancelar
-      </ion-button>
+      </button>
       
-      <ion-button 
-        (click)="guardar()" 
-        fill="solid" 
-        color="primary">
+      <button class="btn-action btn-save" (click)="guardar()">
         Guardar
-      </ion-button>
+      </button>
     </div>
 
   </div>
-</ion-content>
+</div>

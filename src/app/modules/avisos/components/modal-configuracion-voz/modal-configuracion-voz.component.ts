@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular/standalone';
-import { IonIcon, IonRange, IonToggle, IonSelect, IonSelectOption, IonButton, IonItem, IonLabel, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, volumeHighOutline, speedometerOutline, musicalNotesOutline, playOutline, pauseOutline, stopOutline, personOutline } from 'ionicons/icons';
 import { MapboxNavigationService } from '../../../../core/services/mapbox-navigation.service';
@@ -15,19 +15,7 @@ import { MapboxNavigationService } from '../../../../core/services/mapbox-naviga
   imports: [
     CommonModule,
     FormsModule,
-    IonIcon,
-    IonRange,
-    IonToggle,
-    IonSelect,
-    IonSelectOption,
-    IonButton,
-    IonItem,
-    IonLabel,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButtons
+    IonIcon
   ]
 })
 export class ModalConfiguracionVozComponent implements OnInit {
@@ -69,7 +57,9 @@ export class ModalConfiguracionVozComponent implements OnInit {
     
     // Buscar la voz actual
     const voices = this.mapboxService.getAvailableVoices();
-    this.selectedVoice = voices.find(v => v.name === settings.voice) || voices[0] || null;
+    if (voices.length > 0) {
+      this.selectedVoice = voices.find(v => v.name === settings.voice) || voices[0] || null;
+    }
     
     // Si no hay voz seleccionada, esperar a que se carguen las voces
     if (!this.selectedVoice && voices.length === 0) {
@@ -108,7 +98,7 @@ export class ModalConfiguracionVozComponent implements OnInit {
    * Maneja el cambio de volumen
    */
   onVolumeChange(event: any) {
-    this.volume = event.detail.value / 100;
+    this.volume = event.target.value / 100;
     this.mapboxService.setVoiceVolume(this.volume);
   }
 
@@ -116,7 +106,7 @@ export class ModalConfiguracionVozComponent implements OnInit {
    * Maneja el cambio de velocidad
    */
   onRateChange(event: any) {
-    this.rate = event.detail.value / 100;
+    this.rate = event.target.value / 100;
     this.mapboxService.setVoiceRate(this.rate);
   }
 
@@ -124,7 +114,7 @@ export class ModalConfiguracionVozComponent implements OnInit {
    * Maneja el cambio de tono
    */
   onPitchChange(event: any) {
-    this.pitch = event.detail.value / 100;
+    this.pitch = event.target.value / 100;
     this.mapboxService.setVoicePitch(this.pitch);
   }
 
@@ -132,15 +122,14 @@ export class ModalConfiguracionVozComponent implements OnInit {
    * Maneja el cambio de voz
    */
   onVoiceChange(event: any) {
-    const voiceName = event.detail.value;
-    const voice = this.availableVoices.find(v => v.name === voiceName);
+    const voice = event.target.value;
     
     if (voice) {
       this.selectedVoice = voice;
       this.mapboxService.setVoice(voice);
       console.log('🎤 Voz seleccionada:', voice.name, voice.lang);
     } else {
-      console.log('🎤 Voz no encontrada:', voiceName);
+      console.log('🎤 Voz no encontrada');
     }
   }
 
