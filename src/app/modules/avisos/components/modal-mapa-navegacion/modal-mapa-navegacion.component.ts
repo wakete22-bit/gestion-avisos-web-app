@@ -40,6 +40,27 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
     if (this.waypoints.length > 0) {
       this.initializeMapAndNavigation();
     }
+    
+    // Suscribirse a cambios en el estado de navegación
+    this.mapboxService.getCurrentNavigation()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((route: MapboxNavigationRoute | null) => {
+        if (route) {
+          this.navigationRoute = route;
+          this.isNavigating = route.isNavigating;
+          this.currentStepIndex = route.currentStepIndex;
+          this.progress = route.progress;
+          this.remainingDistance = route.remainingDistance;
+          this.remainingTime = route.remainingTime;
+        } else {
+          this.navigationRoute = null;
+          this.isNavigating = false;
+          this.currentStepIndex = 0;
+          this.progress = 0;
+          this.remainingDistance = 0;
+          this.remainingTime = 0;
+        }
+      });
   }
 
   ngOnDestroy() {
@@ -125,12 +146,29 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
 
   startNavigation() {
     console.log('🚀 Iniciando navegación desde modal...');
-    this.mapboxService.startNavigation(this.waypoints);
+    this.mapboxService.startNavigation(this.waypoints).subscribe({
+      next: (route) => {
+        if (route) {
+          console.log('✅ Navegación iniciada correctamente');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al iniciar navegación:', error);
+      }
+    });
   }
 
   stopNavigation() {
     console.log('🛑 Deteniendo navegación desde modal...');
     this.mapboxService.stopNavigation();
+    
+    // Actualizar estado local inmediatamente
+    this.isNavigating = false;
+    this.navigationRoute = null;
+    this.currentStepIndex = 0;
+    this.progress = 0;
+    this.remainingDistance = 0;
+    this.remainingTime = 0;
   }
 
   nextStep() {
@@ -140,14 +178,26 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
 
   async closeModal() {
     console.log('❌ Cerrando modal de navegación...');
+    
+    // Detener navegación y limpiar estado
     this.stopNavigation();
+    
+    // Limpiar mapa
     this.cleanupMap();
+    
+    // Cerrar modal
     await this.modalController.dismiss();
   }
 
   private cleanupMap() {
-    if (this.map) {
-      this.mapboxService.destroyMap();
+    try {
+      if (this.map) {
+        console.log('🧹 Limpiando mapa del modal...');
+        this.mapboxService.destroyMap();
+        this.map = null;
+      }
+    } catch (error) {
+      console.warn('⚠️ Error al limpiar mapa:', error);
       this.map = null;
     }
   }

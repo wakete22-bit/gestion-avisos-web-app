@@ -1083,64 +1083,72 @@ export class MapboxNavigationService {
   private addNavigationLayer() {
     if (!this.map) return;
 
-    // Añadir capa de navegación activa
-    this.map.addSource('navigation-active', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: []
-      }
-    });
+    // Verificar si las fuentes ya existen antes de añadirlas
+    if (!this.map.getSource('navigation-active')) {
+      this.map.addSource('navigation-active', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+    }
 
-    // Añadir fuente para flechas direccionales
-    this.map.addSource('navigation-arrows', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: []
-      }
-    });
+    if (!this.map.getSource('navigation-arrows')) {
+      this.map.addSource('navigation-arrows', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+    }
 
-    // Añadir fuente para etiquetas de texto
-    this.map.addSource('navigation-labels', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: []
-      }
-    });
+    if (!this.map.getSource('navigation-labels')) {
+      this.map.addSource('navigation-labels', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: []
+        }
+      });
+    }
 
     // Capa para el paso actual con flechas
-    this.map.addLayer({
-      id: 'navigation-current-step',
-      type: 'line',
-      source: 'navigation-active',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#FF6B6B',
-        'line-width': 8,
-        'line-opacity': 0.9
-      }
-    });
+    if (!this.map.getLayer('navigation-current-step')) {
+      this.map.addLayer({
+        id: 'navigation-current-step',
+        type: 'line',
+        source: 'navigation-active',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#FF6B6B',
+          'line-width': 8,
+          'line-opacity': 0.9
+        }
+      });
+    }
 
     // Capa para pasos completados
-    this.map.addLayer({
-      id: 'navigation-completed-steps',
-      type: 'line',
-      source: 'navigation-active',
-      layout: {
-        'line-join': 'round',
-        'line-cap': 'round'
-      },
-      paint: {
-        'line-color': '#4ECDC4',
-        'line-width': 6,
-        'line-opacity': 0.7
-      }
-    });
+    if (!this.map.getLayer('navigation-completed-steps')) {
+      this.map.addLayer({
+        id: 'navigation-completed-steps',
+        type: 'line',
+        source: 'navigation-active',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#4ECDC4',
+          'line-width': 6,
+          'line-opacity': 0.7
+        }
+      });
+    }
 
     // Añadir flechas direccionales
     this.addDirectionalArrows();
@@ -1363,22 +1371,10 @@ export class MapboxNavigationService {
     let loadedIcons = 0;
     const totalIcons = Object.keys(icons).length;
 
-    Object.entries(icons).forEach(([name, dataUrl]) => {
-      this.map!.loadImage(dataUrl, (error, image) => {
-        if (error) {
-          console.error(`❌ Error cargando icono ${name}:`, error);
-        } else {
-          console.log(`✅ Icono ${name} cargado correctamente`);
-          this.map!.addImage(`${name}-icon`, image!);
-        }
-        
-        loadedIcons++;
-        if (loadedIcons === totalIcons) {
-          console.log('🎯 Todos los iconos cargados, creando capas...');
-          this.createArrowLayers();
-        }
-      });
-    });
+    // Comentado temporalmente - Mapbox GL JS no soporta SVG directamente
+    // Usar iconos de texto en su lugar
+    console.log('⚠️ Iconos SVG deshabilitados - usando iconos de texto');
+    this.createArrowLayers();
   }
 
   /**
@@ -1424,93 +1420,109 @@ export class MapboxNavigationService {
 
     try {
       // Capa para flechas de dirección (usando iconos SVG profesionales)
-      this.map.addLayer({
-        id: 'navigation-arrows',
-        type: 'symbol',
-        source: 'navigation-arrows',
-        filter: ['==', ['get', 'type'], 'arrow'],
-        layout: {
-          'icon-image': 'arrow-icon',
-          'icon-size': 0.6,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-rotation-alignment': 'map',
-          'icon-pitch-alignment': 'map',
-          'icon-rotate': ['get', 'bearing']
-        },
-        paint: {
-          'icon-opacity': 0.7
-        }
-      });
+      if (!this.map.getLayer('navigation-arrows')) {
+        this.map.addLayer({
+          id: 'navigation-arrows',
+          type: 'symbol',
+          source: 'navigation-arrows',
+          filter: ['==', ['get', 'type'], 'arrow'],
+          layout: {
+            'text-field': '→',
+            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+            'text-size': 20,
+            'text-anchor': 'center',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+            'text-rotation-alignment': 'map',
+            'text-pitch-alignment': 'map',
+            'text-rotate': ['get', 'bearing']
+          },
+          paint: {
+            'text-color': '#4285F4',
+            'text-halo-color': 'white',
+            'text-halo-width': 2,
+            'text-opacity': 0.8
+          }
+        });
+      }
 
       // Capa para maniobras (usando iconos SVG específicos)
-      this.map.addLayer({
-        id: 'navigation-maneuvers',
-        type: 'symbol',
-        source: 'navigation-arrows',
-        filter: ['==', ['get', 'type'], 'maneuver'],
-        layout: {
-          'icon-image': [
-            'case',
-            ['==', ['get', 'maneuverType'], 'turn'],
-            'turnRight-icon',
-            ['==', ['get', 'maneuverType'], 'turn-left'],
-            'turnLeft-icon',
-            ['==', ['get', 'maneuverType'], 'turn-right'],
-            'turnRight-icon',
-            ['==', ['get', 'maneuverType'], 'straight'],
-            'straight-icon',
-            ['==', ['get', 'maneuverType'], 'arrive'],
-            'arrive-icon',
-            ['==', ['get', 'maneuverType'], 'roundabout'],
-            'roundabout-icon',
-            ['==', ['get', 'maneuverType'], 'roundabout-exit-1'],
-            'roundaboutExit1-icon',
-            ['==', ['get', 'maneuverType'], 'roundabout-exit-2'],
-            'roundaboutExit2-icon',
-            ['==', ['get', 'maneuverType'], 'roundabout-exit-3'],
-            'roundaboutExit3-icon',
-            ['==', ['get', 'maneuverType'], 'sharp-right'],
-            'sharpRight-icon',
-            ['==', ['get', 'maneuverType'], 'sharp-left'],
-            'sharpLeft-icon',
-            'arrow-icon'
-          ],
-          'icon-size': 0.8,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-rotation-alignment': 'map',
-          'icon-pitch-alignment': 'map',
-          'icon-rotate': ['get', 'bearing']
-        },
-        paint: {
-          'icon-opacity': 0.8
-        }
-      });
+      if (!this.map.getLayer('navigation-maneuvers')) {
+        this.map.addLayer({
+          id: 'navigation-maneuvers',
+          type: 'symbol',
+          source: 'navigation-arrows',
+          filter: ['==', ['get', 'type'], 'maneuver'],
+          layout: {
+            'text-field': [
+              'case',
+              ['==', ['get', 'maneuverType'], 'turn'],
+              '↗',
+              ['==', ['get', 'maneuverType'], 'turn-left'],
+              '↖',
+              ['==', ['get', 'maneuverType'], 'turn-right'],
+              '↗',
+              ['==', ['get', 'maneuverType'], 'straight'],
+              '↑',
+              ['==', ['get', 'maneuverType'], 'arrive'],
+              '●',
+              ['==', ['get', 'maneuverType'], 'roundabout'],
+              '○',
+              ['==', ['get', 'maneuverType'], 'roundabout-exit-1'],
+              '①',
+              ['==', ['get', 'maneuverType'], 'roundabout-exit-2'],
+              '②',
+              ['==', ['get', 'maneuverType'], 'roundabout-exit-3'],
+              '③',
+              ['==', ['get', 'maneuverType'], 'sharp-right'],
+              '↗',
+              ['==', ['get', 'maneuverType'], 'sharp-left'],
+              '↖',
+              '→'
+            ],
+            'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+            'text-size': 24,
+            'text-anchor': 'center',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
+            'text-rotation-alignment': 'map',
+            'text-pitch-alignment': 'map',
+            'text-rotate': ['get', 'bearing']
+          },
+          paint: {
+            'text-color': '#4285F4',
+            'text-halo-color': 'white',
+            'text-halo-width': 2,
+            'text-opacity': 0.9
+          }
+        });
+      }
 
       // Capa para etiquetas de texto
-      this.map.addLayer({
-        id: 'navigation-labels',
-        type: 'symbol',
-        source: 'navigation-labels',
-        layout: {
-          'text-field': ['get', 'instruction'],
-          'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
-          'text-size': 12,
-          'text-offset': [0, -2],
-          'text-anchor': 'bottom',
-          'text-allow-overlap': true,
-          'text-ignore-placement': true
-        },
-        paint: {
-          'text-color': '#1F2937',
-          'text-halo-color': '#FFFFFF',
-          'text-halo-width': 2,
-          'text-halo-blur': 1
-        }
-      });
+      if (!this.map.getLayer('navigation-labels')) {
+        this.map.addLayer({
+          id: 'navigation-labels',
+          type: 'symbol',
+          source: 'navigation-labels',
+          layout: {
+            'text-field': ['get', 'instruction'],
+            'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            'text-size': 12,
+            'text-offset': [0, -2],
+            'text-anchor': 'bottom',
+            'text-allow-overlap': true,
+            'text-ignore-placement': true
+          },
+          paint: {
+            'text-color': '#1F2937',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 2,
+            'text-halo-blur': 1
+          }
+        });
+      }
 
-      console.log('✅ Capas de flechas profesionales creadas correctamente');
+      console.log('✅ Capas de flechas con iconos de texto creadas correctamente');
     } catch (error) {
       console.error('❌ Error creando capas de flechas:', error);
     }
@@ -2179,7 +2191,7 @@ export class MapboxNavigationService {
       this.watchId = null;
     }
     
-    // Limpiar ruta del mapa
+    // Limpiar ruta del mapa de forma segura
     this.clearRouteFromMap();
     
     // Limpiar flechas HTML
@@ -2194,10 +2206,22 @@ export class MapboxNavigationService {
       currentMarker.remove();
     }
     
-    // Resetear estado
+    // Resetear estado ANTES de notificar
     this.currentRoute = null;
     this.currentPosition = null;
-    this.navigationSubject.next(null);
+    
+    // Notificar que la navegación se ha detenido
+    this.navigationSubject.next({
+      isNavigating: false,
+      steps: [],
+      currentStepIndex: 0,
+      progress: 0,
+      remainingDistance: 0,
+      remainingTime: 0,
+      totalDistance: 0,
+      totalDuration: 0,
+      coordinates: []
+    });
     
     // Resetear control de notificaciones
     this.lastNotificationStepIndex = -1;
@@ -2222,37 +2246,57 @@ export class MapboxNavigationService {
   private clearRouteFromMap() {
     if (!this.map) return;
 
-    // Limpiar capas de ruta
-    const layersToRemove = [
-      'route', 
-      'route-start', 
-      'route-end', 
-      'route-waypoints',
-      'navigation-current-step',
-      'navigation-completed-steps',
-      'navigation-arrows',
-      'navigation-maneuvers',
-      'navigation-labels'
-    ];
-    layersToRemove.forEach(layerId => {
-      if (this.map!.getLayer(layerId)) {
-        this.map!.removeLayer(layerId);
+    try {
+      // Verificar si el mapa está en un estado válido antes de limpiar
+      if (this.map.isStyleLoaded && !this.map.isStyleLoaded()) {
+        console.warn('⚠️ El estilo del mapa no está cargado, saltando limpieza de capas');
+        return;
       }
-    });
 
-    // Limpiar fuentes de datos
-    const sourcesToRemove = [
-      'route', 
-      'route-points',
-      'navigation-active',
-      'navigation-arrows',
-      'navigation-labels'
-    ];
-    sourcesToRemove.forEach(sourceId => {
-      if (this.map!.getSource(sourceId)) {
-        this.map!.removeSource(sourceId);
-      }
-    });
+      // Limpiar capas de ruta
+      const layersToRemove = [
+        'route', 
+        'route-start', 
+        'route-end', 
+        'route-waypoints',
+        'navigation-current-step',
+        'navigation-completed-steps',
+        'navigation-arrows',
+        'navigation-maneuvers',
+        'navigation-labels'
+      ];
+      
+      layersToRemove.forEach(layerId => {
+        try {
+          if (this.map && this.map.getLayer && this.map.getLayer(layerId)) {
+            this.map.removeLayer(layerId);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error al remover capa ${layerId}:`, error);
+        }
+      });
+
+      // Limpiar fuentes de datos
+      const sourcesToRemove = [
+        'route', 
+        'route-points',
+        'navigation-active',
+        'navigation-arrows',
+        'navigation-labels'
+      ];
+      
+      sourcesToRemove.forEach(sourceId => {
+        try {
+          if (this.map && this.map.getSource && this.map.getSource(sourceId)) {
+            this.map.removeSource(sourceId);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error al remover fuente ${sourceId}:`, error);
+        }
+      });
+    } catch (error) {
+      console.warn('⚠️ Error general al limpiar ruta del mapa:', error);
+    }
   }
 
   /**
@@ -2365,11 +2409,28 @@ export class MapboxNavigationService {
    * Destruye el mapa
    */
   destroyMap() {
+    console.log('🗑️ Destruyendo mapa...');
+    
+    // Detener navegación primero
     this.stopNavigation();
     
     if (this.map) {
-      this.map.remove();
-      this.map = null;
+      try {
+        // Verificar si el mapa está en un estado válido antes de destruir
+        if (this.map.isStyleLoaded && !this.map.isStyleLoaded()) {
+          console.warn('⚠️ El estilo del mapa no está cargado, forzando destrucción');
+        }
+        
+        // Remover el mapa del DOM (esto limpia automáticamente todos los listeners)
+        this.map.remove();
+        this.map = null;
+        
+        console.log('✅ Mapa destruido correctamente');
+      } catch (error) {
+        console.warn('⚠️ Error al destruir mapa:', error);
+        // Forzar limpieza
+        this.map = null;
+      }
     }
   }
 
