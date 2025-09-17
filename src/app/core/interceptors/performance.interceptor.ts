@@ -1,8 +1,6 @@
 import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap, timeout } from 'rxjs/operators';
-import { inject } from '@angular/core';
-import { PerformanceFixService } from '../services/performance-fix.service';
+import { catchError, timeout } from 'rxjs/operators';
 
 let requestCount = 0;
 const MAX_CONCURRENT_REQUESTS = 5;
@@ -12,30 +10,25 @@ export function PerformanceInterceptor(
   request: HttpRequest<unknown>, 
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> {
-  const performanceFix = inject(PerformanceFixService);
+  // ✅ Incrementar contador de peticiones
+  requestCount++;
   
-  // ✅ Mejorar manejo de peticiones concurrentes
+  // ✅ Verificar límite de peticiones concurrentes
   if (requestCount > MAX_CONCURRENT_REQUESTS) {
-    console.warn('⚠️ Demasiadas peticiones concurrentes, forzando limpieza');
-    performanceFix.forceCleanup();
-    requestCount = 0;
+    console.warn('⚠️ Demasiadas peticiones concurrentes, limitando requests');
+    requestCount = Math.max(0, requestCount - 1);
   }
-
+  
   return next(request).pipe(
     timeout(REQUEST_TIMEOUT),
     catchError((error: any) => {
-      requestCount--;
+      requestCount = Math.max(0, requestCount - 1);
       
       if (error.name === 'TimeoutError') {
-        console.error('⏰ Timeout en petición, forzando limpieza');
-        performanceFix.forceCleanup();
+        console.error('⏰ Timeout en petición HTTP');
       }
       
       return throwError(() => error);
-    }),
-    switchMap(event => {
-      requestCount--;
-      return [event];
     })
   );
 }

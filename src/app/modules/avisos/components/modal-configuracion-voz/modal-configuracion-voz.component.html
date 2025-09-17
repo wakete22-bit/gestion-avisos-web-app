@@ -1,0 +1,151 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Configuración de Voz</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="config-container">
+    
+    <!-- Toggle principal -->
+    <ion-item>
+      <ion-label>
+        <h2>Notificaciones de Voz</h2>
+        <p>Activar instrucciones de navegación por voz</p>
+      </ion-label>
+      <ion-toggle 
+        [(ngModel)]="voiceEnabled" 
+        (ionChange)="onVoiceEnabledChange()"
+        slot="end">
+      </ion-toggle>
+    </ion-item>
+
+    <!-- Configuración de voz -->
+    <div class="voice-settings" [class.disabled]="!voiceEnabled">
+      
+      <!-- Volumen -->
+      <ion-item>
+        <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Volumen</h3>
+          <p>{{ formatRangeValue(volume, 'volume') }}</p>
+        </ion-label>
+        <ion-range 
+          [(ngModel)]="volume" 
+          (ionChange)="onVolumeChange($event)"
+          min="0" 
+          max="100" 
+          step="5"
+          [disabled]="!voiceEnabled">
+        </ion-range>
+      </ion-item>
+
+      <!-- Velocidad -->
+      <ion-item>
+        <ion-icon name="speedometer-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Velocidad</h3>
+          <p>{{ formatRangeValue(rate, 'rate') }}</p>
+        </ion-label>
+        <ion-range 
+          [(ngModel)]="rate" 
+          (ionChange)="onRateChange($event)"
+          min="10" 
+          max="200" 
+          step="10"
+          [disabled]="!voiceEnabled">
+        </ion-range>
+      </ion-item>
+
+      <!-- Tono -->
+      <ion-item>
+        <ion-icon name="musical-notes-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Tono</h3>
+          <p>{{ formatRangeValue(pitch, 'pitch') }}</p>
+        </ion-label>
+        <ion-range 
+          [(ngModel)]="pitch" 
+          (ionChange)="onPitchChange($event)"
+          min="50" 
+          max="200" 
+          step="10"
+          [disabled]="!voiceEnabled">
+        </ion-range>
+      </ion-item>
+
+      <!-- Voz -->
+      <ion-item>
+        <ion-icon name="person-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Voz</h3>
+          <p>Selecciona la voz para las instrucciones</p>
+        </ion-label>
+        <ion-select 
+          [(ngModel)]="selectedVoice" 
+          (ionChange)="onVoiceChange($event)"
+          [disabled]="!voiceEnabled"
+          interface="popover">
+          <ion-select-option 
+            *ngFor="let voice of availableVoices" 
+            [value]="voice">
+            {{ getVoiceDisplayName(voice) }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+    </div>
+
+    <!-- Prueba de voz -->
+    <div class="test-section" [class.disabled]="!voiceEnabled">
+      <h3>Prueba de Voz</h3>
+      <p class="test-text">{{ testText }}</p>
+      
+      <div class="test-controls">
+        <ion-button 
+          (click)="playTest()" 
+          [disabled]="!voiceEnabled"
+          [fill]="isPlaying ? 'outline' : 'solid'"
+          color="primary">
+          <ion-icon 
+            [name]="isPlaying ? 'pause-outline' : 'play-outline'" 
+            slot="start">
+          </ion-icon>
+          {{ isPlaying ? 'Pausar' : 'Reproducir' }}
+        </ion-button>
+        
+        <ion-button 
+          (click)="stopTest()" 
+          [disabled]="!voiceEnabled || !isPlaying"
+          fill="outline" 
+          color="medium">
+          <ion-icon name="stop-outline" slot="start"></ion-icon>
+          Detener
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+      <ion-button 
+        (click)="cerrar()" 
+        fill="outline" 
+        color="medium">
+        Cancelar
+      </ion-button>
+      
+      <ion-button 
+        (click)="guardar()" 
+        fill="solid" 
+        color="primary">
+        Guardar
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>

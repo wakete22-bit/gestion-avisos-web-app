@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import mapboxgl from 'mapbox-gl';
 import { BehaviorSubject, Observable, fromEvent } from 'rxjs';
 import { MAPBOX_CONFIG } from '../../../environments/mapbox.config';
+import { VoiceNavigationService, VoiceInstruction } from './voice-navigation.service';
 
 export interface MapboxCoordinates {
   latitude: number;
@@ -61,7 +62,14 @@ export class MapboxNavigationService {
   private lastNotificationTime = 0;
   private notificationCooldown = 3000; // 3 segundos entre notificaciones
 
-  constructor() {
+  // Configuración de voz
+  private voiceEnabled = true;
+  private voiceCooldown = 2000; // 2 segundos entre instrucciones de voz
+  private lastVoiceTime = 0;
+
+  constructor(
+    private voiceService: VoiceNavigationService
+  ) {
     // Configurar token de Mapbox
     mapboxgl.accessToken = MAPBOX_CONFIG.accessToken;
   }
@@ -799,6 +807,19 @@ export class MapboxNavigationService {
     this.lastNotificationStepIndex = currentStepIndex;
     this.lastNotificationTime = currentTime;
 
+    // Enviar notificación visual
+    this.sendVisualNotification(currentStep);
+
+    // Enviar notificación de voz
+    this.sendVoiceNotification(currentStep, currentTime);
+
+    console.log('📱 Notificación de navegación enviada:', currentStep.instruction);
+  }
+
+  /**
+   * Envía notificación visual
+   */
+  private sendVisualNotification(currentStep: MapboxNavigationStep) {
     // Crear notificación personalizada
     const notification = new Notification('🧭 Instrucción de Navegación', {
       body: `${currentStep.instruction}\n${this.formatDistance(currentStep.distance)}`,
@@ -819,8 +840,56 @@ export class MapboxNavigationService {
       window.focus();
       notification.close();
     };
+  }
 
-    console.log('📱 Notificación de navegación enviada:', currentStep.instruction);
+  /**
+   * Envía notificación de voz
+   */
+  private sendVoiceNotification(currentStep: MapboxNavigationStep, currentTime: number) {
+    if (!this.voiceEnabled || !this.voiceService.isVoiceEnabled()) {
+      return;
+    }
+
+    // Verificar cooldown de voz
+    if (currentTime - this.lastVoiceTime < this.voiceCooldown) {
+      return;
+    }
+
+    // Actualizar tiempo de última voz
+    this.lastVoiceTime = currentTime;
+
+    // Crear instrucción de voz
+    const voiceInstruction: VoiceInstruction = {
+      text: currentStep.instruction,
+      distance: currentStep.distance,
+      maneuver: currentStep.maneuver.type,
+      priority: this.getVoicePriority(currentStep)
+    };
+
+    // Reproducir instrucción de voz
+    this.voiceService.speak(voiceInstruction);
+
+    console.log('🎤 Instrucción de voz enviada:', currentStep.instruction);
+  }
+
+  /**
+   * Determina la prioridad de la instrucción de voz
+   */
+  private getVoicePriority(currentStep: MapboxNavigationStep): 'high' | 'medium' | 'low' {
+    const maneuver = currentStep.maneuver.type.toLowerCase();
+    
+    // Alta prioridad para giros importantes
+    if (maneuver.includes('turn') || maneuver.includes('merge') || maneuver.includes('ramp')) {
+      return 'high';
+    }
+    
+    // Media prioridad para cambios de carril y continuar
+    if (maneuver.includes('lane') || maneuver.includes('continue') || maneuver.includes('straight')) {
+      return 'medium';
+    }
+    
+    // Baja prioridad para el resto
+    return 'low';
   }
 
   /**
@@ -2420,6 +2489,113 @@ export class MapboxNavigationService {
   generateAppleMapsUrl(waypoints: MapboxCoordinates[]): string {
     const coordinates = waypoints.map(wp => `${wp.latitude},${wp.longitude}`).join('/');
     return `https://maps.apple.com/?dir=${coordinates}`;
+  }
+
+  // ===== MÉTODOS DE CONTROL DE VOZ =====
+
+  /**
+   * Habilita o deshabilita las notificaciones de voz
+   */
+  setVoiceEnabled(enabled: boolean) {
+    this.voiceEnabled = enabled;
+    this.voiceService.setEnabled(enabled);
+    console.log('🎤 Notificaciones de voz:', enabled ? 'Habilitadas' : 'Deshabilitadas');
+  }
+
+  /**
+   * Verifica si las notificaciones de voz están habilitadas
+   */
+  isVoiceEnabled(): boolean {
+    return this.voiceEnabled && this.voiceService.isVoiceEnabled();
+  }
+
+  /**
+   * Configura el volumen de las notificaciones de voz (0.0 - 1.0)
+   */
+  setVoiceVolume(volume: number) {
+    this.voiceService.setVolume(volume);
+    console.log('🎤 Volumen de voz configurado:', volume);
+  }
+
+  /**
+   * Configura la velocidad de las notificaciones de voz (0.1 - 10.0)
+   */
+  setVoiceRate(rate: number) {
+    this.voiceService.setRate(rate);
+    console.log('🎤 Velocidad de voz configurada:', rate);
+  }
+
+  /**
+   * Configura el tono de las notificaciones de voz (0 - 2)
+   */
+  setVoicePitch(pitch: number) {
+    this.voiceService.setPitch(pitch);
+    console.log('🎤 Tono de voz configurado:', pitch);
+  }
+
+  /**
+   * Detiene la reproducción de voz actual
+   */
+  stopVoice() {
+    this.voiceService.stopSpeaking();
+    console.log('🎤 Reproducción de voz detenida');
+  }
+
+  /**
+   * Pausa la reproducción de voz actual
+   */
+  pauseVoice() {
+    this.voiceService.pauseSpeaking();
+    console.log('🎤 Reproducción de voz pausada');
+  }
+
+  /**
+   * Reanuda la reproducción de voz pausada
+   */
+  resumeVoice() {
+    this.voiceService.resumeSpeaking();
+    console.log('🎤 Reproducción de voz reanudada');
+  }
+
+  /**
+   * Obtiene la configuración actual de voz
+   */
+  getVoiceSettings() {
+    return this.voiceService.getSettings();
+  }
+
+  /**
+   * Obtiene las voces disponibles
+   */
+  getAvailableVoices() {
+    return this.voiceService.getAvailableVoices();
+  }
+
+  /**
+   * Cambia la voz actual
+   */
+  setVoice(voice: SpeechSynthesisVoice) {
+    this.voiceService.setVoice(voice);
+    console.log('🎤 Voz cambiada a:', voice.name);
+  }
+
+  /**
+   * Reproduce una instrucción de voz personalizada
+   */
+  speakCustomInstruction(text: string, options: {
+    distance?: number;
+    maneuver?: string;
+    priority?: 'high' | 'medium' | 'low';
+  } = {}) {
+    const voiceInstruction: VoiceInstruction = {
+      text,
+      distance: options.distance,
+      maneuver: options.maneuver,
+      priority: options.priority || 'medium'
+    };
+
+    this.voiceService.speak(voiceInstruction);
+    console.log('🎤 Instrucción personalizada:', text);
   }
 
   /**

@@ -1,0 +1,126 @@
+.config-container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.voice-settings {
+  margin: 16px 0;
+  transition: opacity 0.3s ease;
+  
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.test-section {
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  transition: opacity 0.3s ease;
+  
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  h3 {
+    margin: 0 0 12px 0;
+    color: var(--ion-color-primary);
+    font-weight: 600;
+  }
+  
+  .test-text {
+    margin: 0 0 16px 0;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--ion-color-light-shade);
+    font-style: italic;
+    color: var(--ion-color-dark);
+  }
+  
+  .test-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ion-color-light-shade);
+}
+
+// Estilos para los items
+ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 8px;
+  
+  ion-label {
+    h2, h3 {
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+    
+    p {
+      margin: 0;
+      color: var(--ion-color-medium);
+      font-size: 14px;
+    }
+  }
+  
+  ion-icon {
+    color: var(--ion-color-primary);
+    margin-right: 12px;
+  }
+}
+
+// Estilos para los ranges
+ion-range {
+  --bar-background: var(--ion-color-light-shade);
+  --bar-background-active: var(--ion-color-primary);
+  --knob-background: var(--ion-color-primary);
+  --knob-size: 20px;
+  --pin-background: var(--ion-color-primary);
+  --pin-color: white;
+}
+
+// Estilos para el toggle
+ion-toggle {
+  --handle-background: white;
+  --handle-background-checked: white;
+  --background: var(--ion-color-light-shade);
+  --background-checked: var(--ion-color-primary);
+}
+
+// Estilos para el select
+ion-select {
+  --placeholder-color: var(--ion-color-medium);
+  --placeholder-opacity: 1;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    
+    ion-button {
+      width: 100%;
+    }
+  }
+  
+  .test-controls {
+    flex-direction: column;
+    
+    ion-button {
+      width: 100%;
+    }
+  }
+}

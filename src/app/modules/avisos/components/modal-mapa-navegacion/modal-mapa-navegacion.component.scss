@@ -298,6 +298,16 @@
           box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
         }
       }
+
+      &.btn-voice {
+        background: #8B5CF6;
+        color: white;
+
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+      }
     }
   }
 

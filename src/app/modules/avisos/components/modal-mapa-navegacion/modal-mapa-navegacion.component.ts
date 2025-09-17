@@ -2,9 +2,10 @@ import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angu
 import { CommonModule } from '@angular/common';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { closeOutline, navigateOutline, playOutline, stopOutline, arrowForwardOutline, refreshOutline, locationOutline, timeOutline, speedometerOutline } from 'ionicons/icons';
+import { closeOutline, navigateOutline, playOutline, stopOutline, arrowForwardOutline, refreshOutline, locationOutline, timeOutline, speedometerOutline, volumeHighOutline } from 'ionicons/icons';
 import { MapboxNavigationService, MapboxCoordinates, MapboxNavigationRoute } from '../../../../core/services/mapbox-navigation.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ModalConfiguracionVozComponent } from '../modal-configuracion-voz/modal-configuracion-voz.component';
 
 @Component({
   selector: 'app-modal-mapa-navegacion',
@@ -32,17 +33,7 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
     private mapboxService: MapboxNavigationService,
     private modalController: ModalController
   ) {
-    addIcons({
-      closeOutline,
-      navigateOutline,
-      playOutline,
-      stopOutline,
-      arrowForwardOutline,
-      refreshOutline,
-      locationOutline,
-      timeOutline,
-      speedometerOutline
-    });
+    addIcons({closeOutline,locationOutline,timeOutline,speedometerOutline,arrowForwardOutline,refreshOutline,volumeHighOutline,navigateOutline,playOutline,stopOutline});
   }
 
   ngOnInit() {
@@ -219,6 +210,23 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
         return '➡️';
       default:
         return '📍';
+    }
+  }
+
+  /**
+   * Abre el modal de configuración de voz
+   */
+  async openVoiceSettings() {
+    const modal = await this.modalController.create({
+      component: ModalConfiguracionVozComponent,
+      cssClass: 'voice-settings-modal'
+    });
+
+    await modal.present();
+
+    const result = await modal.onDidDismiss();
+    if (result.data?.saved) {
+      console.log('🎤 Configuración de voz guardada:', result.data.settings);
     }
   }
 }

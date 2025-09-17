@@ -19,91 +19,6 @@ export class ModalOpcionesNavegacionComponent {
     addIcons({ navigateOutline, logoGoogle, logoApple, playOutline, closeOutline });
   }
 
-  /**
-   * Muestra información de debug en pantalla
-   */
-  private mostrarDebug(app: string, message: any) {
-    const debugDiv = document.getElementById('debug-info') || this.crearDebugDiv();
-    
-    const timestamp = new Date().toLocaleTimeString();
-    const messageStr = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
-    
-    const debugEntry = document.createElement('div');
-    debugEntry.style.cssText = `
-      padding: 8px;
-      margin: 4px 0;
-      background: #f0f0f0;
-      border-left: 4px solid #007bff;
-      font-family: monospace;
-      font-size: 12px;
-      border-radius: 4px;
-      word-break: break-all;
-    `;
-    debugEntry.innerHTML = `<strong>[${timestamp}] ${app}:</strong> ${messageStr}`;
-    
-    debugDiv.appendChild(debugEntry);
-    debugDiv.scrollTop = debugDiv.scrollHeight;
-    
-    console.log(`[DEBUG ${app}]`, message);
-  }
-
-  /**
-   * Crea el div de debug si no existe
-   */
-  private crearDebugDiv(): HTMLElement {
-    const debugDiv = document.createElement('div');
-    debugDiv.id = 'debug-info';
-    debugDiv.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 300px;
-      max-height: 400px;
-      background: white;
-      border: 2px solid #007bff;
-      border-radius: 8px;
-      padding: 10px;
-      z-index: 10000;
-      overflow-y: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    const header = document.createElement('div');
-    header.style.cssText = `
-      font-weight: bold;
-      margin-bottom: 10px;
-      color: #007bff;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 5px;
-    `;
-    header.textContent = '🐛 DEBUG INFO';
-    
-    const clearBtn = document.createElement('button');
-    clearBtn.textContent = 'Limpiar';
-    clearBtn.style.cssText = `
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
-    `;
-    clearBtn.onclick = () => {
-      debugDiv.innerHTML = '';
-      debugDiv.appendChild(header);
-      debugDiv.appendChild(clearBtn);
-    };
-    
-    debugDiv.appendChild(header);
-    debugDiv.appendChild(clearBtn);
-    document.body.appendChild(debugDiv);
-    
-    return debugDiv;
-  }
 
   async abrirGoogleMaps() {
     try {
@@ -115,7 +30,7 @@ export class ModalOpcionesNavegacionComponent {
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       const isAndroid = /Android/.test(userAgent);
       
-      this.mostrarDebug('Google Maps', {
+      console.log('Google Maps Debug:', {
         userAgent: userAgent,
         isMobile: isMobile,
         isIOS: isIOS,
@@ -124,11 +39,11 @@ export class ModalOpcionesNavegacionComponent {
       });
       
       // Obtener ubicación actual del usuario
-      this.mostrarDebug('Google Maps', 'Obteniendo ubicación actual...');
+      console.log('Obteniendo ubicación actual...');
       const currentLocation = await this.obtenerUbicacionActual();
       
       if (!currentLocation) {
-        this.mostrarDebug('Google Maps', '❌ No se pudo obtener la ubicación actual');
+        console.log('❌ No se pudo obtener la ubicación actual');
         console.error('No se pudo obtener la ubicación actual');
         
         // Preguntar al usuario si quiere continuar sin ubicación actual
@@ -143,58 +58,58 @@ export class ModalOpcionesNavegacionComponent {
         );
         
         if (!continuarSinUbicacion) {
-          this.mostrarDebug('Google Maps', '❌ Usuario canceló la operación');
+          console.log('❌ Usuario canceló la operación');
           return;
         }
         
         // Usar ubicación por defecto (Madrid) o sin origen
-        this.mostrarDebug('Google Maps', '📍 Continuando sin ubicación actual');
+        console.log('📍 Continuando sin ubicación actual');
       }
 
       if (currentLocation) {
-        this.mostrarDebug('Google Maps', `✅ Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}`);
+        console.log(`✅ Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}`);
       } else {
-        this.mostrarDebug('Google Maps', '📍 Sin ubicación actual, usando solo destinos');
+        console.log('📍 Sin ubicación actual, usando solo destinos');
       }
 
       // Construir URLs
       const nativeUrl = this.construirUrlGoogleMaps(currentLocation);
       const webUrl = this.construirUrlGoogleMapsWeb(currentLocation);
       
-      this.mostrarDebug('Google Maps', {
+      console.log('Google Maps URLs:', {
         nativeUrl: nativeUrl,
         webUrl: webUrl,
         urlLength: nativeUrl.length
       });
       
       if (isMobile) {
-        this.mostrarDebug('Google Maps', '📱 Dispositivo móvil detectado');
+        console.log('📱 Dispositivo móvil detectado');
         
         // Para móviles, intentar abrir la app nativa primero
         let appOpened = false;
         
         if (isAndroid || isIOS) {
-          this.mostrarDebug('Google Maps', `🚀 Intentando abrir app nativa (${isAndroid ? 'Android' : 'iOS'})`);
-          this.mostrarDebug('Google Maps', `URL nativa: ${nativeUrl}`);
+          console.log(`🚀 Intentando abrir app nativa (${isAndroid ? 'Android' : 'iOS'})`);
+          console.log(`URL nativa: ${nativeUrl}`);
           
           // Intentar abrir directamente la app nativa
-          this.mostrarDebug('Google Maps', '🚀 Intentando abrir Google Maps nativo...');
+          console.log('🚀 Intentando abrir Google Maps nativo...');
           this.abrirAppNativa(nativeUrl, webUrl, 'Google Maps');
         } else {
           // Para otros móviles, usar navegador
-          this.mostrarDebug('Google Maps', '🌐 Otro móvil detectado, usando navegador');
+          console.log('🌐 Otro móvil detectado, usando navegador');
           window.open(webUrl, '_blank');
         }
       } else {
         // Para desktop, abrir directamente en el navegador
-        this.mostrarDebug('Google Maps', '🖥️ Desktop detectado, abriendo en navegador');
+        console.log('🖥️ Desktop detectado, abriendo en navegador');
         window.open(webUrl, '_blank');
       }
       
       await this.modalController.dismiss({ opcion: 'google' });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.mostrarDebug('Google Maps', `❌ Error general: ${errorMessage}`);
+      console.error('❌ Error general:', errorMessage);
       console.error('Error al abrir Google Maps:', error);
     }
   }
@@ -203,22 +118,22 @@ export class ModalOpcionesNavegacionComponent {
    * Abre la app nativa con detección mejorada
    */
   private abrirAppNativa(nativeUrl: string, webUrl: string, appName: string) {
-    this.mostrarDebug(appName, '📍 Intentando abrir app nativa...');
-    this.mostrarDebug(appName, `URL completa: ${nativeUrl}`);
+    console.log('📍 Intentando abrir app nativa...');
+    console.log(`URL completa: ${nativeUrl}`);
     
     // Método 1: Intentar con window.location (más directo)
     try {
-      this.mostrarDebug(appName, '🔄 Método 1: window.location...');
+      console.log('🔄 Método 1: window.location...');
       window.location.href = nativeUrl;
       
       // Esperar un poco para ver si funciona
       setTimeout(() => {
-        this.mostrarDebug(appName, '⏰ Método 1 timeout, probando método 2...');
+        console.log('⏰ Método 1 timeout, probando método 2...');
         this.intentarMetodoAlternativo(nativeUrl, webUrl, appName);
       }, 2000);
       
     } catch (error) {
-      this.mostrarDebug(appName, `❌ Error en método 1: ${error}`);
+      console.log(`❌ Error en método 1: ${error}`);
       this.intentarMetodoAlternativo(nativeUrl, webUrl, appName);
     }
   }
@@ -227,7 +142,7 @@ export class ModalOpcionesNavegacionComponent {
    * Intenta método alternativo para abrir la app
    */
   private intentarMetodoAlternativo(nativeUrl: string, webUrl: string, appName: string) {
-    this.mostrarDebug(appName, '🔄 Método 2: Enlace directo...');
+    console.log('🔄 Método 2: Enlace directo...');
     
     try {
       // Crear un enlace temporal
@@ -240,17 +155,17 @@ export class ModalOpcionesNavegacionComponent {
       // Intentar hacer clic en el enlace
       link.click();
       
-      this.mostrarDebug(appName, '📍 Enlace clickeado');
+      console.log('📍 Enlace clickeado');
       
       // Esperar un poco más
       setTimeout(() => {
-        this.mostrarDebug(appName, '⏰ Método 2 timeout, probando método 3...');
+        console.log('⏰ Método 2 timeout, probando método 3...');
         document.body.removeChild(link);
         this.intentarMetodoIframe(nativeUrl, webUrl, appName);
       }, 2000);
       
     } catch (error) {
-      this.mostrarDebug(appName, `❌ Error en método 2: ${error}`);
+      console.log(`❌ Error en método 2: ${error}`);
       this.intentarMetodoIframe(nativeUrl, webUrl, appName);
     }
   }
@@ -259,7 +174,7 @@ export class ModalOpcionesNavegacionComponent {
    * Intenta método con iframe
    */
   private intentarMetodoIframe(nativeUrl: string, webUrl: string, appName: string) {
-    this.mostrarDebug(appName, '🔄 Método 3: Iframe...');
+    console.log('🔄 Método 3: Iframe...');
     
     try {
       // Crear iframe oculto
@@ -270,18 +185,18 @@ export class ModalOpcionesNavegacionComponent {
       iframe.src = nativeUrl;
       document.body.appendChild(iframe);
       
-      this.mostrarDebug(appName, '📍 Iframe creado');
+      console.log('📍 Iframe creado');
       
       // Esperar un poco más
       setTimeout(() => {
-        this.mostrarDebug(appName, '⏰ Todos los métodos fallaron, abriendo en navegador');
+        console.log('⏰ Todos los métodos fallaron, abriendo en navegador');
         document.body.removeChild(iframe);
         window.open(webUrl, '_blank');
       }, 2000);
       
     } catch (error) {
-      this.mostrarDebug(appName, `❌ Error en método 3: ${error}`);
-      this.mostrarDebug(appName, '🌐 Abriendo en navegador como último recurso');
+      console.log(`❌ Error en método 3: ${error}`);
+      console.log('🌐 Abriendo en navegador como último recurso');
       window.open(webUrl, '_blank');
     }
   }
@@ -295,7 +210,7 @@ export class ModalOpcionesNavegacionComponent {
       const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(userAgent);
       
-      this.mostrarDebug('Apple Maps', {
+      console.log('Apple Maps Debug:', {
         userAgent: userAgent,
         isMobile: isMobile,
         isIOS: isIOS,
@@ -303,11 +218,11 @@ export class ModalOpcionesNavegacionComponent {
       });
       
       // Obtener ubicación actual del usuario
-      this.mostrarDebug('Apple Maps', 'Obteniendo ubicación actual...');
+      console.log('Obteniendo ubicación actual...');
       const currentLocation = await this.obtenerUbicacionActual();
       
       if (!currentLocation) {
-        this.mostrarDebug('Apple Maps', '❌ No se pudo obtener la ubicación actual');
+        console.log('❌ No se pudo obtener la ubicación actual');
         console.error('No se pudo obtener la ubicación actual');
         
         // Preguntar al usuario si quiere continuar sin ubicación actual
@@ -322,47 +237,47 @@ export class ModalOpcionesNavegacionComponent {
         );
         
         if (!continuarSinUbicacion) {
-          this.mostrarDebug('Apple Maps', '❌ Usuario canceló la operación');
+          console.log('❌ Usuario canceló la operación');
           return;
         }
         
         // Usar ubicación por defecto (Madrid) o sin origen
-        this.mostrarDebug('Apple Maps', '📍 Continuando sin ubicación actual');
+        console.log('📍 Continuando sin ubicación actual');
       }
 
       if (currentLocation) {
-        this.mostrarDebug('Apple Maps', `✅ Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}`);
+        console.log(`✅ Ubicación obtenida: ${currentLocation.latitude}, ${currentLocation.longitude}`);
       } else {
-        this.mostrarDebug('Apple Maps', '📍 Sin ubicación actual, usando solo destinos');
+        console.log('📍 Sin ubicación actual, usando solo destinos');
       }
 
       // Construir URLs
       const nativeUrl = this.construirUrlAppleMaps(currentLocation);
       const webUrl = this.construirUrlAppleMapsWeb(currentLocation);
       
-      this.mostrarDebug('Apple Maps', {
+      console.log({
         nativeUrl: nativeUrl,
         webUrl: webUrl,
         urlLength: nativeUrl.length
       });
       
       if (isMobile && isIOS) {
-        this.mostrarDebug('Apple Maps', '🍎 iOS detectado, intentando abrir app nativa');
-        this.mostrarDebug('Apple Maps', `URL nativa: ${nativeUrl}`);
+        console.log('🍎 iOS detectado, intentando abrir app nativa');
+        console.log(`URL nativa: ${nativeUrl}`);
         
         // Intentar abrir directamente Apple Maps
-        this.mostrarDebug('Apple Maps', '🚀 Intentando abrir Apple Maps nativo...');
+        console.log('🚀 Intentando abrir Apple Maps nativo...');
         this.abrirAppNativa(nativeUrl, webUrl, 'Apple Maps');
       } else {
         // Para Android o desktop, abrir directamente en el navegador
-        this.mostrarDebug('Apple Maps', isMobile ? '🤖 Android detectado, usando navegador' : '🖥️ Desktop detectado, usando navegador');
+        console.log(isMobile ? '🤖 Android detectado, usando navegador' : '🖥️ Desktop detectado, usando navegador');
         window.open(webUrl, '_blank');
       }
       
       await this.modalController.dismiss({ opcion: 'apple' });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.mostrarDebug('Apple Maps', `❌ Error general: ${errorMessage}`);
+      console.log(`❌ Error general: ${errorMessage}`);
       console.error('Error al abrir Apple Maps:', error);
     }
   }
@@ -371,7 +286,7 @@ export class ModalOpcionesNavegacionComponent {
     // Lógica para iniciar navegación en la app
     console.log('🚀 Iniciando navegación en la app con', this.avisosSeleccionados.length, 'avisos');
     
-    this.mostrarDebug('App Navegación', {
+    console.log('App Navegación', {
       avisosCount: this.avisosSeleccionados.length,
       avisos: this.avisosSeleccionados.map(aviso => ({
         id: aviso.id,
@@ -393,21 +308,21 @@ export class ModalOpcionesNavegacionComponent {
     return new Promise((resolve) => {
       if (!navigator.geolocation) {
         console.error('Geolocalización no soportada');
-        this.mostrarDebug('Ubicación', '❌ Geolocalización no soportada en este navegador');
+        console.log('Ubicación', '❌ Geolocalización no soportada en este navegador');
         resolve(null);
         return;
       }
 
       // Mostrar mensaje informativo antes de solicitar ubicación
-      this.mostrarDebug('Ubicación', '🌍 Solicitando permiso de ubicación...');
+      console.log('Ubicación', '🌍 Solicitando permiso de ubicación...');
       
       // Verificar si ya tenemos permiso
       if (navigator.permissions) {
         navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
-          this.mostrarDebug('Ubicación', `Estado de permiso: ${result.state}`);
+          console.log('Ubicación', `Estado de permiso: ${result.state}`);
           
           if (result.state === 'denied') {
-            this.mostrarDebug('Ubicación', '❌ Permiso de ubicación denegado. Ve a configuración del navegador para habilitarlo.');
+            console.log('Ubicación', '❌ Permiso de ubicación denegado. Ve a configuración del navegador para habilitarlo.');
             // Mostrar instrucciones al usuario
             this.mostrarInstruccionesUbicacion();
             resolve(null);
@@ -415,18 +330,18 @@ export class ModalOpcionesNavegacionComponent {
           }
           
           if (result.state === 'prompt') {
-            this.mostrarDebug('Ubicación', '📍 Aparecerá una ventana del navegador pidiendo permiso de ubicación');
+            console.log('Ubicación', '📍 Aparecerá una ventana del navegador pidiendo permiso de ubicación');
           }
           
           this.solicitarUbicacion(resolve);
         }).catch(() => {
           // Si no soporta permissions API, intentar directamente
-          this.mostrarDebug('Ubicación', '📍 Solicitando ubicación directamente...');
+          console.log('Ubicación', '📍 Solicitando ubicación directamente...');
           this.solicitarUbicacion(resolve);
         });
       } else {
         // Si no soporta permissions API, intentar directamente
-        this.mostrarDebug('Ubicación', '📍 Solicitando ubicación directamente...');
+        console.log('Ubicación', '📍 Solicitando ubicación directamente...');
         this.solicitarUbicacion(resolve);
       }
     });
@@ -436,11 +351,11 @@ export class ModalOpcionesNavegacionComponent {
    * Solicita la ubicación al usuario
    */
   private solicitarUbicacion(resolve: (value: { latitude: number; longitude: number } | null) => void) {
-    this.mostrarDebug('Ubicación', '🌍 Solicitando ubicación GPS...');
+    console.log('Ubicación', '🌍 Solicitando ubicación GPS...');
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        this.mostrarDebug('Ubicación', `✅ Ubicación obtenida: ${position.coords.latitude}, ${position.coords.longitude}`);
+        console.log('Ubicación', `✅ Ubicación obtenida: ${position.coords.latitude}, ${position.coords.longitude}`);
         resolve({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
@@ -466,7 +381,7 @@ export class ModalOpcionesNavegacionComponent {
             break;
         }
         
-        this.mostrarDebug('Ubicación', `❌ Error: ${errorMessage}`);
+        console.log('Ubicación', `❌ Error: ${errorMessage}`);
         console.error('Error al obtener ubicación:', error);
         
         if (mostrarInstrucciones) {
@@ -488,7 +403,7 @@ export class ModalOpcionesNavegacionComponent {
    */
   private async verificarAppInstalada(scheme: string, appName: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.mostrarDebug(appName, `🔍 Verificando si ${appName} está instalado...`);
+      console.log(appName, `🔍 Verificando si ${appName} está instalado...`);
       
       // Para verificación más precisa, usar un esquema de prueba simple
       const testScheme = scheme.includes('?') ? scheme.split('?')[0] : scheme;
@@ -507,7 +422,7 @@ export class ModalOpcionesNavegacionComponent {
       const timeout = setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          this.mostrarDebug(appName, `❌ ${appName} no está instalado (timeout)`);
+          console.log(appName, `❌ ${appName} no está instalado (timeout)`);
           document.body.removeChild(link);
           resolve(false);
         }
@@ -518,7 +433,7 @@ export class ModalOpcionesNavegacionComponent {
         if (document.hidden && !resolved) {
           resolved = true;
           appOpened = true;
-          this.mostrarDebug(appName, `✅ ${appName} está instalado (página oculta)`);
+          console.log(appName, `✅ ${appName} está instalado (página oculta)`);
           clearTimeout(timeout);
           document.body.removeChild(link);
           document.removeEventListener('visibilitychange', visibilityChangeHandler);
@@ -534,7 +449,7 @@ export class ModalOpcionesNavegacionComponent {
         if (!resolved) {
           resolved = true;
           appOpened = true;
-          this.mostrarDebug(appName, `✅ ${appName} está instalado (página perdió foco)`);
+          console.log(appName, `✅ ${appName} está instalado (página perdió foco)`);
           clearTimeout(timeout);
           document.body.removeChild(link);
           document.removeEventListener('visibilitychange', visibilityChangeHandler);
@@ -548,11 +463,11 @@ export class ModalOpcionesNavegacionComponent {
       // Intentar hacer clic en el enlace
       try {
         link.click();
-        this.mostrarDebug(appName, `📍 Enlace de prueba clickeado: ${testScheme}`);
+        console.log(appName, `📍 Enlace de prueba clickeado: ${testScheme}`);
       } catch (error) {
         if (!resolved) {
           resolved = true;
-          this.mostrarDebug(appName, `❌ Error al hacer clic: ${error}`);
+          console.log(appName, `❌ Error al hacer clic: ${error}`);
           clearTimeout(timeout);
           document.body.removeChild(link);
           resolve(false);
@@ -565,7 +480,7 @@ export class ModalOpcionesNavegacionComponent {
    * Intenta abrir la app nativa con métodos alternativos
    */
   private intentarAbrirAppAlternativo(nativeUrl: string, webUrl: string, appName: string) {
-    this.mostrarDebug(appName, '🔄 Método alternativo: Intentando con iframe...');
+    console.log(appName, '🔄 Método alternativo: Intentando con iframe...');
     
     try {
       // Método 2: Usar iframe oculto
@@ -576,11 +491,11 @@ export class ModalOpcionesNavegacionComponent {
       iframe.src = nativeUrl;
       document.body.appendChild(iframe);
       
-      this.mostrarDebug(appName, '📍 Iframe creado, esperando respuesta...');
+      console.log(appName, '📍 Iframe creado, esperando respuesta...');
       
       // Esperar un poco más para ver si la app se abre
       setTimeout(() => {
-        this.mostrarDebug(appName, '⏰ Método alternativo timeout: Abriendo en navegador');
+        console.log(appName, '⏰ Método alternativo timeout: Abriendo en navegador');
         document.body.removeChild(iframe);
         window.open(webUrl, '_blank');
       }, 2000);
@@ -588,7 +503,7 @@ export class ModalOpcionesNavegacionComponent {
       // Detectar si la app se abrió
       const visibilityChangeHandler = () => {
         if (document.hidden) {
-          this.mostrarDebug(appName, '✅ App nativa abierta con método alternativo');
+          console.log(appName, '✅ App nativa abierta con método alternativo');
           document.body.removeChild(iframe);
           document.removeEventListener('visibilitychange', visibilityChangeHandler);
         }
@@ -598,7 +513,7 @@ export class ModalOpcionesNavegacionComponent {
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.mostrarDebug(appName, `❌ Error en método alternativo: ${errorMessage}`);
+      console.log(appName, `❌ Error en método alternativo: ${errorMessage}`);
       window.open(webUrl, '_blank');
     }
   }
@@ -652,7 +567,7 @@ export class ModalOpcionesNavegacionComponent {
       `;
     }
     
-    this.mostrarDebug('Ubicación', instrucciones);
+    console.log('Ubicación', instrucciones);
     
     // Mostrar también un alert más visible
     alert(`🔒 Permiso de Ubicación Requerido\n\n${instrucciones}\n\nDespués de habilitar la ubicación, recarga la página e intenta de nuevo.`);
