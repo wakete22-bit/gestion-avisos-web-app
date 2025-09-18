@@ -1,12 +1,12 @@
 import { Component, OnDestroy, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, ModalController, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSpinner, ModalController, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { addIcons } from 'ionicons';
-import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline, navigateOutline, checkmarkCircleOutline, closeCircleOutline, play, stop, arrowForward } from 'ionicons/icons';
+import { alertCircle, close, eyeOutline, mapOutline, add, addCircle, addCircleOutline, searchOutline, locationOutline, calendarOutline, listOutline, optionsOutline, expandOutline, createOutline, refreshOutline, alertCircleOutline, chevronBackOutline, chevronForwardOutline, chevronDownCircleOutline, trashOutline, navigateOutline, checkmarkCircleOutline, closeCircleOutline, play, stop, arrowForward, speedometerOutline, timeOutline } from 'ionicons/icons';
 import { CrearAvisosModalComponent } from '../../components/crear-avisos-modal/crear-avisos-modal.component';
 import { CrearClienteModalComponent } from '../../../clientes/components/crear-cliente-modal/crear-cliente-modal.component';
 import { ConfirmarEliminacionAvisoModalComponent } from '../../components/confirmar-eliminacion-aviso-modal/confirmar-eliminacion-aviso-modal.component';
@@ -20,10 +20,12 @@ import { PrefetchService } from '../../../../core/services/prefetch.service';
 import { NavigationService } from '../../../../core/services/navigation.service';
 import { DebugService } from '../../../../core/services/debug.service';
 import { MapboxNavigationService, MapboxCoordinates } from '../../../../core/services/mapbox-navigation.service';
+import { RouteCalculationService } from '../../../../core/services/route-calculation.service';
 import { MapboxNavigationPanelComponent } from '../../../../shared/components/mapbox-navigation-panel/mapbox-navigation-panel.component';
 import mapboxgl from 'mapbox-gl';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { setupPassiveEventListeners, GEOCODING_CONFIG } from '../../../../core/config/passive-events.config';
 
 // Importar CSS de Mapbox directamente
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -72,6 +74,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   isMobile = false;
   isNavigating = false;
   showFullscreenMap = false;
+  
+  // Información de la ruta calculada
+  rutaCalculada: any = null;
+  calculandoUbicacion = false;
 
   private destroy$ = new Subject<void>();
   private busquedaSubject = new Subject<string>();
@@ -91,9 +97,13 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private router: Router,
     private navigationService: NavigationService,
     private debugService: DebugService,
-    private mapboxService: MapboxNavigationService
+    private mapboxService: MapboxNavigationService,
+    private routeCalculationService: RouteCalculationService
   ) {
-    addIcons({refreshOutline,alertCircleOutline,checkmarkCircleOutline,navigateOutline,addCircle,searchOutline,closeCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,play,stop,arrowForward,chevronDownCircleOutline,locationOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    addIcons({refreshOutline,alertCircleOutline,searchOutline,checkmarkCircleOutline,addCircle,navigateOutline,closeCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,play,stop,arrowForward,locationOutline,speedometerOutline,timeOutline,chevronDownCircleOutline,calendarOutline,optionsOutline,add,addCircleOutline});
+    
+    // Configurar eventos pasivos para mejorar rendimiento
+    setupPassiveEventListeners();
     
     // Configurar debounce para búsqueda
     this.configurarBusqueda();
@@ -529,6 +539,38 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     const geocodeCache = new Map<string, [number, number]>();
     let processedCount = 0;
     const totalAvisos = avisosParaMostrar.length;
+    const MAX_CONCURRENT_REQUESTS = GEOCODING_CONFIG.maxConcurrentRequests;
+    let activeRequests = 0;
+    const requestQueue: Array<{aviso: Aviso, fullAddress: string}> = [];
+
+    const processNextRequest = () => {
+      if (activeRequests >= MAX_CONCURRENT_REQUESTS || requestQueue.length === 0) {
+        return;
+      }
+
+      const { aviso, fullAddress } = requestQueue.shift()!;
+      activeRequests++;
+
+      this.geocodingService.geocode(fullAddress).subscribe({
+        next: (coordinates) => {
+          if (coordinates && this.map) {
+            // Guardar en cache
+            geocodeCache.set(fullAddress, coordinates);
+            this.addMarkerToMap(aviso, coordinates);
+            console.log(`Marcador añadido para aviso ${aviso.id}`);
+          }
+          processedCount++;
+          activeRequests--;
+          processNextRequest(); // Procesar siguiente request
+        },
+        error: (error) => {
+          console.error(`Error al geocodificar dirección para aviso ${aviso.id}:`, error);
+          processedCount++;
+          activeRequests--;
+          processNextRequest(); // Procesar siguiente request
+        }
+      });
+    };
 
     avisosParaMostrar.forEach((aviso, index) => {
       if (!aviso.direccion_cliente_aviso) {
@@ -548,33 +590,18 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      // Delay progresivo para evitar sobrecarga de la API
+      // Añadir delay progresivo y añadir a la cola
       setTimeout(() => {
-        this.geocodingService.geocode(fullAddress).subscribe({
-          next: (coordinates) => {
-            if (coordinates && this.map) {
-              // Guardar en cache
-              geocodeCache.set(fullAddress, coordinates);
-              
-              this.addMarkerToMap(aviso, coordinates);
-              console.log(`Marcador añadido para aviso ${aviso.id}`);
-            }
-            processedCount++;
-          },
-          error: (error) => {
-            console.error(`Error al geocodificar dirección para aviso ${aviso.id}:`, error);
-            processedCount++;
-          }
-        });
-      }, index * 200); // Delay de 200ms entre requests
+        requestQueue.push({ aviso, fullAddress });
+        processNextRequest();
+      }, index * GEOCODING_CONFIG.requestDelay);
     });
 
     // Si hay avisos seleccionados, crear líneas de ruta después de un delay
     if (this.avisosSeleccionados.size > 1) {
       setTimeout(() => {
         this.crearLineasDeRuta();
-        // Mostrar panel de navegación automáticamente
-        this.showNavigationPanel = true;
+        // NO mostrar panel de navegación automáticamente - solo mostrar la ruta
       }, (avisosParaMostrar.length * 200) + 1000); // Esperar a que se procesen todos los marcadores
     } else {
       // Ocultar panel si no hay avisos seleccionados
@@ -609,6 +636,31 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     });
 
     this.avisoMarkers.set(aviso.id!, marker);
+  }
+
+  /**
+   * Maneja el clic en una fila de aviso en la vista de mapa
+   * Prioriza la selección si está en modo selección, sino centra en el mapa
+   */
+  manejarClicFilaMapa(aviso: Aviso, event?: Event) {
+    // Si el clic viene del checkbox, no hacer nada (el checkbox ya maneja su propio evento)
+    if (event && event.target && (event.target as HTMLElement).tagName === 'INPUT') {
+      return;
+    }
+
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    // Si está en modo selección, priorizar la selección
+    if (this.modoSeleccion) {
+      this.toggleSeleccionAviso(aviso, event);
+    } else {
+      // Si no está en modo selección, activar modo selección y seleccionar el aviso
+      this.modoSeleccion = true;
+      this.toggleSeleccionAviso(aviso, event);
+    }
   }
 
   centrarAvisoEnMapa(aviso: Aviso, event?: Event) {
@@ -754,13 +806,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     this.isMapView = !this.isMapView;
     
     if (this.isMapView) {
-      // Forzar la detección de cambios y esperar a que se complete
-      this.cdr.detectChanges();
-      
-      // Usar setTimeout para asegurar que el DOM esté completamente actualizado
+      // Inicializar el mapa con un delay para asegurar que el DOM esté listo
       setTimeout(() => {
         this.initMap();
-      }, 50);
+      }, 100);
     } else {
       if (this.map) {
         // Limpiar marcadores y mapa usando Mapbox
@@ -768,8 +817,10 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         this.avisoMarkers.clear();
         this.map = null;
       }
-      this.cdr.detectChanges();
     }
+    
+    // Una sola detección de cambios al final
+    this.cdr.detectChanges();
   }
 
   async abrirModalCrearAviso(clienteData?: any) {
@@ -1071,22 +1122,23 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    * Selecciona o deselecciona un aviso
    */
   toggleSeleccionAviso(aviso: Aviso, event?: Event) {
-    if (event) {
+    // Solo prevenir comportamiento por defecto si el evento NO viene del checkbox
+    if (event && event.target && (event.target as HTMLElement).tagName !== 'INPUT') {
       event.preventDefault();
       event.stopPropagation();
     }
 
-    if (!this.modoSeleccion) {
-      this.modoSeleccion = true;
-    }
-
+    // Solo cambiar el estado de selección, no activar modo selección automáticamente
     const avisoId = aviso.id!;
-    if (this.avisosSeleccionados.has(avisoId)) {
+    const wasSelected = this.avisosSeleccionados.has(avisoId);
+    
+    if (wasSelected) {
       this.avisosSeleccionados.delete(avisoId);
     } else {
       this.avisosSeleccionados.add(avisoId);
     }
 
+    // Actualizar mapa con la selección
     this.actualizarMapaConSeleccion();
   }
 
@@ -1094,7 +1146,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
    * Verifica si un aviso está seleccionado
    */
   estaSeleccionado(aviso: Aviso): boolean {
-    return this.avisosSeleccionados.has(aviso.id!);
+    const isSelected = this.avisosSeleccionados.has(aviso.id!);
+    return isSelected;
   }
 
   /**
@@ -1157,6 +1210,85 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     if (this.isMapView && this.map) {
       this.plotAvisosOnMap();
     }
+    
+    // Calcular ruta si hay avisos seleccionados (siempre, no solo en vista mapa)
+    if (this.avisosSeleccionados.size > 0) {
+      this.calcularRutaSeleccionada();
+    } else {
+      this.rutaCalculada = null;
+    }
+    
+    // Forzar detección de cambios para actualizar la UI
+    this.cdr.detectChanges();
+  }
+
+  /**
+   * Calcula la información de la ruta para los avisos seleccionados
+   */
+  private async calcularRutaSeleccionada() {
+    if (this.avisosSeleccionados.size === 0) {
+      this.rutaCalculada = null;
+      return;
+    }
+
+    // Obtener avisos seleccionados
+    const avisosSeleccionados = this.avisos.filter(aviso => 
+      this.avisosSeleccionados.has(aviso.id!)
+    );
+
+    // Mostrar estado de carga inicial
+    this.rutaCalculada = {
+      distancia: 'Cargando...',
+      tiempo: 'Calculando...',
+      paradas: avisosSeleccionados.length,
+      tieneUbicacion: false
+    };
+    this.calculandoUbicacion = true;
+    this.cdr.detectChanges();
+
+    try {
+      // Obtener ubicación actual del usuario
+      const currentLocation = await this.routeCalculationService.obtenerUbicacionActual();
+      this.calculandoUbicacion = false;
+      
+      // Actualizar estado mientras se calcula la ruta
+      this.rutaCalculada = {
+        distancia: 'Calculando ruta...',
+        tiempo: 'Calculando ruta...',
+        paradas: avisosSeleccionados.length,
+        tieneUbicacion: !!currentLocation
+      };
+      this.cdr.detectChanges();
+      
+      // Calcular ruta usando el servicio con la ubicación actual
+      this.routeCalculationService.calcularRuta(currentLocation, avisosSeleccionados)
+        .subscribe({
+          next: (rutaInfo) => {
+            this.rutaCalculada = rutaInfo;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error calculando ruta:', error);
+            this.rutaCalculada = {
+              distancia: 'Error al calcular',
+              tiempo: 'Error al calcular',
+              paradas: avisosSeleccionados.length,
+              tieneUbicacion: !!currentLocation
+            };
+            this.cdr.detectChanges();
+          }
+        });
+    } catch (error) {
+      console.error('Error obteniendo ubicación:', error);
+      this.calculandoUbicacion = false;
+      this.rutaCalculada = {
+        distancia: 'Permitir ubicación',
+        tiempo: 'Permitir ubicación',
+        paradas: avisosSeleccionados.length,
+        tieneUbicacion: false
+      };
+      this.cdr.detectChanges();
+    }
   }
 
   /**
@@ -1201,21 +1333,21 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
         pasos: route.steps.length
       });
       
-      // Mostrar panel de navegación
-      this.showNavigationPanel = true;
+      // NO mostrar panel de navegación automáticamente - solo mostrar la ruta
+      // this.showNavigationPanel = true;
       
-      // Iniciar navegación en tiempo real automáticamente
-      console.log('🚀 Iniciando navegación en tiempo real...');
-      this.mapboxService.startNavigation(routePoints).subscribe(navigationRoute => {
-        if (navigationRoute) {
-          console.log('🧭 Navegación activa:', {
-            pasoActual: navigationRoute.currentStepIndex + 1,
-            totalPasos: navigationRoute.steps.length,
-            navegando: navigationRoute.isNavigating,
-            progreso: `${navigationRoute.progress.toFixed(1)}%`
-          });
-        }
-      });
+      // NO iniciar navegación en tiempo real automáticamente - solo mostrar la ruta
+      // console.log('🚀 Iniciando navegación en tiempo real...');
+      // this.mapboxService.startNavigation(routePoints).subscribe(navigationRoute => {
+      //   if (navigationRoute) {
+      //     console.log('🧭 Navegación activa:', {
+      //       pasoActual: navigationRoute.currentStepIndex + 1,
+      //       totalPasos: navigationRoute.steps.length,
+      //       navegando: navigationRoute.isNavigating,
+      //       progreso: `${navigationRoute.progress.toFixed(1)}%`
+      //     });
+      //   }
+      // });
     }).catch(error => {
       console.error('❌ Error al crear ruta con Mapbox:', error);
       // Mostrar mensaje de error al usuario

@@ -1,34 +1,30 @@
 import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
-let requestCount = 0;
-const MAX_CONCURRENT_REQUESTS = 5;
-const REQUEST_TIMEOUT = 15000; // ✅ Reducir a 15 segundos
+let activeRequests = 0;
+const maxConcurrentRequests = 5; // Límite de requests concurrentes
+const requestQueue: Array<() => void> = [];
 
-export function PerformanceInterceptor(
-  request: HttpRequest<unknown>, 
-  next: HttpHandlerFn
-): Observable<HttpEvent<unknown>> {
-  // ✅ Incrementar contador de peticiones
-  requestCount++;
-  
-  // ✅ Verificar límite de peticiones concurrentes
-  if (requestCount > MAX_CONCURRENT_REQUESTS) {
+export function PerformanceInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
+  // Si excedemos el límite de requests concurrentes, mostrar advertencia
+  if (activeRequests >= maxConcurrentRequests) {
     console.warn('⚠️ Demasiadas peticiones concurrentes, limitando requests');
-    requestCount = Math.max(0, requestCount - 1);
   }
-  
-  return next(request).pipe(
-    timeout(REQUEST_TIMEOUT),
-    catchError((error: any) => {
-      requestCount = Math.max(0, requestCount - 1);
+
+  activeRequests++;
+
+  return next(req).pipe(
+    finalize(() => {
+      activeRequests--;
       
-      if (error.name === 'TimeoutError') {
-        console.error('⏰ Timeout en petición HTTP');
+      // Procesar siguiente request en la cola si existe
+      if (requestQueue.length > 0) {
+        const nextRequest = requestQueue.shift();
+        if (nextRequest) {
+          nextRequest();
+        }
       }
-      
-      return throwError(() => error);
     })
   );
 }

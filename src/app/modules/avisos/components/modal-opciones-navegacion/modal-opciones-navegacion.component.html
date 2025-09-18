@@ -7,11 +7,82 @@
     </div>
 
     <div class="modal-body">
-      <p class="descripcion">
+      <!-- <p class="descripcion">
         Has seleccionado <strong>{{ avisosSeleccionados.length }} aviso{{ avisosSeleccionados.length > 1 ? 's' : '' }}</strong>. 
         <br>
-        <span class="route-info">La ruta partirá desde tu ubicación actual hacia {{ avisosSeleccionados.length === 1 ? 'el destino' : 'todos los destinos' }} seleccionado{{ avisosSeleccionados.length > 1 ? 's' : '' }}.</span>
-      </p>
+        <span class="route-info" *ngIf="rutaInfo.tieneUbicacion">
+          La ruta partirá desde tu ubicación actual hacia {{ avisosSeleccionados.length === 1 ? 'el destino' : 'todos los destinos' }} seleccionado{{ avisosSeleccionados.length > 1 ? 's' : '' }}.
+        </span>
+        <span class="route-info" *ngIf="!rutaInfo.tieneUbicacion">
+          <ion-icon name="location-outline"></ion-icon> Se requiere permiso de ubicación para calcular la ruta óptima.
+        </span>
+      </p> -->
+
+      <!-- Estado de carga -->
+      <div class="loading-container" *ngIf="calculandoRuta">
+        <div class="loading-content">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <h3>Calculando ruta...</h3>
+          <p>Obteniendo la mejor ruta para tus destinos</p>
+        </div>
+      </div>
+
+      <!-- Información de la ruta -->
+      <div class="ruta-info" *ngIf="!calculandoRuta && (rutaInfo.tieneUbicacion || rutaInfo.distancia !== 'Calculando...')">
+        <!-- <div class="ruta-header">
+          <ion-icon name="navigate-outline"></ion-icon>
+          <h3>Información de la Ruta</h3>
+        </div> -->
+        
+        <div class="ruta-details">
+          <div class="detail-row" style="width: 100%; display: flex; gap: 10px; align-items: center;">
+            <div class="detail-item" style="width: 100%;">
+              <div class="detail-icon">
+                <ion-icon name="location-outline"></ion-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">Destinos</span>
+                <span class="detail-value">{{ rutaInfo.paradas }} parada{{ rutaInfo.paradas > 1 ? 's' : '' }}</span>
+              </div>
+            </div>
+  
+            <div class="detail-item" style="width: 100%;">
+              <div class="detail-icon">
+                <ion-icon name="speedometer-outline"></ion-icon>
+              </div>
+              <div class="detail-content">
+                <span class="detail-label">Distancia</span>
+                <span class="detail-value">{{ rutaInfo.distancia }}</span>
+              </div>
+            </div>
+  
+  
+          </div>
+          <div class="detail-item">
+            <div class="detail-icon">
+              <ion-icon name="time-outline"></ion-icon>
+            </div>
+            <div class="detail-content">
+              <span class="detail-label">Tiempo estimado</span>
+              <span class="detail-value">{{ rutaInfo.tiempo }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de destinos -->
+        <div class="destinos-list" *ngIf="avisosSeleccionados.length > 0">
+          <h4>Destinos seleccionados:</h4>
+          <div class="destinos-container">
+            <div class="destino-item" *ngFor="let aviso of avisosSeleccionados; let i = index">
+              <div class="destino-number">{{ i + 1 }}</div>
+              <div class="destino-info">
+                <div class="destino-nombre">{{ aviso.nombre_cliente_aviso || 'Cliente' }}</div>
+                <div class="destino-direccion">{{ aviso.direccion_cliente_aviso }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="opciones-navegacion">
         <button class="opcion-btn google-maps" (click)="abrirGoogleMaps()">

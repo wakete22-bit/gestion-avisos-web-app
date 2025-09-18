@@ -137,11 +137,15 @@
                    'listo-para-facturar': aviso.estado === 'Listo para facturar',
                    'completado': aviso.estado === 'Completado',
                    'cancelado': aviso.estado === 'Cancelado',
+                   'no-visitado': aviso.estado === 'No visitado',
+                   'visitado-pendiente': aviso.estado === 'Visitado pendiente',
                    'seleccionado': estaSeleccionado(aviso)
                  }">
               <div class="aviso-cell seleccion-cell" *ngIf="modoSeleccion">
                 <input type="checkbox" [checked]="estaSeleccionado(aviso)"
-                  (change)="toggleSeleccionAviso(aviso, $event)" class="checkbox-seleccion">
+                  (change)="toggleSeleccionAviso(aviso, $event)" 
+                  (click)="$event.stopPropagation()" 
+                  class="checkbox-seleccion">
               </div>
               <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) + i +
                 1 }}</div>
@@ -281,11 +285,19 @@
                        'en-curso': aviso.estado === 'En curso',
                        'pendiente-presupuesto': aviso.estado === 'Pendiente de presupuesto',
                        'listo-para-facturar': aviso.estado === 'Listo para facturar',
-                       'seleccionado': estaSeleccionado(aviso)
-                     }" (click)="centrarAvisoEnMapa(aviso, $event)">
+                       'completado': aviso.estado === 'Completado',
+                       'cancelado': aviso.estado === 'Cancelado',
+                       'no-visitado': aviso.estado === 'No visitado',
+                       'visitado-pendiente': aviso.estado === 'Visitado pendiente',
+                       'seleccionado': estaSeleccionado(aviso),
+                       'clickeable': !modoSeleccion
+                     }" (click)="manejarClicFilaMapa(aviso, $event)" 
+                     [title]="modoSeleccion ? 'Haz clic para seleccionar/deseleccionar' : 'Haz clic para seleccionar y activar modo selección'">
                   <div class="aviso-cell seleccion-cell" *ngIf="modoSeleccion">
                     <input type="checkbox" [checked]="estaSeleccionado(aviso)"
-                      (change)="toggleSeleccionAviso(aviso, $event)" class="checkbox-seleccion">
+                      (change)="toggleSeleccionAviso(aviso, $event)" 
+                      (click)="$event.stopPropagation()" 
+                      class="checkbox-seleccion">
                   </div>
                   <div class="aviso-cell numero-aviso">{{ aviso.numero_secuencial || ((paginaActual - 1) * porPagina) +
                     i + 1 }}</div>
@@ -368,28 +380,56 @@
           <!-- El mapa se renderizará aquí -->
           <div id="map"></div>
         </div>
-        <!-- Leyenda de colores -->
-        <div class="map-legend">
-          <div class="legend-item" title="Aviso no visitado - Requiere primera visita técnica">
-            <div class="legend-color no-visitado"></div>
-            <span>No visitado</span>
-          </div>
-          <div class="legend-item" title="Visitado pero pendiente de otra visita - Requiere seguimiento">
-            <div class="legend-color visitado-pendiente"></div>
-            <span>Visitado pendiente</span>
-          </div>
-          <div class="legend-item" title="Pendiente de presupuesto - Necesita presupuesto para continuar">
-            <div class="legend-color pendiente-presupuesto"></div>
-            <span>Pendiente presupuesto</span>
-          </div>
-          <div class="legend-item" title="Listo para facturar - Trabajos completados, pendiente de facturación">
-            <div class="legend-color listo-para-facturar"></div>
-            <span>Listo para facturar</span>
-          </div>
-        </div>
-
       </div>
     </ng-container>
+
+    <!-- Información de la ruta calculada - Se muestra en ambas vistas -->
+    <div class="route-info-panel" *ngIf="getNumeroAvisosSeleccionados() > 0">
+      <div class="route-info-header">
+        <ion-icon name="navigate-outline"></ion-icon>
+        <span>Ruta de navegación</span>
+        <ion-spinner *ngIf="calculandoUbicacion || rutaCalculada?.distancia === 'Calculando...'" name="crescent" color="primary"></ion-spinner>
+      </div>
+      
+      <div class="route-stats">
+        <div class="route-stat">
+          <div class="stat-icon">
+            <ion-icon name="location-outline"></ion-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Destinos</span>
+            <span class="stat-value">{{ getNumeroAvisosSeleccionados() }} parada{{ getNumeroAvisosSeleccionados() > 1 ? 's' : '' }}</span>
+          </div>
+        </div>
+        
+        <div class="route-stat">
+          <div class="stat-icon">
+            <ion-icon name="speedometer-outline"></ion-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Distancia</span>
+            <span class="stat-value">{{ rutaCalculada?.distancia || 'Selecciona avisos' }}</span>
+          </div>
+        </div>
+        
+        <div class="route-stat">
+          <div class="stat-icon">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+          <div class="stat-content">
+            <span class="stat-label">Tiempo</span>
+            <span class="stat-value">{{ rutaCalculada?.tiempo || 'Selecciona avisos' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="route-actions" *ngIf="getNumeroAvisosSeleccionados() > 1">
+        <button class="btn-navegar-ruta" (click)="abrirModalOpcionesNavegacion()">
+          <ion-icon name="navigate-outline"></ion-icon>
+          <span>Navegar ruta</span>
+        </button>
+      </div>
+    </div>
 
   </section>
 </ion-content>

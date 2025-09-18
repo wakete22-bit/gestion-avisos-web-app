@@ -73,32 +73,220 @@
   }
 }
 
-.modal-body {
-  .descripcion {
-    margin: 0 0 28px 0;
-    color: #64748B;
-    font-size: 15px;
-    line-height: 1.6;
-    text-align: center;
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-
-    strong {
-      color: #10B981;
-      font-weight: 700;
-      font-size: 16px;
-    }
-
-    .route-info {
-      display: block;
-      margin-top: 8px;
-      font-size: 13px;
+  .modal-body {
+    .descripcion {
+      margin: 0 0 28px 0;
       color: #64748B;
-      font-style: italic;
+      font-size: 15px;
+      line-height: 1.6;
+      text-align: center;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+
+      strong {
+        color: #10B981;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .route-info {
+        display: block;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #64748B;
+        font-style: italic;
+
+        ion-icon {
+          margin-right: 4px;
+          color: #EF4444;
+        }
+      }
     }
-  }
+
+    // Estado de carga
+    .loading-container {
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+      border-radius: 16px;
+      border: 2px solid #E2E8F0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+
+      .loading-content {
+        text-align: center;
+        padding: 40px 20px;
+
+        ion-spinner {
+          width: 48px;
+          height: 48px;
+          margin-bottom: 20px;
+          --color: #10B981;
+        }
+
+        h3 {
+          margin: 0 0 8px 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #374151;
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+          color: #6B7280;
+          line-height: 1.4;
+        }
+      }
+    }
+
+    // Información de la ruta
+    .ruta-info {
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+      border-radius: 16px;
+      border: 2px solid #D1FAE5;
+      overflow: hidden;
+
+      .ruta-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        background: #059669;
+        color: white;
+
+        ion-icon {
+          font-size: 18px;
+        }
+
+        h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 700;
+        }
+      }
+
+      .ruta-details {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          background: white;
+          border-radius: 12px;
+          border: 1px solid #E5E7EB;
+          transition: all 0.2s ease;
+
+          &:hover {
+            border-color: #10B981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+          }
+
+          .detail-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            ion-icon {
+              font-size: 20px;
+              color: #10B981;
+            }
+          }
+
+          .detail-content {
+            flex: 1;
+
+            .detail-label {
+              display: block;
+              font-size: 13px;
+              color: #6B7280;
+              font-weight: 500;
+              margin-bottom: 4px;
+            }
+
+            .detail-value {
+              display: block;
+              font-size: 16px;
+              color: #111827;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+
+      .destinos-list {
+        padding: 0 20px 20px 20px;
+
+        h4 {
+          margin: 0 0 16px 0;
+          font-size: 16px;
+          font-weight: 700;
+          color: #374151;
+        }
+
+        .destinos-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+
+          .destino-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #E5E7EB;
+
+            .destino-number {
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+              font-weight: 700;
+              flex-shrink: 0;
+            }
+
+            .destino-info {
+              flex: 1;
+
+              .destino-nombre {
+                font-size: 14px;
+                font-weight: 600;
+                color: #111827;
+                margin-bottom: 2px;
+              }
+
+              .destino-direccion {
+                font-size: 13px;
+                color: #6B7280;
+                line-height: 1.4;
+              }
+            }
+          }
+        }
+      }
+    }
 
   .opciones-navegacion {
     display: flex;
@@ -239,7 +427,7 @@
 // Responsive
 @media (max-width: 480px) {
   .modal-container {
-    padding: 24px;
+    padding: 15px;
     border-radius: 16px;
     box-shadow: none;
   }
@@ -267,6 +455,109 @@
       padding: 14px 16px;
       font-size: 14px;
       margin-bottom: 24px;
+    }
+
+    .loading-container {
+      margin-bottom: 24px;
+      min-height: 150px;
+
+      .loading-content {
+        padding: 30px 16px;
+
+        ion-spinner {
+          width: 40px;
+          height: 40px;
+          margin-bottom: 16px;
+        }
+
+        h3 {
+          font-size: 16px;
+          margin-bottom: 6px;
+        }
+
+        p {
+          font-size: 13px;
+        }
+      }
+    }
+
+    .ruta-info {
+      margin-bottom: 24px;
+
+      .ruta-header {
+        padding: 15px;
+
+        ion-icon {
+          font-size: 18px;
+        }
+
+        h3 {
+          font-size: 14px!important;
+        }
+      }
+
+      .ruta-details {
+        padding: 16px;
+        gap: 12px;
+
+        .detail-item {
+          padding: 12px;
+          gap: 12px;
+
+          .detail-icon {
+            width: 36px;
+            height: 36px;
+
+            ion-icon {
+              font-size: 18px;
+            }
+          }
+
+          .detail-content {
+            .detail-label {
+              font-size: 12px;
+            }
+
+            .detail-value {
+              font-size: 15px;
+            }
+          }
+        }
+      }
+
+      .destinos-list {
+        padding: 0 16px 16px 16px;
+
+        h4 {
+          font-size: 15px;
+          margin-bottom: 12px;
+        }
+
+        .destinos-container {
+          gap: 10px;
+
+          .destino-item {
+            padding: 10px 12px;
+            gap: 10px;
+
+            .destino-number {
+              width: 24px;
+              height: 24px;
+              font-size: 12px;
+            }
+
+            .destino-info {
+              .destino-nombre {
+                font-size: 13px;
+              }
+
+              .destino-direccion {
+                font-size: 12px;
+              }
+            }
+          }
+        }
+      }
     }
 
     .opciones-navegacion {

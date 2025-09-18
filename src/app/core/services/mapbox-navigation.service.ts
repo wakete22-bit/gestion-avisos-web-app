@@ -96,7 +96,7 @@ export class MapboxNavigationService {
       center: defaultCenter,
       zoom: defaultZoom,
       accessToken: MAPBOX_CONFIG.accessToken,
-      antialias: true,
+      antialias: false, // Desactivar antialiasing para mejor rendimiento
       pitch: 0,
       bearing: 0,
       interactive: true,
@@ -106,7 +106,13 @@ export class MapboxNavigationService {
       dragPan: true,
       keyboard: true,
       doubleClickZoom: true,
-      touchZoomRotate: true
+      touchZoomRotate: true,
+      // Configuraciones adicionales de rendimiento
+      maxZoom: 18,
+      minZoom: 1,
+      fadeDuration: 0,
+      crossSourceCollisions: false,
+      cooperativeGestures: true // Habilita gestos cooperativos para mejor UX
     });
 
     // Añadir controles de navegación mejorados

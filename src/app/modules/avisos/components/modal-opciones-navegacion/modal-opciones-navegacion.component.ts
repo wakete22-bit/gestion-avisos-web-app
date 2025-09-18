@@ -1,24 +1,92 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ModalController } from '@ionic/angular/standalone';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { navigateOutline, logoGoogle, logoApple, playOutline, closeOutline } from 'ionicons/icons';
+import { navigateOutline, logoGoogle, logoApple, playOutline, closeOutline, locationOutline, speedometerOutline, timeOutline } from 'ionicons/icons';
+import { RouteCalculationService, RouteInfo } from '../../../../core/services/route-calculation.service';
 
 @Component({
   selector: 'app-modal-opciones-navegacion',
   templateUrl: './modal-opciones-navegacion.component.html',
   styleUrls: ['./modal-opciones-navegacion.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonIcon]
+  imports: [CommonModule, IonIcon, IonSpinner]
 })
-export class ModalOpcionesNavegacionComponent {
+export class ModalOpcionesNavegacionComponent implements OnInit {
   @Input() avisosSeleccionados: any[] = [];
+  
+  // Estado de carga
+  calculandoRuta = true;
+  
+  // Información de la ruta
+  rutaInfo: RouteInfo = {
+    distancia: 'Calculando...',
+    tiempo: 'Calculando...',
+    paradas: 0,
+    tieneUbicacion: false,
+    distanciaKm: 0,
+    tiempoMinutos: 0
+  };
 
-  constructor(private modalController: ModalController) {
-    addIcons({ navigateOutline, logoGoogle, logoApple, playOutline, closeOutline });
+  constructor(
+    private modalController: ModalController,
+    private routeCalculationService: RouteCalculationService
+  ) {
+    addIcons({closeOutline,locationOutline,navigateOutline,speedometerOutline,timeOutline,logoGoogle,logoApple,playOutline});
   }
 
+  ngOnInit() {
+    this.calcularInformacionRuta();
+  }
+
+  /**
+   * Calcula la información de la ruta (distancia, tiempo, paradas)
+   */
+  private async calcularInformacionRuta() {
+    try {
+      // Mostrar spinner de carga
+      this.calculandoRuta = true;
+      
+      // Obtener ubicación actual
+      const currentLocation = await this.routeCalculationService.obtenerUbicacionActual();
+      
+      // Calcular ruta usando el servicio
+      this.routeCalculationService.calcularRuta(currentLocation, this.avisosSeleccionados)
+        .subscribe({
+          next: (rutaInfo) => {
+            this.rutaInfo = rutaInfo;
+            // Ocultar spinner cuando termine el cálculo
+            this.calculandoRuta = false;
+          },
+          error: (error) => {
+            console.error('Error calculando información de ruta:', error);
+            this.rutaInfo = {
+              distancia: 'Error al calcular',
+              tiempo: 'Error al calcular',
+              paradas: this.avisosSeleccionados.length,
+              tieneUbicacion: !!currentLocation,
+              distanciaKm: 0,
+              tiempoMinutos: 0
+            };
+            // Ocultar spinner incluso si hay error
+            this.calculandoRuta = false;
+          }
+        });
+    } catch (error) {
+      console.error('Error calculando información de ruta:', error);
+      this.rutaInfo = {
+        distancia: 'Error al calcular',
+        tiempo: 'Error al calcular',
+        paradas: this.avisosSeleccionados.length,
+        tieneUbicacion: false,
+        distanciaKm: 0,
+        tiempoMinutos: 0
+      };
+      // Ocultar spinner en caso de error
+      this.calculandoRuta = false;
+    }
+  }
 
   async abrirGoogleMaps() {
     try {
