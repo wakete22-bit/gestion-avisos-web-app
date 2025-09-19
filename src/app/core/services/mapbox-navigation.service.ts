@@ -309,7 +309,7 @@ export class MapboxNavigationService {
   /**
    * Crea una ruta entre waypoints con funcionalidades avanzadas y optimización
    */
-  async createRoute(waypoints: MapboxCoordinates[]): Promise<MapboxNavigationRoute> {
+  async createRoute(waypoints: MapboxCoordinates[], alreadyOptimized: boolean = false): Promise<MapboxNavigationRoute> {
     if (waypoints.length < 2) {
       throw new Error('Se necesitan al menos 2 waypoints para crear una ruta');
     }
@@ -317,9 +317,13 @@ export class MapboxNavigationService {
     console.log('🛣️ Creando ruta profesional para', waypoints.length, 'waypoints');
 
     try {
-      // Optimizar orden de waypoints para menor distancia total
-      const optimizedWaypoints = this.optimizeWaypointOrder(waypoints);
-      console.log('🎯 Waypoints optimizados:', optimizedWaypoints.length);
+      // Solo optimizar si no están ya optimizados
+      const optimizedWaypoints = alreadyOptimized ? waypoints : this.optimizeWaypointOrder(waypoints);
+      if (alreadyOptimized) {
+        console.log('🎯 Waypoints ya optimizados, usando orden original:', optimizedWaypoints.length);
+      } else {
+        console.log('🎯 Waypoints optimizados:', optimizedWaypoints.length);
+      }
 
       const response = await this.fetchRoute(optimizedWaypoints);
       const route = response.routes[0];

@@ -71,13 +71,16 @@
 
         <!-- Lista de destinos -->
         <div class="destinos-list" *ngIf="avisosSeleccionados.length > 0">
-          <h4>Destinos seleccionados:</h4>
+          <h4>
+            {{ waypointsOptimizados.length > 0 ? 'Ruta optimizada:' : 'Destinos seleccionados:' }}
+            <span *ngIf="waypointsOptimizados.length > 0" class="optimized-badge">✓ Optimizada</span>
+          </h4>
           <div class="destinos-container">
-            <div class="destino-item" *ngFor="let aviso of avisosSeleccionados; let i = index">
+            <div class="destino-item" *ngFor="let aviso of (waypointsOptimizados.length > 0 ? waypointsOptimizados : avisosSeleccionados); let i = index">
               <div class="destino-number">{{ i + 1 }}</div>
               <div class="destino-info">
-                <div class="destino-nombre">{{ aviso.nombre_cliente_aviso || 'Cliente' }}</div>
-                <div class="destino-direccion">{{ aviso.direccion_cliente_aviso }}</div>
+                <div class="destino-nombre">{{ aviso.nombre_cliente_aviso || aviso.nombre || 'Cliente' }}</div>
+                <div class="destino-direccion">{{ aviso.direccion_cliente_aviso || aviso.direccion }}</div>
               </div>
             </div>
           </div>

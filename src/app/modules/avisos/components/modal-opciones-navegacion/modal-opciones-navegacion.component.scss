@@ -237,6 +237,20 @@
           font-size: 16px;
           font-weight: 700;
           color: #374151;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .optimized-badge {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
         }
 
         .destinos-container {
@@ -531,6 +545,11 @@
         h4 {
           font-size: 15px;
           margin-bottom: 12px;
+
+          .optimized-badge {
+            padding: 1px 6px;
+            font-size: 10px;
+          }
         }
 
         .destinos-container {

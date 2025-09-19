@@ -73,6 +73,7 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
     try {
       console.log('🗺️ Inicializando mapa en modal de pantalla completa...');
       console.log('📍 Waypoints recibidos:', this.waypoints);
+      console.log('🔍 Orden de waypoints en navegación:', this.waypoints.map((w, i) => `${i}: ${w.address}`));
       
       if (this.waypoints.length === 0) {
         console.error('❌ No hay waypoints para inicializar el mapa');
@@ -122,7 +123,7 @@ export class ModalMapaNavegacionComponent implements OnInit, OnDestroy {
   async createRoute() {
     try {
       console.log('🛣️ Creando ruta en modal...');
-      const route = await this.mapboxService.createRoute(this.waypoints);
+      const route = await this.mapboxService.createRoute(this.waypoints, true);
       console.log('✅ Ruta creada en modal:', route);
 
       // Suscribirse a actualizaciones de navegación

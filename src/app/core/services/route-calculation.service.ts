@@ -64,8 +64,8 @@ export class RouteCalculationService {
           if (waypoints.length >= 2) {
             console.log('✅ RouteCalculationService: Calculando con MapboxNavigationService:', waypoints.length, 'waypoints');
             
-            // Usar el mismo servicio que la navegación real
-            this.mapboxService.createRoute(waypoints)
+            // Usar el mismo servicio que la navegación real (ya optimizados)
+            this.mapboxService.createRoute(waypoints, true)
               .then(route => {
                 console.log('✅ RouteCalculationService: Ruta calculada con MapboxNavigationService:', {
                   distancia: `${(route.totalDistance / 1000).toFixed(1)} km`,
@@ -186,7 +186,7 @@ export class RouteCalculationService {
   /**
    * Convierte avisos a coordenadas MapboxCoordinates para usar con MapboxNavigationService
    */
-  private async convertirAvisosAMapboxCoordinates(
+  async convertirAvisosAMapboxCoordinates(
     currentLocation: { latitude: number; longitude: number },
     avisos: any[]
   ): Promise<MapboxCoordinates[]> {
@@ -233,6 +233,15 @@ export class RouteCalculationService {
     }
 
     console.log('📍 RouteCalculationService: MapboxCoordinates generados:', waypoints.length);
+
+    // Optimizar orden de waypoints para minimizar distancia total
+    if (waypoints.length > 2) {
+      console.log('🚀 RouteCalculationService: Optimizando orden de waypoints...');
+      const waypointsOptimizados = await this.optimizarOrdenWaypoints(waypoints);
+      console.log('✅ RouteCalculationService: Waypoints optimizados:', waypointsOptimizados.length);
+      return waypointsOptimizados;
+    }
+
     return waypoints;
   }
 
@@ -279,9 +288,122 @@ export class RouteCalculationService {
   }
 
   /**
+   * Optimiza el orden de waypoints para minimizar la distancia total usando distancias reales de Mapbox
+   */
+  private async optimizarOrdenWaypoints(waypoints: MapboxCoordinates[]): Promise<MapboxCoordinates[]> {
+    if (waypoints.length <= 2) {
+      return waypoints;
+    }
+
+    console.log('🧮 RouteCalculationService: Iniciando optimización con distancias reales para', waypoints.length, 'waypoints');
+
+    const optimizados: MapboxCoordinates[] = [];
+    const sinVisitar = [...waypoints.slice(1)]; // Excluir el punto de partida
+    let actual = waypoints[0]; // Empezar desde la ubicación actual
+    optimizados.push(actual);
+
+    console.log('📍 RouteCalculationService: Punto de partida:', actual.address);
+
+    while (sinVisitar.length > 0) {
+      let masCercano = sinVisitar[0];
+      let distanciaMinima = await this.obtenerDistanciaReal(actual, masCercano);
+
+      // Encontrar el waypoint más cercano usando distancias reales
+      for (let i = 1; i < sinVisitar.length; i++) {
+        const distancia = await this.obtenerDistanciaReal(actual, sinVisitar[i]);
+
+        if (distancia < distanciaMinima) {
+          distanciaMinima = distancia;
+          masCercano = sinVisitar[i];
+        }
+      }
+
+      // Agregar el más cercano y actualizar estado
+      optimizados.push(masCercano);
+      sinVisitar.splice(sinVisitar.indexOf(masCercano), 1);
+      actual = masCercano;
+
+      console.log(`📍 RouteCalculationService: Siguiente parada: ${masCercano.address} (${(distanciaMinima / 1000).toFixed(1)}km real)`);
+    }
+
+    // Calcular distancia total optimizada usando distancias reales
+    let distanciaTotal = 0;
+    for (let i = 0; i < optimizados.length - 1; i++) {
+      distanciaTotal += await this.obtenerDistanciaReal(optimizados[i], optimizados[i + 1]);
+    }
+
+    console.log('✅ RouteCalculationService: Optimización con distancias reales completada', {
+      waypointsOriginales: waypoints.length,
+      waypointsOptimizados: optimizados.length,
+      distanciaTotalKm: (distanciaTotal / 1000).toFixed(2),
+      orden: optimizados.map(w => w.address)
+    });
+
+    return optimizados;
+  }
+
+  /**
+   * Obtiene la distancia real por carreteras entre dos puntos usando la API de Mapbox
+   */
+  private async obtenerDistanciaReal(punto1: MapboxCoordinates, punto2: MapboxCoordinates): Promise<number> {
+    try {
+      // Importar configuración de Mapbox
+      const { MAPBOX_CONFIG } = await import('../../../environments/mapbox.config');
+      
+      if (!MAPBOX_CONFIG.accessToken || MAPBOX_CONFIG.accessToken === 'YOUR_MAPBOX_TOKEN') {
+        console.log('⚠️ RouteCalculationService: Token no disponible, usando distancia Haversine');
+        return this.calcularDistanciaHaversine(punto1.latitude, punto1.longitude, punto2.latitude, punto2.longitude) * 1000;
+      }
+
+      // Construir URL para obtener distancia real
+      const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${punto1.longitude},${punto1.latitude};${punto2.longitude},${punto2.latitude}?access_token=${MAPBOX_CONFIG.accessToken}&geometries=geojson&overview=false`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const distancia = data.routes[0].distance; // Distancia en metros
+        console.log(`🛣️ RouteCalculationService: Distancia real ${punto1.address} → ${punto2.address}: ${(distancia/1000).toFixed(1)}km`);
+        return distancia;
+      } else {
+        console.log('⚠️ RouteCalculationService: No se pudo obtener distancia real, usando Haversine');
+        return this.calcularDistanciaHaversine(punto1.latitude, punto1.longitude, punto2.latitude, punto2.longitude) * 1000;
+      }
+
+    } catch (error) {
+      console.error('❌ RouteCalculationService: Error obteniendo distancia real:', error);
+      // Fallback a distancia Haversine
+      return this.calcularDistanciaHaversine(punto1.latitude, punto1.longitude, punto2.latitude, punto2.longitude) * 1000;
+    }
+  }
+
+  /**
+   * Calcula la distancia entre dos puntos usando la fórmula de Haversine
+   */
+  private calcularDistanciaHaversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.gradosARadianes(lat2 - lat1);
+    const dLon = this.gradosARadianes(lon2 - lon1);
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.gradosARadianes(lat1)) * Math.cos(this.gradosARadianes(lat2)) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distancia = R * c; // Distancia en km
+    return distancia;
+  }
+
+  /**
+   * Convierte grados a radianes
+   */
+  private gradosARadianes(grados: number): number {
+    return grados * (Math.PI / 180);
+  }
+
+  /**
    * Obtiene coordenadas exactas usando geocoding de Mapbox
    */
-  private async obtenerCoordenadasExactas(direccion: string): Promise<{ lat: number; lng: number } | null> {
+  async obtenerCoordenadasExactas(direccion: string): Promise<{ lat: number; lng: number } | null> {
     try {
       console.log('🔍 RouteCalculationService: Intentando geocoding real para:', direccion);
       
@@ -531,40 +653,14 @@ export class RouteCalculationService {
     let distanciaTotal = 0;
     for (let i = 0; i < waypoints.length - 1; i++) {
       distanciaTotal += this.calcularDistanciaHaversine(
-        waypoints[i],
-        waypoints[i + 1]
+        waypoints[i].latitude, waypoints[i].longitude,
+        waypoints[i + 1].latitude, waypoints[i + 1].longitude
       );
     }
 
     return Math.round(distanciaTotal * 100) / 100; // Redondear a 2 decimales
   }
 
-  /**
-   * Calcula la distancia entre dos puntos usando la fórmula de Haversine
-   */
-  private calcularDistanciaHaversine(
-    punto1: { latitude: number; longitude: number },
-    punto2: { latitude: number; longitude: number }
-  ): number {
-    const R = 6371; // Radio de la Tierra en km
-    const dLat = this.toRad(punto2.latitude - punto1.latitude);
-    const dLon = this.toRad(punto2.longitude - punto1.longitude);
-    const lat1 = this.toRad(punto1.latitude);
-    const lat2 = this.toRad(punto2.latitude);
-
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  }
-
-  /**
-   * Convierte grados a radianes
-   */
-  private toRad(deg: number): number {
-    return deg * (Math.PI / 180);
-  }
 
   /**
    * Estima el tiempo basado en la distancia

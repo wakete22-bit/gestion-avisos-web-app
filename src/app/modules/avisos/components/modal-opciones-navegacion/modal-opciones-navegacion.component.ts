@@ -29,6 +29,9 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
     tiempoMinutos: 0
   };
 
+  // Waypoints optimizados para navegación
+  waypointsOptimizados: any[] = [];
+
   constructor(
     private modalController: ModalController,
     private routeCalculationService: RouteCalculationService
@@ -56,6 +59,8 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
         .subscribe({
           next: (rutaInfo) => {
             this.rutaInfo = rutaInfo;
+            // Obtener waypoints optimizados para navegación
+            this.obtenerWaypointsOptimizados();
             // Ocultar spinner cuando termine el cálculo
             this.calculandoRuta = false;
           },
@@ -359,14 +364,72 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
       avisos: this.avisosSeleccionados.map(aviso => ({
         id: aviso.id,
         direccion: aviso.direccion_cliente_aviso
-      }))
+      })),
+      waypointsOptimizados: this.waypointsOptimizados.map(w => w.direccion),
+      waypointsOptimizadosLength: this.waypointsOptimizados.length
     });
     
-    await this.modalController.dismiss({ opcion: 'app' });
+    // Pasar los waypoints optimizados para la navegación interna
+    const waypointsParaEnviar = this.waypointsOptimizados.length > 0 ? this.waypointsOptimizados : this.avisosSeleccionados;
+    
+    console.log('🚀 Enviando waypoints para navegación interna:', {
+      usandoOptimizados: this.waypointsOptimizados.length > 0,
+      ordenEnviado: waypointsParaEnviar.map(w => w.direccion_cliente_aviso || w.direccion)
+    });
+    
+    await this.modalController.dismiss({ 
+      opcion: 'app',
+      waypointsOptimizados: waypointsParaEnviar
+    });
   }
 
   async cerrar() {
     await this.modalController.dismiss();
+  }
+
+  /**
+   * Obtiene los waypoints optimizados para usar en navegación externa
+   */
+  private async obtenerWaypointsOptimizados() {
+    try {
+      console.log('🔄 Obteniendo waypoints optimizados para navegación externa...');
+      
+      // Obtener ubicación actual
+      const currentLocation = await this.routeCalculationService.obtenerUbicacionActual();
+      
+      if (currentLocation) {
+        // Usar el mismo método de optimización que el servicio de cálculo de rutas
+        const waypoints = await this.routeCalculationService.convertirAvisosAMapboxCoordinates(currentLocation, this.avisosSeleccionados);
+        
+        // Convertir a formato para navegación externa (solo direcciones)
+        this.waypointsOptimizados = waypoints.slice(1).map((waypoint, index) => {
+          // Encontrar el aviso original correspondiente por dirección
+          const avisoOriginal = this.avisosSeleccionados.find(aviso => 
+            aviso.direccion_cliente_aviso === waypoint.address
+          );
+          
+          return {
+            direccion: waypoint.address,
+            direccion_cliente_aviso: waypoint.address,
+            nombre_cliente_aviso: avisoOriginal?.nombre_cliente_aviso || 'Cliente',
+            nombre: avisoOriginal?.nombre_cliente_aviso || 'Cliente',
+            latitud: waypoint.latitude,
+            longitud: waypoint.longitude,
+            id: avisoOriginal?.id
+          };
+        });
+        
+        console.log('✅ Waypoints optimizados obtenidos:', this.waypointsOptimizados.map(w => w.direccion));
+      } else {
+        // Fallback al orden original si no hay ubicación
+        this.waypointsOptimizados = this.avisosSeleccionados;
+        console.log('⚠️ Sin ubicación, usando orden original');
+      }
+    } catch (error) {
+      console.error('❌ Error obteniendo waypoints optimizados:', error);
+      // Fallback al orden original
+      this.waypointsOptimizados = this.avisosSeleccionados;
+    }
   }
 
   /**
@@ -647,10 +710,14 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
   private construirUrlGoogleMaps(currentLocation: { latitude: number; longitude: number } | null): string {
     const origin = currentLocation ? `${currentLocation.latitude},${currentLocation.longitude}` : null;
     
-    // Preparar waypoints (todos los avisos seleccionados)
-    const waypoints = this.avisosSeleccionados.map(aviso => {
-      if (aviso.direccion_cliente_aviso) {
-        return encodeURIComponent(aviso.direccion_cliente_aviso);
+    // Usar waypoints optimizados si están disponibles, sino usar orden original
+    const avisosParaNavegacion = this.waypointsOptimizados.length > 0 ? this.waypointsOptimizados : this.avisosSeleccionados;
+    
+    // Preparar waypoints en orden optimizado
+    const waypoints = avisosParaNavegacion.map(aviso => {
+      const direccion = aviso.direccion_cliente_aviso || aviso.direccion;
+      if (direccion) {
+        return encodeURIComponent(direccion);
       }
       return null;
     }).filter(waypoint => waypoint !== null);
@@ -735,10 +802,14 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
   private construirUrlAppleMaps(currentLocation: { latitude: number; longitude: number } | null): string {
     const origin = currentLocation ? `${currentLocation.latitude},${currentLocation.longitude}` : null;
     
-    // Preparar waypoints para Apple Maps
-    const waypoints = this.avisosSeleccionados.map(aviso => {
-      if (aviso.direccion_cliente_aviso) {
-        return encodeURIComponent(aviso.direccion_cliente_aviso);
+    // Usar waypoints optimizados si están disponibles, sino usar orden original
+    const avisosParaNavegacion = this.waypointsOptimizados.length > 0 ? this.waypointsOptimizados : this.avisosSeleccionados;
+    
+    // Preparar waypoints en orden optimizado
+    const waypoints = avisosParaNavegacion.map(aviso => {
+      const direccion = aviso.direccion_cliente_aviso || aviso.direccion;
+      if (direccion) {
+        return encodeURIComponent(direccion);
       }
       return null;
     }).filter(waypoint => waypoint !== null);
@@ -802,9 +873,13 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
   private construirUrlGoogleMapsWeb(currentLocation: { latitude: number; longitude: number } | null): string {
     const origin = currentLocation ? `${currentLocation.latitude},${currentLocation.longitude}` : null;
     
-    const waypoints = this.avisosSeleccionados.map(aviso => {
-      if (aviso.direccion_cliente_aviso) {
-        return encodeURIComponent(aviso.direccion_cliente_aviso);
+    // Usar waypoints optimizados si están disponibles, sino usar orden original
+    const avisosParaNavegacion = this.waypointsOptimizados.length > 0 ? this.waypointsOptimizados : this.avisosSeleccionados;
+    
+    const waypoints = avisosParaNavegacion.map(aviso => {
+      const direccion = aviso.direccion_cliente_aviso || aviso.direccion;
+      if (direccion) {
+        return encodeURIComponent(direccion);
       }
       return null;
     }).filter(waypoint => waypoint !== null);
@@ -839,9 +914,13 @@ export class ModalOpcionesNavegacionComponent implements OnInit {
   private construirUrlAppleMapsWeb(currentLocation: { latitude: number; longitude: number } | null): string {
     const origin = currentLocation ? `${currentLocation.latitude},${currentLocation.longitude}` : null;
     
-    const waypoints = this.avisosSeleccionados.map(aviso => {
-      if (aviso.direccion_cliente_aviso) {
-        return encodeURIComponent(aviso.direccion_cliente_aviso);
+    // Usar waypoints optimizados si están disponibles, sino usar orden original
+    const avisosParaNavegacion = this.waypointsOptimizados.length > 0 ? this.waypointsOptimizados : this.avisosSeleccionados;
+    
+    const waypoints = avisosParaNavegacion.map(aviso => {
+      const direccion = aviso.direccion_cliente_aviso || aviso.direccion;
+      if (direccion) {
+        return encodeURIComponent(direccion);
       }
       return null;
     }).filter(waypoint => waypoint !== null);

@@ -1632,9 +1632,102 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
           this.abrirRutaEnAppleMaps();
           break;
         case 'app':
-          this.abrirModalMapaNavegacion();
+          if (data.waypointsOptimizados) {
+            this.abrirModalMapaNavegacionConWaypointsOptimizados(data.waypointsOptimizados);
+          } else {
+            this.abrirModalMapaNavegacion();
+          }
           break;
       }
+    }
+  }
+
+  /**
+   * Abre el modal de mapa de navegación con waypoints optimizados
+   */
+  async abrirModalMapaNavegacionConWaypointsOptimizados(waypointsOptimizados: any[]) {
+    if (this.avisosSeleccionados.size < 1) {
+      console.warn('Se necesita al menos 1 aviso seleccionado');
+      return;
+    }
+
+    console.log('🗺️ Abriendo modal de mapa de navegación con waypoints optimizados...');
+
+    try {
+      // Obtener ubicación actual del usuario PRIMERO
+      const currentLocation = await this.obtenerUbicacionActual();
+      if (!currentLocation) {
+        console.error('❌ No se pudo obtener la ubicación actual del usuario');
+        this.error = 'No se pudo obtener tu ubicación actual. Verifica que tengas habilitado el GPS.';
+        return;
+      }
+
+      console.log('📍 Ubicación actual obtenida:', currentLocation);
+      console.log('✅ Usando waypoints optimizados:', waypointsOptimizados.map(w => w.direccion_cliente_aviso || w.direccion));
+      console.log('🔍 Waypoints optimizados recibidos:', {
+        cantidad: waypointsOptimizados.length,
+        datos: waypointsOptimizados.map(w => ({
+          direccion: w.direccion_cliente_aviso || w.direccion,
+          id: w.id
+        }))
+      });
+
+      // Crear array de waypoints empezando por la ubicación actual
+      const waypoints: MapboxCoordinates[] = [
+        {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+          address: 'Tu ubicación actual'
+        }
+      ];
+      
+      // Agregar waypoints optimizados como destinos usando el mismo servicio que la vista previa
+      for (const waypoint of waypointsOptimizados) {
+        const direccion = waypoint.direccion_cliente_aviso || waypoint.direccion;
+        if (direccion) {
+          try {
+            // Usar el mismo servicio de geocodificación que la vista previa (Mapbox)
+            const coordenadasExactas = await this.routeCalculationService.obtenerCoordenadasExactas(direccion);
+            if (coordenadasExactas) {
+              waypoints.push({
+                latitude: coordenadasExactas.lat,
+                longitude: coordenadasExactas.lng,
+                address: direccion
+              });
+              console.log(`✅ Waypoint optimizado geocodificado con Mapbox: ${direccion} -> ${coordenadasExactas.lat}, ${coordenadasExactas.lng}`);
+            } else {
+              console.warn(`⚠️ No se pudo geocodificar waypoint optimizado con Mapbox: ${direccion}`);
+            }
+          } catch (geocodeError) {
+            console.error(`❌ Error geocodificando waypoint optimizado con Mapbox ${direccion}:`, geocodeError);
+          }
+        }
+      }
+
+      if (waypoints.length < 2) {
+        console.error('❌ No se pudieron geocodificar suficientes direcciones');
+        this.error = 'No se pudieron geocodificar las direcciones de los avisos seleccionados. Verifica que las direcciones sean válidas.';
+        return;
+      }
+
+      // Importar el componente dinámicamente
+      const { ModalMapaNavegacionComponent } = await import('../../components/modal-mapa-navegacion/modal-mapa-navegacion.component');
+      
+      // Usar ModalController de Ionic para abrir el modal
+      const modal = await this.modalController.create({
+        component: ModalMapaNavegacionComponent,
+        cssClass: 'modal-mapa-navegacion-fullscreen',
+        componentProps: {
+          waypoints: waypoints
+        }
+      });
+
+      await modal.present();
+      console.log('✅ Modal de mapa con waypoints optimizados presentado');
+
+    } catch (error) {
+      console.error('❌ Error al abrir modal de mapa con waypoints optimizados:', error);
+      this.error = 'Error al abrir la navegación. Inténtalo de nuevo.';
     }
   }
 
@@ -1683,22 +1776,22 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
               address: aviso.direccion_cliente_aviso
             });
           } else {
-            // Si no hay marcador, geocodificar la dirección
+            // Si no hay marcador, geocodificar la dirección usando el mismo servicio que la vista previa
             try {
-              const coordinates = await this.geocodingService.geocode(`${aviso.direccion_cliente_aviso}, España`).toPromise();
-              if (coordinates && coordinates.length === 2) {
+              const coordenadasExactas = await this.routeCalculationService.obtenerCoordenadasExactas(aviso.direccion_cliente_aviso);
+              if (coordenadasExactas) {
                 waypoints.push({
-                  latitude: coordinates[1],
-                  longitude: coordinates[0],
+                  latitude: coordenadasExactas.lat,
+                  longitude: coordenadasExactas.lng,
                   address: aviso.direccion_cliente_aviso
                 });
-                console.log(`✅ Dirección geocodificada para aviso ${avisoId}:`, coordinates);
+                console.log(`✅ Dirección geocodificada con Mapbox para aviso ${avisoId}:`, coordenadasExactas);
               } else {
-                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId}: ${aviso.direccion_cliente_aviso}`);
+                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId} con Mapbox: ${aviso.direccion_cliente_aviso}`);
                 continue;
               }
             } catch (geocodeError) {
-              console.error(`❌ Error al geocodificar aviso ${avisoId}:`, geocodeError);
+              console.error(`❌ Error al geocodificar aviso ${avisoId} con Mapbox:`, geocodeError);
               continue;
             }
           }
@@ -1789,23 +1882,23 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
               address: aviso.direccion_cliente_aviso
             });
           } else {
-            // Si no hay marcador, geocodificar la dirección
+            // Si no hay marcador, geocodificar la dirección usando el mismo servicio que la vista previa
             try {
-              const coordinates = await this.geocodingService.geocode(`${aviso.direccion_cliente_aviso}, España`).toPromise();
-              if (coordinates && coordinates.length === 2) {
+              const coordenadasExactas = await this.routeCalculationService.obtenerCoordenadasExactas(aviso.direccion_cliente_aviso);
+              if (coordenadasExactas) {
                 waypoints.push({
-                  latitude: coordinates[1],
-                  longitude: coordinates[0],
+                  latitude: coordenadasExactas.lat,
+                  longitude: coordenadasExactas.lng,
                   address: aviso.direccion_cliente_aviso
                 });
-                console.log(`✅ Dirección geocodificada para aviso ${avisoId}:`, coordinates);
+                console.log(`✅ Dirección geocodificada con Mapbox para aviso ${avisoId}:`, coordenadasExactas);
               } else {
-                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId}: ${aviso.direccion_cliente_aviso}`);
+                console.warn(`⚠️ No se pudo geocodificar la dirección del aviso ${avisoId} con Mapbox: ${aviso.direccion_cliente_aviso}`);
                 // Saltar este aviso si no se puede geocodificar
                 continue;
               }
             } catch (geocodeError) {
-              console.error(`❌ Error al geocodificar aviso ${avisoId}:`, geocodeError);
+              console.error(`❌ Error al geocodificar aviso ${avisoId} con Mapbox:`, geocodeError);
               // Saltar este aviso si hay error de geocodificación
               continue;
             }
