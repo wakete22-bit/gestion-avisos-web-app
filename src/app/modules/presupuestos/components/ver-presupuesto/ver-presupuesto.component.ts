@@ -6,6 +6,7 @@ import { addIcons } from 'ionicons';
 import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline } from 'ionicons/icons';
 
 import { PresupuestosService, Presupuesto } from '../../services/presupuestos.service';
+import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 
 @Component({
   selector: 'app-ver-presupuesto',
@@ -19,11 +20,14 @@ export class VerPresupuestoComponent implements OnInit {
   loading = false;
   error: string | null = null;
   presupuestoId: string | null = null;
+  ivaPorcentaje: number = 21;
+  precioHoraManoObra: number = 50;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private configuracionService: ConfiguracionService
   ) {
     console.log('VerPresupuestoComponent constructor');
     addIcons({arrowBackOutline,createOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline});
@@ -31,6 +35,15 @@ export class VerPresupuestoComponent implements OnInit {
 
   ngOnInit() {
     console.log('VerPresupuestoComponent ngOnInit');
+    
+    // Cargar IVA desde configuración
+    this.configuracionService.getIvaPorDefecto().subscribe(iva => {
+      this.ivaPorcentaje = iva;
+    });
+    
+    // Cargar precio por hora desde configuración
+    this.precioHoraManoObra = this.configuracionService.getPrecioHoraManoObraSync();
+    
     this.route.params.subscribe(params => {
       this.presupuestoId = params['id'];
       console.log('ID del presupuesto recibido:', this.presupuestoId);

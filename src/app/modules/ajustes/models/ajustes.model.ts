@@ -7,6 +7,7 @@ export interface ConfiguracionEmpresa {
   email: string;
   web?: string;
   logo_url?: string;
+  precio_hora_mano_obra: number;
   fecha_creacion: Date;
   fecha_actualizacion: Date;
 }
@@ -73,6 +74,7 @@ export interface ActualizarEmpresaRequest {
   email?: string;
   web?: string;
   logo_url?: string;
+  precio_hora_mano_obra?: number;
 }
 
 export interface ActualizarFacturacionRequest {

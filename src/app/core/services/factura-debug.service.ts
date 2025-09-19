@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Observable, from } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { SupabaseClientService } from './supabase-client.service';
+import { ConfiguracionService } from './configuracion.service';
 import { LineaFactura } from '../../modules/facturas/models/factura.model';
 
 @Injectable({
@@ -11,7 +12,10 @@ import { LineaFactura } from '../../modules/facturas/models/factura.model';
 export class FacturaDebugService {
   private supabase: SupabaseClient;
 
-  constructor(private supabaseClientService: SupabaseClientService) {
+  constructor(
+    private supabaseClientService: SupabaseClientService,
+    private configuracionService: ConfiguracionService
+  ) {
     this.supabase = this.supabaseClientService.getClient();
   }
 
@@ -106,15 +110,27 @@ export class FacturaDebugService {
       return acc + (cantidad * precio);
     }, 0);
 
-    const iva = +(subtotal * 0.21).toFixed(2);
-    const total = +(subtotal + iva).toFixed(2);
+    // Obtener IVA de la configuración
+    return this.configuracionService.getIvaPorDefecto().pipe(
+      map(ivaPorcentaje => {
+        const iva = +(subtotal * (ivaPorcentaje / 100)).toFixed(2);
+        const total = +(subtotal + iva).toFixed(2);
 
-    console.log('🧮 Prueba de cálculo de totales:', {
-      lineas: lineasPrueba,
-      subtotal,
-      iva,
-      total
-    });
+        console.log('🧮 Prueba de cálculo de totales:', {
+          lineas: lineasPrueba,
+          subtotal,
+          iva,
+          total
+        });
+
+        return {
+          lineas: lineasPrueba,
+          subtotal,
+          iva,
+          total
+        };
+      })
+    );
   }
 
   /**

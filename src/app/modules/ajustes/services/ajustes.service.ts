@@ -60,21 +60,26 @@ export class AjustesService {
       this.supabase
         .from('configuracion_empresa')
         .select('*')
-        .single()
+        .limit(1)
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
-          // Si no existe, crear configuración por defecto
-          if (error.code === 'PGRST116') {
-            return from(this.crearConfiguracionEmpresaPorDefecto());
-          }
+          console.error('Error al obtener configuración de empresa:', error);
           throw error;
         }
-        return from(Promise.resolve(data as ConfiguracionEmpresa));
+        
+        // Si no hay datos, crear configuración por defecto
+        if (!data || data.length === 0) {
+          console.log('No hay configuración de empresa, creando por defecto...');
+          return from(this.crearConfiguracionEmpresaPorDefecto());
+        }
+        
+        return from(Promise.resolve(data[0] as ConfiguracionEmpresa));
       }),
       catchError(error => {
         console.error('Error al obtener configuración de empresa:', error);
-        throw error;
+        // Si hay error, intentar crear configuración por defecto
+        return from(this.crearConfiguracionEmpresaPorDefecto());
       })
     );
   }
@@ -87,20 +92,26 @@ export class AjustesService {
       this.supabase
         .from('configuracion_facturacion')
         .select('*')
-        .single()
+        .limit(1)
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
-          if (error.code === 'PGRST116') {
-            return from(this.crearConfiguracionFacturacionPorDefecto());
-          }
+          console.error('Error al obtener configuración de facturación:', error);
           throw error;
         }
-        return from(Promise.resolve(data as ConfiguracionFacturacion));
+        
+        // Si no hay datos, crear configuración por defecto
+        if (!data || data.length === 0) {
+          console.log('No hay configuración de facturación, creando por defecto...');
+          return from(this.crearConfiguracionFacturacionPorDefecto());
+        }
+        
+        return from(Promise.resolve(data[0] as ConfiguracionFacturacion));
       }),
       catchError(error => {
         console.error('Error al obtener configuración de facturación:', error);
-        throw error;
+        // Si hay error, intentar crear configuración por defecto
+        return from(this.crearConfiguracionFacturacionPorDefecto());
       })
     );
   }
@@ -113,20 +124,26 @@ export class AjustesService {
       this.supabase
         .from('configuracion_notificaciones')
         .select('*')
-        .single()
+        .limit(1)
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
-          if (error.code === 'PGRST116') {
-            return from(this.crearConfiguracionNotificacionesPorDefecto());
-          }
+          console.error('Error al obtener configuración de notificaciones:', error);
           throw error;
         }
-        return from(Promise.resolve(data as ConfiguracionNotificaciones));
+        
+        // Si no hay datos, crear configuración por defecto
+        if (!data || data.length === 0) {
+          console.log('No hay configuración de notificaciones, creando por defecto...');
+          return from(this.crearConfiguracionNotificacionesPorDefecto());
+        }
+        
+        return from(Promise.resolve(data[0] as ConfiguracionNotificaciones));
       }),
       catchError(error => {
         console.error('Error al obtener configuración de notificaciones:', error);
-        throw error;
+        // Si hay error, intentar crear configuración por defecto
+        return from(this.crearConfiguracionNotificacionesPorDefecto());
       })
     );
   }
@@ -139,20 +156,26 @@ export class AjustesService {
       this.supabase
         .from('configuracion_avisos')
         .select('*')
-        .single()
+        .limit(1)
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
-          if (error.code === 'PGRST116') {
-            return from(this.crearConfiguracionAvisosPorDefecto());
-          }
+          console.error('Error al obtener configuración de avisos:', error);
           throw error;
         }
-        return from(Promise.resolve(data as ConfiguracionAvisos));
+        
+        // Si no hay datos, crear configuración por defecto
+        if (!data || data.length === 0) {
+          console.log('No hay configuración de avisos, creando por defecto...');
+          return from(this.crearConfiguracionAvisosPorDefecto());
+        }
+        
+        return from(Promise.resolve(data[0] as ConfiguracionAvisos));
       }),
       catchError(error => {
         console.error('Error al obtener configuración de avisos:', error);
-        throw error;
+        // Si hay error, intentar crear configuración por defecto
+        return from(this.crearConfiguracionAvisosPorDefecto());
       })
     );
   }
@@ -165,20 +188,26 @@ export class AjustesService {
       this.supabase
         .from('configuracion_sistema')
         .select('*')
-        .single()
+        .limit(1)
     ).pipe(
       switchMap(({ data, error }) => {
         if (error) {
-          if (error.code === 'PGRST116') {
-            return from(this.crearConfiguracionSistemaPorDefecto());
-          }
+          console.error('Error al obtener configuración del sistema:', error);
           throw error;
         }
-        return from(Promise.resolve(data as ConfiguracionSistema));
+        
+        // Si no hay datos, crear configuración por defecto
+        if (!data || data.length === 0) {
+          console.log('No hay configuración del sistema, creando por defecto...');
+          return from(this.crearConfiguracionSistemaPorDefecto());
+        }
+        
+        return from(Promise.resolve(data[0] as ConfiguracionSistema));
       }),
       catchError(error => {
         console.error('Error al obtener configuración del sistema:', error);
-        throw error;
+        // Si hay error, intentar crear configuración por defecto
+        return from(this.crearConfiguracionSistemaPorDefecto());
       })
     );
   }
@@ -192,23 +221,66 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
+    console.log('🔄 Actualizando configuración de empresa:', datosActualizados);
+
+    // Primero buscar si existe una configuración
     return from(
       this.supabase
         .from('configuracion_empresa')
-        .update(datosActualizados)
-        .select()
-        .single()
+        .select('id')
+        .limit(1)
     ).pipe(
+      switchMap(({ data: existingData, error: selectError }) => {
+        if (selectError) {
+          console.error('❌ Error verificando configuración existente:', selectError);
+          throw selectError;
+        }
+
+        console.log('📊 Datos existentes encontrados:', existingData);
+
+        if (existingData && existingData.length > 0) {
+          // Existe configuración, actualizar
+          const idExistente = existingData[0].id;
+          console.log('✅ Actualizando configuración existente con ID:', idExistente);
+          
+          return from(
+            this.supabase
+              .from('configuracion_empresa')
+              .update(datosActualizados)
+              .eq('id', idExistente)
+              .select('*')
+              .single()
+          );
+        } else {
+          // No existe configuración, crear nueva
+          console.log('🆕 Creando nueva configuración de empresa');
+          
+          return from(
+            this.supabase
+              .from('configuracion_empresa')
+              .insert([{
+                ...datosActualizados,
+                fecha_creacion: new Date().toISOString()
+              }])
+              .select('*')
+              .single()
+          );
+        }
+      }),
       map(({ data, error }) => {
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error en operación de base de datos:', error);
+          throw error;
+        }
         
+        console.log('✅ Configuración actualizada exitosamente:', data);
         const configuracionActualizada = data as ConfiguracionEmpresa;
         this.actualizarAjustesLocales('empresa', configuracionActualizada);
         
         return configuracionActualizada;
       }),
       catchError(error => {
-        console.error('Error al actualizar configuración de empresa:', error);
+        console.error('❌ Error al actualizar configuración de empresa:', error);
         throw error;
       })
     );
@@ -223,13 +295,48 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
+    // Primero buscar si existe una configuración
     return from(
       this.supabase
         .from('configuracion_facturacion')
-        .update(datosActualizados)
-        .select()
-        .single()
+        .select('id')
+        .limit(1)
     ).pipe(
+      switchMap(({ data: existingData, error: selectError }) => {
+        if (selectError) {
+          console.error('Error verificando configuración existente:', selectError);
+          throw selectError;
+        }
+
+        if (existingData && existingData.length > 0) {
+          // Existe configuración, actualizar
+          const idExistente = existingData[0].id;
+          console.log('Actualizando configuración de facturación existente con ID:', idExistente);
+          
+          return from(
+            this.supabase
+              .from('configuracion_facturacion')
+              .update(datosActualizados)
+              .eq('id', idExistente)
+              .select('*')
+              .single()
+          );
+        } else {
+          // No existe configuración, crear nueva
+          console.log('Creando nueva configuración de facturación');
+          
+          return from(
+            this.supabase
+              .from('configuracion_facturacion')
+              .insert([{
+                ...datosActualizados,
+                fecha_creacion: new Date().toISOString()
+              }])
+              .select('*')
+              .single()
+          );
+        }
+      }),
       map(({ data, error }) => {
         if (error) throw error;
         
@@ -254,13 +361,48 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
+    // Primero buscar si existe una configuración
     return from(
       this.supabase
         .from('configuracion_notificaciones')
-        .update(datosActualizados)
-        .select()
-        .single()
+        .select('id')
+        .limit(1)
     ).pipe(
+      switchMap(({ data: existingData, error: selectError }) => {
+        if (selectError) {
+          console.error('Error verificando configuración existente:', selectError);
+          throw selectError;
+        }
+
+        if (existingData && existingData.length > 0) {
+          // Existe configuración, actualizar
+          const idExistente = existingData[0].id;
+          console.log('Actualizando configuración de notificaciones existente con ID:', idExistente);
+          
+          return from(
+            this.supabase
+              .from('configuracion_notificaciones')
+              .update(datosActualizados)
+              .eq('id', idExistente)
+              .select('*')
+              .single()
+          );
+        } else {
+          // No existe configuración, crear nueva
+          console.log('Creando nueva configuración de notificaciones');
+          
+          return from(
+            this.supabase
+              .from('configuracion_notificaciones')
+              .insert([{
+                ...datosActualizados,
+                fecha_creacion: new Date().toISOString()
+              }])
+              .select('*')
+              .single()
+          );
+        }
+      }),
       map(({ data, error }) => {
         if (error) throw error;
         
@@ -285,13 +427,48 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
+    // Primero buscar si existe una configuración
     return from(
       this.supabase
         .from('configuracion_avisos')
-        .update(datosActualizados)
-        .select()
-        .single()
+        .select('id')
+        .limit(1)
     ).pipe(
+      switchMap(({ data: existingData, error: selectError }) => {
+        if (selectError) {
+          console.error('Error verificando configuración existente:', selectError);
+          throw selectError;
+        }
+
+        if (existingData && existingData.length > 0) {
+          // Existe configuración, actualizar
+          const idExistente = existingData[0].id;
+          console.log('Actualizando configuración de avisos existente con ID:', idExistente);
+          
+          return from(
+            this.supabase
+              .from('configuracion_avisos')
+              .update(datosActualizados)
+              .eq('id', idExistente)
+              .select('*')
+              .single()
+          );
+        } else {
+          // No existe configuración, crear nueva
+          console.log('Creando nueva configuración de avisos');
+          
+          return from(
+            this.supabase
+              .from('configuracion_avisos')
+              .insert([{
+                ...datosActualizados,
+                fecha_creacion: new Date().toISOString()
+              }])
+              .select('*')
+              .single()
+          );
+        }
+      }),
       map(({ data, error }) => {
         if (error) throw error;
         
@@ -316,13 +493,48 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
+    // Primero buscar si existe una configuración
     return from(
       this.supabase
         .from('configuracion_sistema')
-        .update(datosActualizados)
-        .select()
-        .single()
+        .select('id')
+        .limit(1)
     ).pipe(
+      switchMap(({ data: existingData, error: selectError }) => {
+        if (selectError) {
+          console.error('Error verificando configuración existente:', selectError);
+          throw selectError;
+        }
+
+        if (existingData && existingData.length > 0) {
+          // Existe configuración, actualizar
+          const idExistente = existingData[0].id;
+          console.log('Actualizando configuración del sistema existente con ID:', idExistente);
+          
+          return from(
+            this.supabase
+              .from('configuracion_sistema')
+              .update(datosActualizados)
+              .eq('id', idExistente)
+              .select('*')
+              .single()
+          );
+        } else {
+          // No existe configuración, crear nueva
+          console.log('Creando nueva configuración del sistema');
+          
+          return from(
+            this.supabase
+              .from('configuracion_sistema')
+              .insert([{
+                ...datosActualizados,
+                fecha_creacion: new Date().toISOString()
+              }])
+              .select('*')
+              .single()
+          );
+        }
+      }),
       map(({ data, error }) => {
         if (error) throw error;
         
@@ -346,6 +558,7 @@ export class AjustesService {
     if (ajustesActuales) {
       ajustesActuales[tipo] = configuracion;
       this.ajustesSubject.next({ ...ajustesActuales });
+      console.log('✅ Ajustes locales actualizados:', tipo, configuracion);
     }
   }
 
@@ -361,6 +574,7 @@ export class AjustesService {
       email: '',
       web: '',
       logo_url: '',
+      precio_hora_mano_obra: 50.00,
       fecha_creacion: new Date().toISOString(),
       fecha_actualizacion: new Date().toISOString()
     };

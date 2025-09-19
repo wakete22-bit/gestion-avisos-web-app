@@ -2,14 +2,16 @@ import { Injectable } from '@angular/core';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { configurarJsPDF, estilosPDF, aplicarEstilosPDF, dibujarLinea } from '../config/jspdf.config';
-import { configuracionEmpresa } from '../config/empresa.config';
+import { ConfiguracionService } from './configuracion.service';
+import { Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PdfService {
 
-  constructor() { }
+  constructor(private configuracionService: ConfiguracionService) { }
 
   /**
    * Genera un PDF de la factura a partir del elemento HTML
@@ -344,7 +346,7 @@ export class PdfService {
       addText('Subtotal:', totalesBoxX + 10, yPos + 35, { fontSize: 11 });
       addText(`${datosFactura.subtotal || 0}€`, totalesBoxX + totalesBoxWidth - 10, yPos + 35, { fontSize: 11, align: 'right' });
       
-      addText('IVA (21%):', totalesBoxX + 10, yPos + 50, { fontSize: 11 });
+      addText('IVA (${ivaPorcentaje}%):', totalesBoxX + 10, yPos + 50, { fontSize: 11 });
       addText(`${datosFactura.iva || 0}€`, totalesBoxX + totalesBoxWidth - 10, yPos + 50, { fontSize: 11, align: 'right' });
       
       // Línea separadora antes del total
@@ -476,36 +478,38 @@ export class PdfService {
     try {
       console.log('🔧 Generando PDF con HTML/CSS...');
       
-      // Calcular totales
-      const subtotal = this.calcularSubtotal(datosFactura);
-      const iva = subtotal * 0.21;
-      const total = subtotal + iva;
-      
-      // Crear elemento HTML temporal
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = this.generarHtmlFactura(datosFactura);
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '0';
-      tempDiv.style.width = '794px'; // A4 width en px
-      // tempDiv.style.minHeight = '1123px'; // Removido para altura dinámica
-      tempDiv.style.backgroundColor = 'white';
-      tempDiv.style.padding = '20px';
-      tempDiv.style.boxSizing = 'border-box';
-      
-      // Agregar estilos CSS
-      const style = document.createElement('style');
-      style.textContent = this.obtenerEstilosCss();
-      tempDiv.appendChild(style);
-      
-      // Agregar al DOM temporalmente
-      document.body.appendChild(tempDiv);
-      
-      
-      // Generar PDF usando html2canvas
-      this.generarPdfDesdeElemento(tempDiv, nombreArchivo).finally(() => {
-        // Limpiar elemento temporal
-        document.body.removeChild(tempDiv);
+      // Generar HTML usando configuración de BD
+      this.generarHtmlFactura(datosFactura).subscribe({
+        next: (html) => {
+          // Crear elemento HTML temporal
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          tempDiv.style.position = 'absolute';
+          tempDiv.style.left = '-9999px';
+          tempDiv.style.top = '0';
+          tempDiv.style.width = '794px'; // A4 width en px
+          tempDiv.style.backgroundColor = 'white';
+          tempDiv.style.padding = '20px';
+          tempDiv.style.boxSizing = 'border-box';
+          
+          // Agregar estilos CSS
+          const style = document.createElement('style');
+          style.textContent = this.obtenerEstilosCss();
+          tempDiv.appendChild(style);
+          
+          // Agregar al DOM temporalmente
+          document.body.appendChild(tempDiv);
+          
+          // Generar PDF usando html2canvas
+          this.generarPdfDesdeElemento(tempDiv, nombreArchivo).finally(() => {
+            // Limpiar elemento temporal
+            document.body.removeChild(tempDiv);
+          });
+        },
+        error: (error) => {
+          console.error('❌ Error al generar HTML de factura:', error);
+          throw error;
+        }
       });
       
     } catch (error) {
@@ -515,12 +519,17 @@ export class PdfService {
   }
 
   /**
-   * Genera el HTML de la factura
+   * Genera el HTML de la factura usando configuraciones de BD
    */
-  private generarHtmlFactura(datosFactura: any): string {
-    const subtotal = this.calcularSubtotal(datosFactura);
-    const iva = subtotal * 0.21;
-    const total = subtotal + iva;
+  private generarHtmlFactura(datosFactura: any): Observable<string> {
+    return combineLatest([
+      this.configuracionService.getDatosEmpresa(),
+      this.configuracionService.getIvaPorDefecto()
+    ]).pipe(
+      map(([empresa, ivaPorcentaje]) => {
+        const subtotal = this.calcularSubtotal(datosFactura);
+        const iva = subtotal * (ivaPorcentaje / 100);
+        const total = subtotal + iva;
 
     return `
       <div class="pdf-preview">
@@ -539,12 +548,12 @@ export class PdfService {
         <div class="seccion-empresa">
           <h2 class="titulo-seccion">DATOS DE LA EMPRESA</h2>
           <div class="datos-empresa">
-            <div class="nombre-empresa">TÉCNICOS CLIMATIZACIÓN S.L.</div>
-            <div class="direccion-empresa">Calle de la Tecnología, 123</div>
-            <div class="ciudad-empresa">28001 Madrid, España</div>
-            <div class="cif-empresa">CIF: B12345678</div>
-            <div class="telefono-empresa">Tel: +34 91 123 45 67</div>
-            <div class="email-empresa">info@tecnicosclimatizacion.es</div>
+            <div class="nombre-empresa">${empresa?.nombre_empresa || 'Mi Empresa'}</div>
+            <div class="direccion-empresa">${empresa?.direccion || 'Dirección no configurada'}</div>
+            <div class="cif-empresa">CIF: ${empresa?.cif || 'Sin CIF'}</div>
+            <div class="telefono-empresa">Tel: ${empresa?.telefono || 'Sin teléfono'}</div>
+            <div class="email-empresa">${empresa?.email || 'sin-email@empresa.com'}</div>
+            ${empresa?.web ? `<div class="web-empresa">${empresa.web}</div>` : ''}
           </div>
         </div>
 
@@ -596,7 +605,7 @@ export class PdfService {
             </div>
             
             <div class="fila-total">
-              <span class="etiqueta-total">IVA (21%):</span>
+              <span class="etiqueta-total">IVA (${ivaPorcentaje}%):</span>
               <span class="valor-total">${this.formatearMoneda(iva)}</span>
             </div>
             
@@ -627,6 +636,23 @@ export class PdfService {
         </div>
       </div>
     `;
+      })
+    );
+  }
+
+  /**
+   * Obtiene los datos de la empresa para usar en métodos síncronos
+   */
+  private obtenerDatosEmpresa(): any {
+    const configuracion = this.configuracionService.getConfiguracionActual();
+    return configuracion?.empresa || {
+      nombre_empresa: 'Mi Empresa',
+      direccion: 'Dirección no configurada',
+      cif: 'Sin CIF',
+      telefono: 'Sin teléfono',
+      email: 'sin-email@empresa.com',
+      web: ''
+    };
   }
 
   /**
@@ -1104,17 +1130,16 @@ export class PdfService {
       // ===== DATOS DE LA EMPRESA =====
       addText('DATOS DE LA EMPRESA', margin, yPos, { fontSize: 14, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
       yPos += 8;
-      addText(configuracionEmpresa.nombre, margin, yPos, { fontSize: 12, fontStyle: 'bold' });
+      const empresa = this.obtenerDatosEmpresa();
+      addText(empresa.nombre_empresa, margin, yPos, { fontSize: 12, fontStyle: 'bold' });
       yPos += 6;
-      addText(configuracionEmpresa.direccion, margin, yPos, { fontSize: 11 });
+      addText(empresa.direccion, margin, yPos, { fontSize: 11 });
       yPos += 5;
-      addText(configuracionEmpresa.ciudad, margin, yPos, { fontSize: 11 });
+      addText(`CIF: ${empresa.cif}`, margin, yPos, { fontSize: 11 });
       yPos += 5;
-      addText(`CIF: ${configuracionEmpresa.cif}`, margin, yPos, { fontSize: 11 });
+      addText(`Tel: ${empresa.telefono}`, margin, yPos, { fontSize: 11 });
       yPos += 5;
-      addText(`Tel: ${configuracionEmpresa.telefono}`, margin, yPos, { fontSize: 11 });
-      yPos += 5;
-      addText(configuracionEmpresa.email, margin, yPos, { fontSize: 11 });
+      addText(empresa.email, margin, yPos, { fontSize: 11 });
 
       yPos += 20;
 
@@ -1212,7 +1237,7 @@ export class PdfService {
         addText(`${subtotal.toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 5, yPos + 22, { fontSize: 10, align: 'right' });
         
         // IVA
-        addText('IVA (21%):', totalesBoxX + 5, yPos + 32, { fontSize: 10 });
+        addText('IVA (${ivaPorcentaje}%):', totalesBoxX + 5, yPos + 32, { fontSize: 10 });
         addText(`${iva.toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 5, yPos + 32, { fontSize: 10, align: 'right' });
         
         // Línea separadora antes del total
@@ -1251,7 +1276,8 @@ export class PdfService {
         const footerY = pageHeight - 30;
         drawLine(margin, footerY, pageWidth - margin, footerY, [229, 231, 235]);
         
-        addText(configuracionEmpresa.nombre, margin, footerY + 8, { 
+        const empresa = this.obtenerDatosEmpresa();
+        addText(empresa.nombre_empresa, margin, footerY + 8, { 
           fontSize: 10, 
           fontStyle: 'bold', 
           color: [79, 70, 229] as [number, number, number] 
@@ -1261,7 +1287,7 @@ export class PdfService {
           color: [107, 114, 128] as [number, number, number], 
           align: 'center' 
         });
-        addText(configuracionEmpresa.web, pageWidth - margin, footerY + 8, { 
+        addText(empresa.web, pageWidth - margin, footerY + 8, { 
           fontSize: 10, 
           color: [107, 114, 128] as [number, number, number], 
           align: 'right' 
@@ -1358,15 +1384,15 @@ export class PdfService {
       // ===== DATOS DE LA EMPRESA =====
       addText('DATOS DE LA EMPRESA', margin, yPos, { fontSize: 14, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
       yPos += 8;
-      addText(configuracionEmpresa.nombre, margin, yPos, { fontSize: 12, fontStyle: 'bold' });
+      addText(this.obtenerDatosEmpresa().nombre_empresa, margin, yPos, { fontSize: 12, fontStyle: 'bold' });
       yPos += 6;
-      addText(configuracionEmpresa.direccion, margin, yPos, { fontSize: 11 });
+      addText(this.obtenerDatosEmpresa().direccion, margin, yPos, { fontSize: 11 });
       yPos += 5;
-      addText(configuracionEmpresa.ciudad, margin, yPos, { fontSize: 11 });
+      // Ciudad no disponible en el modelo actual
       yPos += 5;
-      addText(`CIF: ${configuracionEmpresa.cif} | Tel: ${configuracionEmpresa.telefono}`, margin, yPos, { fontSize: 11 });
+      addText(`CIF: ${this.obtenerDatosEmpresa().cif} | Tel: ${this.obtenerDatosEmpresa().telefono}`, margin, yPos, { fontSize: 11 });
       yPos += 5;
-      addText(configuracionEmpresa.email, margin, yPos, { fontSize: 11 });
+      addText(this.obtenerDatosEmpresa().email, margin, yPos, { fontSize: 11 });
 
       yPos += 20;
 
@@ -1420,7 +1446,7 @@ export class PdfService {
         addText(`${subtotal.toFixed(2)}€`, pageWidth - margin, yPos, { fontSize: 12, align: 'right' });
         yPos += 8;
         
-        addText('IVA (21%):', pageWidth - margin - 80, yPos, { fontSize: 12, align: 'right' });
+        addText('IVA (${ivaPorcentaje}%):', pageWidth - margin - 80, yPos, { fontSize: 12, align: 'right' });
         addText(`${iva.toFixed(2)}€`, pageWidth - margin, yPos, { fontSize: 12, align: 'right' });
         yPos += 8;
         
@@ -1445,9 +1471,9 @@ export class PdfService {
       drawLine(margin, yPos, pageWidth - margin, yPos);
       yPos += 10;
       
-      addText(configuracionEmpresa.nombre, margin, yPos, { fontSize: 10, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+      addText(this.obtenerDatosEmpresa().nombre_empresa, margin, yPos, { fontSize: 10, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
       addText('Gracias por su confianza', pageWidth / 2, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'center' });
-      addText(configuracionEmpresa.web, pageWidth - margin, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'right' });
+      addText(this.obtenerDatosEmpresa().web, pageWidth - margin, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'right' });
 
       // Descargar el PDF
       pdf.save(nombreArchivo);
@@ -1540,12 +1566,12 @@ export class PdfService {
       const empresaBoxHeight = 60;
       drawRect(leftColumn, yPos, contentWidth / 2 - 10, empresaBoxHeight);
       
-      addText(configuracionEmpresa.nombre, leftColumn + 8, yPos + 8, { fontSize: 12, fontStyle: 'bold' });
-      addText(configuracionEmpresa.direccion, leftColumn + 8, yPos + 18, { fontSize: 10 });
-      addText(configuracionEmpresa.ciudad, leftColumn + 8, yPos + 28, { fontSize: 10 });
-      addText(`CIF: ${configuracionEmpresa.cif}`, leftColumn + 8, yPos + 38, { fontSize: 10 });
-      addText(configuracionEmpresa.email, leftColumn + 8, yPos + 48, { fontSize: 10 });
-      addText(configuracionEmpresa.telefono, leftColumn + 8, yPos + 58, { fontSize: 10 });
+      addText(this.obtenerDatosEmpresa().nombre_empresa, leftColumn + 8, yPos + 8, { fontSize: 12, fontStyle: 'bold' });
+      addText(this.obtenerDatosEmpresa().direccion, leftColumn + 8, yPos + 18, { fontSize: 10 });
+      // Ciudad no disponible en el modelo actual
+      addText(`CIF: ${this.obtenerDatosEmpresa().cif}`, leftColumn + 8, yPos + 38, { fontSize: 10 });
+      addText(this.obtenerDatosEmpresa().email, leftColumn + 8, yPos + 48, { fontSize: 10 });
+      addText(this.obtenerDatosEmpresa().telefono, leftColumn + 8, yPos + 58, { fontSize: 10 });
 
       // Información de la factura (derecha)
       yPos = margin + 50;
@@ -1654,7 +1680,7 @@ export class PdfService {
       addText('Subtotal:', totalesBoxX + 10, yPos + 35, { fontSize: 11 });
       addText(`${(datosFactura.subtotal || 0).toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 10, yPos + 35, { fontSize: 11, align: 'right' });
       
-      addText('IVA (21%):', totalesBoxX + 10, yPos + 50, { fontSize: 11 });
+      addText('IVA (${ivaPorcentaje}%):', totalesBoxX + 10, yPos + 50, { fontSize: 11 });
       addText(`${(datosFactura.iva || 0).toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 10, yPos + 50, { fontSize: 11, align: 'right' });
       
       // Línea separadora antes del total
@@ -1684,13 +1710,13 @@ export class PdfService {
       yPos += 10;
       
       // Información del footer
-      addText(configuracionEmpresa.nombre, margin, yPos, { fontSize: 11, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
-      addText(configuracionEmpresa.telefono, pageWidth / 2, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'center' });
-      addText(configuracionEmpresa.email, pageWidth - margin, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'right' });
+      addText(this.obtenerDatosEmpresa().nombre_empresa, margin, yPos, { fontSize: 11, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+      addText(this.obtenerDatosEmpresa().telefono, pageWidth / 2, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'center' });
+      addText(this.obtenerDatosEmpresa().email, pageWidth - margin, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'right' });
       
       yPos += 8;
-      addText(`CIF: ${configuracionEmpresa.cif}`, margin, yPos, { fontSize: 9, color: [107, 114, 128] as [number, number, number] });
-      addText(configuracionEmpresa.web, pageWidth - margin, yPos, { fontSize: 9, color: [107, 114, 128] as [number, number, number], align: 'right' });
+      addText(`CIF: ${this.obtenerDatosEmpresa().cif}`, margin, yPos, { fontSize: 9, color: [107, 114, 128] as [number, number, number] });
+      addText(this.obtenerDatosEmpresa().web, pageWidth - margin, yPos, { fontSize: 9, color: [107, 114, 128] as [number, number, number], align: 'right' });
 
       // Descargar el PDF
       pdf.save(nombreArchivo);
@@ -1769,7 +1795,7 @@ export class PdfService {
       pdf.text(`${datosFactura.subtotal || 0}€`, 160, yPos);
       yPos += 8;
       
-      pdf.text('IVA (21%):', 140, yPos);
+      pdf.text('IVA (${ivaPorcentaje}%):', 140, yPos);
       pdf.text(`${datosFactura.iva || 0}€`, 160, yPos);
       yPos += 8;
       

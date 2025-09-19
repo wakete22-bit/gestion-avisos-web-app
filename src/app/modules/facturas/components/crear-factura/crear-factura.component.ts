@@ -17,6 +17,7 @@ import {
 import { FacturasService } from '../../services/facturas.service';
 import { LineaFactura, CrearFacturaRequest, FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
+import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 import jsPDF from 'jspdf';
 import { IonFooter, IonToolbar, IonButton } from '@ionic/angular/standalone';
 
@@ -44,7 +45,8 @@ export class CrearFacturaComponent implements OnInit {
     private facturasService: FacturasService,
     private router: Router,
     private route: ActivatedRoute,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private configuracionService: ConfiguracionService
   ) {
     this.facturaForm = this.fb.group({
       numeroFactura: ['', Validators.required],
@@ -201,7 +203,8 @@ export class CrearFacturaComponent implements OnInit {
     return this.totalRepuestosPvp + this.totalManoObra + this.totalDesplazamiento;
   }
   get iva() {
-    return +(this.subtotal * 0.21).toFixed(2);
+    const ivaPorcentaje = this.configuracionService.getConfiguracionActual()?.facturacion?.iva_por_defecto || 21;
+    return +(this.subtotal * (ivaPorcentaje / 100)).toFixed(2);
   }
   get total() {
     return +(this.subtotal + this.iva).toFixed(2);

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Observable, BehaviorSubject, from } from 'rxjs';
+import { Observable, BehaviorSubject, from, combineLatest, of } from 'rxjs';
 import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../models/factura.model';
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 import { DataUpdateService } from '../../../core/services/data-update.service';
+import { ConfiguracionService } from '../../../core/services/configuracion.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +26,8 @@ export class FacturasService {
 
   constructor(
     private supabaseClientService: SupabaseClientService,
-    private dataUpdateService: DataUpdateService
+    private dataUpdateService: DataUpdateService,
+    private configuracionService: ConfiguracionService
   ) {
     this.supabase = this.supabaseClientService.getClient();
   }
@@ -561,50 +563,56 @@ export class FacturasService {
   }
 
   /**
-   * Calcula los totales de las líneas de factura
+   * Calcula los totales de las líneas de factura usando configuración de BD
    */
-  calcularTotales(lineas: LineaFactura[]): { subtotal: number; iva: number; total: number } {
+  calcularTotales(lineas: LineaFactura[]): Observable<{ subtotal: number; iva: number; total: number }> {
     // Validar que lineas sea un array válido
     if (!lineas || !Array.isArray(lineas) || lineas.length === 0) {
       console.warn('⚠️ No hay líneas de factura para calcular totales');
-      return { subtotal: 0, iva: 0, total: 0 };
+      return of({ subtotal: 0, iva: 0, total: 0 });
     }
 
-    // Calcular subtotal con validación de valores
-    const subtotal = lineas.reduce((acc, linea) => {
-      const cantidad = linea.cantidad || 0;
-      const precio = linea.precio_pvp || 0;
-      const subtotalLinea = cantidad * precio;
-      
-      // Validar que el resultado sea un número válido
-      if (isNaN(subtotalLinea) || !isFinite(subtotalLinea)) {
-        console.warn(`⚠️ Línea con valores inválidos:`, linea);
-        return acc;
-      }
-      
-      return acc + subtotalLinea;
-    }, 0);
+    // Obtener IVA de la configuración
+    return this.configuracionService.getIvaPorDefecto().pipe(
+      map(ivaPorcentaje => {
+        // Calcular subtotal con validación de valores
+        const subtotal = lineas.reduce((acc, linea) => {
+          const cantidad = linea.cantidad || 0;
+          const precio = linea.precio_pvp || 0;
+          const subtotalLinea = cantidad * precio;
+          
+          // Validar que el resultado sea un número válido
+          if (isNaN(subtotalLinea) || !isFinite(subtotalLinea)) {
+            console.warn(`⚠️ Línea con valores inválidos:`, linea);
+            return acc;
+          }
+          
+          return acc + subtotalLinea;
+        }, 0);
 
-    // Validar subtotal
-    if (isNaN(subtotal) || !isFinite(subtotal)) {
-      console.warn('⚠️ Subtotal calculado es inválido, usando 0');
-      return { subtotal: 0, iva: 0, total: 0 };
-    }
+        // Validar subtotal
+        if (isNaN(subtotal) || !isFinite(subtotal)) {
+          console.warn('⚠️ Subtotal calculado es inválido, usando 0');
+          return { subtotal: 0, iva: 0, total: 0 };
+        }
 
-    // Calcular IVA (21%)
-    const iva = +(subtotal * 0.21).toFixed(2);
-    
-    // Calcular total
-    const total = +(subtotal + iva).toFixed(2);
+        // Calcular IVA usando el porcentaje de la configuración
+        const iva = +(subtotal * (ivaPorcentaje / 100)).toFixed(2);
+        
+        // Calcular total
+        const total = +(subtotal + iva).toFixed(2);
 
-    console.log('🧮 Cálculo de totales:', {
-      lineas: lineas.length,
-      subtotal,
-      iva,
-      total
-    });
+        console.log('🧮 Cálculo de totales:', {
+          lineas: lineas.length,
+          subtotal,
+          iva,
+          total,
+          ivaPorcentaje
+        });
 
-    return { subtotal, iva, total };
+        return { subtotal, iva, total };
+      })
+    );
   }
 
   /**
@@ -677,70 +685,95 @@ export class FacturasService {
 
             // Agregar línea de mano de obra si hay horas estimadas
             if (presupuestoData.horas_estimadas && presupuestoData.horas_estimadas > 0) {
-              const precioHora = 50; // Esto debería venir de configuración
-              lineasMateriales.push({
-                tipo: 'mano_obra',
-                nombre: 'Mano de obra',
-                cantidad: presupuestoData.horas_estimadas,
-                precio_pvp: precioHora,
-                descripcion: `${presupuestoData.horas_estimadas} horas de trabajo técnico`
-              });
+              // Obtener precio por hora de la configuración
+              return this.configuracionService.getPrecioHoraManoObra().pipe(
+                switchMap(precioHora => {
+                  lineasMateriales.push({
+                    tipo: 'mano_obra',
+                    nombre: 'Mano de obra',
+                    cantidad: presupuestoData.horas_estimadas,
+                    precio_pvp: precioHora,
+                    descripcion: `${presupuestoData.horas_estimadas} horas de trabajo técnico`
+                  });
+
+                  // Calcular totales ANTES de crear la factura
+                  return this.calcularTotales(lineasMateriales);
+                }),
+                switchMap(totales => {
+                  return this.crearFacturaConDatos(presupuestoData, numeroFactura, lineasMateriales, totales, presupuestoId);
+                })
+              );
+            } else {
+              // Calcular totales sin mano de obra
+              return this.calcularTotales(lineasMateriales).pipe(
+                switchMap(totales => {
+                  return this.crearFacturaConDatos(presupuestoData, numeroFactura, lineasMateriales, totales, presupuestoId);
+                })
+              );
             }
-
-            // Calcular totales ANTES de crear la factura
-            const totales = this.calcularTotales(lineasMateriales);
-            
-            // Validar que los totales sean números válidos
-            const subtotal = totales.subtotal || 0;
-            const iva = totales.iva || 0;
-            const total = totales.total || 0;
-
-            console.log('📊 Totales calculados:', { subtotal, iva, total });
-
-            // Preparar datos de la factura con valores validados
-            const cliente = presupuestoData.aviso.cliente;
-            const facturaData: CrearFacturaRequest = {
-              numero_factura: numeroFactura,
-              fecha_emision: new Date().toISOString().split('T')[0],
-              cliente_id: cliente?.id,
-              nombre_cliente: cliente?.nombre_completo || presupuestoData.aviso.nombre_cliente_aviso || 'Cliente',
-              direccion_cliente: cliente?.direccion || presupuestoData.aviso.direccion_cliente_aviso || 'Sin dirección',
-              cif_cliente: cliente?.cif || 'Sin CIF',
-              email_cliente: cliente?.email || 'sin-email@ejemplo.com',
-              aviso_id: presupuestoData.aviso_id,
-              subtotal: subtotal, // Valor validado
-              iva: iva, // Valor validado
-              total: total, // Valor validado
-              estado: 'Pendiente',
-              notas: `Factura generada desde presupuesto ${presupuestoId}`,
-              lineas: lineasMateriales
-            };
-
-            console.log('📋 Datos de factura a crear:', facturaData);
-
-            // Crear la factura
-            return this.crearFactura(facturaData).pipe(
-              switchMap(facturaCreada => {
-                // Actualizar el presupuesto para marcar que ya fue facturado
-                return from(
-                  this.supabase
-                    .from('presupuestos')
-                    .update({ 
-                      estado: 'Facturado', // Nuevo estado
-                      fecha_actualizacion: new Date().toISOString() 
-                    })
-                    .eq('id', presupuestoId)
-                ).pipe(
-                  map(() => facturaCreada)
-                );
-              })
-            );
           })
         );
       }),
       catchError(error => {
         console.error('Error al crear factura desde presupuesto:', error);
         throw error;
+      })
+    );
+  }
+
+  /**
+   * Método auxiliar para crear la factura con los datos preparados
+   */
+  private crearFacturaConDatos(
+    presupuestoData: any, 
+    numeroFactura: string, 
+    lineasMateriales: LineaFactura[], 
+    totales: { subtotal: number; iva: number; total: number },
+    presupuestoId: string
+  ): Observable<FacturaCompleta> {
+    // Validar que los totales sean números válidos
+    const subtotal = totales.subtotal || 0;
+    const iva = totales.iva || 0;
+    const total = totales.total || 0;
+
+    console.log('📊 Totales calculados:', { subtotal, iva, total });
+
+    // Preparar datos de la factura con valores validados
+    const cliente = presupuestoData.aviso.cliente;
+    const facturaData: CrearFacturaRequest = {
+      numero_factura: numeroFactura,
+      fecha_emision: new Date().toISOString().split('T')[0],
+      cliente_id: cliente?.id,
+      nombre_cliente: cliente?.nombre_completo || presupuestoData.aviso.nombre_cliente_aviso || 'Cliente',
+      direccion_cliente: cliente?.direccion || presupuestoData.aviso.direccion_cliente_aviso || 'Sin dirección',
+      cif_cliente: cliente?.cif || 'Sin CIF',
+      email_cliente: cliente?.email || 'sin-email@ejemplo.com',
+      aviso_id: presupuestoData.aviso_id,
+      subtotal: subtotal,
+      iva: iva,
+      total: total,
+      estado: 'Pendiente',
+      notas: `Factura generada desde presupuesto ${presupuestoId}`,
+      lineas: lineasMateriales
+    };
+
+    console.log('📋 Datos de factura a crear:', facturaData);
+
+    // Crear la factura
+    return this.crearFactura(facturaData).pipe(
+      switchMap(facturaCreada => {
+        // Actualizar el presupuesto para marcar que ya fue facturado
+        return from(
+          this.supabase
+            .from('presupuestos')
+            .update({ 
+              estado: 'Facturado',
+              fecha_actualizacion: new Date().toISOString() 
+            })
+            .eq('id', presupuestoId)
+        ).pipe(
+          map(() => facturaCreada)
+        );
       })
     );
   }

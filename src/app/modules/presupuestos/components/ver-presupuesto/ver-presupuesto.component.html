@@ -136,8 +136,8 @@
             <tr>
               <td>Trabajo técnico especializado</td>
               <td>{{ presupuesto.horas_estimadas }}h</td>
-              <td>{{ formatearMoneda(50) }}</td>
-              <td>{{ formatearMoneda((presupuesto.horas_estimadas || 0) * 50) }}</td>
+              <td>{{ formatearMoneda(precioHoraManoObra) }}</td>
+              <td>{{ formatearMoneda((presupuesto.horas_estimadas || 0) * precioHoraManoObra) }}</td>
             </tr>
           </tbody>
         </table>
@@ -151,12 +151,12 @@
             <span>{{ formatearMoneda(presupuesto.total_estimado || 0) }}</span>
           </div>
           <div class="total-row">
-            <span>IVA (21%):</span>
-            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * 0.21) }}</span>
+            <span>IVA ({{ ivaPorcentaje }}%):</span>
+            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * (ivaPorcentaje / 100)) }}</span>
           </div>
           <div class="total-row total-final">
             <span>TOTAL:</span>
-            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * 1.21) }}</span>
+            <span>{{ formatearMoneda((presupuesto.total_estimado || 0) * (1 + ivaPorcentaje / 100)) }}</span>
           </div>
         </div>
       </div>

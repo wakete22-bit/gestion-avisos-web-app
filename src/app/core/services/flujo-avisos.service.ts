@@ -4,6 +4,7 @@ import { map, switchMap, tap, catchError } from 'rxjs/operators';
 import { AvisosService } from './avisos.service';
 import { FacturasService } from '../../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../../modules/presupuestos/services/presupuestos.service';
+import { ConfiguracionService } from './configuracion.service';
 
 
 export interface FlujoEstado {
@@ -25,7 +26,8 @@ export class FlujoAvisosService {
   constructor(
     private avisosService: AvisosService,
     private facturasService: FacturasService,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private configuracionService: ConfiguracionService
   ) {}
 
   /**
@@ -431,12 +433,13 @@ export class FlujoAvisosService {
     
     // 2. Agregar línea de mano de obra consolidada
     if (horasTotales > 0) {
+      const precioHora = this.configuracionService.getPrecioHoraManoObraSync();
       lineasFactura.push({
         tipo: 'mano_obra',
         nombre: 'Mano de obra',
         cantidad: horasTotales,
-        precio_neto: 50,
-        precio_pvp: 50,
+        precio_neto: precioHora,
+        precio_pvp: precioHora,
         descripcion: `Trabajo realizado: ${horasTotales.toFixed(2)} horas (${datosFactura.resumen.albaranes?.length || 0} albaranes)`
       });
     }
@@ -566,7 +569,9 @@ export class FlujoAvisosService {
       return total + subtotalLinea;
     }, 0);
     
-    const iva = +(subtotal * 0.21).toFixed(2);
+    // Obtener IVA desde configuración
+    const ivaPorcentaje = this.configuracionService.getConfiguracionActual()?.facturacion?.iva_por_defecto || 21;
+    const iva = +(subtotal * (ivaPorcentaje / 100)).toFixed(2);
     const total = +(subtotal + iva).toFixed(2);
     
     console.log('🔧 Líneas de factura consolidadas:', lineasFactura.length, 'líneas');

@@ -101,7 +101,8 @@ export class AjustesComponent implements OnInit, OnDestroy {
       telefono: ['', [Validators.required, Validators.pattern(/^[+]?[\d\s\-\(\)]+$/)]],
       email: ['', [Validators.required, Validators.email]],
       web: ['', [Validators.pattern(/^https?:\/\/.+/)]],
-      logo_url: ['']
+      logo_url: [''],
+      precio_hora_mano_obra: [50, [Validators.required, Validators.min(0), Validators.max(1000)]]
     });
 
     // Formulario de facturación
@@ -174,7 +175,8 @@ export class AjustesComponent implements OnInit, OnDestroy {
       telefono: this.ajustes.empresa.telefono,
       email: this.ajustes.empresa.email,
       web: this.ajustes.empresa.web || '',
-      logo_url: this.ajustes.empresa.logo_url || ''
+      logo_url: this.ajustes.empresa.logo_url || '',
+      precio_hora_mano_obra: this.ajustes.empresa.precio_hora_mano_obra || 50
     });
 
     // Cargar datos de facturación
@@ -221,17 +223,23 @@ export class AjustesComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    console.log('🔄 Guardando configuración de empresa:', this.empresaForm.value);
+
     this.ajustesService.actualizarConfiguracionEmpresa(this.empresaForm.value).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: () => {
+      next: (configuracionActualizada) => {
+        console.log('✅ Configuración de empresa guardada exitosamente:', configuracionActualizada);
         this.mensajeExito = 'Configuración de empresa actualizada correctamente';
         this.mostrarExito = true;
         this.loading = false;
+        
+        // Recargar la configuración para asegurar que se actualice
+        this.cargarAjustes();
       },
       error: (error) => {
-        console.error('Error al actualizar empresa:', error);
-        this.error = 'Error al actualizar la configuración de empresa';
+        console.error('❌ Error al actualizar empresa:', error);
+        this.error = 'Error al actualizar la configuración de empresa: ' + (error.message || 'Error desconocido');
         this.mostrarError = true;
         this.loading = false;
       }
@@ -373,7 +381,8 @@ export class AjustesComponent implements OnInit, OnDestroy {
       direccion: this.empresaForm.get('direccion')?.errors,
       telefono: this.empresaForm.get('telefono')?.errors,
       email: this.empresaForm.get('email')?.errors,
-      web: this.empresaForm.get('web')?.errors
+      web: this.empresaForm.get('web')?.errors,
+      precio_hora_mano_obra: this.empresaForm.get('precio_hora_mano_obra')?.errors
     };
   }
 

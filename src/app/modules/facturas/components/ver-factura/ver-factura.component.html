@@ -185,7 +185,7 @@
           <span>{{ factura.factura.subtotal | currency:'EUR':'symbol':'1.2-2' }}</span>
         </div>
         <div class="totales-row">
-          <span>IVA (21%)</span>
+          <span>IVA ({{ ivaPorcentaje }}%)</span>
           <span>{{ factura.factura.iva | currency:'EUR':'symbol':'1.2-2' }}</span>
         </div>
         <div class="totales-row total-final">

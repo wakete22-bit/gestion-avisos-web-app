@@ -7,7 +7,9 @@ import { ViewportService } from 'src/app/core/services/viewport.service';
 import { InventarioService } from '../../services/inventario.service';
 import { Inventario } from '../../models/inventario.model';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
+import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 
 @Component({
   selector: 'app-crear-producto-modal',
@@ -32,7 +34,8 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
     private modalController: ModalController,
     private viewportService: ViewportService,
     private elementRef: ElementRef,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private configuracionService: ConfiguracionService
   ) {
     this.productoForm = this.fb.group({
       codigo: [{ value: '', disabled: true }],
@@ -115,9 +118,13 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
   recalcularPVP() {
     const precioNeto = this.productoForm.get('precioNeto')?.value;
     if (precioNeto && precioNeto > 0) {
-      // Aplicar IVA del 21% como ejemplo
-      const pvp = precioNeto * 1.21;
-      this.productoForm.patchValue({ pvp: Math.round(pvp * 100) / 100 });
+      // Obtener IVA de la configuración
+      this.configuracionService.getIvaPorDefecto().pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(ivaPorcentaje => {
+        const pvp = precioNeto * (1 + ivaPorcentaje / 100);
+        this.productoForm.patchValue({ pvp: Math.round(pvp * 100) / 100 });
+      });
     }
   }
 }

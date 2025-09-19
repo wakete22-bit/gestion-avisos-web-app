@@ -22,6 +22,7 @@ import { AvisosService } from '../../../../core/services/avisos.service';
 import { InventarioService } from '../../../inventario/services/inventario.service';
 import { Inventario } from '../../../inventario/models/inventario.model';
 import { SupabaseClientService } from '../../../../core/services/supabase-client.service';
+import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 
 @Component({
   selector: 'app-crear-presupuesto',
@@ -73,7 +74,8 @@ export class CrearPresupuestoComponent implements OnInit {
     private presupuestosService: PresupuestosService,
     private avisosService: AvisosService,
     private inventarioService: InventarioService,
-    private supabaseClientService: SupabaseClientService
+    private supabaseClientService: SupabaseClientService,
+    private configuracionService: ConfiguracionService
   ) {
     addIcons({arrowBackOutline,refreshOutline,listOutline,close,searchOutline,alertCircleOutline,addCircleOutline,cubeOutline,checkmarkOutline,trashOutline,saveOutline,checkmarkCircleOutline,closeCircleOutline,banOutline,informationCircleOutline,addCircle});
     
@@ -535,7 +537,7 @@ export class CrearPresupuestoComponent implements OnInit {
     
     // Calcular el total sin verificación para evitar bucle infinito
     const horasEstimadas = this.presupuestoForm.get('horas_estimadas')?.value || 0;
-    const precioPorHora = 50;
+    const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
     const costoManoObra = horasEstimadas * precioPorHora;
     const costoMateriales = this.materiales.reduce((total, material) => {
       const cantidad = material.cantidad_estimada || 0;
@@ -560,7 +562,7 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('Materiales actuales:', this.materiales);
     
     const horasEstimadas = this.presupuestoForm.get('horas_estimadas')?.value || 0;
-    const precioPorHora = 50; // Esto debería venir de configuración
+    const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
     const costoManoObra = horasEstimadas * precioPorHora;
     
     const costoMateriales = this.materiales.reduce((total, material) => {

@@ -1,15 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline, bugOutline } from 'ionicons/icons';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { FacturasService } from '../../services/facturas.service';
 import { FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
+import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 
 @Component({
   selector: 'app-ver-factura',
@@ -18,19 +21,22 @@ import { AvisosService } from '../../../../core/services/avisos.service';
   standalone: true,
   imports: [CommonModule, FormsModule, IonContent, IonIcon]
 })
-export class VerFacturaComponent implements OnInit {
+export class VerFacturaComponent implements OnInit, OnDestroy {
   factura: FacturaCompleta | null = null;
   loading = false;
   error: string | null = null;
   facturaId: string | null = null;
   modoEdicion = false;
+  ivaPorcentaje = 21; // Valor por defecto
+  private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private facturasService: FacturasService,
     private pdfService: PdfService,
-    private avisosService: AvisosService
+    private avisosService: AvisosService,
+    private configuracionService: ConfiguracionService
   ) {
     addIcons({arrowBackOutline,printOutline,createOutline,downloadOutline,bugOutline,refreshOutline,alertCircleOutline,eyeOutline});
   }
@@ -47,6 +53,18 @@ export class VerFacturaComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.modoEdicion = params['edit'] === 'true';
     });
+
+    // Cargar configuración de IVA
+    this.configuracionService.getIvaPorDefecto().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(iva => {
+      this.ivaPorcentaje = iva;
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarFactura() {
