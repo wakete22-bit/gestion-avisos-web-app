@@ -433,6 +433,37 @@ export class PresupuestosService {
   }
 
   /**
+   * Aprobar presupuesto actualizando directamente las tablas
+   */
+  aprobarPresupuesto(id: string): Observable<any> {
+    console.log('Servicio: Aprobando presupuesto con ID:', id);
+    
+    // Actualizar solo el presupuesto primero para verificar que funciona
+    return from(
+      this.supabase
+        .from('presupuestos')
+        .update({ 
+          estado: 'Aprobado',
+          fecha_actualizacion: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+    ).pipe(
+      tap(({ data, error }) => {
+        if (error) {
+          console.error('Error al actualizar presupuesto:', error);
+        } else {
+          console.log('Presupuesto actualizado exitosamente:', data);
+        }
+      }),
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data;
+      })
+    );
+  }
+
+  /**
    * Limpia el estado de presupuestos
    */
   limpiarPresupuestos(): void {

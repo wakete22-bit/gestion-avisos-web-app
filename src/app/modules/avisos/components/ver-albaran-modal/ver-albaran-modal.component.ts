@@ -247,7 +247,7 @@ export class VerAlbaranModalComponent implements OnInit {
         if (irAEditar) {
           // Cerrar este modal y navegar al presupuesto
           this.modalController.dismiss({
-            accion: 'presupuesto_creado',
+            accion_realizada: 'presupuesto_creado',
             presupuesto: presupuesto
           }, 'confirm');
           
@@ -260,7 +260,7 @@ export class VerAlbaranModalComponent implements OnInit {
         } else {
           // Solo cerrar el modal con confirmación
           this.modalController.dismiss({
-            accion: 'presupuesto_creado',
+            accion_realizada: 'presupuesto_creado',
             presupuesto: presupuesto,
             mensaje: 'Presupuesto creado exitosamente'
           }, 'confirm');

@@ -798,47 +798,35 @@ export class CrearPresupuestoComponent implements OnInit {
       '¿Estás seguro de que quieres aprobar este presupuesto?\n\n' +
       'Al aprobarlo:\n' +
       '• El presupuesto se marcará como "Aprobado"\n' +
-      '• El albarán asociado cambiará de "Presupuesto pendiente" a "Finalizado"\n' +
+      '• El aviso cambiará a "Listo para facturar"\n' +
+      '• El albarán asociado cambiará a "Finalizado"\n' +
       '• Esta acción no se puede deshacer'
     );
 
     if (confirmar) {
       this.loading = true;
       
-      // Primero, obtener el presupuesto actual para saber qué albarán actualizar
-      this.presupuestosService.getPresupuesto(this.presupuestoId).subscribe({
-        next: (presupuestoActual) => {
-          console.log('Presupuesto actual:', presupuestoActual);
+      // Usar la nueva función de la base de datos que maneja todo el flujo
+      this.presupuestosService.aprobarPresupuesto(this.presupuestoId).subscribe({
+        next: (resultado) => {
+          console.log('Presupuesto aprobado exitosamente:', resultado);
+          this.loading = false;
           
-          // Actualizar el estado del presupuesto
-          const presupuestoData = {
-            estado: 'Aprobado' as const
-          };
-
-          this.presupuestosService.actualizarPresupuesto(this.presupuestoId!, presupuestoData).subscribe({
-            next: (presupuesto) => {
-              console.log('Presupuesto aprobado exitosamente:', presupuesto);
-              
-              // Ahora actualizar el albarán asociado
-              if (presupuestoActual.albaran_id || presupuestoActual.albaran?.id) {
-                const albaranId = presupuestoActual.albaran_id || presupuestoActual.albaran.id;
-                this.actualizarAlbaranAsociado(albaranId);
-              } else {
-                console.warn('No se encontró albaran_id en el presupuesto');
-                this.finalizarAprobacion();
-              }
-            },
-            error: (error) => {
-              console.error('Error al aprobar presupuesto:', error);
-              this.loading = false;
-              alert('Error al aprobar el presupuesto: ' + (error.message || 'Error desconocido'));
-            }
-          });
+          // Actualizar el estado local del presupuesto
+          this.presupuesto.estado = 'Aprobado';
+          this.presupuestoForm.patchValue({ estado: 'Aprobado' });
+          
+          // Actualizar el estado del aviso si existe
+          if (this.aviso) {
+            this.aviso.estado = 'Listo para facturar';
+          }
+          
+          alert('Presupuesto aprobado correctamente. El aviso está listo para facturar.');
         },
         error: (error) => {
-          console.error('Error al obtener presupuesto actual:', error);
+          console.error('Error al aprobar presupuesto:', error);
           this.loading = false;
-          alert('Error al obtener los datos del presupuesto: ' + (error.message || 'Error desconocido'));
+          alert('Error al aprobar el presupuesto: ' + (error.message || 'Error desconocido'));
         }
       });
     }

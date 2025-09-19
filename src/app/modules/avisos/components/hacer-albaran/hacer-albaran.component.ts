@@ -754,7 +754,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit, OnDestroy {
           albaran: albaran,
           presupuesto: presupuesto,
           mensaje: 'Albarán guardado y presupuesto creado exitosamente',
-          accion: 'presupuesto_creado'
+          accion_realizada: 'presupuesto_creado'
         }, 'confirm');
       },
       error: (error) => {
