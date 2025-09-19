@@ -22,7 +22,8 @@ export interface Albaran {
   hora_entrada: string;  // Hora de inicio (HH:MM)
   hora_salida: string;   // Hora de finalización (HH:MM)
   descripcion_trabajo_realizado: string;
-  repuestos_utilizados: RepuestoAlbaran[]; // Repuestos con cantidades y precios
+  repuestos_utilizados: RepuestoAlbaran[]; // Repuestos con cantidades y precios (legacy)
+  repuestos?: RepuestoAlbaran[]; // Repuestos desde la tabla repuestos_albaran
   estado_cierre: 'Finalizado' | 'Presupuesto pendiente' | 'Otra visita';
   presupuesto_necesario: number;
   dni_cliente?: string;

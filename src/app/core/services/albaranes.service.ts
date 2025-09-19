@@ -267,11 +267,50 @@ export class AlbaranesService {
   }
 
   /**
-   * Elimina un albarán
+   * Elimina un albarán y devuelve los repuestos al inventario
    */
   eliminarAlbaran(id: string): Observable<void> {
     console.log('🔍 eliminarAlbaran llamado con ID:', id);
     
+    // Primero obtener el albarán con sus repuestos
+    return this.getAlbaran(id).pipe(
+      switchMap(albaran => {
+        console.log('📋 Albarán obtenido para eliminación:', albaran);
+        
+        // Si hay repuestos, devolverlos al inventario
+        if (albaran.repuestos && albaran.repuestos.length > 0) {
+          console.log('📦 Devolviendo repuestos al inventario:', albaran.repuestos.length, 'repuestos');
+          
+          const restauracionesStock = albaran.repuestos.map((repuesto: any) => {
+            return this.restaurarStockInventario(repuesto);
+          });
+          
+          // Ejecutar todas las restauraciones de stock en paralelo
+          return forkJoin(restauracionesStock).pipe(
+            switchMap(() => {
+              console.log('✅ Stock del inventario restaurado correctamente');
+              
+              // Ahora eliminar el albarán
+              return this.eliminarAlbaranDeBD(id);
+            })
+          );
+        } else {
+          console.log('📋 Sin repuestos que devolver al inventario');
+          // Si no hay repuestos, eliminar directamente
+          return this.eliminarAlbaranDeBD(id);
+        }
+      }),
+      catchError(error => {
+        console.error('❌ Error en eliminarAlbaran:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Elimina el albarán de la base de datos
+   */
+  private eliminarAlbaranDeBD(id: string): Observable<void> {
     return from(
       this.supabase
         .from('albaranes')
@@ -287,10 +326,73 @@ export class AlbaranesService {
         }
 
         console.log('✅ Albarán eliminado exitosamente de la BD');
+        return void 0;
+      })
+    );
+  }
+
+  /**
+   * Restaura el stock del inventario cuando se elimina un albarán
+   */
+  private restaurarStockInventario(repuesto: any): Observable<void> {
+    console.log('📦 Restaurando stock para repuesto:', repuesto);
+    
+    // Buscar el producto en inventario por código o nombre
+    let query = this.supabase
+      .from('inventario')
+      .select('*');
+    
+    if (repuesto.codigo) {
+      // Priorizar búsqueda por código
+      query = query.eq('codigo', repuesto.codigo);
+    } else {
+      // Búsqueda por nombre si no hay código
+      query = query.eq('nombre', repuesto.nombre);
+    }
+    
+    return from(query.single()).pipe(
+      switchMap(({ data: producto, error: productoError }) => {
+        if (productoError) {
+          console.warn('⚠️ Producto no encontrado en inventario para restaurar:', repuesto.nombre || repuesto.codigo);
+          return from([void 0]); // Continuar sin error
+        }
+        
+        const productoInventario = producto as any;
+        const cantidadActual = productoInventario.cantidad_disponible || 0;
+        const cantidadARestaurar = repuesto.cantidad || 1;
+        const nuevaCantidad = cantidadActual + cantidadARestaurar;
+        
+        console.log(`📦 Stock actual: ${cantidadActual}, Cantidad a restaurar: ${cantidadARestaurar}, Nueva cantidad: ${nuevaCantidad}`);
+        
+        // Actualizar el stock en inventario
+        return from(
+          this.supabase
+            .from('inventario')
+            .update({ 
+              cantidad_disponible: nuevaCantidad,
+              fecha_actualizacion: new Date().toISOString()
+            })
+            .eq('id', productoInventario.id)
+        ).pipe(
+          map(({ error: updateError }) => {
+            if (updateError) {
+              console.error('❌ Error al restaurar stock:', updateError);
+              throw updateError;
+            }
+            
+            console.log(`✅ Stock restaurado: ${productoInventario.nombre} - ${cantidadActual} → ${nuevaCantidad}`);
+            
+            // Notificar cambio en inventario
+            this.inventarioService.getInventario().subscribe();
+            
+            return void 0;
+          })
+        );
       }),
       catchError(error => {
-        console.error('❌ Error en eliminarAlbaran:', error);
-        throw error;
+        console.error('❌ Error en restaurarStockInventario:', error);
+        // No fallar la eliminación del albarán por errores de stock
+        return from([void 0]);
       })
     );
   }

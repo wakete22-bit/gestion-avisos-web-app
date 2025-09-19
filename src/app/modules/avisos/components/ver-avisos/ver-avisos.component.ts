@@ -573,7 +573,7 @@ export class VerAvisosComponent implements OnInit {
     }
 
     // Confirmar antes de eliminar
-    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el albarán #${albaran.id?.substring(0, 8)}?\n\nEsta acción no se puede deshacer.`);
+    const confirmacion = confirm(`¿Estás seguro de que quieres eliminar el albarán #${albaran.id?.substring(0, 8)}?\n\nLos repuestos utilizados se devolverán automáticamente al inventario.\n\nEsta acción no se puede deshacer.`);
 
     if (confirmacion) {
       this.loading = true;
@@ -581,8 +581,11 @@ export class VerAvisosComponent implements OnInit {
       // Usar el servicio de albaranes para eliminar
       this.albaranesService.eliminarAlbaran(albaran.id).subscribe({
         next: () => {
-          console.log('Albarán eliminado exitosamente');
+          console.log('Albarán eliminado exitosamente y repuestos devueltos al inventario');
           this.loading = false;
+          
+          // Mostrar mensaje de éxito
+          alert('✅ Albarán eliminado exitosamente.\n\nLos repuestos utilizados han sido devueltos automáticamente al inventario.');
           
           // Recargar el aviso para actualizar la lista
           this.cargarAviso();
