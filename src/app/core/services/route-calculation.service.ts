@@ -37,6 +37,7 @@ export class RouteCalculationService {
 
   /**
    * Calcula la información de la ruta usando Mapbox Navigation Service
+   * Ahora usa directamente el mismo servicio que la navegación real
    */
   calcularRuta(
     currentLocation: { latitude: number; longitude: number } | null,
@@ -53,36 +54,54 @@ export class RouteCalculationService {
       });
     }
 
-    // Intentar obtener coordenadas reales de los avisos
-    const waypoints = this.extraerCoordenadasDeAvisos(currentLocation, avisos);
-    
-    if (waypoints.length >= 2) {
-      // Usar Mapbox para cálculo real de la ruta
-      return new Observable<RouteInfo>(observer => {
-        this.mapboxService.createRoute(waypoints)
-          .then(route => {
-            const rutaInfo: RouteInfo = {
-              distancia: this.formatearDistancia(route.totalDistance),
-              tiempo: this.formatearTiempo(route.totalDuration),
-              paradas: avisos.length,
-              tieneUbicacion: true,
-              distanciaKm: route.totalDistance / 1000,
-              tiempoMinutos: route.totalDuration / 60
-            };
-            observer.next(rutaInfo);
-            observer.complete();
-          })
-          .catch(error => {
-            console.error('Error calculando ruta con Mapbox:', error);
-            // Fallback a estimación mejorada
+    console.log('🗺️ RouteCalculationService: Usando MapboxNavigationService para cálculo consistente');
+
+    // Usar directamente MapboxNavigationService para garantizar consistencia
+    return new Observable<RouteInfo>(observer => {
+      // Convertir avisos a coordenadas Mapbox de forma asíncrona
+      this.convertirAvisosAMapboxCoordinates(currentLocation, avisos)
+        .then(waypoints => {
+          if (waypoints.length >= 2) {
+            console.log('✅ RouteCalculationService: Calculando con MapboxNavigationService:', waypoints.length, 'waypoints');
+            
+            // Usar el mismo servicio que la navegación real
+            this.mapboxService.createRoute(waypoints)
+              .then(route => {
+                console.log('✅ RouteCalculationService: Ruta calculada con MapboxNavigationService:', {
+                  distancia: `${(route.totalDistance / 1000).toFixed(1)} km`,
+                  tiempo: `${Math.round(route.totalDuration / 60)} min`
+                });
+                
+                const rutaInfo: RouteInfo = {
+                  distancia: this.formatearDistancia(route.totalDistance),
+                  tiempo: this.formatearTiempo(route.totalDuration),
+                  paradas: avisos.length,
+                  tieneUbicacion: true,
+                  distanciaKm: route.totalDistance / 1000,
+                  tiempoMinutos: route.totalDuration / 60
+                };
+                observer.next(rutaInfo);
+                observer.complete();
+              })
+              .catch(error => {
+                console.error('❌ RouteCalculationService: Error con MapboxNavigationService:', error);
+                console.log('⚠️ RouteCalculationService: Usando estimación como fallback');
+                // Fallback a estimación solo si Mapbox falla completamente
+                observer.next(this.estimacionMejorada(currentLocation, avisos));
+                observer.complete();
+              });
+          } else {
+            console.log('⚠️ RouteCalculationService: No se pudieron convertir avisos a coordenadas');
             observer.next(this.estimacionMejorada(currentLocation, avisos));
             observer.complete();
-          });
-      });
-    } else {
-      // Si no podemos obtener coordenadas, usar estimación mejorada
-      return of(this.estimacionMejorada(currentLocation, avisos));
-    }
+          }
+        })
+        .catch(error => {
+          console.error('❌ RouteCalculationService: Error al convertir coordenadas:', error);
+          observer.next(this.estimacionMejorada(currentLocation, avisos));
+          observer.complete();
+        });
+    });
   }
 
   /**
@@ -165,7 +184,60 @@ export class RouteCalculationService {
   }
 
   /**
-   * Extrae coordenadas de los avisos para crear waypoints
+   * Convierte avisos a coordenadas MapboxCoordinates para usar con MapboxNavigationService
+   */
+  private async convertirAvisosAMapboxCoordinates(
+    currentLocation: { latitude: number; longitude: number },
+    avisos: any[]
+  ): Promise<MapboxCoordinates[]> {
+    const waypoints: MapboxCoordinates[] = [
+      {
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        address: 'Ubicación actual'
+      }
+    ];
+
+    console.log('📍 RouteCalculationService: Convirtiendo avisos a MapboxCoordinates');
+
+    // Convertir avisos a coordenadas usando geocoding real de Mapbox
+    for (const aviso of avisos) {
+      const direccion = aviso.direccion_cliente_aviso;
+      if (direccion) {
+        console.log('🔍 RouteCalculationService: Procesando dirección:', direccion);
+        
+        // Intentar primero con geocoding real
+        const coordenadasExactas = await this.obtenerCoordenadasExactas(direccion);
+        if (coordenadasExactas) {
+          console.log('✅ RouteCalculationService: Coordenadas exactas obtenidas:', coordenadasExactas);
+          waypoints.push({
+            latitude: coordenadasExactas.lat,
+            longitude: coordenadasExactas.lng,
+            address: direccion
+          });
+        } else {
+          // Fallback a coordenadas aproximadas
+          const coordenadas = this.obtenerCoordenadasPorDireccion(direccion);
+          if (coordenadas) {
+            console.log('⚠️ RouteCalculationService: Usando coordenadas aproximadas:', coordenadas);
+            waypoints.push({
+              latitude: coordenadas.lat,
+              longitude: coordenadas.lng,
+              address: direccion
+            });
+          } else {
+            console.log('❌ RouteCalculationService: No se pudieron obtener coordenadas para:', direccion);
+          }
+        }
+      }
+    }
+
+    console.log('📍 RouteCalculationService: MapboxCoordinates generados:', waypoints.length);
+    return waypoints;
+  }
+
+  /**
+   * Extrae coordenadas de los avisos para crear waypoints (método legacy)
    */
   private extraerCoordenadasDeAvisos(
     currentLocation: { latitude: number; longitude: number },
@@ -179,22 +251,80 @@ export class RouteCalculationService {
       }
     ];
 
+    console.log('📍 RouteCalculationService: Extrayendo coordenadas de', avisos.length, 'avisos');
+
     // Intentar obtener coordenadas de los avisos
     for (const aviso of avisos) {
       const direccion = aviso.direccion_cliente_aviso;
       if (direccion) {
+        console.log('🔍 RouteCalculationService: Procesando dirección:', direccion);
+        
+        // Intentar primero con geocoding real si está disponible
         const coordenadas = this.obtenerCoordenadasPorDireccion(direccion);
         if (coordenadas) {
+          console.log('✅ RouteCalculationService: Coordenadas encontradas:', coordenadas);
           waypoints.push({
             latitude: coordenadas.lat,
             longitude: coordenadas.lng,
             address: direccion
           });
+        } else {
+          console.log('⚠️ RouteCalculationService: No se pudieron obtener coordenadas para:', direccion);
         }
       }
     }
 
+    console.log('📍 RouteCalculationService: Total waypoints generados:', waypoints.length);
     return waypoints;
+  }
+
+  /**
+   * Obtiene coordenadas exactas usando geocoding de Mapbox
+   */
+  private async obtenerCoordenadasExactas(direccion: string): Promise<{ lat: number; lng: number } | null> {
+    try {
+      console.log('🔍 RouteCalculationService: Intentando geocoding real para:', direccion);
+      
+      // Importar configuración de Mapbox
+      const { MAPBOX_CONFIG } = await import('../../../environments/mapbox.config');
+      
+      if (!MAPBOX_CONFIG.accessToken || MAPBOX_CONFIG.accessToken === 'YOUR_MAPBOX_TOKEN') {
+        console.log('⚠️ RouteCalculationService: Token de Mapbox no configurado para geocoding');
+        return null;
+      }
+
+      // Construir URL de geocoding de Mapbox
+      const encodedAddress = encodeURIComponent(direccion);
+      const geocodingUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${MAPBOX_CONFIG.accessToken}&country=ES&limit=1`;
+
+      console.log('🌐 RouteCalculationService: Solicitando geocoding:', geocodingUrl);
+
+      const response = await fetch(geocodingUrl);
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        const coordinates = feature.geometry.coordinates;
+        
+        console.log('✅ RouteCalculationService: Geocoding exitoso:', {
+          direccion: direccion,
+          coordenadas: { lat: coordinates[1], lng: coordinates[0] },
+          precision: feature.properties.accuracy
+        });
+
+        return {
+          lat: coordinates[1],
+          lng: coordinates[0]
+        };
+      } else {
+        console.log('⚠️ RouteCalculationService: No se encontraron resultados en geocoding para:', direccion);
+        return null;
+      }
+
+    } catch (error) {
+      console.error('❌ RouteCalculationService: Error en geocoding real:', error);
+      return null;
+    }
   }
 
   /**
@@ -202,6 +332,12 @@ export class RouteCalculationService {
    */
   private obtenerCoordenadasPorDireccion(direccion: string): { lat: number; lng: number } | null {
     const direccionLower = direccion.toLowerCase();
+    
+    // Intentar primero con geocoding real usando Mapbox (solo si tenemos token)
+    const coordenadasReales = this.intentarGeocodingReal(direccion);
+    if (coordenadasReales) {
+      return coordenadasReales;
+    }
     
     // Mapeo de ciudades principales de España con coordenadas aproximadas
     const ciudades = {
@@ -255,9 +391,12 @@ export class RouteCalculationService {
       'logroño': { lat: 42.4627, lng: -2.4449 }
     };
 
-    // Buscar coincidencias en la dirección
+    // Buscar coincidencias en la dirección (búsqueda más inteligente)
     for (const [ciudad, coordenadas] of Object.entries(ciudades)) {
-      if (direccionLower.includes(ciudad)) {
+      // Buscar la ciudad como palabra completa o como parte de la dirección
+      const regex = new RegExp(`\\b${ciudad}\\b`, 'i');
+      if (regex.test(direccionLower) || direccionLower.includes(ciudad)) {
+        console.log('🏙️ RouteCalculationService: Ciudad encontrada:', ciudad, 'para dirección:', direccion);
         return coordenadas;
       }
     }
@@ -265,7 +404,11 @@ export class RouteCalculationService {
     // Si no encuentra coincidencia, intentar extraer código postal
     const codigoPostal = this.extraerCodigoPostal(direccion);
     if (codigoPostal) {
-      return this.obtenerCoordenadasPorCodigoPostal(codigoPostal);
+      console.log('📮 RouteCalculationService: Código postal encontrado:', codigoPostal, 'para dirección:', direccion);
+      const coordenadasCP = this.obtenerCoordenadasPorCodigoPostal(codigoPostal);
+      if (coordenadasCP) {
+        return coordenadasCP;
+      }
     }
 
     return null;
@@ -349,12 +492,20 @@ export class RouteCalculationService {
     currentLocation: { latitude: number; longitude: number },
     avisos: any[]
   ): RouteInfo {
+    console.log('🔧 RouteCalculationService: Usando estimación mejorada');
+    
     const waypoints = this.extraerCoordenadasDeAvisos(currentLocation, avisos);
     
     if (waypoints.length >= 2) {
       // Calcular distancia real usando fórmula de Haversine
       const distanciaTotal = this.calcularDistanciaTotal(waypoints);
       const tiempoEstimado = this.estimacionTiempoPorDistancia(distanciaTotal);
+
+      console.log('📊 RouteCalculationService: Estimación mejorada:', {
+        distanciaKm: distanciaTotal,
+        tiempoMinutos: tiempoEstimado,
+        waypoints: waypoints.length
+      });
 
       return {
         distancia: this.formatearDistancia(distanciaTotal * 1000), // Convertir a metros
@@ -367,6 +518,7 @@ export class RouteCalculationService {
     }
 
     // Fallback a estimación básica si no podemos obtener coordenadas
+    console.log('⚠️ RouteCalculationService: Fallback a estimación básica');
     return this.estimacionRuta(avisos.length);
   }
 
@@ -418,10 +570,45 @@ export class RouteCalculationService {
    * Estima el tiempo basado en la distancia
    */
   private estimacionTiempoPorDistancia(distanciaKm: number): number {
-    // Velocidad media estimada: 80 km/h en carretera, 40 km/h en ciudad
-    const velocidadMedia = distanciaKm > 50 ? 80 : 40;
-    return Math.round(distanciaKm / velocidadMedia * 60);
+    // Velocidades más realistas para vehículos:
+    // - Carretera: 90 km/h (autopistas y autovías)
+    // - Urbana: 50 km/h (ciudad con semáforos)
+    // - Mixta: 65 km/h (carreteras secundarias)
+    
+    let velocidadMedia: number;
+    if (distanciaKm > 100) {
+      // Ruta larga: principalmente carretera
+      velocidadMedia = 85;
+    } else if (distanciaKm > 30) {
+      // Ruta media: mixta
+      velocidadMedia = 65;
+    } else {
+      // Ruta corta: principalmente urbana
+      velocidadMedia = 50;
+    }
+    
+    // Añadir tiempo extra para paradas y tráfico (factor 1.2)
+    const tiempoBase = (distanciaKm / velocidadMedia) * 60;
+    return Math.round(tiempoBase * 1.2);
   }
+
+  /**
+   * Intenta obtener coordenadas reales usando geocoding de Mapbox
+   */
+  private intentarGeocodingReal(direccion: string): { lat: number; lng: number } | null {
+    try {
+      // TODO: Implementar geocoding real con Mapbox API
+      // Por ahora, usar mapeo básico
+      console.log('🔍 RouteCalculationService: Geocoding real pendiente de implementación');
+      return null;
+
+    } catch (error) {
+      console.log('⚠️ RouteCalculationService: Error en geocoding real:', error);
+      return null;
+    }
+  }
+
+  private geocodingCache?: Map<string, { lat: number; lng: number }>;
 
   /**
    * Obtiene la ubicación actual del usuario
