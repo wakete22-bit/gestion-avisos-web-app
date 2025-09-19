@@ -159,7 +159,70 @@ CREATE POLICY "Permitir eliminar facturas" ON public.facturas
     USING (true);
 
 -- ========================================
--- 6. TABLA INVENTARIO
+-- 6. TABLA LINEAS_FACTURA
+-- ========================================
+
+-- Habilitar RLS en la tabla lineas_factura
+ALTER TABLE public.lineas_factura ENABLE ROW LEVEL SECURITY;
+
+-- Política para SELECT: Permitir ver líneas de factura a administradores y supervisores
+CREATE POLICY "LineasFactura: Ver solo admin/supervisor" ON public.lineas_factura
+    FOR SELECT 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.usuarios u
+            JOIN public.roles r ON u.rol_id = r.id
+            WHERE u.id = auth.user_id() 
+            AND r.nombre_rol IN ('Administrador', 'Supervisor')
+        )
+    );
+
+-- Política para INSERT: Solo administradores pueden insertar líneas de factura
+CREATE POLICY "LineasFactura: Insertar solo admin" ON public.lineas_factura
+    FOR INSERT 
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.usuarios u
+            JOIN public.roles r ON u.rol_id = r.id
+            WHERE u.id = auth.user_id() 
+            AND r.nombre_rol = 'Administrador'
+        )
+    );
+
+-- Política para UPDATE: Solo administradores pueden actualizar líneas de factura
+CREATE POLICY "LineasFactura: Actualizar solo admin" ON public.lineas_factura
+    FOR UPDATE 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.usuarios u
+            JOIN public.roles r ON u.rol_id = r.id
+            WHERE u.id = auth.user_id() 
+            AND r.nombre_rol = 'Administrador'
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.usuarios u
+            JOIN public.roles r ON u.rol_id = r.id
+            WHERE u.id = auth.user_id() 
+            AND r.nombre_rol = 'Administrador'
+        )
+    );
+
+-- Política para DELETE: Solo administradores pueden eliminar líneas de factura
+CREATE POLICY "LineasFactura: Eliminar solo admin" ON public.lineas_factura
+    FOR DELETE 
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.usuarios u
+            JOIN public.roles r ON u.rol_id = r.id
+            WHERE u.id = auth.user_id() 
+            AND r.nombre_rol = 'Administrador'
+        )
+    );
+
+-- ========================================
+-- 7. TABLA INVENTARIO
 -- ========================================
 
 -- Habilitar RLS en la tabla inventario

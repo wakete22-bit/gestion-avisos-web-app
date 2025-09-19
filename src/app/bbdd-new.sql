@@ -1,6 +1,27 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.albaranes (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  aviso_id uuid NOT NULL,
+  fecha_cierre timestamp with time zone DEFAULT now(),
+  hora_entrada time without time zone,
+  hora_salida time without time zone,
+  descripcion_trabajo_realizado text NOT NULL,
+  repuestos_utilizados ARRAY DEFAULT '{}'::text[],
+  estado_cierre text NOT NULL CHECK (estado_cierre = ANY (ARRAY['Finalizado'::text, 'Presupuesto pendiente'::text, 'Otra visita'::text])),
+  presupuesto_necesario numeric DEFAULT 0,
+  dni_cliente text,
+  nombre_firma text,
+  firma_url text,
+  observaciones text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  fecha_actualizacion timestamp with time zone DEFAULT now(),
+  firma_cliente text,
+  fecha_trabajo date NOT NULL,
+  CONSTRAINT albaranes_pkey PRIMARY KEY (id),
+  CONSTRAINT albaranes_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+);
 CREATE TABLE public.avisos (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   cliente_id uuid NOT NULL,
@@ -11,7 +32,7 @@ CREATE TABLE public.avisos (
   telefono_cliente_aviso text,
   urgencia text NOT NULL,
   descripcion_problema text NOT NULL,
-  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['No visitado'::text, 'Visitado pendiente'::text, 'En curso'::text, 'Pendiente de presupuesto'::text, 'Completado'::text, 'Cancelado'::text])),
+  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'En curso'::text, 'Pendiente de presupuesto'::text, 'Listo para facturar'::text, 'Completado'::text, 'Cancelado'::text])),
   latitud numeric,
   longitud numeric,
   fecha_finalizacion timestamp with time zone,
@@ -21,11 +42,11 @@ CREATE TABLE public.avisos (
   nombre_contacto text,
   es_urgente boolean DEFAULT false,
   fecha_actualizacion timestamp with time zone DEFAULT now(),
+  numero_secuencial integer NOT NULL DEFAULT nextval('avisos_numero_secuencial_seq'::regclass),
   CONSTRAINT avisos_pkey PRIMARY KEY (id),
-  CONSTRAINT avisos_tecnico_asignado_id_fkey FOREIGN KEY (tecnico_asignado_id) REFERENCES public.usuarios(id),
-  CONSTRAINT avisos_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id)
+  CONSTRAINT avisos_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id),
+  CONSTRAINT avisos_tecnico_asignado_id_fkey FOREIGN KEY (tecnico_asignado_id) REFERENCES public.usuarios(id)
 );
-
 CREATE TABLE public.clientes (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   nombre_completo text NOT NULL,
@@ -39,7 +60,6 @@ CREATE TABLE public.clientes (
   notas_importantes text,
   CONSTRAINT clientes_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_avisos (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   tipos_urgencia ARRAY NOT NULL DEFAULT ARRAY['Baja'::text, 'Media'::text, 'Alta'::text, 'Crítica'::text],
@@ -50,7 +70,6 @@ CREATE TABLE public.configuracion_avisos (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_avisos_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_empresa (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   nombre_empresa text NOT NULL,
@@ -64,7 +83,6 @@ CREATE TABLE public.configuracion_empresa (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_empresa_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_facturacion (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   iva_por_defecto numeric NOT NULL DEFAULT 21 CHECK (iva_por_defecto >= 0::numeric AND iva_por_defecto <= 100::numeric),
@@ -77,7 +95,6 @@ CREATE TABLE public.configuracion_facturacion (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_facturacion_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_flujo (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   precio_hora_mano_obra numeric NOT NULL DEFAULT 50.00,
@@ -89,7 +106,6 @@ CREATE TABLE public.configuracion_flujo (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_flujo_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_notificaciones (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   email_notificaciones boolean NOT NULL DEFAULT true,
@@ -102,7 +118,6 @@ CREATE TABLE public.configuracion_notificaciones (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_notificaciones_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.configuracion_sistema (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   backup_automatico boolean NOT NULL DEFAULT true,
@@ -114,7 +129,6 @@ CREATE TABLE public.configuracion_sistema (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT configuracion_sistema_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.facturas (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   numero_factura text NOT NULL UNIQUE,
@@ -135,9 +149,8 @@ CREATE TABLE public.facturas (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT facturas_pkey PRIMARY KEY (id),
   CONSTRAINT facturas_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id),
-  CONSTRAINT facturas_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.clientes(id)
+  CONSTRAINT facturas_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );
-
 CREATE TABLE public.fotos_aviso (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   aviso_id uuid NOT NULL,
@@ -147,7 +160,6 @@ CREATE TABLE public.fotos_aviso (
   CONSTRAINT fotos_aviso_pkey PRIMARY KEY (id),
   CONSTRAINT fotos_aviso_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
 );
-
 CREATE TABLE public.historial_flujo (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   aviso_id uuid NOT NULL,
@@ -155,17 +167,16 @@ CREATE TABLE public.historial_flujo (
   estado_nuevo text NOT NULL,
   accion_realizada text NOT NULL,
   usuario_id uuid,
-  trabajo_id uuid,
   factura_id uuid,
   observaciones text,
   fecha_cambio timestamp with time zone DEFAULT now(),
+  albaran_id uuid,
   CONSTRAINT historial_flujo_pkey PRIMARY KEY (id),
-  CONSTRAINT historial_flujo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
-  CONSTRAINT historial_flujo_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id),
+  CONSTRAINT historial_flujo_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id),
   CONSTRAINT historial_flujo_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id),
-  CONSTRAINT historial_flujo_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id)
+  CONSTRAINT historial_flujo_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id),
+  CONSTRAINT fk_historial_flujo_albaran FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id)
 );
-
 CREATE TABLE public.inventario (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   nombre text NOT NULL UNIQUE,
@@ -179,7 +190,6 @@ CREATE TABLE public.inventario (
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT inventario_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.lineas_factura (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   factura_id uuid NOT NULL,
@@ -193,60 +203,6 @@ CREATE TABLE public.lineas_factura (
   CONSTRAINT lineas_factura_pkey PRIMARY KEY (id),
   CONSTRAINT lineas_factura_factura_id_fkey FOREIGN KEY (factura_id) REFERENCES public.facturas(id)
 );
-
-CREATE TABLE public.materiales_trabajo (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  trabajo_id uuid NOT NULL,
-  material_id uuid NOT NULL,
-  cantidad_utilizada numeric NOT NULL CHECK (cantidad_utilizada > 0::numeric),
-  precio_neto_al_momento numeric NOT NULL,
-  CONSTRAINT materiales_trabajo_pkey PRIMARY KEY (id),
-  CONSTRAINT materiales_trabajo_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
-  CONSTRAINT materiales_trabajo_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.inventario(id)
-);
-
--- TABLA ACTUALIZADA: TRABAJOS REALIZADOS (nuevo flujo)
-CREATE TABLE public.trabajos_realizados (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  aviso_id uuid NOT NULL,
-  fecha_trabajo date NOT NULL,
-  hora_inicio time without time zone NOT NULL,
-  hora_fin time without time zone NOT NULL,
-  descripcion text NOT NULL,
-  repuestos text[] DEFAULT '{}'::text[],
-  estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'En curso'::text, 'Abierto'::text, 'Cerrado'::text, 'Finalizado'::text])),
-  albaran_id uuid,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT trabajos_realizados_pkey PRIMARY KEY (id),
-  CONSTRAINT trabajos_realizados_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id),
-  CONSTRAINT trabajos_realizados_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id)
-);
-
--- NUEVA TABLA: ALBARANES (reemplaza presupuestos)
-CREATE TABLE public.albaranes (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  trabajo_id uuid NOT NULL,
-  aviso_id uuid NOT NULL,
-  fecha_cierre timestamp with time zone DEFAULT now(),
-  hora_entrada time without time zone,
-  hora_salida time without time zone,
-  descripcion_trabajo_realizado text NOT NULL,
-  repuestos_utilizados text[] DEFAULT '{}'::text[],
-  estado_cierre text NOT NULL CHECK (estado_cierre = ANY (ARRAY['Finalizado'::text, 'Presupuesto pendiente'::text, 'Otra visita'::text])),
-  presupuesto_necesario numeric DEFAULT 0,
-  dni_cliente text,
-  nombre_firma text,
-  firma_url text,
-  observaciones text,
-  fecha_creacion timestamp with time zone DEFAULT now(),
-  fecha_actualizacion timestamp with time zone DEFAULT now(),
-  CONSTRAINT albaranes_pkey PRIMARY KEY (id),
-  CONSTRAINT albaranes_trabajo_id_fkey FOREIGN KEY (trabajo_id) REFERENCES public.trabajos_realizados(id),
-  CONSTRAINT albaranes_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
-);
-
--- NUEVA TABLA: PRESUPUESTOS (para cuando se cierra como "Presupuesto pendiente")
 CREATE TABLE public.presupuestos (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   albaran_id uuid NOT NULL,
@@ -259,16 +215,27 @@ CREATE TABLE public.presupuestos (
   pdf_url text,
   fecha_actualizacion timestamp with time zone DEFAULT now(),
   CONSTRAINT presupuestos_pkey PRIMARY KEY (id),
-  CONSTRAINT presupuestos_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id),
-  CONSTRAINT presupuestos_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id)
+  CONSTRAINT presupuestos_aviso_id_fkey FOREIGN KEY (aviso_id) REFERENCES public.avisos(id),
+  CONSTRAINT presupuestos_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id)
 );
-
+CREATE TABLE public.repuestos_albaran (
+  id uuid NOT NULL DEFAULT uuid_generate_v4(),
+  albaran_id uuid NOT NULL,
+  nombre text NOT NULL,
+  cantidad numeric NOT NULL DEFAULT 1 CHECK (cantidad > 0::numeric),
+  precio_neto numeric NOT NULL DEFAULT 0,
+  precio_pvp numeric NOT NULL DEFAULT 0,
+  unidad text NOT NULL DEFAULT 'unidad'::text,
+  codigo text,
+  fecha_creacion timestamp with time zone DEFAULT now(),
+  CONSTRAINT repuestos_albaran_pkey PRIMARY KEY (id),
+  CONSTRAINT repuestos_albaran_albaran_id_fkey FOREIGN KEY (albaran_id) REFERENCES public.albaranes(id)
+);
 CREATE TABLE public.roles (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   nombre_rol text NOT NULL UNIQUE,
   CONSTRAINT roles_pkey PRIMARY KEY (id)
 );
-
 CREATE TABLE public.usuarios (
   id uuid NOT NULL,
   nombre_completo text NOT NULL,
@@ -280,6 +247,6 @@ CREATE TABLE public.usuarios (
   es_activo boolean NOT NULL DEFAULT true,
   fecha_ultimo_acceso timestamp with time zone,
   CONSTRAINT usuarios_pkey PRIMARY KEY (id),
-  CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id),
-  CONSTRAINT usuarios_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+  CONSTRAINT usuarios_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
+  CONSTRAINT usuarios_rol_id_fkey FOREIGN KEY (rol_id) REFERENCES public.roles(id)
 );

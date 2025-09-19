@@ -1,0 +1,532 @@
+[
+    {
+      "schemaname": "public",
+      "tablename": "albaranes",
+      "policyname": "Albaranes: Actualizar solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = albaranes.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = albaranes.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "albaranes",
+      "policyname": "Albaranes: Crear solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = albaranes.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "albaranes",
+      "policyname": "Albaranes: Eliminar solo admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "albaranes",
+      "policyname": "Albaranes: Ver solo relacionados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = albaranes.aviso_id) AND ((a.tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n           FROM (usuarios u\n             JOIN roles r ON ((u.rol_id = r.id)))\n          WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "albaranes",
+      "policyname": "Técnicos pueden gestionar albaranes de avisos asignados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = albaranes.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "avisos",
+      "policyname": "Administradores acceso completo",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "avisos",
+      "policyname": "Avisos: Crear solo admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "avisos",
+      "policyname": "Avisos: Ver solo asignados o admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "((tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text)))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "avisos",
+      "policyname": "Técnicos pueden gestionar avisos asignados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "((auth.uid() = tecnico_asignado_id) OR (EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Técnico'::text)))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "clientes",
+      "policyname": "Usuarios autenticados pueden ver clientes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_avisos",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_empresa",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_facturacion",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_flujo",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_notificaciones",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "configuracion_sistema",
+      "policyname": "Usuarios autenticados pueden ver configuraciones",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "facturas",
+      "policyname": "Administradores acceso completo a facturas",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Fotos: Actualizar solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = fotos_aviso.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = fotos_aviso.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Fotos: Crear solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = fotos_aviso.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Fotos: Eliminar solo admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Fotos: Ver solo relacionadas",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = fotos_aviso.aviso_id) AND ((a.tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n           FROM (usuarios u\n             JOIN roles r ON ((u.rol_id = r.id)))\n          WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Usuarios autenticados pueden actualizar fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Usuarios autenticados pueden eliminar fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE",
+      "qual": "true",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Usuarios autenticados pueden leer fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fotos_aviso",
+      "policyname": "Usuarios autenticados pueden subir fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(auth.role() = 'authenticated'::text)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "historial_flujo",
+      "policyname": "Historial: Crear solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = historial_flujo.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "historial_flujo",
+      "policyname": "Historial: Ver solo relacionado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = historial_flujo.aviso_id) AND ((a.tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n           FROM (usuarios u\n             JOIN roles r ON ((u.rol_id = r.id)))\n          WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "historial_flujo",
+      "policyname": "Users can insert historial_flujo",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(auth.uid() IS NOT NULL)"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "historial_flujo",
+      "policyname": "Users can view historial_flujo",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(auth.uid() IS NOT NULL)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "inventario",
+      "policyname": "Usuarios autenticados pueden ver inventario",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Acceso público a fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'fotos-avisos'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Cualquiera puede ver fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'fotos-avisos'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Propietario puede actualizar fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "((bucket_id = 'fotos-avisos'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Propietario puede eliminar fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "((bucket_id = 'fotos-avisos'::text) AND ((auth.uid())::text = (storage.foldername(name))[1]))",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Usuarios autenticados pueden actualizar fotos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "((bucket_id = 'fotos-avisos'::text) AND (auth.role() = 'authenticated'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Usuarios autenticados pueden eliminar fotos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "((bucket_id = 'fotos-avisos'::text) AND (auth.role() = 'authenticated'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Usuarios autenticados pueden subir fotos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "((bucket_id = 'fotos-avisos'::text) AND (auth.role() = 'authenticated'::text))"
+    },
+    {
+      "schemaname": "storage",
+      "tablename": "objects",
+      "policyname": "Usuarios autenticados pueden subir fotos de avisos",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "((bucket_id = 'fotos-avisos'::text) AND (auth.role() = 'authenticated'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "presupuestos",
+      "policyname": "Presupuestos: Actualizar solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = presupuestos.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = presupuestos.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "presupuestos",
+      "policyname": "Presupuestos: Crear solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = presupuestos.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "presupuestos",
+      "policyname": "Presupuestos: Eliminar solo admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "presupuestos",
+      "policyname": "Presupuestos: Ver solo relacionados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = presupuestos.aviso_id) AND ((a.tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n           FROM (usuarios u\n             JOIN roles r ON ((u.rol_id = r.id)))\n          WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "presupuestos",
+      "policyname": "Técnicos pueden gestionar presupuestos de avisos asignados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM avisos a\n  WHERE ((a.id = presupuestos.aviso_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Permitir actualizar repuestos de albaranes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM albaranes\n  WHERE (albaranes.id = repuestos_albaran.albaran_id)))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM albaranes\n  WHERE (albaranes.id = repuestos_albaran.albaran_id)))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Permitir eliminar repuestos de albaranes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM albaranes\n  WHERE (albaranes.id = repuestos_albaran.albaran_id)))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Permitir insertar repuestos para albaranes",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM albaranes\n  WHERE (albaranes.id = repuestos_albaran.albaran_id)))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Permitir ver repuestos de albaranes visibles",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (albaranes a\n     JOIN avisos av ON ((a.aviso_id = av.id)))\n  WHERE (a.id = repuestos_albaran.albaran_id)))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Repuestos: Actualizar solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "UPDATE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (albaranes al\n     JOIN avisos a ON ((al.aviso_id = a.id)))\n  WHERE ((al.id = repuestos_albaran.albaran_id) AND (a.tecnico_asignado_id = auth.uid()))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM (albaranes al\n     JOIN avisos a ON ((al.aviso_id = a.id)))\n  WHERE ((al.id = repuestos_albaran.albaran_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Repuestos: Crear solo técnico asignado",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(EXISTS ( SELECT 1\n   FROM (albaranes al\n     JOIN avisos a ON ((al.aviso_id = a.id)))\n  WHERE ((al.id = repuestos_albaran.albaran_id) AND (a.tecnico_asignado_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Repuestos: Eliminar solo admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "DELETE",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (usuarios u\n     JOIN roles r ON ((u.rol_id = r.id)))\n  WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "repuestos_albaran",
+      "policyname": "Repuestos: Ver solo relacionados",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (albaranes al\n     JOIN avisos a ON ((al.aviso_id = a.id)))\n  WHERE ((al.id = repuestos_albaran.albaran_id) AND ((a.tecnico_asignado_id = auth.uid()) OR (EXISTS ( SELECT 1\n           FROM (usuarios u\n             JOIN roles r ON ((u.rol_id = r.id)))\n          WHERE ((u.id = auth.uid()) AND (r.nombre_rol = 'Administrador'::text))))))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "roles",
+      "policyname": "Usuarios autenticados pueden ver roles",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "usuarios",
+      "policyname": "Usuarios autenticados pueden ver usuarios",
+      "permissive": "PERMISSIVE",
+      "roles": "{public}",
+      "cmd": "ALL",
+      "qual": "(auth.role() = 'authenticated'::text)",
+      "with_check": null
+    }
+  ]

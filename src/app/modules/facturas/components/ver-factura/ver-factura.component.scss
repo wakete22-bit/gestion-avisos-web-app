@@ -433,6 +433,11 @@ ion-content {
   }
 }
 
+.action-buttons{
+  display: flex;
+  gap: 12px;
+}
+
 // Responsive
 @media (max-width: 768px) {
   .factura-container {
@@ -552,5 +557,21 @@ ion-content {
       overflow-x: auto;
       white-space: nowrap;
     }
+  }
+}
+
+// Estilos para la vista previa del PDF
+.pdf-preview-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+
+  h3 {
+    margin: 0 0 20px 0;
+    color: #495057;
+    font-size: 18px;
+    font-weight: 600;
   }
 } 

@@ -24,13 +24,9 @@
           </div>
 
           <!-- Opciones de PDF -->
-          <div class="pdf-options">
-            <select class="pdf-template-selector" [(ngModel)]="plantillaSeleccionada">
-              <option value="completa">Plantilla Completa</option>
-              <option value="simple">Plantilla Simple</option>
-              <option value="profesional">Plantilla Profesional</option>
-            </select>
-          </div>
+          <!-- <div class="pdf-options">
+            <span class="pdf-template-label">Plantilla Completa</span>
+          </div> -->
           <button class="btn-secondary" (click)="imprimirFactura()">
             <ion-icon name="print-outline"></ion-icon>
             Imprimir
@@ -40,6 +36,7 @@
             <ion-icon name="create-outline"></ion-icon>
             Editar
           </button>
+
 
           <button class="btn-primary" (click)="descargarFactura()">
             <ion-icon name="download-outline"></ion-icon>

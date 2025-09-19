@@ -24,7 +24,6 @@ export class VerFacturaComponent implements OnInit {
   error: string | null = null;
   facturaId: string | null = null;
   modoEdicion = false;
-  plantillaSeleccionada: 'completa' | 'simple' | 'profesional' = 'completa';
 
   constructor(
     private route: ActivatedRoute,
@@ -85,6 +84,7 @@ export class VerFacturaComponent implements OnInit {
   volver() {
     this.router.navigate(['/facturas']);
   }
+
 
   editarFactura() {
     if (this.facturaId) {
@@ -179,14 +179,8 @@ export class VerFacturaComponent implements OnInit {
         lineas: this.factura.lineas
       };
 
-      // Generar PDF según la plantilla seleccionada
-      if (this.plantillaSeleccionada === 'simple') {
-        this.pdfService.generarPlantillaFacturaSimple(datosFactura, nombreArchivo);
-      } else if (this.plantillaSeleccionada === 'profesional') {
-        this.pdfService.generarPlantillaFacturaProfesional(datosFactura, nombreArchivo);
-      } else {
-        this.pdfService.generarPdfNativo(datosFactura, nombreArchivo);
-      }
+      // Generar PDF con HTML/CSS (método recomendado)
+      this.pdfService.generarPdfHtml(datosFactura, nombreArchivo);
       
       console.log('✅ Factura descargada exitosamente');
     } catch (error) {

@@ -469,19 +469,566 @@ export class PdfService {
   }
 
   /**
+   * Genera un PDF usando HTML/CSS (método recomendado)
+   * Reutiliza los estilos de la vista previa para mantener consistencia
+   */
+  generarPdfHtml(datosFactura: any, nombreArchivo: string = 'factura.pdf'): void {
+    try {
+      console.log('🔧 Generando PDF con HTML/CSS...');
+      
+      // Calcular totales
+      const subtotal = this.calcularSubtotal(datosFactura);
+      const iva = subtotal * 0.21;
+      const total = subtotal + iva;
+      
+      // Crear elemento HTML temporal
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = this.generarHtmlFactura(datosFactura);
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '794px'; // A4 width en px
+      // tempDiv.style.minHeight = '1123px'; // Removido para altura dinámica
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.padding = '20px';
+      tempDiv.style.boxSizing = 'border-box';
+      
+      // Agregar estilos CSS
+      const style = document.createElement('style');
+      style.textContent = this.obtenerEstilosCss();
+      tempDiv.appendChild(style);
+      
+      // Agregar al DOM temporalmente
+      document.body.appendChild(tempDiv);
+      
+      
+      // Generar PDF usando html2canvas
+      this.generarPdfDesdeElemento(tempDiv, nombreArchivo).finally(() => {
+        // Limpiar elemento temporal
+        document.body.removeChild(tempDiv);
+      });
+      
+    } catch (error) {
+      console.error('❌ Error al generar PDF con HTML:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Genera el HTML de la factura
+   */
+  private generarHtmlFactura(datosFactura: any): string {
+    const subtotal = this.calcularSubtotal(datosFactura);
+    const iva = subtotal * 0.21;
+    const total = subtotal + iva;
+
+    return `
+      <div class="pdf-preview">
+        <!-- Header Principal -->
+        <div class="header-principal">
+          <h1 class="titulo-factura">FACTURA</h1>
+        </div>
+
+        <!-- Información Básica -->
+        <div class="info-basica">
+          <div class="numero-factura">Nº ${datosFactura.numero_factura || 'N/A'}</div>
+          <div class="fecha-factura">Fecha: ${this.formatearFecha(datosFactura.fecha_emision) || 'N/A'}</div>
+        </div>
+
+        <!-- Datos de la Empresa -->
+        <div class="seccion-empresa">
+          <h2 class="titulo-seccion">DATOS DE LA EMPRESA</h2>
+          <div class="datos-empresa">
+            <div class="nombre-empresa">TÉCNICOS CLIMATIZACIÓN S.L.</div>
+            <div class="direccion-empresa">Calle de la Tecnología, 123</div>
+            <div class="ciudad-empresa">28001 Madrid, España</div>
+            <div class="cif-empresa">CIF: B12345678</div>
+            <div class="telefono-empresa">Tel: +34 91 123 45 67</div>
+            <div class="email-empresa">info@tecnicosclimatizacion.es</div>
+          </div>
+        </div>
+
+        <!-- Datos del Cliente -->
+        <div class="seccion-cliente">
+          <h2 class="titulo-seccion">DATOS DEL CLIENTE</h2>
+          <div class="datos-cliente">
+            <div>Nombre: ${datosFactura.nombre_cliente || 'N/A'}</div>
+            <div>Dirección: ${datosFactura.direccion_cliente || 'N/A'}</div>
+            <div>CIF: ${datosFactura.cif_cliente || 'N/A'}</div>
+            <div>Email: ${datosFactura.email_cliente || 'N/A'}</div>
+          </div>
+        </div>
+
+        <!-- Tabla de Servicios -->
+        <div class="seccion-servicios" ${datosFactura.lineas && datosFactura.lineas.length > 0 ? '' : 'style="display: none;"'}>
+          <div class="tabla-header">
+            <div class="col-descripcion">DESCRIPCIÓN</div>
+            <div class="col-cantidad">CANT.</div>
+            <div class="col-precio">PRECIO</div>
+            <div class="col-total">TOTAL</div>
+          </div>
+          
+          <div class="linea-separadora"></div>
+          
+          <div class="tabla-body">
+            ${datosFactura.lineas ? datosFactura.lineas.map((linea: any) => `
+              <div class="fila-servicio">
+                <div class="col-descripcion">${linea.nombre || 'Sin descripción'}</div>
+                <div class="col-cantidad">${linea.cantidad || '0'}</div>
+                <div class="col-precio">${this.formatearMoneda(linea.precio_pvp || 0)}</div>
+                <div class="col-total">${this.formatearMoneda((linea.cantidad || 0) * (linea.precio_pvp || 0))}</div>
+              </div>
+            `).join('') : ''}
+          </div>
+          
+          <div class="linea-separadora"></div>
+        </div>
+
+        <!-- Caja de Totales -->
+        <div class="caja-totales" ${datosFactura.lineas && datosFactura.lineas.length > 0 ? '' : 'style="display: none;"'}>
+          <div class="caja-totales-inner">
+            <div class="titulo-caja">RESUMEN</div>
+            <div class="linea-separadora-caja"></div>
+            
+            <div class="fila-total">
+              <span class="etiqueta-total">Subtotal:</span>
+              <span class="valor-total">${this.formatearMoneda(subtotal)}</span>
+            </div>
+            
+            <div class="fila-total">
+              <span class="etiqueta-total">IVA (21%):</span>
+              <span class="valor-total">${this.formatearMoneda(iva)}</span>
+            </div>
+            
+            <div class="linea-separadora-total"></div>
+            
+            <div class="fila-total-final">
+              <span class="etiqueta-total-final">TOTAL:</span>
+              <span class="valor-total-final">${this.formatearMoneda(total)}</span>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Notas -->
+        <div class="seccion-notas" ${datosFactura.notas ? '' : 'style="display: none;"'}>
+          <h2 class="titulo-seccion">NOTAS:</h2>
+          <div class="contenido-notas">${datosFactura.notas}</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <div class="linea-footer"></div>
+          <div class="info-footer">
+            <span class="nombre-empresa-footer">TÉCNICOS CLIMATIZACIÓN S.L.</span>
+            <span class="mensaje-footer">Gracias por su confianza</span>
+            <span class="web-footer">www.tecnicosclimatizacion.es</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Obtiene los estilos CSS para el PDF
+   */
+  private obtenerEstilosCss(): string {
+    return `
+      .pdf-preview {
+        width: 794px;
+        background: white;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        font-family: 'Helvetica', Arial, sans-serif;
+        overflow: visible;
+      }
+
+      .header-principal {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .titulo-factura {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4F46E5;
+        margin: 0;
+        padding: 0;
+      }
+
+      .info-basica {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        padding-right: 20px;
+      }
+
+      .numero-factura {
+        font-size: 14px;
+        font-weight: bold;
+        color: #111827;
+      }
+
+      .fecha-factura {
+        font-size: 14px;
+        color: #111827;
+      }
+
+      .seccion-empresa {
+        margin-bottom: 20px;
+      }
+
+      .titulo-seccion {
+        font-size: 14px;
+        font-weight: bold;
+        color: #4F46E5;
+        margin: 0 0 8px 0;
+      }
+
+      .datos-empresa .nombre-empresa {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+
+      .datos-empresa .direccion-empresa,
+      .datos-empresa .ciudad-empresa,
+      .datos-empresa .cif-empresa,
+      .datos-empresa .telefono-empresa,
+      .datos-empresa .email-empresa {
+        font-size: 11px;
+        margin-bottom: 5px;
+        color: #111827;
+      }
+
+      .seccion-cliente {
+        margin-bottom: 25px;
+      }
+
+      .datos-cliente div {
+        font-size: 11px;
+        margin-bottom: 5px;
+        color: #111827;
+      }
+
+      .seccion-servicios {
+        margin-bottom: 15px;
+        width: calc(100% - 20px);
+        padding-right: 20px;
+      }
+
+      .tabla-header {
+        display: flex;
+        font-size: 12px;
+        font-weight: bold;
+        color: #4F46E5;
+        margin-bottom: 8px;
+        width: 100%;
+        max-width: calc(100% - 20px);
+      }
+
+      .col-descripcion {
+        width: 200px;
+        flex: 0 0 200px;
+      }
+
+      .col-cantidad {
+        width: 80px;
+        flex: 0 0 80px;
+        text-align: center;
+      }
+
+      .col-precio {
+        width: 100px;
+        flex: 0 0 100px;
+        text-align: right;
+      }
+
+      .col-total {
+        width: 100px;
+        flex: 0 0 100px;
+        text-align: right;
+      }
+
+      .linea-separadora {
+        height: 1px;
+        background-color: #4F46E5;
+        margin: 8px 0;
+        width: calc(100% - 20px);
+      }
+
+      .tabla-body {
+        width: 100%;
+        max-width: calc(100% - 20px);
+      }
+
+      .tabla-body .fila-servicio {
+        display: flex;
+        font-size: 10px;
+        margin-bottom: 6px;
+        width: 100%;
+        max-width: calc(100% - 20px);
+        align-items: center;
+      }
+
+      .fila-servicio .col-descripcion {
+        width: 200px;
+        flex: 0 0 200px;
+        color: #111827;
+      }
+
+      .fila-servicio .col-cantidad {
+        width: 80px;
+        flex: 0 0 80px;
+        text-align: center;
+        color: #111827;
+      }
+
+      .fila-servicio .col-precio {
+        width: 100px;
+        flex: 0 0 100px;
+        text-align: right;
+        color: #111827;
+      }
+
+      .fila-servicio .col-total {
+        width: 100px;
+        flex: 0 0 100px;
+        text-align: right;
+        color: #111827;
+        font-weight: bold;
+      }
+
+      .caja-totales {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        width: calc(100% - 20px);
+        padding-right: 20px;
+      }
+
+      .caja-totales-inner {
+        width: 180px;
+        height: 120px;
+        background-color: #F8FAFC;
+        border: 1px solid #4F46E5;
+        border-radius: 4px;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+
+      .titulo-caja {
+        font-size: 11px;
+        font-weight: bold;
+        color: #4F46E5;
+        margin-bottom: 4px;
+        display: block;
+      }
+
+      .linea-separadora-caja {
+        height: 1px;
+        background-color: #4F46E5;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .fila-total {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        margin-bottom: 6px;
+        color: #111827;
+      }
+
+      .etiqueta-total {
+        color: #111827;
+        font-weight: normal;
+      }
+
+      .valor-total {
+        color: #111827;
+        font-weight: normal;
+      }
+
+      .linea-separadora-total {
+        height: 1px;
+        background-color: #4F46E5;
+        margin-bottom: 6px;
+        display: block;
+      }
+
+      .fila-total-final {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: bold;
+        color: #4F46E5;
+      }
+
+      .etiqueta-total-final {
+        color: #4F46E5;
+        font-weight: bold;
+      }
+
+      .valor-total-final {
+        color: #4F46E5;
+        font-weight: bold;
+      }
+
+      .seccion-notas {
+        margin-top: 25px;
+        margin-bottom: 25px;
+      }
+
+      .contenido-notas {
+        font-size: 11px;
+        color: #111827;
+      }
+
+      .footer {
+        position: absolute;
+        bottom: 0;
+        left: 20px;
+        right: 20px;
+      }
+
+      .linea-footer {
+        height: 1px;
+        background-color: #E5E7EB;
+        margin-bottom: 10px;
+      }
+
+      .info-footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+      }
+
+      .nombre-empresa-footer {
+        font-weight: bold;
+        color: #4F46E5;
+      }
+
+      .mensaje-footer,
+      .web-footer {
+        color: #6B7280;
+      }
+
+      /* Estilos adicionales para asegurar visibilidad */
+      * {
+        box-sizing: border-box;
+      }
+    `;
+  }
+
+  /**
+   * Genera PDF desde un elemento HTML
+   */
+  private async generarPdfDesdeElemento(elemento: HTMLElement, nombreArchivo: string): Promise<void> {
+    try {
+      // Calcular la altura real del contenido
+      const contenido = elemento.querySelector('.pdf-preview');
+      const alturaReal = contenido ? contenido.scrollHeight : elemento.scrollHeight;
+      
+      const canvas = await html2canvas(elemento, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: elemento.offsetWidth,
+        height: Math.min(alturaReal, elemento.offsetHeight), // Usar la altura real del contenido
+        scrollX: 0,
+        scrollY: 0
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; // A4 width en mm
+      const pageHeight = 295; // A4 height en mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      console.log('📏 Dimensiones del canvas:', {
+        canvasWidth: canvas.width,
+        canvasHeight: canvas.height,
+        imgHeight: imgHeight,
+        pageHeight: pageHeight,
+        fitsInOnePage: imgHeight <= pageHeight
+      });
+
+      // Solo agregar una página si el contenido cabe en una página
+      if (imgHeight <= pageHeight) {
+        // El contenido cabe en una página
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        console.log('✅ Contenido cabe en una sola página');
+      } else {
+        // El contenido es más alto que una página, dividir en múltiples páginas
+        console.log('📄 Contenido requiere múltiples páginas');
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Agregar primera página
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        // Agregar páginas adicionales solo si es necesario
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+
+      // Descargar el PDF
+      pdf.save(nombreArchivo);
+      
+      console.log('✅ PDF generado exitosamente con HTML/CSS:', nombreArchivo);
+    } catch (error) {
+      console.error('❌ Error al generar PDF desde elemento:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calcula el subtotal de las líneas
+   */
+  private calcularSubtotal(datosFactura: any): number {
+    if (!datosFactura?.lineas) return 0;
+    return datosFactura.lineas.reduce((acc: number, linea: any) => {
+      return acc + ((linea.cantidad || 0) * (linea.precio_pvp || 0));
+    }, 0);
+  }
+
+  /**
+   * Formatea moneda
+   */
+  private formatearMoneda(valor: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(valor);
+  }
+
+  /**
    * Genera un PDF nativo con el estilo exacto de la factura
+   * Versión mejorada con soporte para múltiples páginas y diseño optimizado
    */
   generarPdfNativo(datosFactura: any, nombreArchivo: string = 'factura.pdf'): void {
     try {
-      console.log('🔧 Generando PDF nativo con estilos...');
+      console.log('🔧 Generando PDF nativo mejorado con estilos...');
       
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 20;
       const contentWidth = pageWidth - (margin * 2);
+      const maxContentHeight = pageHeight - 60; // Espacio para footer
       
       let yPos = margin;
+      let currentPage = 1;
 
       // Función helper para texto con estilos
       const addText = (text: string, x: number, y: number, options: any = {}) => {
@@ -503,6 +1050,37 @@ export class PdfService {
       const drawLine = (x1: number, y1: number, x2: number, y2: number, color: [number, number, number] = [79, 70, 229]) => {
         pdf.setDrawColor(color[0], color[1], color[2]);
         pdf.line(x1, y1, x2, y2);
+      };
+
+      // Función helper para dibujar rectángulos
+      const drawRect = (x: number, y: number, w: number, h: number, fillColor?: [number, number, number], strokeColor?: [number, number, number]) => {
+        if (fillColor) {
+          pdf.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+          pdf.rect(x, y, w, h, 'F');
+        }
+        if (strokeColor) {
+          pdf.setDrawColor(strokeColor[0], strokeColor[1], strokeColor[2]);
+          pdf.rect(x, y, w, h, 'S');
+        }
+      };
+
+      // Función para verificar si necesitamos nueva página
+      const checkNewPage = (requiredHeight: number = 10): boolean => {
+        return (yPos + requiredHeight) > maxContentHeight;
+      };
+
+      // Función para agregar nueva página
+      const addNewPage = () => {
+        pdf.addPage();
+        currentPage++;
+        yPos = margin;
+        
+        // Agregar número de página
+        addText(`Página ${currentPage}`, pageWidth - margin, pageHeight - 20, { 
+          fontSize: 10, 
+          color: [107, 114, 128] as [number, number, number], 
+          align: 'right' 
+        });
       };
 
       // ===== HEADER PRINCIPAL =====
@@ -555,6 +1133,11 @@ export class PdfService {
 
       // ===== TABLA DE SERVICIOS =====
       if (datosFactura.lineas && datosFactura.lineas.length > 0) {
+        // Verificar si necesitamos nueva página para la tabla
+        if (checkNewPage(50)) {
+          addNewPage();
+        }
+
         // Header de tabla
         addText('DESCRIPCIÓN', margin, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
         addText('CANT.', margin + 100, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
@@ -568,6 +1151,19 @@ export class PdfService {
         // Filas de servicios
         let subtotal = 0;
         datosFactura.lineas.forEach((linea: any) => {
+          // Verificar si necesitamos nueva página para cada fila
+          if (checkNewPage(8)) {
+            addNewPage();
+            // Re-dibujar header de tabla en nueva página
+            addText('DESCRIPCIÓN', margin, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+            addText('CANT.', margin + 100, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+            addText('PRECIO', margin + 140, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+            addText('TOTAL', margin + 180, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
+            yPos += 8;
+            drawLine(margin, yPos, pageWidth - margin, yPos);
+            yPos += 8;
+          }
+
           const totalLinea = (linea.cantidad || 0) * (linea.precio_pvp || 0);
           subtotal += totalLinea;
           
@@ -584,47 +1180,104 @@ export class PdfService {
         drawLine(margin, yPos, pageWidth - margin, yPos);
         yPos += 10;
 
-        // ===== TOTALES =====
+        // ===== TOTALES EN CAJA =====
+        // Verificar si necesitamos nueva página para los totales
+        if (checkNewPage(40)) {
+          addNewPage();
+        }
+
+        // Crear caja para los totales
+        const totalesBoxWidth = 120;
+        const totalesBoxHeight = 50;
+        const totalesBoxX = pageWidth - margin - totalesBoxWidth;
+        
+        // Dibujar caja de totales con borde
+        drawRect(totalesBoxX, yPos, totalesBoxWidth, totalesBoxHeight, [248, 250, 252], [79, 70, 229]);
+        
+        // Título de la caja
+        addText('RESUMEN', totalesBoxX + 5, yPos + 8, { 
+          fontSize: 11, 
+          fontStyle: 'bold', 
+          color: [79, 70, 229] as [number, number, number] 
+        });
+        
+        // Línea separadora dentro de la caja
+        drawLine(totalesBoxX + 5, yPos + 12, totalesBoxX + totalesBoxWidth - 5, yPos + 12, [79, 70, 229]);
+
         const iva = subtotal * 0.21;
         const total = subtotal + iva;
 
-        addText('Subtotal:', pageWidth - margin - 80, yPos, { fontSize: 12, align: 'right' });
-        addText(`${subtotal.toFixed(2)}€`, pageWidth - margin, yPos, { fontSize: 12, align: 'right' });
-        yPos += 8;
+        // Subtotal
+        addText('Subtotal:', totalesBoxX + 5, yPos + 22, { fontSize: 10 });
+        addText(`${subtotal.toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 5, yPos + 22, { fontSize: 10, align: 'right' });
         
-        addText('IVA (21%):', pageWidth - margin - 80, yPos, { fontSize: 12, align: 'right' });
-        addText(`${iva.toFixed(2)}€`, pageWidth - margin, yPos, { fontSize: 12, align: 'right' });
-        yPos += 8;
+        // IVA
+        addText('IVA (21%):', totalesBoxX + 5, yPos + 32, { fontSize: 10 });
+        addText(`${iva.toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 5, yPos + 32, { fontSize: 10, align: 'right' });
         
         // Línea separadora antes del total
-        drawLine(pageWidth - margin - 80, yPos, pageWidth - margin, yPos);
-        yPos += 8;
+        drawLine(totalesBoxX + 5, yPos + 38, totalesBoxX + totalesBoxWidth - 5, yPos + 38, [79, 70, 229]);
         
-        addText('TOTAL:', pageWidth - margin - 80, yPos, { fontSize: 16, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number], align: 'right' });
-        addText(`${total.toFixed(2)}€`, pageWidth - margin, yPos, { fontSize: 16, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number], align: 'right' });
+        // Total final destacado
+        addText('TOTAL:', totalesBoxX + 5, yPos + 45, { 
+          fontSize: 12, 
+          fontStyle: 'bold', 
+          color: [79, 70, 229] as [number, number, number] 
+        });
+        addText(`${total.toFixed(2)}€`, totalesBoxX + totalesBoxWidth - 5, yPos + 45, { 
+          fontSize: 12, 
+          fontStyle: 'bold', 
+          color: [79, 70, 229] as [number, number, number], 
+          align: 'right' 
+        });
+
+        yPos += totalesBoxHeight + 15;
       }
 
       // ===== NOTAS =====
       if (datosFactura.notas) {
-        yPos += 25;
+        // Verificar si necesitamos nueva página para las notas
+        if (checkNewPage(30)) {
+          addNewPage();
+        }
+        
         addText('NOTAS:', margin, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
         yPos += 8;
         addText(datosFactura.notas, margin, yPos, { fontSize: 11 });
       }
 
-      // ===== FOOTER =====
-      yPos = pageHeight - 40;
-      drawLine(margin, yPos, pageWidth - margin, yPos);
-      yPos += 10;
-      
-      addText(configuracionEmpresa.nombre, margin, yPos, { fontSize: 10, fontStyle: 'bold', color: [79, 70, 229] as [number, number, number] });
-      addText('Gracias por su confianza', pageWidth / 2, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'center' });
-      addText(configuracionEmpresa.web, pageWidth - margin, yPos, { fontSize: 10, color: [107, 114, 128] as [number, number, number], align: 'right' });
+      // ===== FOOTER EN TODAS LAS PÁGINAS =====
+      const addFooter = () => {
+        const footerY = pageHeight - 30;
+        drawLine(margin, footerY, pageWidth - margin, footerY, [229, 231, 235]);
+        
+        addText(configuracionEmpresa.nombre, margin, footerY + 8, { 
+          fontSize: 10, 
+          fontStyle: 'bold', 
+          color: [79, 70, 229] as [number, number, number] 
+        });
+        addText('Gracias por su confianza', pageWidth / 2, footerY + 8, { 
+          fontSize: 10, 
+          color: [107, 114, 128] as [number, number, number], 
+          align: 'center' 
+        });
+        addText(configuracionEmpresa.web, pageWidth - margin, footerY + 8, { 
+          fontSize: 10, 
+          color: [107, 114, 128] as [number, number, number], 
+          align: 'right' 
+        });
+      };
+
+      // Agregar footer a todas las páginas
+      for (let i = 1; i <= currentPage; i++) {
+        pdf.setPage(i);
+        addFooter();
+      }
 
       // Descargar el PDF
       pdf.save(nombreArchivo);
       
-      console.log('✅ PDF nativo generado exitosamente:', nombreArchivo);
+      console.log('✅ PDF nativo mejorado generado exitosamente:', nombreArchivo);
     } catch (error) {
       console.error('❌ Error al generar PDF nativo:', error);
       throw error;
