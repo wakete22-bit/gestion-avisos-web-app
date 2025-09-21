@@ -58,6 +58,12 @@
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <span>Aviso completado</span>
       </div>
+
+      <!-- Mostrar mensaje cuando se genere factura automáticamente -->
+      <div *ngIf="aviso?.estado === 'Listo para facturar' && aviso?.facturas && aviso?.facturas.length > 0" class="factura-generada-message">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>Factura generada automáticamente</span>
+      </div>
     </div>
     <span class="mobile-only title">Aviso {{aviso.numero_secuencial || aviso.id}} - {{(aviso?.tipo || 'No especificado')
       | titlecase}}</span>
@@ -281,7 +287,7 @@
       <p>No hay imágenes disponibles para este aviso</p>
     </div>
     <div class="gallery-item" *ngFor="let foto of aviso?.fotos">
-      <img [src]="foto.url" [alt]="foto.descripcion || 'Imagen del aviso'">
+      <img [src]="foto.url" [alt]="foto.descripcion || 'Imagen del aviso'" (click)="verImagenCompleta(foto)" class="clickable-image">
       <div class="image-info">
         <span class="image-title">{{foto.descripcion || 'Imagen del aviso'}}</span>
         <span class="file-info">{{foto.fecha_subida | date:'dd/MM/yyyy HH:mm'}}</span>

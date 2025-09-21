@@ -29,21 +29,78 @@
           <label>Fecha de emisión</label>
           <input type="date" formControlName="fecha" />
         </div>
+        
+        <!-- Selector de cliente -->
+        <div class="form-group cliente-selector">
+          <label>Cliente</label>
+          <div class="cliente-input-container">
+            <input 
+              type="text" 
+              [(ngModel)]="terminoBusqueda" 
+              (input)="buscarClientes()"
+              (focus)="abrirSelectorClientes()"
+              placeholder="Buscar cliente por nombre, CIF o email..."
+              class="cliente-search-input"
+              [ngModelOptions]="{standalone: true}">
+            <button type="button" class="btn-search-cliente" (click)="abrirSelectorClientes()">
+              <ion-icon name="search-outline"></ion-icon>
+            </button>
+          </div>
+          
+          <!-- Cliente seleccionado -->
+          <div *ngIf="clienteSeleccionado" class="cliente-seleccionado">
+            <div class="cliente-info">
+              <span class="cliente-nombre">{{ clienteSeleccionado.nombre_completo }}</span>
+              <span class="cliente-details">{{ clienteSeleccionado.cif }} • {{ clienteSeleccionado.email }}</span>
+            </div>
+            <button type="button" class="btn-clear-cliente" (click)="limpiarClienteSeleccionado()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+          
+          <!-- Lista de clientes -->
+          <div *ngIf="mostrarSelectorClientes" class="clientes-dropdown">
+            <div class="clientes-header">
+              <span>Seleccionar cliente</span>
+              <button type="button" class="btn-close-dropdown" (click)="cerrarSelectorClientes()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="clientes-list">
+              <div 
+                *ngFor="let cliente of clientesFiltrados" 
+                class="cliente-item"
+                (click)="seleccionarCliente(cliente)">
+                <div class="cliente-item-info">
+                  <span class="cliente-item-nombre">{{ cliente.nombre_completo }}</span>
+                  <span class="cliente-item-details">
+                    {{ cliente.cif || 'Sin CIF' }} • {{ cliente.email || 'Sin email' }}
+                  </span>
+                </div>
+                <ion-icon name="person-outline" class="cliente-item-icon"></ion-icon>
+              </div>
+              <div *ngIf="clientesFiltrados.length === 0" class="no-clientes">
+                No se encontraron clientes
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text" formControlName="nombre" placeholder="Ejemplo" />
+          <input type="text" formControlName="nombre" placeholder="Ejemplo" readonly />
         </div>
         <div class="form-group">
           <label>Dirección</label>
-          <input type="text" formControlName="direccion" placeholder="Calle" />
+          <input type="text" formControlName="direccion" placeholder="Calle" readonly />
         </div>
         <div class="form-group">
-          <label>CIF</label>
-          <input type="text" formControlName="cif" placeholder="12345678A" />
+          <label>CIF/NIF</label>
+          <input type="text" formControlName="cif" placeholder="12345678A" readonly />
         </div>
         <div class="form-group">
           <label>Correo electrónico</label>
-          <input type="email" formControlName="email" placeholder="ejemplo@gmail.com" />
+          <input type="email" formControlName="email" placeholder="ejemplo@gmail.com" readonly />
         </div>
       </div>
 
@@ -240,6 +297,17 @@
       </div>
     </div>
 
+    <!-- Datos del cliente -->
+    <div class="cliente-datos">
+      <h3>Datos del Cliente</h3>
+      <div class="cliente-info">
+        <p><strong>Nombre:</strong> {{ facturaForm.get('nombre')?.value || 'Sin nombre' }}</p>
+        <p><strong>Dirección:</strong> {{ facturaForm.get('direccion')?.value || 'Sin dirección' }}</p>
+        <p><strong>CIF/NIF:</strong> {{ facturaForm.get('cif')?.value || 'Sin CIF' }}</p>
+        <p><strong>Email:</strong> {{ facturaForm.get('email')?.value || 'Sin email' }}</p>
+      </div>
+    </div>
+
     <div class="preview-tabla">
       <table>
         <thead>
@@ -333,25 +401,23 @@
   <ion-footer class="factura-footer" [translucent]="true">
     <ion-toolbar>
       <div class="footer-buttons">
-        <ion-button 
-          fill="outline" 
-          color="primary" 
+        <button 
+          type="button"
+          class="btn btn-outline" 
           (click)="enviarFactura()" 
-          [disabled]="loading || !facturaForm.valid"
-          class="footer-btn">
-          <ion-icon name="send-outline" slot="start"></ion-icon>
+          [disabled]="loading || !facturaForm.valid">
+          <ion-icon name="send-outline"></ion-icon>
           {{ loading ? 'Enviando...' : (isEditing ? 'Actualizar factura' : 'Enviar factura') }}
-        </ion-button>
+        </button>
         
-        <ion-button 
-          fill="solid" 
-          color="primary" 
+        <button 
+          type="button"
+          class="btn btn-primary" 
           (click)="generarFactura()" 
-          [disabled]="loading || !facturaForm.valid"
-          class="footer-btn">
-          <ion-icon name="save-outline" slot="start"></ion-icon>
+          [disabled]="loading || !facturaForm.valid">
+          <ion-icon name="save-outline"></ion-icon>
           {{ loading ? 'Generando...' : (isEditing ? 'Guardar cambios' : 'Generar factura') }}
-        </ion-button>
+        </button>
       </div>
     </ion-toolbar>
   </ion-footer>

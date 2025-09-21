@@ -53,6 +53,7 @@ CREATE TABLE public.clientes (
   direccion text,
   telefono_contacto text,
   email text,
+  cif text,
   nivel_urgencia_habitual text,
   es_activo boolean DEFAULT true,
   fecha_creacion timestamp with time zone DEFAULT now(),

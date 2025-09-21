@@ -171,3 +171,4 @@ GRANT EXECUTE ON FUNCTION trigger_historial_albaran() TO authenticated;
 
 -- Mostrar mensaje de confirmación
 SELECT 'Script ejecutado correctamente. Los triggers y funciones han sido creados/actualizados.' as mensaje;
+

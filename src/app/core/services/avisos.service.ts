@@ -830,7 +830,7 @@ export class AvisosService {
 
     /**
      * Actualiza el estado del aviso basándose en sus elementos relacionados
-     * Actualizado para el nuevo flujo de albaranes
+     * Actualizado para el nuevo flujo de albaranes con generación automática de facturas
      */
     actualizarEstadoAutomatico(avisoId: string): Observable<Aviso> {
         return this.getResumenCompletoAviso(avisoId).pipe(
@@ -897,4 +897,5 @@ export class AvisosService {
             })
         );
     }
+
 } 

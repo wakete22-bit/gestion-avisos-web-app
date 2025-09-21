@@ -12,12 +12,16 @@ import {
   eyeOutline, 
   downloadOutline, 
   printOutline, 
-  createOutline
+  createOutline,
+  searchOutline,
+  personOutline
 } from 'ionicons/icons';
 import { FacturasService } from '../../services/facturas.service';
 import { LineaFactura, CrearFacturaRequest, FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
+import { ClientesService } from '../../../../core/services/clientes.service';
+import { Cliente } from '../../../clientes/models/cliente.model';
 import jsPDF from 'jspdf';
 import { IonFooter, IonToolbar, IonButton } from '@ionic/angular/standalone';
 
@@ -39,6 +43,13 @@ export class CrearFacturaComponent implements OnInit {
   loading = false;
   isEditing = false;
   facturaOriginal?: FacturaCompleta;
+  
+  // Propiedades para el selector de clientes
+  clientes: Cliente[] = [];
+  clientesFiltrados: Cliente[] = [];
+  terminoBusqueda = '';
+  mostrarSelectorClientes = false;
+  clienteSeleccionado: Cliente | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -46,7 +57,8 @@ export class CrearFacturaComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private pdfService: PdfService,
-    private configuracionService: ConfiguracionService
+    private configuracionService: ConfiguracionService,
+    private clientesService: ClientesService
   ) {
     this.facturaForm = this.fb.group({
       numeroFactura: ['', Validators.required],
@@ -57,11 +69,14 @@ export class CrearFacturaComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       notas: ['']
     });
-    addIcons({closeOutline,refreshOutline,trash,sendOutline,saveOutline,download,print,eyeOutline,downloadOutline,printOutline,trashOutline,createOutline});
+    addIcons({refreshOutline,eyeOutline,searchOutline,closeOutline,personOutline,trash,download,print,sendOutline,saveOutline,downloadOutline,printOutline,trashOutline,createOutline});
   }
 
   ngOnInit() {
-    addIcons({ trash, closeOutline, download, print });
+    addIcons({ trash, closeOutline, download, print, searchOutline, personOutline });
+    
+    // Cargar clientes disponibles
+    this.cargarClientes();
     
     // Verificar si estamos editando una factura existente
     this.route.params.subscribe(params => {
@@ -425,5 +440,69 @@ export class CrearFacturaComponent implements OnInit {
     } catch (error) {
       console.error('❌ Error al generar PDF desde datos:', error);
     }
+  }
+
+  // Métodos para el selector de clientes
+  cargarClientes() {
+    this.clientesService.getClientes(1, 100).subscribe({
+      next: (response) => {
+        this.clientes = response.clientes;
+        this.clientesFiltrados = response.clientes;
+        console.log('✅ Clientes cargados:', this.clientes.length);
+      },
+      error: (error) => {
+        console.error('❌ Error al cargar clientes:', error);
+      }
+    });
+  }
+
+  buscarClientes() {
+    if (!this.terminoBusqueda.trim()) {
+      this.clientesFiltrados = this.clientes;
+      return;
+    }
+
+    this.clientesFiltrados = this.clientes.filter(cliente =>
+      cliente.nombre_completo.toLowerCase().includes(this.terminoBusqueda.toLowerCase()) ||
+      (cliente.cif && cliente.cif.toLowerCase().includes(this.terminoBusqueda.toLowerCase())) ||
+      (cliente.email && cliente.email.toLowerCase().includes(this.terminoBusqueda.toLowerCase()))
+    );
+  }
+
+  seleccionarCliente(cliente: Cliente) {
+    this.clienteSeleccionado = cliente;
+    this.mostrarSelectorClientes = false;
+    this.terminoBusqueda = '';
+    
+    // Rellenar automáticamente los campos del formulario
+    this.facturaForm.patchValue({
+      nombre: cliente.nombre_completo,
+      direccion: cliente.direccion || '',
+      cif: cliente.cif || '',
+      email: cliente.email || ''
+    });
+    
+    console.log('✅ Cliente seleccionado:', cliente);
+  }
+
+  abrirSelectorClientes() {
+    this.mostrarSelectorClientes = true;
+    this.terminoBusqueda = '';
+    this.clientesFiltrados = this.clientes;
+  }
+
+  cerrarSelectorClientes() {
+    this.mostrarSelectorClientes = false;
+    this.terminoBusqueda = '';
+  }
+
+  limpiarClienteSeleccionado() {
+    this.clienteSeleccionado = null;
+    this.facturaForm.patchValue({
+      nombre: '',
+      direccion: '',
+      cif: '',
+      email: ''
+    });
   }
 }

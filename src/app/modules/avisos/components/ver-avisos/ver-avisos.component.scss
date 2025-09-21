@@ -613,6 +613,40 @@ $success-color: #10B981;
       object-fit: cover;
       border-radius: 4px;
       margin-right: 16px;
+      
+      &.clickable-image {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        
+        &:hover {
+          transform: scale(1.05);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        &:active {
+          transform: scale(0.95);
+        }
+        
+        // Indicador visual de que es clickeable
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 4px;
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          pointer-events: none;
+        }
+        
+        &:hover::after {
+          opacity: 1;
+        }
+      }
     }
 
     .image-info {
@@ -1996,6 +2030,24 @@ $success-color: #10B981;
   padding: 8px 12px;
   background: #ECFDF5;
   border: 1px solid #D1FAE5;
+  border-radius: 8px;
+  
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// Mensaje de factura generada automáticamente
+.factura-generada-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3B82F6;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #EFF6FF;
+  border: 1px solid #DBEAFE;
   border-radius: 8px;
   
   ion-icon {

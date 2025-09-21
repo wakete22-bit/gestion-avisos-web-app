@@ -197,3 +197,4 @@ WHERE tgname IN ('trigger_presupuesto_historial', 'trigger_albaran_historial');
 GRANT EXECUTE ON FUNCTION insertar_historial_flujo(uuid, text, text, text, uuid, uuid, uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION trigger_historial_presupuesto() TO authenticated;
 GRANT EXECUTE ON FUNCTION trigger_historial_albaran() TO authenticated;
+

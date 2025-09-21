@@ -15,6 +15,7 @@ import {
 import { SupabaseClientService } from '../../../core/services/supabase-client.service';
 import { DataUpdateService } from '../../../core/services/data-update.service';
 import { ConfiguracionService } from '../../../core/services/configuracion.service';
+import { AvisosService } from '../../../core/services/avisos.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,8 @@ export class FacturasService {
   constructor(
     private supabaseClientService: SupabaseClientService,
     private dataUpdateService: DataUpdateService,
-    private configuracionService: ConfiguracionService
+    private configuracionService: ConfiguracionService,
+    private avisosService: AvisosService
   ) {
     this.supabase = this.supabaseClientService.getClient();
   }
@@ -348,31 +350,63 @@ export class FacturasService {
    * Elimina una factura y todas sus líneas
    */
   eliminarFactura(id: string): Observable<void> {
+    // Primero obtener la información de la factura para saber el aviso asociado
     return from(
       this.supabase
-        .from('lineas_factura')
-        .delete()
-        .eq('factura_id', id)
+        .from('facturas')
+        .select('aviso_id')
+        .eq('id', id)
+        .single()
     ).pipe(
-      switchMap(({ error: lineasError }) => {
-        if (lineasError) throw lineasError;
+      switchMap(({ data: facturaData, error: facturaError }) => {
+        if (facturaError) throw facturaError;
+        
+        const avisoId = facturaData.aviso_id;
+        console.log('🗑️ Eliminando factura y actualizando aviso:', avisoId);
 
+        // Eliminar las líneas de factura primero
         return from(
           this.supabase
-            .from('facturas')
+            .from('lineas_factura')
             .delete()
-            .eq('id', id)
+            .eq('factura_id', id)
+        ).pipe(
+          switchMap(({ error: lineasError }) => {
+            if (lineasError) throw lineasError;
+
+            // Eliminar la factura
+            return from(
+              this.supabase
+                .from('facturas')
+                .delete()
+                .eq('id', id)
+            ).pipe(
+              map(({ error }) => {
+                if (error) throw error;
+
+                const facturasActuales = this.facturasSubject.value;
+                const facturasFiltradas = facturasActuales.filter(f => f.id !== id);
+                this.facturasSubject.next(facturasFiltradas);
+
+                // Notificar eliminación y limpiar cache
+                this.dataUpdateService.notifyDeleted('facturas');
+                
+                return avisoId; // Retornar el avisoId para el siguiente paso
+              })
+            );
+          })
         );
       }),
-      map(({ error }) => {
-        if (error) throw error;
-
-        const facturasActuales = this.facturasSubject.value;
-        const facturasFiltradas = facturasActuales.filter(f => f.id !== id);
-        this.facturasSubject.next(facturasFiltradas);
-
-        // Notificar eliminación y limpiar cache
-        this.dataUpdateService.notifyDeleted('facturas');
+      switchMap((avisoId) => {
+        // Actualizar el estado del aviso después de eliminar la factura
+        console.log('🔄 Actualizando estado del aviso después de eliminar factura:', avisoId);
+        return this.avisosService.actualizarEstadoAutomatico(avisoId).pipe(
+          map(() => void 0), // Convertir el resultado a void
+          catchError(error => {
+            console.error('❌ Error al actualizar estado del aviso:', error);
+            return of(void 0); // Continuar aunque falle la actualización del estado
+          })
+        );
       })
     );
   }

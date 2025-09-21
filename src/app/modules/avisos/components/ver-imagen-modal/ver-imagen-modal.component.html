@@ -1,0 +1,43 @@
+<!-- Header del modal -->
+<div class="modal-header">
+  <div class="zoom-controls">
+    <span class="zoom-level">{{ (zoomLevel * 100).toFixed(0) }}%</span>
+    <button class="btn-action" (click)="resetZoom()" title="Resetear zoom">
+      <ion-icon name="refresh-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="header-actions">
+    <button class="btn-action" (click)="descargarImagen()" title="Descargar imagen">
+      <ion-icon name="download-outline"></ion-icon>
+    </button>
+    <button class="btn-action" (click)="eliminarImagen()" title="Eliminar imagen">
+      <ion-icon name="trash-outline"></ion-icon>
+    </button>
+    <button class="btn-close" (click)="cerrarModal()" title="Cerrar">
+      <ion-icon name="close"></ion-icon>
+    </button>
+  </div>
+</div>
+
+<!-- Contenido principal -->
+<div class="modal-content" 
+     (wheel)="onWheel($event)"
+     (mousemove)="onMouseMove($event)"
+     (mouseup)="onMouseUp()"
+     (touchstart)="onTouchStart($event)"
+     (touchmove)="onTouchMove($event)"
+     (touchend)="onTouchEnd()">
+  <div class="image-container" *ngIf="imagen">
+    <img [src]="imagen.url" 
+         [alt]="imagen.descripcion || 'Imagen del aviso'" 
+         class="full-image"
+         [style.transform]="getImageTransform()"
+         (mousedown)="onMouseDown($event)"
+         [style.cursor]="zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'">
+    
+    <!-- Información de la imagen -->
+    <div class="image-info" *ngIf="imagen.descripcion">
+      <p class="image-description">{{ imagen.descripcion }}</p>
+    </div>
+  </div>
+</div>

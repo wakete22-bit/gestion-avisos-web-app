@@ -53,6 +53,100 @@ export class FlujoAvisosService {
   }
 
   /**
+   * Actualiza el estado del aviso y genera factura automáticamente si es necesario
+   */
+  actualizarEstadoConFacturaAutomatica(avisoId: string): Observable<any> {
+    console.log('🔄 Iniciando actualización de estado con verificación de factura automática para aviso:', avisoId);
+    
+    return this.avisosService.actualizarEstadoAutomatico(avisoId).pipe(
+      switchMap(avisoActualizado => {
+        console.log('📊 Estado del aviso actualizado:', {
+          avisoId: avisoActualizado.id,
+          estadoNuevo: avisoActualizado.estado
+        });
+        
+        // Si el estado cambió a "Listo para facturar", verificar si se debe generar factura
+        if (avisoActualizado.estado === 'Listo para facturar') {
+          console.log('💰 Estado "Listo para facturar" detectado, verificando si se debe generar factura automáticamente...');
+          return this.generarFacturaAutomatica(avisoId).pipe(
+            map(resultado => ({
+              aviso: avisoActualizado,
+              facturaGenerada: resultado
+            })),
+            catchError(error => {
+              console.error('❌ Error al generar factura automática:', error);
+              // Continuar con el aviso actualizado aunque falle la factura
+              return from([{
+                aviso: avisoActualizado,
+                facturaGenerada: null,
+                error: error.message
+              }]);
+            })
+          );
+        }
+        
+        console.log('ℹ️ Estado del aviso no es "Listo para facturar", no se genera factura automática');
+        return from([{
+          aviso: avisoActualizado,
+          facturaGenerada: null
+        }]);
+      })
+    );
+  }
+
+  /**
+   * Genera una factura automáticamente para un aviso que está listo para facturar
+   */
+  private generarFacturaAutomatica(avisoId: string): Observable<any> {
+    console.log('💰 Iniciando generación automática de factura para aviso:', avisoId);
+    
+    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+      switchMap(resumen => {
+        console.log('🔍 Verificando condiciones para facturación automática:', {
+          albaranesFinalizados: resumen.estadisticas.albaranesFinalizados,
+          facturasPendientes: resumen.estadisticas.facturasPendientes,
+          totalFacturas: resumen.estadisticas.totalFacturas,
+          estado: resumen.estado
+        });
+        
+        // Verificar que realmente se puede facturar
+        if (!resumen.estadisticas.albaranesFinalizados || resumen.estadisticas.albaranesFinalizados === 0) {
+          console.log('⚠️ No hay albaranes finalizados para facturar automáticamente');
+          return from([{ mensaje: 'No hay albaranes finalizados para facturar' }]);
+        }
+
+        if (resumen.estadisticas.facturasPendientes > 0) {
+          console.log('⚠️ Ya hay facturas pendientes, no se genera nueva factura automática');
+          return from([{ mensaje: 'Ya existen facturas pendientes' }]);
+        }
+
+        console.log('✅ Condiciones cumplidas, procediendo a generar factura automáticamente...');
+
+        // Usar el método de facturación existente
+        return this.facturarTrabajos(avisoId).pipe(
+          tap(() => console.log('✅ Factura generada automáticamente')),
+          map(resultado => {
+            console.log('💰 Factura generada automáticamente:', resultado);
+            return {
+              mensaje: 'Factura generada automáticamente',
+              factura: resultado,
+              avisoId: avisoId
+            };
+          }),
+          catchError(error => {
+            console.error('❌ Error en generación automática de factura:', error);
+            // No lanzar el error para que no interrumpa el flujo del aviso
+            return from([{
+              mensaje: 'Error al generar factura automáticamente: ' + error.message,
+              error: true
+            }]);
+          })
+        );
+      })
+    );
+  }
+
+  /**
    * Ejecuta el flujo completo: Presupuesto → Aprobación → Factura
    */
   ejecutarFlujoCompleto(avisoId: string, crearPresupuesto: boolean = true): Observable<any> {

@@ -168,6 +168,9 @@ export class FacturasComponent implements OnInit {
             // Recargar la lista de facturas
             this.cargarFacturas();
             
+            // Mostrar mensaje de éxito
+            console.log('✅ Factura eliminada. El aviso asociado se actualizará automáticamente.');
+            
             // Mostrar mensaje de éxito (opcional)
             // Puedes implementar un toast o notificación aquí
           },

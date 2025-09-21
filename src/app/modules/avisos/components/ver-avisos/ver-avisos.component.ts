@@ -14,6 +14,7 @@ import { HacerAlbaranComponent } from '../hacer-albaran/hacer-albaran.component'
 import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado/flujo-estado.component';
 import { CrearAvisosModalComponent } from '../crear-avisos-modal/crear-avisos-modal.component';
 import { VerAlbaranModalComponent } from '../ver-albaran-modal/ver-albaran-modal.component';
+import { VerImagenModalComponent } from '../ver-imagen-modal/ver-imagen-modal.component';
 import { Subject, takeUntil, firstValueFrom } from 'rxjs';
 import { FlujoAvisosService } from '../../../../core/services/flujo-avisos.service';
 
@@ -38,6 +39,10 @@ export class VerAvisosComponent implements OnInit {
   loading = false;
   error: string | null = null;
   subiendoImagenes = false;
+
+  // Cache para la clase CSS del estado
+  private estadoClassCache: string = 'estado-pendiente';
+  private ultimoEstado: string | undefined = undefined;
 
   private destroy$ = new Subject<void>();
 
@@ -84,8 +89,15 @@ export class VerAvisosComponent implements OnInit {
               next: (aviso) => {
                 console.log('✅ Aviso cargado exitosamente:', aviso.id, 'Estado:', aviso.estado);
                 console.log('📊 Albaranes cargados:', aviso.albaranes?.length || 0);
+                console.log('📊 Facturas cargadas:', aviso.facturas?.length || 0);
                 this.aviso = aviso;
                 this.loading = false;
+                
+                // Actualizar cache del estado
+                this.getEstadoClass(aviso.estado);
+                
+                // Verificar el estado real del aviso basándose en sus facturas relacionadas
+                this.verificarEstadoRealAviso(aviso);
                 
                 // Recargar el flujo después de cargar el aviso
                 // Esto asegura que las acciones estén actualizadas
@@ -110,6 +122,102 @@ export class VerAvisosComponent implements OnInit {
 
   cambiarVistaGaleria(event: any) {
     this.vistaGaleria = event.detail.value;
+  }
+
+  /**
+   * Verifica si se debe generar una factura automáticamente para un aviso
+   */
+  private verificarGeneracionFacturaAutomatica(avisoId: string) {
+    console.log('🔍 Verificando generación automática de factura para aviso:', avisoId);
+    
+    this.flujoAvisosService.actualizarEstadoConFacturaAutomatica(avisoId).subscribe({
+      next: (resultado) => {
+        console.log('🔍 Resultado de verificación automática:', resultado);
+        
+        // Si se generó una factura automáticamente, mostrar mensaje y recargar
+        if (resultado.facturaGenerada) {
+          console.log('💰 Factura generada automáticamente al cargar aviso:', resultado.facturaGenerada);
+          this.mostrarMensaje('Factura generada automáticamente para el aviso.', 'success');
+          
+          // Recargar el aviso para mostrar la factura generada
+          this.cargarAviso();
+        } else {
+          console.log('ℹ️ No se generó factura automática - condiciones no cumplidas');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error al verificar generación automática:', error);
+      }
+    });
+  }
+
+  /**
+   * Verifica el estado real del aviso basándose en sus facturas relacionadas
+   */
+  private verificarEstadoRealAviso(aviso: Aviso) {
+    console.log('🔍 Verificando estado real del aviso basándose en facturas:', {
+      avisoId: aviso.id,
+      estadoActual: aviso.estado,
+      facturas: aviso.facturas?.length || 0,
+      albaranes: aviso.albaranes?.length || 0,
+      albaranesDetalle: aviso.albaranes?.map(a => ({ id: a.id, estado: a.estado_cierre })) || []
+    });
+
+    // Si el aviso está en "Listo para facturar" pero ya tiene facturas, debería estar "En curso"
+    if (aviso.estado === 'Listo para facturar' && aviso.facturas && aviso.facturas.length > 0) {
+      console.log('⚠️ Aviso en estado "Listo para facturar" pero tiene facturas - actualizando a "En curso"');
+      
+      // Actualizar el estado del aviso
+      this.avisosService.actualizarAviso(aviso.id, { estado: 'En curso' }).subscribe({
+        next: (avisoActualizado) => {
+          console.log('✅ Estado del aviso actualizado a "En curso"');
+          this.aviso = avisoActualizado;
+        },
+        error: (error) => {
+          console.error('❌ Error al actualizar estado del aviso:', error);
+        }
+      });
+    }
+    // Si el aviso está en "Listo para facturar" sin facturas, verificar si se debe generar factura automáticamente
+    else if (aviso.estado === 'Listo para facturar' && (!aviso.facturas || aviso.facturas.length === 0)) {
+      console.log('💰 Aviso en estado "Listo para facturar" sin facturas - verificando generación automática');
+      
+      // Verificar si tiene albaranes finalizados
+      const albaranesFinalizados = aviso.albaranes?.filter(albaran => albaran.estado_cierre === 'Finalizado') || [];
+      console.log('🔍 Albaranes finalizados encontrados:', albaranesFinalizados.length);
+      
+      if (albaranesFinalizados.length > 0) {
+        console.log('✅ Aviso tiene albaranes finalizados sin facturas - generando factura automáticamente');
+        this.verificarGeneracionFacturaAutomatica(aviso.id);
+      } else {
+        console.log('⚠️ Aviso en "Listo para facturar" pero no tiene albaranes finalizados');
+      }
+    }
+    // Si el aviso está en "En curso" pero no tiene facturas y tiene albaranes finalizados, debería estar "Listo para facturar"
+    else if (aviso.estado === 'En curso' && (!aviso.facturas || aviso.facturas.length === 0)) {
+      console.log('🔍 Aviso en estado "En curso" sin facturas - verificando si debería estar "Listo para facturar"');
+      
+      // Verificar si tiene albaranes finalizados
+      const albaranesFinalizados = aviso.albaranes?.filter(albaran => albaran.estado_cierre === 'Finalizado') || [];
+      
+      if (albaranesFinalizados.length > 0) {
+        console.log('💰 Aviso tiene albaranes finalizados sin facturas - actualizando a "Listo para facturar"');
+        
+        // Actualizar el estado del aviso
+        this.avisosService.actualizarAviso(aviso.id, { estado: 'Listo para facturar' }).subscribe({
+          next: (avisoActualizado) => {
+            console.log('✅ Estado del aviso actualizado a "Listo para facturar"');
+            this.aviso = avisoActualizado;
+            
+            // Ahora verificar si se debe generar factura automáticamente
+            this.verificarGeneracionFacturaAutomatica(aviso.id);
+          },
+          error: (error) => {
+            console.error('❌ Error al actualizar estado del aviso:', error);
+          }
+        });
+      }
+    }
   }
 
   /**
@@ -378,6 +486,36 @@ export class VerAvisosComponent implements OnInit {
   // realizarOtraVisita eliminado - ahora se gestiona con múltiples albaranes
 
   /**
+   * Abre una imagen en pantalla completa
+   */
+  async verImagenCompleta(foto: { id: string; url: string; descripcion?: string }) {
+    if (!foto?.url) {
+      console.error('No se puede mostrar la imagen: URL no válida');
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: VerImagenModalComponent,
+      componentProps: {
+        imagen: foto
+      },
+      cssClass: 'modal-imagen-completa',
+      backdropDismiss: true,
+      showBackdrop: true
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onWillDismiss();
+    
+    // Si se eliminó la imagen desde el modal, recargar el aviso
+    if (role === 'confirm' && data?.accion === 'eliminar') {
+      console.log('Imagen eliminada desde el modal');
+      this.cargarAviso();
+    }
+  }
+
+  /**
    * Elimina una foto del aviso
    */
   async eliminarFoto(foto: { id: string; descripcion?: string }) {
@@ -409,16 +547,25 @@ export class VerAvisosComponent implements OnInit {
    * Convierte el estado del aviso a una clase CSS válida
    */
   getEstadoClass(estado: string | undefined): string {
-    if (!estado) return 'estado-pendiente';
+    // Si no hay estado, devolver clase por defecto
+    if (!estado) {
+      if (this.ultimoEstado !== undefined) {
+        this.ultimoEstado = undefined;
+        this.estadoClassCache = 'estado-pendiente';
+      }
+      return this.estadoClassCache;
+    }
     
-    // Convertir el estado a una clase CSS válida
-    const estadoNormalizado = estado.toLowerCase().replace(/ /g, '-');
-    const claseCSS = `estado-${estadoNormalizado}`;
+    // Solo recalcular si el estado ha cambiado
+    if (this.ultimoEstado !== estado) {
+      this.ultimoEstado = estado;
+      
+      // Convertir el estado a una clase CSS válida
+      const estadoNormalizado = estado.toLowerCase().replace(/ /g, '-');
+      this.estadoClassCache = `estado-${estadoNormalizado}`;
+    }
     
-    // Debug: mostrar qué clase se está generando
-    console.log(`🔍 Estado: "${estado}" → Clase CSS: "${claseCSS}"`);
-    
-    return claseCSS;
+    return this.estadoClassCache;
   }
 
   /**
@@ -429,6 +576,34 @@ export class VerAvisosComponent implements OnInit {
 
     // Recargar aviso para reflejar cambios
     this.cargarAviso();
+
+    // Actualizar estado automáticamente para verificar si se debe generar factura
+    if (this.aviso?.id) {
+      this.flujoAvisosService.actualizarEstadoConFacturaAutomatica(this.aviso.id).subscribe({
+        next: (resultado) => {
+          console.log('Estado del aviso actualizado automáticamente:', resultado.aviso.estado);
+          
+          // Si se generó una factura automáticamente, mostrar mensaje
+          if (resultado.facturaGenerada) {
+            console.log('💰 Factura generada automáticamente:', resultado.facturaGenerada);
+            this.mostrarMensaje('Factura generada automáticamente para el aviso.', 'success');
+          } else if (resultado.aviso.estado === 'Listo para facturar') {
+            console.log('💰 Aviso listo para facturar - verificando si se generó factura automáticamente...');
+            
+            // Mostrar mensaje informativo al usuario
+            setTimeout(() => {
+              this.mostrarMensaje('El aviso está listo para facturar. Se generará la factura automáticamente si hay albaranes finalizados.', 'info');
+            }, 1000);
+          }
+          
+          // Recargar nuevamente para mostrar la factura generada si es el caso
+          this.cargarAviso();
+        },
+        error: (error) => {
+          console.error('Error al actualizar estado automático:', error);
+        }
+      });
+    }
 
     // Mostrar mensaje de éxito (opcional)
     if (resultado.mensaje) {
@@ -537,6 +712,27 @@ export class VerAvisosComponent implements OnInit {
       
       // Recargar el aviso completo para obtener los datos más recientes
       this.cargarAviso();
+
+      // Actualizar estado automáticamente para verificar si se debe generar factura
+      if (this.aviso?.id) {
+        this.flujoAvisosService.actualizarEstadoConFacturaAutomatica(this.aviso.id).subscribe({
+          next: (resultado) => {
+            console.log('Estado del aviso actualizado automáticamente después de cerrar albarán:', resultado.aviso.estado);
+            
+            // Si se generó una factura automáticamente, mostrar mensaje
+            if (resultado.facturaGenerada) {
+              console.log('💰 Factura generada automáticamente después de cerrar albarán:', resultado.facturaGenerada);
+              this.mostrarMensaje('Factura generada automáticamente después de cerrar el albarán.', 'success');
+            }
+            
+            // Recargar nuevamente para mostrar la factura generada si es el caso
+            this.cargarAviso();
+          },
+          error: (error) => {
+            console.error('Error al actualizar estado automático después de cerrar albarán:', error);
+          }
+        });
+      }
     } catch (error) {
       console.error('Error al abrir el modal del albarán:', error);
       this.mostrarMensaje('Error al abrir el albarán. Por favor, inténtalo de nuevo.', 'error');
@@ -615,8 +811,12 @@ export class VerAvisosComponent implements OnInit {
       console.log(`✅ ${mensaje}`);
       // Opcional: mostrar alerta de éxito
       // alert(`✅ ${mensaje}`);
+    } else if (tipo === 'info') {
+      // Para información, mostrar alerta informativa
+      console.log(`ℹ️ ${mensaje}`);
+      alert(`ℹ️ ${mensaje}`);
     } else {
-      // Para info, solo en consola
+      // Para otros tipos, solo en consola
       console.log(`ℹ️ ${mensaje}`);
     }
 

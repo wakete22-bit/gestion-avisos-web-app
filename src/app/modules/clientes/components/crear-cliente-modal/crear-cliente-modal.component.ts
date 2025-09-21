@@ -6,14 +6,14 @@ import { closeOutline, saveOutline, informationCircleOutline } from 'ionicons/ic
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { Cliente } from '../../models/cliente.model';
 import { Subject } from 'rxjs';
-import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, ModalController } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-crear-cliente-modal',
   templateUrl: './crear-cliente-modal.component.html',
   styleUrls: ['./crear-cliente-modal.component.scss'],
   standalone: true,
-  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter]
 })
 export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() modo: 'crear' | 'editar' = 'crear';
@@ -32,6 +32,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDest
       nombreContacto: ['', Validators.required],
       telefono: ['', Validators.required],
       correoElectronico: ['', [Validators.required, Validators.email]],
+      cif: ['', Validators.required],
       // notasImportantes: ['', Validators.maxLength(200)], // Comentado temporalmente
       direccionLocal: ['', Validators.required],
       codigoPostal: ['', Validators.required],
@@ -87,7 +88,8 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDest
     this.clienteForm.patchValue({
       nombreContacto: this.cliente.nombre_completo || '',
       telefono: this.cliente.telefono_contacto || '',
-      email: this.cliente.email || '',
+      correoElectronico: this.cliente.email || '',
+      cif: this.cliente.cif || '',
       // notasImportantes: this.cliente.notas_importantes || '', // Comentado temporalmente
       direccionLocal: direccionLocal,
       codigoPostal: codigoPostal,
@@ -105,6 +107,7 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDest
         nombre_completo: this.clienteForm.value.nombreContacto,
         telefono_contacto: this.clienteForm.value.telefono,
         email: this.clienteForm.value.correoElectronico,
+        cif: this.clienteForm.value.cif,
         direccion: `${this.clienteForm.value.direccionLocal}, ${this.clienteForm.value.codigoPostal} ${this.clienteForm.value.localidad}`,
         nivel_urgencia_habitual: this.cliente?.nivel_urgencia_habitual || 'Media',
         es_activo: this.clienteForm.value.esActivo,

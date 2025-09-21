@@ -215,3 +215,4 @@ WHERE EXISTS (
     SELECT 1 FROM pg_trigger 
     WHERE tgname = 'trigger_albaran_historial'
 );
+
