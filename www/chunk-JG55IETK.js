@@ -1,0 +1,1 @@
+var e={accessToken:"pk.eyJ1IjoiYXNodG9vbiIsImEiOiJjbWZtOHF3YzQwZG9yMmpzaGNhNXNpaWtsIn0.udiZl1gx-KPtmFoebM3VOg",defaultStyle:"mapbox://styles/mapbox/streets-v12",navigation:{unit:"metric",profile:"driving",alternatives:!1,geometries:"geojson"}};export{e as a};

@@ -44,7 +44,7 @@ import { FacturasService } from '../../services/facturas.service';
 
         <div class="footer">
           <p>TÉCNICOS CLIMATIZACIÓN S.L.</p>
-          <p>📧 info@tecnicosclimatizacion.es | 📞 +34 91 123 45 67</p>
+          <p>📧 info&#64;tecnicosclimatizacion.es | 📞 +34 91 123 45 67</p>
         </div>
       </div>
 
