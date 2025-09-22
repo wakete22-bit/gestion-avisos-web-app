@@ -2,7 +2,6 @@
   <ion-toolbar>
     <div class="header-content">
       <h2>
-        <ion-icon name="document-text-outline"></ion-icon>
         Albarán #{{albaran.id?.substring(0, 8)}}
       </h2>
       <div class="header-actions">
@@ -14,24 +13,23 @@
           <ion-icon name="print-outline"></ion-icon>
           <span class="desktop-only">Imprimir</span>
         </button>
-        <button class="close-button" (click)="cerrarModal()" title="Cerrar">
+        <button class="btn-cerrar" (click)="cerrarModal()" title="Cerrar">
           <ion-icon name="close"></ion-icon>
         </button>
       </div>
     </div>
-    <p class="subtitle">Detalles del albarán de trabajo</p>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="modal-body">
   <div class="modal-content">
     <!-- Estado del albarán -->
-    <div class="estado-section">
+    <!-- <div class="estado-section">
       <div class="estado-badge" [style.background-color]="getEstadoColor(albaran.estado_cierre)">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         {{albaran.estado_cierre}}
       </div>
-    </div>
+    </div> -->
 
     <!-- Información del aviso -->
     <div class="info-section">
@@ -44,6 +42,13 @@
         <div class="info-item">
           <label>Dirección:</label>
           <span>{{aviso?.direccion_cliente_aviso || 'No especificada'}}</span>
+        </div>
+        <div class="info-item">
+          <label>Estado:</label>
+          <span class="estado-aviso" [style.color]="getEstadoAvisoColor(aviso?.estado)">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            {{aviso?.estado || 'No especificado'}}
+          </span>
         </div>
         <div class="info-item">
           <label>Fecha de creación:</label>
@@ -212,7 +217,6 @@
       </div>
     </div>
   </div>
-</ion-content>
 
 <ion-footer>
   <ion-toolbar>

@@ -23,3 +23,4 @@ WHERE table_name = 'clientes'
 AND column_name = 'cif';
 
 
+

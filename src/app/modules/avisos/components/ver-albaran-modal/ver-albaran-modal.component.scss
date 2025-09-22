@@ -12,7 +12,7 @@ ion-header {
 
       h2 {
         margin: 0;
-        font-size: 20px;
+        font-size: 16px!important;
         font-weight: 600;
         color: #111827;
         display: flex;
@@ -21,6 +21,7 @@ ion-header {
 
         ion-icon {
           font-size: 24px;
+          color: #10B981;
         }
       }
     }
@@ -41,7 +42,7 @@ ion-header {
         color: #2563eb;
         border: 1px solid rgba(37, 99, 235, 0.2);
         padding: 8px 16px;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 14px;
         font-weight: 500;
@@ -53,6 +54,7 @@ ion-header {
         &:hover {
           background: rgba(37, 99, 235, 0.15);
           border-color: rgba(37, 99, 235, 0.3);
+          transform: translateY(-1px);
         }
 
         ion-icon {
@@ -66,22 +68,36 @@ ion-header {
         }
       }
 
-      .close-button {
-        background: none;
+      .btn-cerrar {
+        width: 36px;
+        height: 36px;
         border: none;
-        padding: 8px;
-        cursor: pointer;
-        color: #6b7280;
+        background: #F8FAFC;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-
-        &:hover {
-          color: #111827;
-        }
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #E2E8F0;
 
         ion-icon {
-          font-size: 24px;
+          font-size: 20px;
+          color: #6B7280;
+        }
+
+        &:hover {
+          background: #F1F5F9;
+          border-color: #CBD5E1;
+          transform: scale(1.05);
+          
+          ion-icon {
+            color: #374151;
+          }
+        }
+
+        &:active {
+          transform: scale(0.95);
         }
       }
     }
@@ -111,16 +127,6 @@ ion-content {
     min-height: 0;
     height: 100%;
     padding: 24px;
-    max-height: 70vh;
-    overflow-y: auto;
-
-    @media (max-width: 768px) {
-      padding: 20px 16px;
-    }
-
-    @media (max-width: 480px) {
-      padding: 16px 12px;
-    }
   }
 }
 
@@ -135,10 +141,6 @@ ion-footer {
       gap: 12px;
       justify-content: flex-end;
 
-      @media (max-width: 768px) {
-        flex-direction: column;
-      }
-
       .btn {
         padding: 8px 16px;
         border-radius: 6px;
@@ -150,9 +152,9 @@ ion-footer {
         cursor: pointer;
         transition: all 0.2s;
 
-        @media (max-width: 768px) {
-          width: 100%;
-          justify-content: center;
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         ion-icon {
@@ -179,6 +181,13 @@ ion-footer {
         &:hover:not(:disabled) {
           background-color: #1d4ed8;
           border-color: #1d4ed8;
+        }
+
+        &:disabled {
+          background-color: #9ca3af;
+          border-color: #9ca3af;
+          cursor: not-allowed;
+          opacity: 0.6;
         }
       }
     }
@@ -209,42 +218,39 @@ ion-footer {
   }
 }
 
-// Secciones de información
+// Secciones de información con patrón consistente
 .info-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   padding: 24px;
-  background: #F9FAFB;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 
   @media (max-width: 768px) {
-    padding: 16px;
-    margin-bottom: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
   }
 
   @media (max-width: 480px) {
-    padding: 12px;
-    margin-bottom: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
   }
 
   h3 {
     margin: 0 0 20px 0;
-    font-size: 18px;
+    font-size: 16px;
+    color: #374151;
     font-weight: 600;
-    color: #1F2937;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #E5E7EB;
+    border-bottom: 2px solid #10B981;
+    padding-bottom: 8px;
 
     @media (max-width: 768px) {
-      font-size: 16px;
+      font-size: 15px;
       margin-bottom: 16px;
     }
 
     @media (max-width: 480px) {
-      font-size: 15px;
+      font-size: 14px;
     }
   }
 
@@ -262,6 +268,16 @@ ion-footer {
       display: flex;
       flex-direction: column;
       gap: 4px;
+      padding: 16px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #10B981;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+      }
 
       label {
         font-size: 12px;
@@ -272,9 +288,21 @@ ion-footer {
       }
 
       span {
-        font-size: 16px;
+        font-size: 14px;
         color: #1F2937;
         font-weight: 500;
+
+        &.estado-aviso {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 600;
+          text-transform: capitalize;
+
+          ion-icon {
+            font-size: 16px;
+          }
+        }
       }
     }
   }
@@ -282,43 +310,45 @@ ion-footer {
   .descripcion-content {
     p {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.6;
       color: #374151;
       background: white;
       padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
     }
   }
 
   .materiales-content {
     .materiales-tabla {
       overflow-x: auto;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
 
       .materiales-table {
         width: 100%;
         border-collapse: collapse;
         background: white;
-        border-radius: 8px;
+        border-radius: 6px;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
         th, td {
-          padding: 12px 16px;
+          padding: 12px;
           text-align: left;
-          border-bottom: 1px solid #E5E7EB;
+          border-bottom: 1px solid #e5e7eb;
 
           @media (max-width: 768px) {
-            padding: 8px 12px;
+            padding: 8px;
           }
         }
 
         th {
-          background: #F3F4F6;
+          background: #f3f4f6;
           font-weight: 600;
           color: #374151;
-          font-size: 14px;
+          font-size: 12px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -326,6 +356,7 @@ ion-footer {
         td {
           font-size: 14px;
           color: #1F2937;
+          font-weight: 500;
 
           @media (max-width: 768px) {
             font-size: 12px;
@@ -333,11 +364,12 @@ ion-footer {
         }
 
         .total-row {
-          background: #F0F9FF;
+          background: #f0f9ff;
           font-weight: 600;
 
           td {
-            color: #1E40AF;
+            color: #1e40af;
+            font-size: 14px;
           }
         }
       }
@@ -353,13 +385,13 @@ ion-footer {
         gap: 8px;
 
         li {
-          background: #E0F2FE;
-          color: #0C4A6E;
+          background: #e0f2fe;
+          color: #0c4a6e;
           padding: 8px 16px;
           border-radius: 20px;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
-          border: 1px solid #BAE6FD;
+          border: 1px solid #bae6fd;
         }
       }
     }
@@ -369,6 +401,9 @@ ion-footer {
       padding: 20px;
       color: #6B7280;
       font-style: italic;
+      background: white;
+      border-radius: 6px;
+      border: 2px dashed #e5e7eb;
     }
   }
 
@@ -378,19 +413,20 @@ ion-footer {
       align-items: center;
       gap: 12px;
       padding: 16px;
-      background: #FEF3C7;
-      border: 1px solid #F59E0B;
-      border-radius: 8px;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 6px;
       margin-bottom: 16px;
       
       .warning-icon {
         font-size: 20px;
-        color: #F59E0B;
+        color: #f59e0b;
       }
       
       .status-text {
         font-weight: 600;
-        color: #92400E;
+        color: #92400e;
+        font-size: 14px;
       }
     }
     
@@ -398,42 +434,46 @@ ion-footer {
       display: flex;
       align-items: center;
       gap: 16px;
-      background: #F0F9FF;
+      background: #f0f9ff;
       padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #BAE6FD;
+      border-radius: 6px;
+      border: 1px solid #bae6fd;
       margin-bottom: 16px;
 
       .amount-label {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
-        color: #0369A1;
+        color: #0369a1;
       }
 
       .amount-value {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
-        color: #0369A1;
+        color: #0369a1;
       }
     }
     
     .presupuesto-actions {
       .action-description {
-        font-size: 14px;
+        font-size: 12px;
         color: #6B7280;
         margin: 0 0 16px 0;
         line-height: 1.5;
+        padding: 12px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
       }
       
       .btn-crear-presupuesto {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 12px 20px;
+        padding: 12px 16px;
         background: #10B981;
         color: white;
         border: none;
-        border-radius: 8px;
+        border-radius: 6px;
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;
@@ -444,7 +484,6 @@ ion-footer {
         &:hover {
           background: #059669;
           transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
         }
         
         &:active {
@@ -452,7 +491,7 @@ ion-footer {
         }
         
         ion-icon {
-          font-size: 18px;
+          font-size: 16px;
         }
       }
     }
@@ -465,14 +504,14 @@ ion-footer {
       .firma-img {
         max-width: 100%;
         max-height: 200px;
-        border: 2px solid #E5E7EB;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
       .firma-caption {
         margin-top: 12px;
-        font-size: 14px;
+        font-size: 12px;
         color: #6B7280;
         font-style: italic;
       }
@@ -480,15 +519,16 @@ ion-footer {
 
     .firma-texto {
       text-align: center;
-      padding: 20px;
+      padding: 16px;
       background: white;
-      border-radius: 8px;
-      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
 
       p {
-        margin: 0 0 16px 0;
-        font-size: 16px;
+        margin: 0 0 12px 0;
+        font-size: 14px;
         color: #374151;
+        font-weight: 500;
       }
 
       .firma-nombre {
@@ -496,12 +536,12 @@ ion-footer {
         align-items: center;
         justify-content: center;
         gap: 8px;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: #059669;
 
         ion-icon {
-          font-size: 20px;
+          font-size: 18px;
         }
       }
     }
@@ -510,14 +550,63 @@ ion-footer {
   .observaciones-content {
     p {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.6;
       color: #374151;
       background: white;
       padding: 16px;
-      border-radius: 8px;
-      border: 1px solid #E5E7EB;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
       font-style: italic;
+    }
+  }
+}
+
+/* Media queries para móviles */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 10px;
+  }
+
+  .info-section {
+    padding: 16px;
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .info-grid {
+      gap: 12px;
+
+      .info-item {
+        padding: 12px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 12px!important;
+  }
+
+  .info-section {
+    padding: 12px;
+    margin-bottom: 12px;
+
+    h3 {
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .info-grid {
+      gap: 10px;
+
+      .info-item {
+        padding: 10px;
+      }
     }
   }
 }
@@ -537,5 +626,69 @@ ion-footer {
       max-height: none;
       overflow: visible;
     }
+  }
+
+  // Estilos específicos para impresión de albaranes
+  .info-section {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid;
+    
+    h3 {
+      color: #4F46E5 !important;
+      border-bottom: 2px solid #10B981 !important;
+    }
+  }
+
+  .materiales-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    
+    th, td {
+      border: 1px solid #e5e7eb !important;
+      padding: 8px !important;
+    }
+    
+    th {
+      background: #f3f4f6 !important;
+      font-weight: bold !important;
+    }
+  }
+
+  .presupuesto-content {
+    background: #fef3c7 !important;
+    border: 1px solid #f59e0b !important;
+  }
+
+  .firma-content {
+    .firma-img {
+      max-width: 200px !important;
+      max-height: 150px !important;
+    }
+  }
+
+  // Ocultar elementos no necesarios en impresión
+  .btn-crear-presupuesto,
+  .header-actions,
+  .button-group {
+    display: none !important;
+  }
+
+  // Asegurar que el contenido se ajuste a la página
+  .modal-content {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .info-item {
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .descripcion-content p,
+  .observaciones-content p {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
   }
 }

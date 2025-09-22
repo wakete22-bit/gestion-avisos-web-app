@@ -143,10 +143,10 @@
                         {{ producto.cantidad_disponible === 0 ? ' (Sin stock)' : ' (Stock bajo)' }}
                       </span>
                     </span>
-                    <span class="product-description">{{ producto.descripcion }}</span>
+                    <!-- <span class="product-description">{{ producto.descripcion }}</span> -->
                   </div>
                 </div>
-                <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span>
+                <!-- <span class="product-price">{{ producto.precio_neto | currency:'EUR':'symbol':'1.2-2' }}</span> -->
                 <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
               </div>
             </div>
@@ -157,9 +157,9 @@
             <h4>Repuestos Seleccionados:</h4>
 
             <!-- Resumen de precios -->
-            <div class="precio-total" *ngIf="repuestosSeleccionados.length > 0">
+            <!-- <div class="precio-total" *ngIf="repuestosSeleccionados.length > 0">
               <strong>Precio Total: {{ calcularPrecioTotalRepuestos() | currency:'EUR':'symbol':'1.2-2' }}</strong>
-            </div>
+            </div> -->
 
             <div class="repuesto-item-compacto" *ngFor="let repuesto of repuestosSeleccionados">
               <span class="repuesto-denominacion">{{ repuesto.nombre }}</span>
@@ -193,7 +193,6 @@
           </select>
         </div>
 
-        <!-- Información sobre presupuesto pendiente -->
         <div *ngIf="requierePresupuesto()" class="presupuesto-info">
           <h3>Presupuesto Pendiente</h3>
           <div class="info-box">
@@ -356,7 +355,7 @@
                 <span class="product-name">{{ producto.nombre }}</span>
                 <div class="product-details">
                   <span class="product-stock">Stock: {{ producto.cantidad_disponible }} {{ producto.unidad }}</span>
-                  <span class="product-description">{{ producto.descripcion }}</span>
+                  <!-- <span class="product-description">{{ producto.descripcion }}</span> -->
                 </div>
               </div>
               <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>

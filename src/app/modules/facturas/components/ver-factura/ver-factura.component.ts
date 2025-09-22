@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
-import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline, bugOutline } from 'ionicons/icons';
+import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline, bugOutline, mailOutline } from 'ionicons/icons';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -13,6 +13,7 @@ import { FacturaCompleta } from '../../models/factura.model';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
+import { EmailService } from '../../../../core/services/email.service';
 
 @Component({
   selector: 'app-ver-factura',
@@ -28,6 +29,13 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
   facturaId: string | null = null;
   modoEdicion = false;
   ivaPorcentaje = 21; // Valor por defecto
+  enviandoCorreo = false;
+  
+  // Propiedades calculadas para evitar recálculos constantes
+  repuestos: any[] = [];
+  manoObra: any[] = [];
+  desplazamientos: any[] = [];
+  
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -36,9 +44,10 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
     private facturasService: FacturasService,
     private pdfService: PdfService,
     private avisosService: AvisosService,
-    private configuracionService: ConfiguracionService
+    private configuracionService: ConfiguracionService,
+    private emailService: EmailService
   ) {
-    addIcons({arrowBackOutline,printOutline,createOutline,downloadOutline,bugOutline,refreshOutline,alertCircleOutline,eyeOutline});
+    addIcons({arrowBackOutline,printOutline,createOutline,downloadOutline,bugOutline,refreshOutline,alertCircleOutline,eyeOutline,mailOutline});
   }
 
   ngOnInit() {
@@ -78,18 +87,12 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
         console.log('🔍 Factura completa recibida del servicio:', facturaCompleta);
         console.log('🔍 Líneas de la factura:', facturaCompleta.lineas);
         
-        // No procesar las líneas aquí, dejar que los getters se encarguen del procesamiento
-        console.log('🔍 Líneas de factura recibidas sin procesar:', facturaCompleta.lineas);
-        
         this.factura = facturaCompleta;
-        this.loading = false;
         
-        // Debug: mostrar los repuestos procesados
-        setTimeout(() => {
-          console.log('🔍 Repuestos procesados después de cargar:', this.repuestos);
-          console.log('🔍 Mano de obra procesada después de cargar:', this.manoObra);
-          console.log('🔍 Desplazamientos procesados después de cargar:', this.desplazamientos);
-        }, 100);
+        // Procesar las líneas una sola vez
+        this.procesarLineasFactura(facturaCompleta.lineas);
+        
+        this.loading = false;
       },
       error: (error) => {
         console.error('Error al cargar factura:', error);
@@ -101,6 +104,33 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
 
   volver() {
     this.router.navigate(['/facturas']);
+  }
+
+  /**
+   * Procesa las líneas de la factura una sola vez para evitar recálculos constantes
+   */
+  private procesarLineasFactura(lineas: any[]) {
+    if (!lineas || !Array.isArray(lineas)) {
+      this.repuestos = [];
+      this.manoObra = [];
+      this.desplazamientos = [];
+      return;
+    }
+
+    // Procesar todas las líneas una sola vez
+    const lineasProcesadas = lineas.map(linea => this.parsearLinea(linea)).filter(linea => linea !== null);
+    
+    // Separar por tipo
+    this.repuestos = lineasProcesadas.filter(linea => linea.tipo === 'repuesto');
+    this.manoObra = lineasProcesadas.filter(linea => linea.tipo === 'mano_obra');
+    this.desplazamientos = lineasProcesadas.filter(linea => linea.tipo === 'desplazamiento');
+
+    console.log('✅ Líneas procesadas:', {
+      total: lineasProcesadas.length,
+      repuestos: this.repuestos.length,
+      manoObra: this.manoObra.length,
+      desplazamientos: this.desplazamientos.length
+    });
   }
 
 
@@ -207,6 +237,132 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Prueba el envío de correo simple (sin PDF)
+   */
+  async probarEnvioCorreo() {
+    if (!this.factura) {
+      console.error('No hay factura para probar');
+      return;
+    }
+
+    if (!this.factura.factura.email_cliente) {
+      console.error('No hay email del cliente');
+      alert('Error: No se encontró email del cliente.');
+      return;
+    }
+
+    try {
+      this.enviandoCorreo = true;
+      console.log('📧 Probando envío de correo simple...');
+
+      const resultado = await this.emailService.enviarCorreoSimple(
+        this.factura.factura.email_cliente,
+        `Prueba - Factura ${this.factura.factura.numero_factura}`,
+        `Hola ${this.factura.factura.nombre_cliente},\n\nEsta es una prueba de envío de correo para la factura ${this.factura.factura.numero_factura}.\n\nSaludos,\nTÉCNICOS CLIMATIZACIÓN S.L.`,
+        this.factura.factura.nombre_cliente
+      );
+
+      if (resultado.success) {
+        console.log('✅ Correo de prueba enviado exitosamente');
+        alert('✅ Correo de prueba enviado correctamente');
+      } else {
+        console.error('❌ Error al enviar correo de prueba:', resultado.message);
+        alert('❌ Error al enviar correo de prueba: ' + resultado.message);
+      }
+
+    } catch (error) {
+      console.error('❌ Error al probar envío de correo:', error);
+      alert('❌ Error inesperado al probar el envío de correo.');
+    } finally {
+      this.enviandoCorreo = false;
+    }
+  }
+
+  /**
+   * Envía la factura por correo electrónico al cliente
+   */
+  async enviarFacturaPorCorreo() {
+    if (!this.factura) {
+      console.error('No hay factura para enviar');
+      return;
+    }
+
+    if (!this.factura.factura.email_cliente) {
+      console.error('No hay email del cliente');
+      alert('Error: No se encontró email del cliente. Por favor, verifica que la factura tenga un email válido.');
+      return;
+    }
+
+    // Validar que el email tenga formato válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.factura.factura.email_cliente)) {
+      console.error('Email del cliente no es válido:', this.factura.factura.email_cliente);
+      alert('Error: El email del cliente no tiene un formato válido.');
+      return;
+    }
+
+    try {
+      this.enviandoCorreo = true;
+      console.log('📧 Iniciando envío de factura por correo...');
+      console.log('📧 Datos de la factura:', {
+        email_cliente: this.factura.factura.email_cliente,
+        nombre_cliente: this.factura.factura.nombre_cliente,
+        numero_factura: this.factura.factura.numero_factura,
+        total: this.factura.factura.total
+      });
+
+      // Generar el PDF como Blob
+      const datosFactura = {
+        numero_factura: this.factura.factura.numero_factura,
+        fecha_emision: this.factura.factura.fecha_emision,
+        nombre_cliente: this.factura.factura.nombre_cliente,
+        direccion_cliente: this.factura.factura.direccion_cliente,
+        cif_cliente: this.factura.factura.cif_cliente,
+        email_cliente: this.factura.factura.email_cliente,
+        cliente_id: this.factura.factura.cliente_id,
+        subtotal: this.factura.factura.subtotal,
+        iva: this.factura.factura.iva,
+        total: this.factura.factura.total,
+        estado: this.factura.factura.estado,
+        notas: this.factura.factura.notas,
+        lineas: this.factura.lineas
+      };
+
+      const pdfBlob = await this.pdfService.generarPdfBlob(datosFactura, `factura_${this.factura.factura.numero_factura}.pdf`);
+
+      // Enviar por correo
+      console.log('📧 Enviando correo con datos:', {
+        emailCliente: this.factura.factura.email_cliente,
+        nombreCliente: this.factura.factura.nombre_cliente,
+        numeroFactura: this.factura.factura.numero_factura,
+        totalFactura: this.factura.factura.total
+      });
+
+      const resultado = await this.emailService.enviarFacturaPorCorreo(
+        this.factura.factura.email_cliente,
+        this.factura.factura.nombre_cliente,
+        this.factura.factura.numero_factura,
+        pdfBlob,
+        this.factura.factura.total
+      );
+
+      if (resultado.success) {
+        console.log('✅ Factura enviada exitosamente');
+        alert('✅ Factura enviada correctamente al cliente');
+      } else {
+        console.error('❌ Error al enviar factura:', resultado.message);
+        alert('❌ Error al enviar la factura: ' + resultado.message);
+      }
+
+    } catch (error) {
+      console.error('❌ Error al enviar factura por correo:', error);
+      alert('❌ Error inesperado al enviar la factura. Por favor, inténtelo de nuevo.');
+    } finally {
+      this.enviandoCorreo = false;
+    }
+  }
+
   formatearMoneda(valor: number): string {
     return new Intl.NumberFormat('es-ES', {
       style: 'currency',
@@ -227,45 +383,7 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Separar líneas por tipo
-  get repuestos() {
-    if (!this.factura?.lineas || !Array.isArray(this.factura.lineas)) {
-      return [];
-    }
-    
-    const repuestos = this.factura.lineas
-      .map(linea => this.parsearLinea(linea))
-      .filter(linea => linea && linea.tipo === 'repuesto');
-    
-    console.log('🔍 Repuestos filtrados y parseados:', repuestos);
-    return repuestos;
-  }
-
-  get manoObra() {
-    if (!this.factura?.lineas || !Array.isArray(this.factura.lineas)) {
-      return [];
-    }
-    
-    const manoObra = this.factura.lineas
-      .map(linea => this.parsearLinea(linea))
-      .filter(linea => linea && linea.tipo === 'mano_obra');
-    
-    console.log('🔍 Mano de obra filtrada y parseada:', manoObra);
-    return manoObra;
-  }
-
-  get desplazamientos() {
-    if (!this.factura?.lineas || !Array.isArray(this.factura.lineas)) {
-      return [];
-    }
-    
-    const desplazamientos = this.factura.lineas
-      .map(linea => this.parsearLinea(linea))
-      .filter(linea => linea && linea.tipo === 'desplazamiento');
-    
-    console.log('🔍 Desplazamientos filtrados y parseados:', desplazamientos);
-    return desplazamientos;
-  }
+  // Los getters han sido reemplazados por propiedades calculadas para mejorar el rendimiento
 
   /**
    * Parsea una línea de factura, ya sea string JSON u objeto
@@ -273,30 +391,21 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
   private parsearLinea(linea: any): any {
     if (!linea) return null;
     
-    console.log('🔍 Parseando línea:', { tipo: typeof linea, valor: linea });
-    
     let lineaParsed;
     
     // Si es string, intentar parsearlo como JSON
     if (typeof linea === 'string') {
       try {
         lineaParsed = JSON.parse(linea);
-        console.log('✅ Línea parseada exitosamente de JSON:', lineaParsed);
       } catch (error) {
-        console.warn('⚠️ Error al parsear línea JSON:', linea, error);
+        console.warn('⚠️ Error al parsear línea JSON:', error);
         return null;
       }
     } else if (typeof linea === 'object' && linea !== null) {
       lineaParsed = linea;
-      console.log('✅ Línea ya es objeto:', lineaParsed);
     } else {
       console.warn('⚠️ Línea no es string ni objeto:', linea);
       return null;
-    }
-    
-    // Verificar que tenga las propiedades mínimas
-    if (!lineaParsed.nombre) {
-      console.warn('⚠️ Línea sin nombre:', lineaParsed);
     }
     
     // Normalizar la línea con valores por defecto
@@ -311,11 +420,10 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
       fecha_creacion: lineaParsed.fecha_creacion || ''
     };
     
-    console.log('✅ Línea normalizada:', lineaNormalizada);
     return lineaNormalizada;
   }
 
-  // Cálculos de totales
+  // Cálculos de totales usando las propiedades calculadas
   get totalRepuestosNeto() {
     return this.repuestos.reduce((sum, r) => {
       const cantidad = Number(r.cantidad) || 0;

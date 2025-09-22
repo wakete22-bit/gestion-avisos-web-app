@@ -5,6 +5,7 @@ import { addIcons } from 'ionicons';
 import { close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import { PresupuestosService } from '../../../presupuestos/services/presupuestos.service';
+import { AlbaranPdfService } from '../../../../core/services/albaran-pdf.service';
 
 // Interfaces para el albarán
 export interface RepuestoAlbaran {
@@ -41,7 +42,7 @@ export interface Albaran {
   templateUrl: './ver-albaran-modal.component.html',
   styleUrls: ['./ver-albaran-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonIcon, IonButton, IonHeader, IonToolbar, IonContent, IonFooter],
+  imports: [CommonModule, IonIcon, IonHeader, IonToolbar, IonContent, IonFooter],
 })
 export class VerAlbaranModalComponent implements OnInit {
   @Input() albaran!: Albaran;
@@ -50,7 +51,8 @@ export class VerAlbaranModalComponent implements OnInit {
   constructor(
     private modalController: ModalController,
     private router: Router,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private albaranPdfService: AlbaranPdfService
   ) {
     addIcons({ close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator });
   }
@@ -67,20 +69,92 @@ export class VerAlbaranModalComponent implements OnInit {
   }
 
   /**
-   * Descarga el albarán como PDF (implementar cuando se tenga el servicio)
+   * Descarga el albarán como PDF
    */
   descargarPDF() {
-    console.log('Descargando albarán como PDF...');
-    // TODO: Implementar descarga de PDF
-    alert('Funcionalidad de descarga de PDF en desarrollo');
+    if (!this.albaran) {
+      console.error('No hay albarán para descargar');
+      return;
+    }
+
+    try {
+      console.log('🔧 Iniciando descarga de albarán...');
+      
+      // Generar nombre del archivo
+      const albaranId = this.albaran.id?.substring(0, 8) || 'albaran';
+      const nombreArchivo = `albaran_${albaranId}.pdf`;
+
+      // Preparar datos del albarán para el PDF
+      const datosAlbaran = {
+        id: this.albaran.id,
+        trabajo_id: this.albaran.trabajo_id,
+        aviso_id: this.albaran.aviso_id,
+        fecha_cierre: this.albaran.fecha_cierre,
+        hora_entrada: this.albaran.hora_entrada,
+        hora_salida: this.albaran.hora_salida,
+        descripcion_trabajo_realizado: this.albaran.descripcion_trabajo_realizado,
+        materialesUtilizados: this.materialesUtilizados,
+        estado_cierre: this.albaran.estado_cierre,
+        presupuesto_necesario: this.albaran.presupuesto_necesario,
+        dni_cliente: this.albaran.dni_cliente,
+        nombre_firma: this.albaran.nombre_firma,
+        firma_url: this.albaran.firma_url,
+        observaciones: this.albaran.observaciones,
+        fecha_creacion: this.albaran.fecha_creacion,
+        aviso: this.aviso
+      };
+
+      // Generar PDF usando el servicio
+      this.albaranPdfService.generarPdfAlbaran(datosAlbaran, nombreArchivo);
+      
+      console.log('✅ Albarán descargado exitosamente');
+    } catch (error) {
+      console.error('❌ Error al descargar albarán:', error);
+      alert('Error al generar el PDF del albarán: ' + (error as Error).message);
+    }
   }
 
   /**
    * Imprime el albarán
    */
   imprimirAlbaran() {
-    console.log('Imprimiendo albarán...');
-    window.print();
+    if (!this.albaran) {
+      console.error('No hay albarán para imprimir');
+      return;
+    }
+
+    try {
+      console.log('🖨️ Iniciando impresión de albarán...');
+      
+      // Preparar datos del albarán para la impresión
+      const datosAlbaran = {
+        id: this.albaran.id,
+        trabajo_id: this.albaran.trabajo_id,
+        aviso_id: this.albaran.aviso_id,
+        fecha_cierre: this.albaran.fecha_cierre,
+        hora_entrada: this.albaran.hora_entrada,
+        hora_salida: this.albaran.hora_salida,
+        descripcion_trabajo_realizado: this.albaran.descripcion_trabajo_realizado,
+        materialesUtilizados: this.materialesUtilizados,
+        estado_cierre: this.albaran.estado_cierre,
+        presupuesto_necesario: this.albaran.presupuesto_necesario,
+        dni_cliente: this.albaran.dni_cliente,
+        nombre_firma: this.albaran.nombre_firma,
+        firma_url: this.albaran.firma_url,
+        observaciones: this.albaran.observaciones,
+        fecha_creacion: this.albaran.fecha_creacion,
+        aviso: this.aviso
+      };
+
+      // Generar HTML para impresión
+      this.albaranPdfService.generarPdfHtml(datosAlbaran, 'albaran_imprimir.pdf');
+      
+      console.log('✅ Albarán enviado a impresión');
+    } catch (error) {
+      console.error('❌ Error al imprimir albarán:', error);
+      // Fallback a impresión nativa si hay error
+      window.print();
+    }
   }
 
   /**
@@ -197,6 +271,32 @@ export class VerAlbaranModalComponent implements OnInit {
         return '#F59E0B';
       case 'Otra visita':
         return '#EF4444';
+      default:
+        return '#6B7280';
+    }
+  }
+
+  /**
+   * Obtiene el color del estado del aviso
+   */
+  getEstadoAvisoColor(estado: string): string {
+    if (!estado) return '#6B7280';
+    
+    switch (estado.toLowerCase()) {
+      case 'pendiente':
+        return '#F59E0B';
+      case 'en_progreso':
+      case 'en progreso':
+        return '#3B82F6';
+      case 'completado':
+      case 'finalizado':
+        return '#10B981';
+      case 'cancelado':
+        return '#EF4444';
+      case 'pausado':
+        return '#8B5CF6';
+      case 'reagendado':
+        return '#F97316';
       default:
         return '#6B7280';
     }

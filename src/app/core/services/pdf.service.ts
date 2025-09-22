@@ -1822,4 +1822,186 @@ export class PdfService {
       throw error;
     }
   }
+
+  /**
+   * Genera un PDF y lo retorna como Blob para envío por correo
+   */
+  async generarPdfBlob(datosFactura: any, nombreArchivo: string = 'factura.pdf'): Promise<Blob> {
+    try {
+      console.log('🔧 Generando PDF como Blob...');
+      
+      // Usar el método nativo existente pero retornar Blob
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      const maxContentHeight = pageHeight - 60; // Espacio para footer
+      
+      let yPos = margin;
+      let currentPage = 1;
+
+      // Función helper para texto con estilos
+      const addText = (text: string, x: number, y: number, options: any = {}) => {
+        const defaultOptions = {
+          fontSize: 12,
+          fontStyle: 'normal',
+          color: [17, 24, 39] as [number, number, number], // #111827
+          align: 'left'
+        };
+        const finalOptions = { ...defaultOptions, ...options };
+        
+        pdf.setFontSize(finalOptions.fontSize);
+        pdf.setFont('helvetica', finalOptions.fontStyle);
+        pdf.setTextColor(finalOptions.color[0], finalOptions.color[1], finalOptions.color[2]);
+        pdf.text(text, x, y, { align: finalOptions.align });
+      };
+
+      // Función helper para dibujar líneas
+      const drawLine = (x1: number, y1: number, x2: number, y2: number, color: [number, number, number] = [79, 70, 229]) => {
+        pdf.setDrawColor(color[0], color[1], color[2]);
+        pdf.line(x1, y1, x2, y2);
+      };
+
+      // Función helper para dibujar rectángulos
+      const drawRect = (x: number, y: number, w: number, h: number, fillColor?: [number, number, number], strokeColor?: [number, number, number]) => {
+        if (fillColor) {
+          pdf.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+          pdf.rect(x, y, w, h, 'F');
+        }
+        if (strokeColor) {
+          pdf.setDrawColor(strokeColor[0], strokeColor[1], strokeColor[2]);
+          pdf.rect(x, y, w, h, 'S');
+        }
+      };
+
+      // Función para verificar si necesitamos nueva página
+      const checkNewPage = (requiredHeight: number): boolean => {
+        if (yPos + requiredHeight > maxContentHeight) {
+          pdf.addPage();
+          currentPage++;
+          yPos = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Header de la factura
+      addText('FACTURA', margin, yPos, { fontSize: 24, fontStyle: 'bold', color: [79, 70, 229] });
+      yPos += 15;
+      
+      // Información de la empresa
+      addText('TÉCNICOS CLIMATIZACIÓN S.L.', margin, yPos, { fontSize: 16, fontStyle: 'bold' });
+      yPos += 8;
+      addText('Calle de la Tecnología, 123', margin, yPos, { fontSize: 10 });
+      yPos += 5;
+      addText('28001 Madrid, España', margin, yPos, { fontSize: 10 });
+      yPos += 5;
+      addText('CIF: B12345678', margin, yPos, { fontSize: 10 });
+      yPos += 5;
+      addText('Tel: +34 91 123 45 67', margin, yPos, { fontSize: 10 });
+      yPos += 5;
+      addText('Email: info@tecnicosclimatizacion.es', margin, yPos, { fontSize: 10 });
+      yPos += 15;
+
+      // Información de la factura
+      const facturaInfoX = pageWidth - margin - 80;
+      addText(`Nº FACTURA: ${datosFactura.numero_factura}`, facturaInfoX, yPos - 35, { fontSize: 12, fontStyle: 'bold' });
+      addText(`FECHA: ${new Date(datosFactura.fecha_emision).toLocaleDateString('es-ES')}`, facturaInfoX, yPos - 25, { fontSize: 10 });
+      addText(`ESTADO: ${datosFactura.estado}`, facturaInfoX, yPos - 15, { fontSize: 10 });
+
+      // Línea separadora
+      drawLine(margin, yPos, pageWidth - margin, yPos, [79, 70, 229]);
+      yPos += 10;
+
+      // Datos del cliente
+      addText('DATOS DEL CLIENTE', margin, yPos, { fontSize: 14, fontStyle: 'bold', color: [79, 70, 229] });
+      yPos += 8;
+      addText(`Nombre: ${datosFactura.nombre_cliente}`, margin, yPos, { fontSize: 11 });
+      yPos += 6;
+      addText(`Dirección: ${datosFactura.direccion_cliente}`, margin, yPos, { fontSize: 11 });
+      yPos += 6;
+      addText(`CIF: ${datosFactura.cif_cliente}`, margin, yPos, { fontSize: 11 });
+      yPos += 6;
+      addText(`Email: ${datosFactura.email_cliente}`, margin, yPos, { fontSize: 11 });
+      yPos += 15;
+
+      // Tabla de productos/servicios
+      if (datosFactura.lineas && datosFactura.lineas.length > 0) {
+        addText('DETALLE DE SERVICIOS', margin, yPos, { fontSize: 14, fontStyle: 'bold', color: [79, 70, 229] });
+        yPos += 10;
+
+        // Headers de la tabla
+        const colWidths = [80, 20, 25, 25, 30];
+        const colX = [margin, margin + colWidths[0], margin + colWidths[0] + colWidths[1], margin + colWidths[0] + colWidths[1] + colWidths[2], margin + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3]];
+
+        // Fondo de header
+        drawRect(margin, yPos - 5, contentWidth, 15, [79, 70, 229]);
+        
+        addText('DESCRIPCIÓN', colX[0], yPos, { fontSize: 10, fontStyle: 'bold', color: [255, 255, 255] });
+        addText('CANT.', colX[1], yPos, { fontSize: 10, fontStyle: 'bold', color: [255, 255, 255] });
+        addText('NETO', colX[2], yPos, { fontSize: 10, fontStyle: 'bold', color: [255, 255, 255] });
+        addText('PVP', colX[3], yPos, { fontSize: 10, fontStyle: 'bold', color: [255, 255, 255] });
+        addText('TOTAL', colX[4], yPos, { fontSize: 10, fontStyle: 'bold', color: [255, 255, 255] });
+        
+        yPos += 15;
+
+        // Filas de productos
+        let subtotal = 0;
+        for (const linea of datosFactura.lineas) {
+          checkNewPage(20);
+          
+          const cantidad = Number(linea.cantidad) || 0;
+          const precioNeto = Number(linea.precio_neto) || 0;
+          const precioPvp = Number(linea.precio_pvp) || 0;
+          const total = cantidad * precioPvp;
+          subtotal += total;
+
+          addText(linea.nombre || 'Sin nombre', colX[0], yPos, { fontSize: 9 });
+          addText(cantidad.toString(), colX[1], yPos, { fontSize: 9 });
+          addText(`€${precioNeto.toFixed(2)}`, colX[2], yPos, { fontSize: 9 });
+          addText(`€${precioPvp.toFixed(2)}`, colX[3], yPos, { fontSize: 9 });
+          addText(`€${total.toFixed(2)}`, colX[4], yPos, { fontSize: 9 });
+          
+          yPos += 12;
+        }
+
+        yPos += 10;
+
+        // Totales
+        const totalX = pageWidth - margin - 60;
+        addText(`Subtotal: €${datosFactura.subtotal?.toFixed(2) || '0.00'}`, totalX, yPos, { fontSize: 11, fontStyle: 'bold' });
+        yPos += 8;
+        addText(`IVA (21%): €${datosFactura.iva?.toFixed(2) || '0.00'}`, totalX, yPos, { fontSize: 11, fontStyle: 'bold' });
+        yPos += 8;
+        drawLine(totalX - 20, yPos, totalX + 40, yPos);
+        yPos += 5;
+        addText(`TOTAL: €${datosFactura.total?.toFixed(2) || '0.00'}`, totalX, yPos, { fontSize: 14, fontStyle: 'bold', color: [79, 70, 229] });
+      }
+
+      // Notas si existen
+      if (datosFactura.notas) {
+        yPos += 20;
+        checkNewPage(30);
+        addText('NOTAS', margin, yPos, { fontSize: 12, fontStyle: 'bold', color: [79, 70, 229] });
+        yPos += 8;
+        addText(datosFactura.notas, margin, yPos, { fontSize: 10 });
+      }
+
+      // Footer
+      const footerY = pageHeight - 20;
+      addText('TÉCNICOS CLIMATIZACIÓN S.L. - +34 91 123 45 67 - info@tecnicosclimatizacion.es', 
+        margin, footerY, { fontSize: 8, align: 'center' });
+
+      // Convertir a Blob
+      const pdfBlob = pdf.output('blob');
+      
+      console.log('✅ PDF generado como Blob exitosamente');
+      return pdfBlob;
+      
+    } catch (error) {
+      console.error('❌ Error al generar PDF Blob:', error);
+      throw error;
+    }
+  }
 } 

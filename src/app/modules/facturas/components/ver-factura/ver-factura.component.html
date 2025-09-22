@@ -37,6 +37,18 @@
             Editar
           </button>
 
+          <!-- Botón para enviar por correo -->
+    <div class="email-buttons">      
+      <button 
+        class="btn-email" 
+        (click)="enviarFacturaPorCorreo()" 
+        [disabled]="enviandoCorreo || !factura?.factura?.email_cliente"
+        [class.loading]="enviandoCorreo">
+        <ion-icon name="mail-outline" *ngIf="!enviandoCorreo"></ion-icon>
+        <ion-icon name="refresh-outline" class="spinning" *ngIf="enviandoCorreo"></ion-icon>
+        {{ enviandoCorreo ? 'Enviando...' : 'Enviar con PDF' }}
+      </button>
+    </div>
 
           <button class="btn-primary" (click)="descargarFactura()">
             <ion-icon name="download-outline"></ion-icon>
