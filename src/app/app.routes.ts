@@ -23,6 +23,13 @@ export const routes: Routes = [
       }
     ]
   },
+
+  // Ruta pública para descarga de facturas (sin autenticación)
+  {
+    path: 'descarga-publica',
+    loadComponent: () => import('./modules/facturas/components/descarga-publica/descarga-publica.component').then((m) => m.DescargaPublicaComponent),
+    title: 'Descarga de Factura'
+  },
   
   // Rutas protegidas de la aplicación
   {

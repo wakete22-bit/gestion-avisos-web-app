@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PublicDownloadService {
-  private readonly DOWNLOAD_BASE_URL = window.location.origin + '/descarga-publica'; // URL de la página de descarga
+  private readonly DOWNLOAD_BASE_URL = 'https://gestion-avisos-web-app.vercel.app/descarga-publica'; // URL de la página de descarga
 
   /**
    * Crea un enlace de descarga público para un PDF
