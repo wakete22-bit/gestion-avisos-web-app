@@ -40,7 +40,7 @@ export class EmailService {
         to_name: nombreCliente,
         from_name: 'TÉCNICOS CLIMATIZACIÓN S.L.',
         subject: asunto || `Factura ${numeroFactura} - TÉCNICOS CLIMATIZACIÓN S.L.`,
-        message: mensaje || this.crearMensajeHTML(nombreCliente, numeroFactura, enlaceDescarga, totalFactura),
+        message: mensaje || this.crearMensajeConEnlace(nombreCliente, numeroFactura, enlaceDescarga, totalFactura),
         factura_numero: numeroFactura,
         fecha_factura: new Date().toLocaleDateString('es-ES'),
         total_factura: '€' + (totalFactura || 0).toFixed(2),
@@ -174,19 +174,11 @@ export class EmailService {
 
 Le enviamos la factura ${numeroFactura} con todos los detalles de los servicios realizados.
 
-DETALLES DE LA FACTURA:
-- Número: ${numeroFactura}
-- Fecha: ${new Date().toLocaleDateString('es-ES')}
-- Total: €${(totalFactura || 0).toFixed(2)}
-
-Puede descargar la factura en PDF haciendo clic en el siguiente enlace:
-${enlaceDescarga}
-
 Si tiene alguna pregunta sobre esta factura o necesita asistencia, no dude en contactarnos.
 
 Gracias por confiar en nuestros servicios de climatización profesional.
 
-Saludos,
+Saludos cordiales,
 TÉCNICOS CLIMATIZACIÓN S.L.
 
 📧 info@tecnicosclimatizacion.es
@@ -252,7 +244,7 @@ TÉCNICOS CLIMATIZACIÓN S.L.
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${pdfUrl}" 
+            <a href="https://gestion-avisos-web-app.vercel.app/descarga-publica?factura=${numeroFactura}" 
                style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
                       color: white; 
                       padding: 18px 35px; 
