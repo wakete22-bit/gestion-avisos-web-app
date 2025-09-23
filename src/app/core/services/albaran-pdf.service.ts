@@ -10,6 +10,263 @@ export class AlbaranPdfService {
   constructor(private configuracionService: ConfiguracionService) { }
 
   /**
+   * Genera un PDF del albarán usando jsPDF y lo retorna como Blob
+   */
+  async generarPdfAlbaranBlob(datosAlbaran: any, nombreArchivo: string = 'albaran.pdf'): Promise<Blob> {
+    try {
+      console.log('🔧 Generando PDF de albarán como Blob...');
+      
+      const doc = new jsPDF();
+      let yPosition = 20;
+
+      // Configuración de colores profesionales (escala de grises)
+      const colorPrincipal: [number, number, number] = [0, 0, 0]; // Negro
+      const colorSecundario: [number, number, number] = [64, 64, 64]; // Gris oscuro
+      const colorTexto: [number, number, number] = [32, 32, 32]; // Gris medio
+      const colorTextoClaro: [number, number, number] = [128, 128, 128]; // Gris claro
+
+      // Función para agregar texto
+      const addText = (text: string, x: number, y: number, options: any = {}) => {
+        if (typeof x !== 'number' || isNaN(x) || typeof y !== 'number' || isNaN(y)) {
+          console.warn('Coordenadas inválidas para addText:', { x, y, text });
+          return;
+        }
+        
+        doc.setFontSize(options.fontSize || 10);
+        
+        const color = options.color || colorTexto;
+        if (Array.isArray(color) && color.length === 3 && 
+            typeof color[0] === 'number' && typeof color[1] === 'number' && typeof color[2] === 'number') {
+          doc.setTextColor(color[0], color[1], color[2]);
+        } else {
+          doc.setTextColor(colorTexto[0], colorTexto[1], colorTexto[2]);
+        }
+        
+        doc.setFont(options.font || 'helvetica', options.style || 'normal');
+        doc.text(text, x, y);
+      };
+
+      // Función para dibujar líneas
+      const drawLine = (x1: number, y1: number, x2: number, y2: number, color: [number, number, number] = [229, 231, 235]) => {
+        if (typeof x1 !== 'number' || isNaN(x1) || typeof y1 !== 'number' || isNaN(y1) ||
+            typeof x2 !== 'number' || isNaN(x2) || typeof y2 !== 'number' || isNaN(y2)) {
+          console.warn('Coordenadas inválidas para drawLine:', { x1, y1, x2, y2 });
+          return;
+        }
+        
+        doc.setDrawColor(color[0], color[1], color[2]);
+        doc.setLineWidth(0.5);
+        doc.line(x1, y1, x2, y2);
+      };
+
+      // Función para dibujar rectángulos
+      const drawRect = (x: number, y: number, w: number, h: number, fillColor?: [number, number, number]) => {
+        if (typeof x !== 'number' || isNaN(x) || typeof y !== 'number' || isNaN(y) ||
+            typeof w !== 'number' || isNaN(w) || typeof h !== 'number' || isNaN(h)) {
+          console.warn('Coordenadas inválidas para drawRect:', { x, y, w, h });
+          return;
+        }
+        
+        if (fillColor && Array.isArray(fillColor) && fillColor.length === 3) {
+          doc.setFillColor(fillColor[0], fillColor[1], fillColor[2]);
+          doc.rect(x, y, w, h, 'F');
+        } else {
+          doc.rect(x, y, w, h);
+        }
+      };
+
+      // Función para verificar nueva página
+      const checkNewPage = (requiredHeight: number = 10): boolean => {
+        if (yPosition + requiredHeight > 250) {
+          doc.addPage();
+          yPosition = 20;
+          return true;
+        }
+        return false;
+      };
+
+      // Función para agregar sección con control de página
+      const addSection = (title: string, content: () => void, requiredHeight: number = 50) => {
+        if (yPosition + requiredHeight > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        addText(title, 20, yPosition, { fontSize: 14, style: 'bold', color: colorSecundario });
+        yPosition += 8;
+        drawLine(20, yPosition, 190, yPosition, colorSecundario);
+        yPosition += 8;
+        
+        content();
+        yPosition += 10;
+      };
+
+      // ===== HEADER =====
+      addText('ALBARÁN DE TRABAJO', 105, yPosition, { fontSize: 18, style: 'bold', color: colorPrincipal });
+      yPosition += 15;
+      
+      // Información de la empresa
+      addText('TÉCNICOS CLIMATIZACIÓN S.L.', 20, yPosition, { fontSize: 12, style: 'bold', color: colorSecundario });
+      yPosition += 6;
+      addText('Calle de la Tecnología, 123', 20, yPosition, { fontSize: 10, color: colorTexto });
+      yPosition += 5;
+      addText('28001 Madrid, España', 20, yPosition, { fontSize: 10, color: colorTexto });
+      yPosition += 5;
+      addText('CIF: B12345678', 20, yPosition, { fontSize: 10, color: colorTexto });
+      yPosition += 5;
+      addText('Tel: +34 91 123 45 67', 20, yPosition, { fontSize: 10, color: colorTexto });
+
+      // Información del albarán (lado derecho)
+      const albaranInfoX = 120;
+      addText(`Nº ALBARÁN: ${datosAlbaran.id?.substring(0, 8) || 'N/A'}`, albaranInfoX, 35, { fontSize: 12, style: 'bold', color: colorSecundario });
+      addText(`FECHA: ${this.formatearFecha(datosAlbaran.fecha_cierre)}`, albaranInfoX, 45, { fontSize: 10, color: colorTexto });
+      addText(`AVISO ID: ${datosAlbaran.aviso_id?.substring(0, 8) || 'N/A'}`, albaranInfoX, 55, { fontSize: 10, color: colorTexto });
+
+      yPosition += 20;
+      drawLine(20, yPosition, 190, yPosition, colorSecundario);
+      yPosition += 10;
+
+      // ===== INFORMACIÓN DEL CLIENTE =====
+      if (datosAlbaran.aviso) {
+        addSection('INFORMACIÓN DEL CLIENTE', () => {
+          addText(`Cliente: ${datosAlbaran.aviso.nombre_cliente_aviso || 'No especificado'}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+          yPosition += 6;
+          addText(`Dirección: ${datosAlbaran.aviso.direccion_cliente_aviso || 'No especificada'}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+          yPosition += 6;
+          addText(`Estado del aviso: ${datosAlbaran.aviso.estado || 'No especificado'}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+        }, 30);
+      }
+
+      // ===== FECHAS Y HORARIOS =====
+      addSection('FECHAS Y HORARIOS', () => {
+        addText(`Fecha de cierre: ${this.formatearFecha(datosAlbaran.fecha_cierre)}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+        yPosition += 6;
+        addText(`Hora de entrada: ${datosAlbaran.hora_entrada || 'No especificada'}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+        yPosition += 6;
+        addText(`Hora de salida: ${datosAlbaran.hora_salida || 'No especificada'}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+      }, 25);
+
+      // ===== DESCRIPCIÓN DEL TRABAJO =====
+      if (datosAlbaran.descripcion_trabajo_realizado) {
+        addSection('DESCRIPCIÓN DEL TRABAJO REALIZADO', () => {
+          const descripcion = datosAlbaran.descripcion_trabajo_realizado;
+          const maxWidth = 150;
+          const lines = doc.splitTextToSize(descripcion, maxWidth);
+          
+          lines.forEach((line: string) => {
+            checkNewPage(8);
+            addText(line, 25, yPosition, { fontSize: 10, color: colorTexto });
+            yPosition += 6;
+          });
+        }, 40);
+      }
+
+      // ===== MATERIALES UTILIZADOS =====
+      if (datosAlbaran.materialesUtilizados && datosAlbaran.materialesUtilizados.length > 0) {
+        addSection('MATERIALES UTILIZADOS', () => {
+          // Header de la tabla
+          addText('Código', 25, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          addText('Material', 60, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          addText('Cant.', 110, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          addText('Unidad', 125, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          addText('Precio', 145, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          addText('Total', 170, yPosition, { fontSize: 9, style: 'bold', color: colorSecundario });
+          yPosition += 8;
+          
+          drawLine(25, yPosition, 190, yPosition, colorTextoClaro);
+          yPosition += 5;
+
+          let totalMateriales = 0;
+          
+          datosAlbaran.materialesUtilizados.forEach((material: any) => {
+            checkNewPage(8);
+            
+            addText(material.codigo || '-', 25, yPosition, { fontSize: 8, color: colorTexto });
+            addText(material.nombre || 'Sin nombre', 60, yPosition, { fontSize: 8, color: colorTexto });
+            addText(material.cantidad?.toString() || '0', 110, yPosition, { fontSize: 8, color: colorTexto });
+            addText(material.unidad || 'unidad', 125, yPosition, { fontSize: 8, color: colorTexto });
+            addText(`€${(material.precio_pvp || 0).toFixed(2)}`, 145, yPosition, { fontSize: 8, color: colorTexto });
+            
+            const totalLinea = (material.cantidad || 0) * (material.precio_pvp || 0);
+            totalMateriales += totalLinea;
+            addText(`€${totalLinea.toFixed(2)}`, 170, yPosition, { fontSize: 8, color: colorTexto });
+            
+            yPosition += 6;
+          });
+
+          // Línea de total
+          yPosition += 5;
+          drawLine(25, yPosition, 190, yPosition, colorTextoClaro);
+          yPosition += 8;
+          
+          addText('TOTAL MATERIALES:', 125, yPosition, { fontSize: 10, style: 'bold', color: colorSecundario });
+          addText(`€${totalMateriales.toFixed(2)}`, 170, yPosition, { fontSize: 10, style: 'bold', color: colorSecundario });
+        }, 50);
+      }
+
+      // ===== ESTADO DEL CIERRE =====
+      if (datosAlbaran.estado_cierre) {
+        addSection('ESTADO DEL CIERRE', () => {
+          addText(`Estado: ${datosAlbaran.estado_cierre}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+          yPosition += 6;
+          
+          if (datosAlbaran.estado_cierre === 'Presupuesto pendiente' && datosAlbaran.presupuesto_necesario > 0) {
+            addText(`Monto estimado: €${datosAlbaran.presupuesto_necesario.toFixed(2)}`, 25, yPosition, { fontSize: 10, style: 'bold', color: colorSecundario });
+            yPosition += 6;
+          }
+        }, 20);
+      }
+
+      // ===== INFORMACIÓN DEL CLIENTE (FIRMA) =====
+      if (datosAlbaran.dni_cliente || datosAlbaran.nombre_firma) {
+        addSection('INFORMACIÓN DEL CLIENTE', () => {
+          if (datosAlbaran.dni_cliente) {
+            addText(`DNI: ${datosAlbaran.dni_cliente}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+            yPosition += 6;
+          }
+          if (datosAlbaran.nombre_firma) {
+            addText(`Firmado por: ${datosAlbaran.nombre_firma}`, 25, yPosition, { fontSize: 10, color: colorTexto });
+          }
+        }, 20);
+      }
+
+      // ===== OBSERVACIONES =====
+      if (datosAlbaran.observaciones) {
+        addSection('OBSERVACIONES', () => {
+          const observaciones = datosAlbaran.observaciones;
+          const maxWidth = 150;
+          const lines = doc.splitTextToSize(observaciones, maxWidth);
+          
+          lines.forEach((line: string) => {
+            checkNewPage(8);
+            addText(line, 25, yPosition, { fontSize: 10, color: colorTexto });
+            yPosition += 6;
+          });
+        }, 30);
+      }
+
+      // ===== FOOTER =====
+      yPosition = 270;
+      drawLine(20, yPosition, 190, yPosition, colorTextoClaro);
+      yPosition += 8;
+      
+      addText('TÉCNICOS CLIMATIZACIÓN S.L.', 20, yPosition, { fontSize: 8, style: 'bold', color: colorSecundario });
+      addText('+34 91 123 45 67', 105, yPosition, { fontSize: 8, color: colorTextoClaro });
+      addText('info@tecnicosclimatizacion.es', 150, yPosition, { fontSize: 8, color: colorTextoClaro });
+
+      // Convertir a Blob
+      const pdfBlob = doc.output('blob');
+      
+      console.log('✅ PDF de albarán generado como Blob exitosamente');
+      return pdfBlob;
+      
+    } catch (error) {
+      console.error('❌ Error al generar PDF de albarán como Blob:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Genera un PDF del albarán usando jsPDF
    */
   generarPdfAlbaran(datosAlbaran: any, nombreArchivo: string = 'albaran.pdf'): void {

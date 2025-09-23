@@ -21,7 +21,7 @@
     <div *ngIf="!aviso && !loading && !modoEdicion" class="aviso-selector-section">
       <h3>Seleccionar Aviso</h3>
       <p>Para crear un presupuesto, primero debes seleccionar un aviso:</p>
-      
+
       <button type="button" class="btn-select-aviso" (click)="abrirSelectorAvisos()">
         <ion-icon name="list-outline"></ion-icon>
         Seleccionar Aviso
@@ -35,15 +35,11 @@
             <ion-icon name="close"></ion-icon>
           </button>
         </div>
-        
+
         <!-- Búsqueda de avisos -->
         <div class="search-container">
-          <input 
-            type="text" 
-            [(ngModel)]="busquedaAviso"
-            (input)="filtrarAvisos($event)"
-            placeholder="Buscar avisos por cliente o descripción..."
-            class="search-input">
+          <input type="text" [(ngModel)]="busquedaAviso" (input)="filtrarAvisos($event)"
+            placeholder="Buscar avisos por cliente o descripción..." class="search-input">
           <ion-icon name="search-outline"></ion-icon>
         </div>
 
@@ -61,10 +57,7 @@
 
         <!-- Lista de avisos -->
         <div *ngIf="!loadingAvisos && !errorAvisos" class="avisos-list">
-          <div 
-            *ngFor="let avisoItem of avisosFiltrados" 
-            class="aviso-item"
-            (click)="seleccionarAviso(avisoItem)">
+          <div *ngFor="let avisoItem of avisosFiltrados" class="aviso-item" (click)="seleccionarAviso(avisoItem)">
             <div class="aviso-info">
               <div class="aviso-header">
                 <span class="aviso-id">#{{ avisoItem.id?.substring(0, 8) }}</span>
@@ -106,36 +99,84 @@
     <!-- Formulario (solo si hay aviso seleccionado) -->
     <form *ngIf="aviso" [formGroup]="presupuestoForm" (ngSubmit)="guardarPresupuesto()">
       <div class="form-section">
-        <h3>Estimación de Trabajo</h3>
-        
+        <h3>Mano de Obra y Desplazamientos</h3>
+
         <div class="form-group">
-          <label>Horas estimadas</label>
-          <input 
-            type="number" 
-            formControlName="horas_estimadas"
-            (input)="calcularTotal()"
-            min="0"
-            step="0.5"
+          <label>Horas de trabajo técnico</label>
+          <input type="number" formControlName="horas_estimadas" (input)="calcularTotal()" min="0" step="0.5"
             placeholder="0.0">
-          <div *ngIf="presupuestoForm.get('horas_estimadas')?.invalid && presupuestoForm.get('horas_estimadas')?.touched" class="error-message">
-            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['required']">Las horas estimadas son requeridas</span>
-            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['min']">Las horas deben ser mayor o igual a 0</span>
-            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['max']">Las horas no pueden exceder 1000</span>
+          <div
+            *ngIf="presupuestoForm.get('horas_estimadas')?.invalid && presupuestoForm.get('horas_estimadas')?.touched"
+            class="error-message">
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['required']">Las horas estimadas son
+              requeridas</span>
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['min']">Las horas deben ser mayor o igual a
+              0</span>
+            <span *ngIf="presupuestoForm.get('horas_estimadas')?.errors?.['max']">Las horas no pueden exceder
+              1000</span>
+          </div>
+          <small class="help-text">Tiempo de trabajo técnico especializado</small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Horas de desplazamiento</label>
+            <input type="number" formControlName="horas_desplazamiento" (input)="calcularTotal()" min="0" step="0.5"
+              placeholder="0.0">
+            <div
+              *ngIf="presupuestoForm.get('horas_desplazamiento')?.invalid && presupuestoForm.get('horas_desplazamiento')?.touched"
+              class="error-message">
+              <span *ngIf="presupuestoForm.get('horas_desplazamiento')?.errors?.['min']">Las horas deben ser mayor o igual
+                a 0</span>
+              <span *ngIf="presupuestoForm.get('horas_desplazamiento')?.errors?.['max']">Las horas no pueden exceder
+                1000</span>
+            </div>
+            <small class="help-text">Tiempo de traslado y logística</small>
+          </div>
+
+          <div class="form-group">
+            <label>Precio/hora desplazamiento (€)</label>
+            <input type="number" formControlName="precio_hora_desplazamiento" (input)="calcularTotal()" min="0" step="0.01"
+              placeholder="0.00">
+            <div
+              *ngIf="presupuestoForm.get('precio_hora_desplazamiento')?.invalid && presupuestoForm.get('precio_hora_desplazamiento')?.touched"
+              class="error-message">
+              <span *ngIf="presupuestoForm.get('precio_hora_desplazamiento')?.errors?.['min']">El precio debe ser mayor o igual
+                a 0</span>
+              <span *ngIf="presupuestoForm.get('precio_hora_desplazamiento')?.errors?.['max']">El precio no puede exceder
+                1000</span>
+            </div>
+            <small class="help-text">Precio por hora para desplazamientos</small>
+          </div>
+        </div>
+
+        <!-- Resumen de mano de obra -->
+        <div class="summary-box">
+          <div class="summary-item">
+            <span>Trabajo técnico:</span>
+            <span>{{ getCostoTrabajoTecnico() | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="summary-item">
+            <span>Desplazamientos:</span>
+            <span>{{ getCostoDesplazamientos() | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="summary-item total">
+            <span>Subtotal mano de obra:</span>
+            <span>{{ getSubtotalManoObra() | currency:'EUR':'symbol':'1.2-2' }}</span>
           </div>
         </div>
 
         <div class="form-group">
           <label>Total estimado (€)</label>
-          <input 
-            type="number" 
-            formControlName="total_estimado"
-            min="0"
-            step="0.01"
-            placeholder="0.00">
-          <div *ngIf="presupuestoForm.get('total_estimado')?.invalid && presupuestoForm.get('total_estimado')?.touched" class="error-message">
-            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['required']">El total estimado es requerido</span>
-            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['min']">El total debe ser mayor o igual a 0</span>
-            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['max']">El total no puede exceder 1,000,000</span>
+          <input type="number" formControlName="total_estimado" min="0" step="0.01" placeholder="0.00">
+          <div *ngIf="presupuestoForm.get('total_estimado')?.invalid && presupuestoForm.get('total_estimado')?.touched"
+            class="error-message">
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['required']">El total estimado es
+              requerido</span>
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['min']">El total debe ser mayor o igual a
+              0</span>
+            <span *ngIf="presupuestoForm.get('total_estimado')?.errors?.['max']">El total no puede exceder
+              1,000,000</span>
           </div>
         </div>
 
@@ -144,7 +185,7 @@
       <!-- Materiales -->
       <div class="form-section">
         <div class="section-header">
-          <h3>Materiales Estimados</h3>
+          <h3>Materiales y Repuestos</h3>
           <div class="header-actions">
             <button type="button" class="btn-select-inventory" (click)="abrirSelectorMateriales()">
               <ion-icon name="list-outline"></ion-icon>
@@ -153,6 +194,11 @@
             <button type="button" class="btn-add" (click)="mostrarFormularioManual()">
               <ion-icon name="add-circle-outline"></ion-icon>
               Agregar Manualmente
+            </button>
+            <button type="button" class="btn-clean" (click)="limpiarMaterialesInvalidos()" *ngIf="materiales.length > 0"
+              title="Limpiar materiales inválidos">
+              <ion-icon name="refresh-outline"></ion-icon>
+              Limpiar
             </button>
           </div>
         </div>
@@ -165,15 +211,11 @@
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
-          
+
           <!-- Búsqueda de productos -->
           <div class="search-container">
-            <input 
-              type="text" 
-              [(ngModel)]="busquedaProducto"
-              (input)="filtrarProductos($event)"
-              placeholder="Buscar productos..."
-              class="search-input">
+            <input type="text" [(ngModel)]="busquedaProducto" (input)="filtrarProductos($event)"
+              placeholder="Buscar productos..." class="search-input">
             <ion-icon name="search-outline"></ion-icon>
           </div>
 
@@ -191,9 +233,7 @@
 
           <!-- Lista de productos -->
           <div *ngIf="!loadingProductos && !errorProductos" class="products-list">
-            <div 
-              *ngFor="let producto of productosFiltrados" 
-              class="product-item"
+            <div *ngFor="let producto of productosFiltrados" class="product-item"
               (click)="agregarMaterialDelInventario(producto)">
               <div class="product-info">
                 <div class="product-header">
@@ -225,23 +265,22 @@
               <ion-icon name="close"></ion-icon>
             </button>
           </div>
-          
+
           <div class="formulario-campos" [formGroup]="materialManualForm">
             <div class="campo-input">
-              <input type="text" formControlName="denominacion" 
-                     placeholder="Denominación del material" class="input-denominacion">
+              <input type="text" formControlName="denominacion" placeholder="Denominación del material"
+                class="input-denominacion">
             </div>
-            
+
             <div class="campo-cantidad">
-              <input type="number" formControlName="cantidad" 
-                     placeholder="Cantidad" min="1" class="input-cantidad">
+              <input type="number" formControlName="cantidad" placeholder="Cantidad" min="1" class="input-cantidad">
             </div>
-            
+
             <div class="campo-precio">
-              <input type="number" formControlName="precio" 
-                     placeholder="Precio €" min="0" step="0.01" class="input-precio">
+              <input type="number" formControlName="precio" placeholder="Precio €" min="0" step="0.01"
+                class="input-precio">
             </div>
-            
+
             <button type="button" class="btn-agregar" (click)="agregarMaterialDesdeFormulario()">
               <ion-icon name="checkmark-outline"></ion-icon>
             </button>
@@ -250,24 +289,22 @@
 
         <!-- Lista de materiales añadidos -->
         <div class="materiales-list" *ngIf="materiales.length > 0">
-          <h4>Materiales añadidos</h4>
 
-          <!-- Resumen de costos -->
-          <div class="costo-total">
-            <strong>Costo total de materiales: {{ calcularCostoTotalMateriales() | currency:'EUR':'symbol':'1.2-2' }}</strong>
-          </div>
 
           <div class="material-item-compacto" *ngFor="let material of materiales; let i = index">
             <span class="material-denominacion">{{ getNombreProducto(material.material_id) }}</span>
             <input type="number" [value]="material.cantidad_estimada" [min]="1"
-                   (change)="actualizarCantidadMaterial(i, $event)" 
-                   class="cantidad-input-compacto">
+              (change)="actualizarCantidadMaterial(i, $event)" class="cantidad-input-compacto">
             <input type="number" [value]="material.precio_neto_al_momento" [min]="0" step="0.01"
-                   (input)="actualizarPrecioMaterial(i, $event)" 
-                   class="precio-input-compacto">
+              (input)="actualizarPrecioMaterial(i, $event)" class="precio-input-compacto">
             <button type="button" class="btn-remove-compacto" (click)="eliminarMaterial(i)">
               <ion-icon name="trash-outline"></ion-icon>
             </button>
+          </div>
+          <!-- Resumen de costos -->
+          <div class="costo-total">
+            <strong>Costo total de materiales: {{ calcularCostoTotalMateriales() | currency:'EUR':'symbol':'1.2-2'
+              }}</strong>
           </div>
         </div>
 
@@ -276,62 +313,55 @@
         </div>
       </div>
 
-             <!-- Botones -->
-       <div class="form-actions">
-         <button type="button" class="btn-secondary" (click)="volver()">
-           <ion-icon name="arrow-back-outline"></ion-icon>
-           Volver a Presupuestos
-         </button>
-         
-         <button 
-           type="submit" 
-           class="btn-primary" 
-           [disabled]="!presupuestoForm.valid || loading || !avisoId"
-           [class.btn-disabled]="!presupuestoForm.valid || loading || !avisoId">
-           <ion-icon name="save-outline"></ion-icon>
-           {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
-         </button>
+      <!-- Botones -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="volver()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Volver a Presupuestos
+        </button>
 
-         <!-- Botón para aprobar presupuesto (solo en modo edición y si está pendiente) -->
-         <button 
-           *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Pendiente'" 
-           type="button" 
-           class="btn-success" 
-           (click)="aprobarPresupuesto()"
-           [disabled]="loading">
-           <ion-icon name="checkmark-circle-outline"></ion-icon>
-           Aprobar Presupuesto
-         </button>
+        <button type="submit" class="btn-primary" [disabled]="!presupuestoForm.valid || loading || !avisoId"
+          [class.btn-disabled]="!presupuestoForm.valid || loading || !avisoId">
+          <ion-icon name="save-outline"></ion-icon>
+          {{ loading ? 'Guardando...' : (modoEdicion ? 'Actualizar Presupuesto' : 'Guardar Presupuesto') }}
+        </button>
 
-         <!-- Indicador si ya está aprobado -->
-         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Aprobado'" class="presupuesto-completado">
-           <ion-icon name="checkmark-circle-outline"></ion-icon>
-           Presupuesto Aprobado
-         </div>
+        <!-- Botón para aprobar presupuesto (solo en modo edición y si está pendiente) -->
+        <button *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Pendiente'" type="button"
+          class="btn-success" (click)="aprobarPresupuesto()" [disabled]="loading">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Aprobar Presupuesto
+        </button>
 
-         <!-- Indicador si está rechazado -->
-         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Rechazado'" class="presupuesto-rechazado">
-           <ion-icon name="close-circle-outline"></ion-icon>
-           Presupuesto Rechazado
-         </div>
+        <!-- Indicador si ya está aprobado -->
+        <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Aprobado'" class="presupuesto-completado">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          Presupuesto Aprobado
+        </div>
 
-         <!-- Indicador si está cancelado -->
-         <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Cancelado'" class="presupuesto-cancelado">
-           <ion-icon name="ban-outline"></ion-icon>
-           Presupuesto Cancelado
-         </div>
-       </div>
-      
-             <!-- Información de estado -->
-       <div *ngIf="!presupuestoForm.valid && presupuestoForm.touched" class="form-status">
-         <p class="status-error">Por favor, complete todos los campos requeridos correctamente</p>
-       </div>
-       <div *ngIf="!avisoId" class="form-status">
-         <p class="status-error">No se ha seleccionado un aviso</p>
-       </div>
-       
-       <!-- Información del aviso asociado -->
-       <div *ngIf="avisoId && aviso" class="aviso-info-status" style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 16px; margin-top: 16px;">
+        <!-- Indicador si está rechazado -->
+        <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Rechazado'" class="presupuesto-rechazado">
+          <ion-icon name="close-circle-outline"></ion-icon>
+          Presupuesto Rechazado
+        </div>
+
+        <!-- Indicador si está cancelado -->
+        <div *ngIf="modoEdicion && presupuestoForm.get('estado')?.value === 'Cancelado'" class="presupuesto-cancelado">
+          <ion-icon name="ban-outline"></ion-icon>
+          Presupuesto Cancelado
+        </div>
+      </div>
+
+      <!-- Información de estado -->
+      <div *ngIf="!presupuestoForm.valid && presupuestoForm.touched" class="form-status">
+        <p class="status-error">Por favor, complete todos los campos requeridos correctamente</p>
+      </div>
+      <div *ngIf="!avisoId" class="form-status">
+        <p class="status-error">No se ha seleccionado un aviso</p>
+      </div>
+
+      <!-- Información del aviso asociado -->
+      <!-- <div *ngIf="avisoId && aviso" class="aviso-info-status" style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 16px; margin-top: 16px;">
          <h4 style="margin: 0 0 8px 0; color: #0C4A6E; font-size: 14px;">
            <ion-icon name="information-circle-outline" style="margin-right: 8px;"></ion-icon>
            Aviso Asociado
@@ -343,7 +373,7 @@
          <p style="margin: 8px 0 0 0; color: #0C4A6E; font-size: 13px;">
            Puedes usar el botón "Volver al Aviso" para regresar y continuar con el trabajo.
          </p>
-       </div>
+       </div> -->
     </form>
   </div>
-</ion-content> 
+</ion-content>

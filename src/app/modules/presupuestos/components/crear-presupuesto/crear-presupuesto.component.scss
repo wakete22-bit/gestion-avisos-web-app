@@ -1364,4 +1364,104 @@ ion-content {
       }
     }
   }
+}
+
+// Estilos para texto de ayuda
+.help-text {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+// Estilos para caja de resumen
+.summary-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e2e8f0;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &.total {
+      font-weight: 600;
+      color: #4f46e5;
+      font-size: 16px;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 2px solid #4f46e5;
+    }
+    
+    span:first-child {
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    span:last-child {
+      color: #111827;
+      font-weight: 500;
+      font-size: 14px;
+      
+      .total & {
+        font-weight: 600;
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// Estilos para botón de limpiar
+.btn-clean {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    transform: translateY(-1px);
+  }
+  
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+// Estilos para fila de formulario
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+  }
 } 

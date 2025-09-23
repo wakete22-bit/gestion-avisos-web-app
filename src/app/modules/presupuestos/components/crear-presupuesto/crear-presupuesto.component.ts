@@ -81,6 +81,8 @@ export class CrearPresupuestoComponent implements OnInit {
     
     this.presupuestoForm = this.fb.group({
       horas_estimadas: [0, [Validators.required, Validators.min(0), Validators.max(1000)]],
+      horas_desplazamiento: [0, [Validators.min(0), Validators.max(1000)]],
+      precio_hora_desplazamiento: [0, [Validators.min(0), Validators.max(1000)]],
       total_estimado: [0, [Validators.required, Validators.min(0), Validators.max(1000000)]],
       estado: ['Pendiente', Validators.required]
     });
@@ -274,6 +276,7 @@ export class CrearPresupuestoComponent implements OnInit {
     }
     
     this.calcularTotal(true); // Sin verificación para evitar bucle
+    this.limpiarMaterialesInvalidos(); // Limpiar materiales inválidos
     this.cerrarSelectorMateriales();
   }
 
@@ -343,6 +346,8 @@ export class CrearPresupuestoComponent implements OnInit {
         
         this.presupuestoForm.patchValue({
           horas_estimadas: presupuesto.horas_estimadas,
+          horas_desplazamiento: presupuesto.horas_desplazamiento || 0,
+          precio_hora_desplazamiento: presupuesto.precio_hora_desplazamiento || this.configuracionService.getPrecioHoraManoObraSync(),
           total_estimado: presupuesto.total_estimado,
           estado: presupuesto.estado || 'Pendiente'
         });
@@ -367,6 +372,8 @@ export class CrearPresupuestoComponent implements OnInit {
 
         setTimeout(() => {
           this.calcularTotal(true);
+          // Limpiar materiales inválidos después de cargar
+          this.limpiarMaterialesInvalidos();
         }, 100);
         
         this.loading = false;
@@ -471,6 +478,7 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('🔍 agregarMaterialDesdeFormulario - Material manual creado:', materialManual);
     this.materiales.push(materialManual);
     this.calcularTotal(true);
+    this.limpiarMaterialesInvalidos(); // Limpiar materiales inválidos
 
     // Cerrar formulario y limpiar
     this.cerrarFormularioManual();
@@ -537,14 +545,17 @@ export class CrearPresupuestoComponent implements OnInit {
     
     // Calcular el total sin verificación para evitar bucle infinito
     const horasEstimadas = this.presupuestoForm.get('horas_estimadas')?.value || 0;
+    const horasDesplazamiento = this.presupuestoForm.get('horas_desplazamiento')?.value || 0;
     const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
+    const precioHoraDesplazamiento = this.presupuestoForm.get('precio_hora_desplazamiento')?.value || precioPorHora;
     const costoManoObra = horasEstimadas * precioPorHora;
+    const costoDesplazamientos = horasDesplazamiento * precioHoraDesplazamiento;
     const costoMateriales = this.materiales.reduce((total, material) => {
       const cantidad = material.cantidad_estimada || 0;
       const precio = material.precio_neto_al_momento || 0;
       return total + (cantidad * precio);
     }, 0);
-    const totalCalculado = costoManoObra + costoMateriales;
+    const totalCalculado = costoManoObra + costoDesplazamientos + costoMateriales;
     
     console.log('Total calculado (mano obra + materiales):', totalCalculado);
     console.log('==========================================');
@@ -562,8 +573,12 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('Materiales actuales:', this.materiales);
     
     const horasEstimadas = this.presupuestoForm.get('horas_estimadas')?.value || 0;
+    const horasDesplazamiento = this.presupuestoForm.get('horas_desplazamiento')?.value || 0;
     const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
+    const precioHoraDesplazamiento = this.presupuestoForm.get('precio_hora_desplazamiento')?.value || precioPorHora;
+    
     const costoManoObra = horasEstimadas * precioPorHora;
+    const costoDesplazamientos = horasDesplazamiento * precioHoraDesplazamiento;
     
     const costoMateriales = this.materiales.reduce((total, material) => {
       const cantidad = material.cantidad_estimada || 0;
@@ -573,11 +588,13 @@ export class CrearPresupuestoComponent implements OnInit {
       return total + subtotal;
     }, 0);
     
-    const totalEstimado = costoManoObra + costoMateriales;
+    const totalEstimado = costoManoObra + costoDesplazamientos + costoMateriales;
     console.log('Calculando total:', {
       horasEstimadas,
+      horasDesplazamiento,
       precioPorHora,
       costoManoObra,
+      costoDesplazamientos,
       costoMateriales,
       totalEstimado
     });
@@ -604,22 +621,6 @@ export class CrearPresupuestoComponent implements OnInit {
     }
   }
 
-  /**
-   * Limpia materiales vacíos o inválidos
-   */
-  limpiarMaterialesInvalidos(): void {
-    console.log('Limpiando materiales inválidos...');
-    console.log('Materiales antes de limpiar:', this.materiales);
-    
-    // Filtrar solo materiales válidos
-    this.materiales = this.materiales.filter(material => 
-      material.material_id && 
-      material.cantidad_estimada > 0 && 
-      material.precio_neto_al_momento >= 0
-    );
-    
-    console.log('Materiales después de limpiar:', this.materiales);
-  }
 
   /**
    * Verifica el estado de los materiales antes de guardar
@@ -697,6 +698,8 @@ export class CrearPresupuestoComponent implements OnInit {
       console.log('Modo edición - actualizando presupuesto:', this.presupuestoId);
       const presupuestoData = {
         horas_estimadas: this.presupuestoForm.get('horas_estimadas')?.value,
+        horas_desplazamiento: this.presupuestoForm.get('horas_desplazamiento')?.value,
+        precio_hora_desplazamiento: this.presupuestoForm.get('precio_hora_desplazamiento')?.value,
         total_estimado: this.presupuestoForm.get('total_estimado')?.value,
         estado: this.presupuestoForm.get('estado')?.value,
         materiales: this.materiales // Incluir materiales en la actualización
@@ -739,6 +742,8 @@ export class CrearPresupuestoComponent implements OnInit {
         aviso_id: this.avisoId || '',
         albaran_id: albaranId,
         horas_estimadas: this.presupuestoForm.get('horas_estimadas')?.value,
+        horas_desplazamiento: this.presupuestoForm.get('horas_desplazamiento')?.value,
+        precio_hora_desplazamiento: this.presupuestoForm.get('precio_hora_desplazamiento')?.value,
         total_estimado: this.presupuestoForm.get('total_estimado')?.value,
         estado: this.presupuestoForm.get('estado')?.value,
         materiales: this.materiales
@@ -1042,5 +1047,68 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('modoEdicion:', this.modoEdicion);
     console.log('presupuestoId:', this.presupuestoId);
     console.log('================================');
+  }
+
+  // Métodos para mostrar cálculos en el resumen
+  getCostoTrabajoTecnico(): number {
+    const horasEstimadas = this.presupuestoForm.get('horas_estimadas')?.value || 0;
+    const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
+    return horasEstimadas * precioPorHora;
+  }
+
+  getCostoDesplazamientos(): number {
+    const horasDesplazamiento = this.presupuestoForm.get('horas_desplazamiento')?.value || 0;
+    const precioPorHora = this.configuracionService.getPrecioHoraManoObraSync();
+    const precioHoraDesplazamiento = this.presupuestoForm.get('precio_hora_desplazamiento')?.value || precioPorHora;
+    return horasDesplazamiento * precioHoraDesplazamiento;
+  }
+
+  getSubtotalManoObra(): number {
+    return this.getCostoTrabajoTecnico() + this.getCostoDesplazamientos();
+  }
+
+  /**
+   * Limpia materiales que no deberían estar en la lista (como desplazamientos)
+   */
+  limpiarMaterialesInvalidos(): void {
+    console.log('Limpiando materiales inválidos...');
+    console.log('Materiales antes de limpiar:', this.materiales);
+    
+    const materialesInvalidos = [
+      'desplazamiento',
+      'desplazamientos', 
+      'traslado',
+      'traslados',
+      'mano de obra',
+      'trabajo técnico',
+      'horas',
+      'desplazamiento y traslados'
+    ];
+
+    // Primero filtrar por validación básica
+    this.materiales = this.materiales.filter(material => 
+      material.material_id && 
+      material.cantidad_estimada > 0 && 
+      material.precio_neto_al_momento >= 0
+    );
+
+    // Luego filtrar por nombre (conceptos de mano de obra)
+    this.materiales = this.materiales.filter(material => {
+      const nombre = this.getNombreProducto(material.material_id).toLowerCase();
+      const esInvalido = materialesInvalidos.some(invalido => 
+        nombre.includes(invalido.toLowerCase())
+      );
+      
+      if (esInvalido) {
+        console.log(`🧹 Eliminando material inválido: ${nombre}`);
+      }
+      
+      return !esInvalido;
+    });
+
+    console.log('Materiales después de limpiar:', this.materiales);
+    
+    // Recalcular total después de limpiar
+    this.calcularTotal(true);
   }
 } 

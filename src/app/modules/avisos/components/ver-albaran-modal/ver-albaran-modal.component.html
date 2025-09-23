@@ -13,6 +13,17 @@
           <ion-icon name="print-outline"></ion-icon>
           <span class="desktop-only">Imprimir</span>
         </button>
+        <!-- Botón para enviar por correo -->
+        <button 
+          class="btn-email" 
+          (click)="enviarAlbaranPorCorreo()" 
+          [disabled]="enviandoCorreo || !puedeEnviarPorCorreo()"
+          [class.loading]="enviandoCorreo"
+          [title]="getTituloBotonCorreo()">
+          <ion-icon name="mail-outline" *ngIf="!enviandoCorreo"></ion-icon>
+          <ion-icon name="refresh-outline" class="spinning" *ngIf="enviandoCorreo"></ion-icon>
+          <span class="desktop-only">{{ enviandoCorreo ? 'Enviando...' : 'Email' }}</span>
+        </button>
         <button class="btn-cerrar" (click)="cerrarModal()" title="Cerrar">
           <ion-icon name="close"></ion-icon>
         </button>

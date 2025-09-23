@@ -68,6 +68,52 @@ ion-header {
         }
       }
 
+      .btn-email {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10B981;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &:hover:not(:disabled) {
+          background: rgba(16, 185, 129, 0.15);
+          border-color: rgba(16, 185, 129, 0.3);
+          transform: translateY(-1px);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        &.loading {
+          background: rgba(16, 185, 129, 0.2);
+          color: #059669;
+        }
+
+        ion-icon {
+          font-size: 16px;
+
+          &.spinning {
+            animation: spin 1s linear infinite;
+          }
+        }
+
+        .desktop-only {
+          @media (max-width: 768px) {
+            display: none;
+          }
+        }
+      }
+
       .btn-cerrar {
         width: 36px;
         height: 36px;

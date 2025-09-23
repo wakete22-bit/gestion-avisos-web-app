@@ -40,12 +40,16 @@ export class EmailService {
         to_name: nombreCliente,
         from_name: 'TÉCNICOS CLIMATIZACIÓN S.L.',
         subject: asunto || `Factura ${numeroFactura} - TÉCNICOS CLIMATIZACIÓN S.L.`,
-        message: mensaje || this.crearMensajeHTML(nombreCliente, numeroFactura, enlaceDescarga, totalFactura),
+        message: mensaje || this.crearMensajeSimple(nombreCliente, numeroFactura, enlaceDescarga, totalFactura, 'factura'),
         factura_numero: numeroFactura,
         fecha_factura: new Date().toLocaleDateString('es-ES'),
         total_factura: '€' + (totalFactura || 0).toFixed(2),
         link_descarga: enlaceDescarga,
-        pdf_url: enlaceDescarga
+        pdf_url: enlaceDescarga,
+        // Parámetros para identificar el tipo de documento
+        documento_tipo: 'factura',
+        documento_titulo: 'Factura',
+        documento_descripcion: 'factura con todos los detalles de los servicios realizados'
       };
 
       console.log('📧 Parámetros del template:', {
@@ -157,7 +161,12 @@ export class EmailService {
    */
   private async crearEnlaceDescargaPublico(pdfBlob: Blob, nombreArchivo: string): Promise<string> {
     try {
-      // Usar el servicio de descarga pública
+      // Para albaranes, usar enlace directo con data URL (más simple y confiable)
+      if (nombreArchivo.includes('albaran_')) {
+        return await this.publicDownloadService.crearEnlaceDirecto(pdfBlob, nombreArchivo);
+      }
+      
+      // Para facturas, usar el servicio de descarga pública
       return await this.publicDownloadService.crearEnlaceDescargaPublico(pdfBlob, nombreArchivo);
     } catch (error) {
       console.error('❌ Error al crear enlace público, usando fallback:', error);
@@ -222,73 +231,25 @@ TÉCNICOS CLIMATIZACIÓN S.L.
   }
 
   /**
-   * Crea un mensaje HTML profesional para la factura
+   * Crea un mensaje simple que se integra con la plantilla de EmailJS
    */
-  private crearMensajeHTML(nombreCliente: string, numeroFactura: string, pdfUrl: string, totalFactura?: number): string {
-    return `
-      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
-        <div style="background-color: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #e2e8f0;">
-          <div style="text-align: center; margin-bottom: 35px; padding-bottom: 20px; border-bottom: 3px solid #2563eb;">
-            <h1 style="color: #2563eb; margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 1px;">TÉCNICOS CLIMATIZACIÓN S.L.</h1>
-            <p style="color: #64748b; margin: 8px 0 0 0; font-size: 16px; font-weight: 500;">Servicios profesionales de climatización</p>
-          </div>
-          
-          <h2 style="color: #333; margin-bottom: 20px;">Hola ${nombreCliente},</h2>
-          
-          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
-            Le enviamos la factura <strong>${numeroFactura}</strong> con todos los detalles de los servicios realizados.
-          </p>
-          
-          <div style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 5px solid #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);">
-            <h3 style="color: #2563eb; margin: 0 0 15px 0; font-size: 20px; font-weight: 600;">📄 Factura ${numeroFactura}</h3>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0;">
-              <span style="color: #64748b; font-weight: 500;">Fecha:</span>
-              <span style="color: #1e293b; font-weight: 600;">${new Date().toLocaleDateString('es-ES')}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0; padding-top: 8px; border-top: 1px solid #cbd5e1;">
-              <span style="color: #64748b; font-weight: 500;">Total:</span>
-              <span style="color: #1e293b; font-weight: 700; font-size: 18px;">€${(totalFactura || 0).toFixed(2)}</span>
-            </div>
-          </div>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${pdfUrl}" 
-               style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
-                      color: white; 
-                      padding: 18px 35px; 
-                      text-decoration: none; 
-                      border-radius: 12px; 
-                      font-weight: bold; 
-                      display: inline-block; 
-                      font-size: 18px; 
-                      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-                      transition: all 0.3s ease;
-                      border: none;
-                      cursor: pointer;
-                      text-align: center;
-                      min-width: 200px;">
-              📥 DESCARGAR FACTURA PDF
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 10px; font-style: italic;">
-              Haga clic en el botón para descargar su factura
-            </p>
-          </div>
-          
-          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
-            Si tiene alguna pregunta sobre esta factura o necesita asistencia, no dude en contactarnos.
-          </p>
-          
-          <div style="border-top: 2px solid #e2e8f0; padding-top: 25px; margin-top: 35px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 20px; border-radius: 8px;">
-            <p style="color: #475569; font-size: 15px; margin: 0; text-align: center;">
-              <strong style="color: #2563eb; font-size: 16px;">TÉCNICOS CLIMATIZACIÓN S.L.</strong><br>
-              <span style="margin: 5px 0; display: block;">📧 info@tecnicosclimatizacion.es</span>
-              <span style="margin: 5px 0; display: block;">📞 +34 91 123 45 67</span>
-              <span style="margin: 5px 0; display: block;">🌐 www.tecnicosclimatizacion.es</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    `;
+  private crearMensajeSimple(nombreCliente: string, numeroDocumento: string, pdfUrl: string, total?: number, tipo: 'factura' | 'albaran' | 'presupuesto' = 'factura'): string {
+    const config = tipo === 'factura' ? {
+      descripcion: 'factura con todos los detalles de los servicios realizados',
+      mensajeAdicional: 'Si tiene alguna pregunta sobre esta factura o necesita asistencia, no dude en contactarnos.'
+    } : tipo === 'albaran' ? {
+      descripcion: 'albarán con todos los detalles del trabajo realizado',
+      mensajeAdicional: 'Este albarán contiene el detalle del trabajo realizado, materiales utilizados y tiempo invertido. Si tiene alguna pregunta sobre este trabajo o necesita asistencia adicional, no dude en contactarnos.'
+    } : {
+      descripcion: 'presupuesto con la estimación detallada de materiales, mano de obra y desplazamientos',
+      mensajeAdicional: 'Este presupuesto incluye todos los materiales estimados, trabajo técnico especializado, desplazamientos y condiciones del trabajo. Si tiene alguna pregunta sobre este presupuesto o desea realizar alguna modificación, no dude en contactarnos.'
+    };
+
+    return `Le enviamos el ${config.descripcion}.
+
+${config.mensajeAdicional}
+
+Gracias por confiar en nuestros servicios de climatización profesional.`;
   }
 
   /**
@@ -332,6 +293,145 @@ TÉCNICOS CLIMATIZACIÓN S.L.
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
+  }
+
+  /**
+   * Envía un albarán por correo electrónico con enlace de descarga público
+   */
+  async enviarAlbaranPorCorreo(
+    emailCliente: string,
+    nombreCliente: string,
+    numeroAlbaran: string,
+    pdfBlob: Blob,
+    totalAlbaran?: number,
+    asunto?: string,
+    mensaje?: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('📧 Iniciando envío de albarán por correo con enlace de descarga...');
+      
+      // Crear enlace de descarga público
+      const nombreArchivo = `albaran_${numeroAlbaran}.pdf`;
+      const enlaceDescarga = await this.crearEnlaceDescargaPublico(pdfBlob, nombreArchivo);
+      
+      // Preparar los parámetros del template
+      const templateParams = {
+        to_email: emailCliente,
+        to_name: nombreCliente,
+        from_name: 'TÉCNICOS CLIMATIZACIÓN S.L.',
+        subject: asunto || `Albarán ${numeroAlbaran} - TÉCNICOS CLIMATIZACIÓN S.L.`,
+        message: mensaje || this.crearMensajeSimple(nombreCliente, numeroAlbaran, enlaceDescarga, totalAlbaran, 'albaran'),
+        factura_numero: numeroAlbaran, // Reutilizamos el campo factura_numero
+        fecha_factura: new Date().toLocaleDateString('es-ES'),
+        total_factura: '€' + (totalAlbaran || 0).toFixed(2),
+        link_descarga: enlaceDescarga,
+        pdf_url: enlaceDescarga,
+        // Parámetros para identificar el tipo de documento
+        documento_tipo: 'albaran',
+        documento_titulo: 'Albarán',
+        documento_descripcion: 'albarán con todos los detalles del trabajo realizado'
+      };
+
+      console.log('📧 Parámetros del template (albarán):', {
+        to_email: templateParams.to_email,
+        to_name: templateParams.to_name,
+        from_name: templateParams.from_name,
+        subject: templateParams.subject,
+        factura_numero: templateParams.factura_numero,
+        total_factura: templateParams.total_factura,
+        link_descarga: templateParams.link_descarga
+      });
+
+      // Enviar el correo
+      const response = await emailjs.send(
+        this.SERVICE_ID,
+        this.TEMPLATE_ID,
+        templateParams
+      );
+
+      console.log('✅ Albarán enviado exitosamente con enlace de descarga:', response);
+      return {
+        success: true,
+        message: 'Albarán enviado correctamente con enlace de descarga'
+      };
+
+    } catch (error) {
+      console.error('❌ Error al enviar albarán por correo:', error);
+      return {
+        success: false,
+        message: 'Error al enviar el albarán. Inténtelo de nuevo.'
+      };
+    }
+  }
+
+
+  /**
+   * Envía un presupuesto por correo electrónico con enlace de descarga público
+   */
+  async enviarPresupuestoPorCorreo(
+    emailCliente: string,
+    nombreCliente: string,
+    numeroPresupuesto: string,
+    pdfBlob: Blob,
+    totalPresupuesto?: number,
+    asunto?: string,
+    mensaje?: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('📧 Iniciando envío de presupuesto por correo con enlace de descarga...');
+      
+      // Crear enlace de descarga público
+      const nombreArchivo = `presupuesto_${numeroPresupuesto}.pdf`;
+      const enlaceDescarga = await this.crearEnlaceDescargaPublico(pdfBlob, nombreArchivo);
+      
+      // Preparar los parámetros del template
+      const templateParams = {
+        to_email: emailCliente,
+        to_name: nombreCliente,
+        from_name: 'TÉCNICOS CLIMATIZACIÓN S.L.',
+        subject: asunto || `Presupuesto ${numeroPresupuesto} - TÉCNICOS CLIMATIZACIÓN S.L.`,
+        message: mensaje || this.crearMensajeSimple(nombreCliente, numeroPresupuesto, enlaceDescarga, totalPresupuesto, 'presupuesto'),
+        factura_numero: numeroPresupuesto, // Reutilizamos el campo factura_numero
+        fecha_factura: new Date().toLocaleDateString('es-ES'),
+        total_factura: '€' + (totalPresupuesto || 0).toFixed(2),
+        link_descarga: enlaceDescarga,
+        pdf_url: enlaceDescarga,
+        // Parámetros para identificar el tipo de documento
+        documento_tipo: 'presupuesto',
+        documento_titulo: 'Presupuesto',
+        documento_descripcion: 'presupuesto con la estimación detallada de materiales, mano de obra y desplazamientos'
+      };
+
+      console.log('📧 Parámetros del template (presupuesto):', {
+        to_email: templateParams.to_email,
+        to_name: templateParams.to_name,
+        from_name: templateParams.from_name,
+        subject: templateParams.subject,
+        factura_numero: templateParams.factura_numero,
+        total_factura: templateParams.total_factura,
+        link_descarga: templateParams.link_descarga
+      });
+
+      // Enviar el correo
+      const response = await emailjs.send(
+        this.SERVICE_ID,
+        this.TEMPLATE_ID,
+        templateParams
+      );
+
+      console.log('✅ Presupuesto enviado exitosamente con enlace de descarga:', response);
+      return {
+        success: true,
+        message: 'Presupuesto enviado correctamente con enlace de descarga'
+      };
+
+    } catch (error) {
+      console.error('❌ Error al enviar presupuesto por correo:', error);
+      return {
+        success: false,
+        message: 'Error al enviar el presupuesto. Inténtelo de nuevo.'
+      };
+    }
   }
 
   /**

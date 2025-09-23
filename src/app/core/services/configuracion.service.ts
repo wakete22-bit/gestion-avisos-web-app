@@ -57,6 +57,14 @@ export class ConfiguracionService {
   }
 
   /**
+   * Obtiene el IVA por defecto de forma síncrona
+   */
+  getIvaPorDefectoSync(): number {
+    const config = this.configuracionSubject.value;
+    return config?.facturacion?.iva_por_defecto || 21;
+  }
+
+  /**
    * Obtiene la moneda por defecto
    */
   getMonedaPorDefecto(): Observable<string> {

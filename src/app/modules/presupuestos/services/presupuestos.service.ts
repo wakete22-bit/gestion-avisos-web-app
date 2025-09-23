@@ -13,6 +13,8 @@ export interface Presupuesto {
   fecha_creacion: Date;
   fecha_actualizacion?: Date;
   horas_estimadas?: number;
+  horas_desplazamiento?: number; // Nuevo campo para desplazamientos
+  precio_hora_desplazamiento?: number; // Precio por hora para desplazamientos
   total_estimado?: number;
   pdf_url?: string;
   estado: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
@@ -43,6 +45,8 @@ export interface CrearPresupuestoRequest {
   aviso_id: string;
   albaran_id?: string | null; // Campo opcional hasta que se implemente correctamente
   horas_estimadas?: number;
+  horas_desplazamiento?: number; // Nuevo campo para desplazamientos
+  precio_hora_desplazamiento?: number; // Precio por hora para desplazamientos
   total_estimado?: number;
   estado?: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
   pdf_url?: string;
@@ -52,6 +56,8 @@ export interface CrearPresupuestoRequest {
 export interface ActualizarPresupuestoRequest {
   aviso_id?: string;
   horas_estimadas?: number;
+  horas_desplazamiento?: number; // Nuevo campo para desplazamientos
+  precio_hora_desplazamiento?: number; // Precio por hora para desplazamientos
   total_estimado?: number;
   estado?: 'Pendiente' | 'Aprobado' | 'Rechazado' | 'Cancelado';
   pdf_url?: string;
@@ -166,6 +172,8 @@ export class PresupuestosService {
     const presupuestoData: any = {
       aviso_id: presupuesto.aviso_id,
       horas_estimadas: presupuesto.horas_estimadas,
+      horas_desplazamiento: presupuesto.horas_desplazamiento || 0,
+      precio_hora_desplazamiento: presupuesto.precio_hora_desplazamiento || 0,
       total_estimado: presupuesto.total_estimado,
       fecha_creacion: new Date().toISOString(),
       estado: 'Pendiente'
@@ -228,6 +236,8 @@ export class PresupuestosService {
     // Añadir campos opcionales solo si están presentes
     if (presupuesto.aviso_id !== undefined) datosActualizados.aviso_id = presupuesto.aviso_id;
     if (presupuesto.horas_estimadas !== undefined) datosActualizados.horas_estimadas = presupuesto.horas_estimadas;
+    if (presupuesto.horas_desplazamiento !== undefined) datosActualizados.horas_desplazamiento = presupuesto.horas_desplazamiento;
+    if (presupuesto.precio_hora_desplazamiento !== undefined) datosActualizados.precio_hora_desplazamiento = presupuesto.precio_hora_desplazamiento;
     if (presupuesto.total_estimado !== undefined) datosActualizados.total_estimado = presupuesto.total_estimado;
     if (presupuesto.estado !== undefined) datosActualizados.estado = presupuesto.estado;
     if (presupuesto.pdf_url !== undefined) datosActualizados.pdf_url = presupuesto.pdf_url;

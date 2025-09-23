@@ -210,6 +210,7 @@ CREATE TABLE public.presupuestos (
   aviso_id uuid NOT NULL,
   fecha_creacion timestamp with time zone DEFAULT now(),
   horas_estimadas numeric DEFAULT 0,
+  horas_desplazamiento numeric DEFAULT 0,
   total_estimado numeric DEFAULT 0,
   materiales_estimados jsonb DEFAULT '[]'::jsonb,
   estado text NOT NULL DEFAULT 'Pendiente'::text CHECK (estado = ANY (ARRAY['Pendiente'::text, 'Aprobado'::text, 'Rechazado'::text, 'Cancelado'::text])),

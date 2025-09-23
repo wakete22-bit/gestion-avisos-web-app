@@ -16,9 +16,19 @@
           <ion-icon name="print-outline"></ion-icon>
           Imprimir
         </button>
-        <button class="btn-primary" (click)="descargarPresupuesto()">
+        <button class="btn-secondary" (click)="descargarPresupuesto()">
           <ion-icon name="download-outline"></ion-icon>
           Descargar PDF
+        </button>
+        <button 
+          class="btn-primary" 
+          [disabled]="!puedeEnviarPorCorreo() || enviandoCorreo"
+          [class.loading]="enviandoCorreo"
+          [title]="getTituloBotonCorreo()"
+          (click)="enviarPresupuestoPorCorreo()">
+          <ion-icon name="mail-outline" *ngIf="!enviandoCorreo"></ion-icon>
+          <ion-icon name="refresh-outline" class="spinning" *ngIf="enviandoCorreo"></ion-icon>
+          {{ enviandoCorreo ? 'Enviando...' : 'Enviar por Correo' }}
         </button>
       </div>
     </div>
@@ -98,7 +108,7 @@
       </div>
 
       <!-- Detalle de Materiales -->
-      <div class="materiales-section" *ngIf="presupuesto.materiales && presupuesto.materiales.length > 0">
+      <div class="materiales-section" *ngIf="presupuesto.materiales_estimados && presupuesto.materiales_estimados.length > 0">
         <h3>Materiales Estimados</h3>
         <table class="materiales-table">
           <thead>
@@ -110,8 +120,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let material of presupuesto.materiales">
-              <td>{{ material.material?.nombre || 'Material sin nombre' }}</td>
+            <tr *ngFor="let material of presupuesto.materiales_estimados">
+              <td>{{ material.producto?.nombre || material.denominacion || 'Material sin nombre' }}</td>
               <td>{{ material.cantidad_estimada }}</td>
               <td>{{ formatearMoneda(material.precio_neto_al_momento) }}</td>
               <td>{{ formatearMoneda(material.cantidad_estimada * material.precio_neto_al_momento) }}</td>
@@ -120,9 +130,9 @@
         </table>
       </div>
 
-      <!-- Mano de Obra -->
-      <div class="mano-obra-section" *ngIf="presupuesto.horas_estimadas">
-        <h3>Mano de Obra</h3>
+      <!-- Mano de Obra y Desplazamientos -->
+      <div class="mano-obra-section" *ngIf="presupuesto.horas_estimadas || presupuesto.horas_desplazamiento">
+        <h3>Mano de Obra y Desplazamientos</h3>
         <table class="mano-obra-table">
           <thead>
             <tr>
@@ -133,11 +143,17 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr *ngIf="presupuesto.horas_estimadas">
               <td>Trabajo técnico especializado</td>
               <td>{{ presupuesto.horas_estimadas }}h</td>
               <td>{{ formatearMoneda(precioHoraManoObra) }}</td>
               <td>{{ formatearMoneda((presupuesto.horas_estimadas || 0) * precioHoraManoObra) }}</td>
+            </tr>
+            <tr *ngIf="presupuesto.horas_desplazamiento">
+              <td>Desplazamiento y traslados</td>
+              <td>{{ presupuesto.horas_desplazamiento }}h</td>
+              <td>{{ formatearMoneda(presupuesto.precio_hora_desplazamiento || precioHoraManoObra) }}</td>
+              <td>{{ formatearMoneda((presupuesto.horas_desplazamiento || 0) * (presupuesto.precio_hora_desplazamiento || precioHoraManoObra)) }}</td>
             </tr>
           </tbody>
         </table>

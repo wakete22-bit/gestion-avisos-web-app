@@ -2,10 +2,11 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonButton, IonModal, ModalController, IonHeader, IonToolbar, IonContent, IonFooter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator } from 'ionicons/icons';
+import { close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator, mailOutline } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import { PresupuestosService } from '../../../presupuestos/services/presupuestos.service';
 import { AlbaranPdfService } from '../../../../core/services/albaran-pdf.service';
+import { EmailService } from '../../../../core/services/email.service';
 
 // Interfaces para el albarán
 export interface RepuestoAlbaran {
@@ -48,13 +49,17 @@ export class VerAlbaranModalComponent implements OnInit {
   @Input() albaran!: Albaran;
   @Input() aviso: any;
 
+  // Estado para el envío de correo
+  enviandoCorreo = false;
+
   constructor(
     private modalController: ModalController,
     private router: Router,
     private presupuestosService: PresupuestosService,
-    private albaranPdfService: AlbaranPdfService
+    private albaranPdfService: AlbaranPdfService,
+    private emailService: EmailService
   ) {
-    addIcons({ close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator });
+    addIcons({ close, documentTextOutline, personOutline, timeOutline, calendarOutline, cubeOutline, checkmarkCircleOutline, warningOutline, refreshOutline, downloadOutline, printOutline, createOutline, calculator, mailOutline });
   }
 
   ngOnInit() {
@@ -434,5 +439,139 @@ export class VerAlbaranModalComponent implements OnInit {
     return 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
+  /**
+   * Envía el albarán por correo electrónico al cliente
+   */
+  async enviarAlbaranPorCorreo() {
+    if (!this.albaran) {
+      console.error('No hay albarán para enviar');
+      return;
+    }
+
+    // Verificar si hay email del cliente en el aviso
+    const emailCliente = this.aviso?.cliente?.email || this.aviso?.email_cliente_aviso;
+    const nombreCliente = this.aviso?.nombre_cliente_aviso;
+
+    if (!emailCliente) {
+      console.error('No hay email del cliente');
+      alert('Error: No se encontró email del cliente en el aviso. Por favor, verifica que el aviso tenga un email válido.');
+      return;
+    }
+
+    // Validar que el email tenga formato válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailCliente)) {
+      console.error('Email del cliente no es válido:', emailCliente);
+      alert('Error: El email del cliente no tiene un formato válido.');
+      return;
+    }
+
+    try {
+      this.enviandoCorreo = true;
+      console.log('📧 Iniciando envío de albarán por correo...');
+      console.log('📧 Datos del albarán:', {
+        email_cliente: emailCliente,
+        nombre_cliente: nombreCliente,
+        numero_albaran: this.albaran.id?.substring(0, 8),
+        total_materiales: this.calcularTotalMateriales()
+      });
+
+      // Generar el PDF como Blob
+      const datosAlbaran = {
+        id: this.albaran.id,
+        trabajo_id: this.albaran.trabajo_id,
+        aviso_id: this.albaran.aviso_id,
+        fecha_cierre: this.albaran.fecha_cierre,
+        hora_entrada: this.albaran.hora_entrada,
+        hora_salida: this.albaran.hora_salida,
+        descripcion_trabajo_realizado: this.albaran.descripcion_trabajo_realizado,
+        materialesUtilizados: this.materialesUtilizados,
+        estado_cierre: this.albaran.estado_cierre,
+        presupuesto_necesario: this.albaran.presupuesto_necesario,
+        dni_cliente: this.albaran.dni_cliente,
+        nombre_firma: this.albaran.nombre_firma,
+        firma_url: this.albaran.firma_url,
+        observaciones: this.albaran.observaciones,
+        fecha_creacion: this.albaran.fecha_creacion,
+        aviso: this.aviso
+      };
+
+      const pdfBlob = await this.albaranPdfService.generarPdfAlbaranBlob(
+        datosAlbaran, 
+        `albaran_${this.albaran.id?.substring(0, 8)}.pdf`
+      );
+
+      // Enviar por correo
+      console.log('📧 Enviando correo con datos:', {
+        emailCliente: emailCliente,
+        nombreCliente: nombreCliente,
+        numeroAlbaran: this.albaran.id?.substring(0, 8),
+        totalAlbaran: this.calcularTotalMateriales()
+      });
+
+      const resultado = await this.emailService.enviarAlbaranPorCorreo(
+        emailCliente,
+        nombreCliente || 'Cliente',
+        this.albaran.id?.substring(0, 8) || 'N/A',
+        pdfBlob,
+        this.calcularTotalMateriales()
+      );
+
+      if (resultado.success) {
+        console.log('✅ Albarán enviado exitosamente');
+        alert('✅ Albarán enviado correctamente al cliente');
+      } else {
+        console.error('❌ Error al enviar albarán:', resultado.message);
+        alert('❌ Error al enviar el albarán: ' + resultado.message);
+      }
+
+    } catch (error) {
+      console.error('❌ Error al enviar albarán por correo:', error);
+      alert('❌ Error inesperado al enviar el albarán. Por favor, inténtelo de nuevo.');
+    } finally {
+      this.enviandoCorreo = false;
+    }
+  }
+
+  /**
+   * Verifica si se puede enviar el albarán por correo
+   */
+  puedeEnviarPorCorreo(): boolean {
+    const emailCliente = this.aviso?.cliente?.email || this.aviso?.email_cliente_aviso;
+    const tieneEmail = !!emailCliente;
+    const tieneAlbaran = !!(this.albaran);
+    
+    console.log('🔍 Debug - Puede enviar por correo:', {
+      tieneEmail,
+      tieneAlbaran,
+      emailCliente: emailCliente,
+      emailClienteDesdeRelacion: this.aviso?.cliente?.email,
+      emailClienteDesdeAviso: this.aviso?.email_cliente_aviso,
+      albaranId: this.albaran?.id,
+      avisoCompleto: this.aviso
+    });
+    
+    return !!(tieneEmail && tieneAlbaran);
+  }
+
+  /**
+   * Retorna el título del botón de correo según el estado
+   */
+  getTituloBotonCorreo(): string {
+    if (this.enviandoCorreo) {
+      return 'Enviando correo...';
+    }
+    
+    if (!this.albaran) {
+      return 'No hay albarán para enviar';
+    }
+    
+    const emailCliente = this.aviso?.cliente?.email || this.aviso?.email_cliente_aviso;
+    if (!emailCliente) {
+      return 'No hay email del cliente en el aviso';
+    }
+    
+    return 'Enviar albarán por correo';
+  }
 
 }
