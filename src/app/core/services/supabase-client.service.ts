@@ -11,10 +11,12 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class SupabaseClientService {
   private static instance: SupabaseClient | null = null;
+  private static isCreating = false; // Flag para evitar creación múltiple
   private isInitialized = false;
   private appStateListener: any;
   private connectionStatus$ = new BehaviorSubject<boolean>(true);
   private isReconnecting = false;
+  private authLockTimeout: any;
   
   constructor(private ngZone: NgZone) {}
   
@@ -23,8 +25,15 @@ export class SupabaseClientService {
    * Si no existe, la crea con la configuración optimizada para móviles
    */
   public getClient(): SupabaseClient {
-    if (!SupabaseClientService.instance) {
+    if (!SupabaseClientService.instance && !SupabaseClientService.isCreating) {
+      SupabaseClientService.isCreating = true;
       console.log('🔧 SupabaseClientService: Creando nueva instancia del cliente...');
+      
+      // LOGS CRÍTICOS PARA DEBUG
+      console.log('🔧 ENVIRONMENT DEBUG:');
+      console.log('🔧 Supabase URL:', environment.supabaseUrl);
+      console.log('🔧 Supabase Key presente:', !!environment.supabaseAnonKey);
+      console.log('🔧 Supabase Key length:', environment.supabaseAnonKey?.length);
       
       SupabaseClientService.instance = createClient(
         environment.supabaseUrl,
@@ -33,30 +42,30 @@ export class SupabaseClientService {
           auth: {
             persistSession: true,
             autoRefreshToken: true, // ✅ HABILITADO para renovación automática
-            detectSessionInUrl: false,
-            // Usar Capacitor Preferences en lugar de localStorage para mejor persistencia en móviles
+            detectSessionInUrl: false, // ❌ DESHABILITADO para evitar conflictos de locks
+            // Usar localStorage nativo para evitar conflictos con NavigatorLockManager
+            // El storage personalizado con Capacitor puede causar race conditions
             storage: {
-              getItem: async (key: string): Promise<string | null> => {
+              getItem: (key: string): string | null => {
                 try {
-                  const { value } = await Preferences.get({ key });
-                  return value;
+                  return localStorage.getItem(key);
                 } catch (error) {
-                  console.warn('⚠️ Error leyendo de Capacitor Preferences:', error);
+                  console.warn('⚠️ Error leyendo de localStorage:', error);
                   return null;
                 }
               },
-              setItem: async (key: string, value: string): Promise<void> => {
+              setItem: (key: string, value: string): void => {
                 try {
-                  await Preferences.set({ key, value });
+                  localStorage.setItem(key, value);
                 } catch (error) {
-                  console.warn('⚠️ Error escribiendo en Capacitor Preferences:', error);
+                  console.warn('⚠️ Error escribiendo en localStorage:', error);
                 }
               },
-              removeItem: async (key: string): Promise<void> => {
+              removeItem: (key: string): void => {
                 try {
-                  await Preferences.remove({ key });
+                  localStorage.removeItem(key);
                 } catch (error) {
-                  console.warn('⚠️ Error eliminando de Capacitor Preferences:', error);
+                  console.warn('⚠️ Error eliminando de localStorage:', error);
                 }
               }
             }
@@ -74,8 +83,11 @@ export class SupabaseClientService {
           // Configuración de realtime optimizada para móviles
           realtime: {
             params: {
-              eventsPerSecond: 2 // Reducido para máximo rendimiento en móviles
-            }
+              eventsPerSecond: 10 // Optimizado para mejor respuesta
+            },
+            // Configuración adicional para PWAs móviles
+            heartbeatIntervalMs: 30000, // 30 segundos entre heartbeats
+            reconnectAfterMs: (tries: number) => Math.min(tries * 1000, 10000) // Backoff hasta 10 segundos
           }
         }
       );
@@ -85,14 +97,16 @@ export class SupabaseClientService {
         this.initializeService();
       }
       
-      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado con Capacitor Preferences');
+      SupabaseClientService.isCreating = false;
+      console.log('🔧 SupabaseClientService: Cliente Supabase singleton creado con localStorage nativo');
     }
     
-    return SupabaseClientService.instance;
+    // Si ya existe una instancia, simplemente devolverla
+    return SupabaseClientService.instance!;
   }
 
   /**
-   * Inicializa el servicio con listeners para cambios de estado de la app
+   * Inicializa el servicio con listeners esenciales
    */
   private async initializeService(): Promise<void> {
     if (this.isInitialized) return;
@@ -100,16 +114,10 @@ export class SupabaseClientService {
     try {
       console.log('🔧 SupabaseClientService: Inicializando servicio...');
       
-      // Configurar listener para cambios de estado de la app (background/foreground)
-      await this.setupAppStateListener();
-      
-      // Configurar listener para cambios de autenticación
+      // Solo configurar listener para cambios de autenticación
       this.setupAuthStateListener();
       
-      // Configurar listener para cambios de visibilidad del documento
-      this.setupVisibilityChangeListener();
-      
-      // Configurar monitoreo de conexión realtime
+      // Configurar monitoreo básico de conexión realtime
       this.setupConnectionMonitoring();
       
       this.isInitialized = true;
@@ -155,28 +163,6 @@ export class SupabaseClientService {
     };
   }
 
-  /**
-   * Configura el listener para cambios de estado de la app (background/foreground)
-   */
-  private async setupAppStateListener(): Promise<void> {
-    try {
-      this.appStateListener = await App.addListener('appStateChange', ({ isActive }) => {
-        this.ngZone.run(() => {
-          if (isActive) {
-            console.log('📱 App vuelve al foreground, reconectando...');
-            this.handleAppResume();
-          } else {
-            console.log('📱 App va al background');
-            this.handleAppBackground();
-          }
-        });
-      });
-      
-      console.log('🔧 SupabaseClientService: Listener de estado de app configurado');
-    } catch (error) {
-      console.warn('⚠️ No se pudo configurar listener de estado de app (probablemente en web):', error);
-    }
-  }
 
   /**
    * Configura el listener para cambios de autenticación
@@ -202,141 +188,7 @@ export class SupabaseClientService {
     console.log('🔧 SupabaseClientService: Listener de autenticación configurado');
   }
 
-  /**
-   * Configura el listener para cambios de visibilidad del documento
-   */
-  private setupVisibilityChangeListener(): void {
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        console.log('👁️ Documento visible, verificando conexión...');
-        this.handleDocumentVisible();
-      }
-    });
-    
-    console.log('🔧 SupabaseClientService: Listener de visibilidad configurado');
-  }
 
-  /**
-   * Maneja cuando la app vuelve del background
-   */
-  private async handleAppResume(): Promise<void> {
-    if (this.isReconnecting) {
-      console.log('🔄 Ya hay una reconexión en progreso, saltando...');
-      return;
-    }
-
-    try {
-      this.isReconnecting = true;
-      console.log('🔄 SupabaseClientService: Reconectando tras resumen de app...');
-      
-      // Verificar si hay una sesión válida
-      const session = await this.getCurrentSession();
-      if (session) {
-        console.log('✅ Sesión válida encontrada, reconectando realtime...');
-        
-        // Reconectar realtime
-        await this.reconnectRealtime();
-        
-        // Verificar si el token necesita refresh
-        if (await this.shouldRefreshToken(session)) {
-          console.log('🔄 Token próximo a expirar, refrescando...');
-          await this.refreshSession();
-        }
-      } else {
-        console.log('ℹ️ No hay sesión activa para reconectar');
-      }
-    } catch (error) {
-      console.error('❌ Error en reconexión tras resumen:', error);
-      // Forzar refresh si la reconexión falla
-      this.forceReconnection();
-    } finally {
-      this.isReconnecting = false;
-    }
-  }
-
-  /**
-   * Maneja cuando la app va al background
-   */
-  private handleAppBackground(): void {
-    console.log('📱 App en background, pausando operaciones no críticas...');
-    // Aquí podrías implementar lógica para pausar operaciones no críticas
-  }
-
-  /**
-   * Maneja cuando el documento se vuelve visible
-   */
-  private async handleDocumentVisible(): Promise<void> {
-    if (this.isReconnecting) {
-      console.log('🔄 Ya hay una reconexión en progreso, saltando...');
-      return;
-    }
-
-    try {
-      this.isReconnecting = true;
-      console.log('👁️ Documento visible, verificando estado de la sesión...');
-      
-      const session = await this.getCurrentSession();
-      if (session) {
-        // Verificar si la sesión sigue siendo válida
-        if (await this.isSessionValid(session)) {
-          console.log('✅ Sesión válida, reconectando realtime...');
-          await this.reconnectRealtime();
-        } else {
-          console.log('⚠️ Sesión expirada, intentando refresh...');
-          await this.refreshSession();
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error verificando estado de sesión:', error);
-      // Forzar refresh si la verificación falla
-      this.forceReconnection();
-    } finally {
-      this.isReconnecting = false;
-    }
-  }
-
-  /**
-   * Fuerza la reconexión completa si fallan los métodos normales
-   */
-  private forceReconnection(): void {
-    console.log('🔄 Forzando reconexión completa...');
-    
-    // Limpiar instancia y reconectar
-    setTimeout(() => {
-      try {
-        const client = this.getClient();
-        client.removeAllChannels();
-        
-        // Notificar cambio de estado
-        this.connectionStatus$.next(false);
-        
-        // Intentar reconectar después de un breve delay
-        setTimeout(() => {
-          this.connectionStatus$.next(true);
-        }, 1000);
-        
-      } catch (error) {
-        console.error('❌ Error en reconexión forzada:', error);
-      }
-    }, 500);
-  }
-
-  /**
-   * Reconecta el realtime de Supabase
-   */
-  private async reconnectRealtime(): Promise<void> {
-    try {
-      const client = this.getClient();
-      
-      // Desconectar realtime actual
-      client.removeAllChannels();
-      
-      // Reconectar (se hará automáticamente en la próxima suscripción)
-      console.log('🔄 Realtime desconectado, se reconectará automáticamente');
-    } catch (error) {
-      console.error('❌ Error reconectando realtime:', error);
-    }
-  }
 
   /**
    * Verifica si el token necesita ser refrescado
@@ -483,30 +335,88 @@ export class SupabaseClientService {
   }
 
   /**
-   * Verifica la conexión con timeout para evitar loadings infinitos
+   * Verifica la conexión usando fetch directo - BYPASA AUTH LOCKS
    */
-  public async testConnection(timeoutMs: number = 2000): Promise<boolean> {
+  public async testConnection(timeoutMs: number = 5000): Promise<boolean> {
+    console.log('🔧 SupabaseClientService: INICIANDO test DIRECTO (timeout:', timeoutMs, 'ms)...');
+    
     try {
-      console.log('🔧 SupabaseClientService: Iniciando test de conexión (timeout:', timeoutMs, 'ms)...');
-      const client = this.getClient();
+      // Usar fetch directo en lugar del cliente Supabase
+      const url = `${environment.supabaseUrl}/rest/v1/avisos?select=id&limit=1`;
+      const headers = {
+        'apikey': environment.supabaseAnonKey,
+        'Authorization': `Bearer ${environment.supabaseAnonKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      };
       
-      // Usar Promise.race para implementar timeout
+      console.log('🔧 URL construida:', url);
+      console.log('🔧 Headers preparados');
+      
+      const startTime = Date.now();
       const connectionTest = Promise.race([
-        // Test de conexión real - usar una consulta muy simple y rápida
-        client.from('avisos').select('id').limit(1),
-        // Timeout más agresivo
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), timeoutMs)
+        fetch(url, { method: 'GET', headers }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => {
+            console.log('🔧 ⏰ TIMEOUT del SupabaseClientService después de', timeoutMs, 'ms');
+            reject(new Error('Connection timeout'));
+          }, timeoutMs)
         )
       ]);
 
-      await connectionTest;
-      console.log('✅ SupabaseClientService: Conexión verificada correctamente');
-      return true;
+      console.log('🔧 Esperando respuesta de fetch directo...');
+      const response = await connectionTest;
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      
+      console.log('🔧 Fetch completado en', duration, 'ms');
+      console.log('🔧 Status:', response.status);
+      console.log('🔧 StatusText:', response.statusText);
+      
+      const isValid = response.ok;
+      
+      if (isValid) {
+        console.log('✅ SupabaseClientService: Conexión DIRECTA verificada en', duration, 'ms');
+        const responseText = await response.text();
+        console.log('✅ Response body:', responseText);
+      } else {
+        console.error('❌ SupabaseClientService: Test de conexión DIRECTA falló');
+        console.error('❌ Status:', response.status, response.statusText);
+      }
+      
+      return isValid;
       
     } catch (error) {
-      console.error('❌ SupabaseClientService: Error verificando conexión:', error);
+      console.error('❌ SupabaseClientService: EXCEPCIÓN en test DIRECTO:', {
+        message: (error as any).message,
+        stack: (error as any).stack,
+        name: (error as any).name,
+        fullError: error
+      });
       return false;
+    }
+  }
+
+  /**
+   * Resetea el cliente después de una reconexión exitosa
+   */
+  public resetClientAfterReconnection(): void {
+    console.log('🔧 Reseteando cliente Supabase después de reconexión...');
+    
+    try {
+      // Limpiar la instancia actual
+      SupabaseClientService.instance = null;
+      SupabaseClientService.isCreating = false;
+      
+      // Crear una nueva instancia limpia
+      const newClient = this.getClient();
+      console.log('🔧 Cliente Supabase reseteado exitosamente');
+      
+      // Actualizar estado de conexión
+      this.connectionStatus$.next(true);
+      
+    } catch (error) {
+      console.error('❌ Error reseteando cliente Supabase:', error);
     }
   }
 
@@ -515,23 +425,16 @@ export class SupabaseClientService {
    */
   public static clearInstance(): void {
     SupabaseClientService.instance = null;
+    SupabaseClientService.isCreating = false;
     console.log('🔧 SupabaseClientService: Instancia singleton limpiada');
   }
 
   /**
-   * Limpia todos los listeners al destruir el servicio
+   * Limpia recursos básicos al destruir el servicio
    */
   public async cleanup(): Promise<void> {
     try {
-      if (this.appStateListener) {
-        await this.appStateListener.remove();
-        console.log('🔧 SupabaseClientService: Listener de app eliminado');
-      }
-      
-      // Limpiar listener de visibilidad
-      document.removeEventListener('visibilitychange', this.handleDocumentVisible.bind(this));
-      console.log('🔧 SupabaseClientService: Listener de visibilidad eliminado');
-      
+      console.log('🧹 SupabaseClientService: Limpiando recursos básicos...');
       this.isInitialized = false;
     } catch (error) {
       console.error('❌ Error en cleanup:', error);

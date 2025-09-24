@@ -1,14 +1,15 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, ModalController, IonHeader, IonToolbar, IonContent, IonFooter, IonModal } from '@ionic/angular/standalone';
+import { IonIcon, ModalController, IonHeader, IonToolbar, IonContent, IonFooter } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, personOutline, mailOutline, callOutline, shieldOutline, alertCircleOutline, lockClosedOutline, informationCircleOutline, checkmarkCircleOutline, ellipseOutline, refreshOutline } from 'ionicons/icons';
 import { TipoRol } from '../../../../core/models/usuario.model';
 import { TecnicosService } from '../../services/tecnicos.service';
 import { CrearTecnicoRequest, Tecnico } from '../../models/tecnico.model';
 import { RolesService } from '../../../../core/services/roles.service';
-import { Subject, takeUntil, from } from 'rxjs';
+import { Subject, takeUntil, from, distinctUntilChanged } from 'rxjs';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 addIcons({
   'close-outline': closeOutline,
@@ -38,7 +39,6 @@ addIcons({
     IonToolbar,
     IonContent,
     IonFooter,
-    IonModal
   ]
 })
 export class CrearTecnicoModalComponent implements OnInit, OnDestroy {
@@ -68,7 +68,8 @@ export class CrearTecnicoModalComponent implements OnInit, OnDestroy {
   constructor(
     private modalController: ModalController,
     private tecnicosService: TecnicosService,
-    private rolesService: RolesService
+    private rolesService: RolesService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({
       personOutline,
@@ -89,6 +90,34 @@ export class CrearTecnicoModalComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.modoEdicion = this.modo === 'editar';
     this.cargarRolesDisponibles();
+    
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearTecnicoModalComponent: App reanudada, recargando datos...');
+          // En modo editar, recargar datos del técnico
+          if (this.modoEdicion && this.tecnico) {
+            this.cargarDatosTecnico();
+          }
+          // Recargar roles disponibles
+          this.cargarRolesDisponibles();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearTecnicoModalComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.modoEdicion && this.tecnico) {
+          this.cargarDatosTecnico();
+        }
+      });
     
     // Si estamos en modo editar y tenemos datos del técnico, cargar los datos
     if (this.modoEdicion && this.tecnico) {

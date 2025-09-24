@@ -17,7 +17,6 @@ import { CacheService } from './cache.service';
     providedIn: 'root'
 })
 export class AvisosService {
-    private supabase: SupabaseClient;
     private avisosSubject = new BehaviorSubject<Aviso[]>([]);
     public avisos$ = this.avisosSubject.asObservable();
 
@@ -25,7 +24,15 @@ export class AvisosService {
         private supabaseClientService: SupabaseClientService,
         private cacheService: CacheService
     ) {
-        this.supabase = this.supabaseClientService.getClient();
+        // NO asignar cliente estático - usar método dinámico
+    }
+
+    /**
+     * Obtiene el cliente Supabase actualizado dinámicamente
+     */
+    private getSupabaseClient(): SupabaseClient {
+        console.log('🔍 AvisosService: Obteniendo cliente Supabase actualizado...');
+        return this.supabaseClientService.getClient();
     }
 
     /**
@@ -35,7 +42,7 @@ export class AvisosService {
         console.log('🔍 AvisosService: Probando conexión básica...');
         
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .select('id')
                 .limit(1)
@@ -68,7 +75,7 @@ export class AvisosService {
         incluirCompletados: boolean = false
     ): Observable<AvisoResponse> {
         // Consulta optimizada - incluir solo campos esenciales
-        let query = this.supabase
+        let query = this.getSupabaseClient()
             .from('avisos')
             .select(`
                 id,
@@ -130,11 +137,129 @@ export class AvisosService {
     }
 
     /**
+     * Obtiene la lista de avisos usando FETCH DIRECTO - EVITA BLOQUEOS
+     */
+    getAvisosDirect(
+        pagina: number = 1,
+        porPagina: number = 15,
+        busqueda?: string,
+        ordenarPor?: string,
+        orden?: 'asc' | 'desc',
+        estado?: string,
+        incluirCompletados: boolean = false
+    ): Observable<AvisoResponse> {
+        console.log('🚀 AvisosService: Usando FETCH DIRECTO para avisos...');
+        
+        return from(this.fetchAvisosDirect(pagina, porPagina, busqueda, ordenarPor, orden, estado, incluirCompletados)).pipe(
+            map(result => {
+                console.log('✅ AvisosService: FETCH DIRECTO completado, avisos:', result.avisos.length);
+                
+                // Actualizar el subject local
+                this.avisosSubject.next(result.avisos);
+                
+                return result;
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error en FETCH DIRECTO:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Fetch directo para avisos - BYPASA CLIENTE SUPABASE
+     */
+    private async fetchAvisosDirect(
+        pagina: number = 1,
+        porPagina: number = 15,
+        busqueda?: string,
+        ordenarPor?: string,
+        orden?: 'asc' | 'desc',
+        estado?: string,
+        incluirCompletados: boolean = false
+    ): Promise<AvisoResponse> {
+        console.log('🚀 AvisosService: Ejecutando fetch directo para avisos...');
+        
+        try {
+            // Construir URL con parámetros - SIMPLIFICADA como el dashboard
+            let url = `${environment.supabaseUrl}/rest/v1/avisos?select=*,cliente:clientes(*)`;
+
+            // Aplicar filtros
+            const filters: string[] = [];
+            
+            if (busqueda) {
+                filters.push(`or=(nombre_cliente_aviso.ilike.*${busqueda}*,descripcion_problema.ilike.*${busqueda}*)`);
+            }
+            
+            if (estado) {
+                filters.push(`estado=eq.${estado}`);
+            } else if (!incluirCompletados) {
+                // Mostrar avisos activos: Pendiente, En curso, Pendiente de presupuesto, etc.
+                // Usar OR en lugar de IN para mejor compatibilidad
+                filters.push(`or=(estado.eq.Pendiente,estado.eq.En%20curso,estado.eq.Pendiente%20de%20presupuesto,estado.eq.Listo%20para%20facturar)`);
+                console.log('🔍 Filtro aplicado: Mostrando avisos activos (excluyendo Completado)');
+            }
+            
+            if (filters.length > 0) {
+                url += '&' + filters.join('&');
+            }
+            
+            // Aplicar paginación y ordenamiento
+            const desde = (pagina - 1) * porPagina;
+            const hasta = desde + porPagina - 1;
+            url += `&limit=${porPagina}&offset=${desde}`;
+            url += `&order=${ordenarPor || 'fecha_creacion'}.${orden === 'asc' ? 'asc' : 'desc'}`;
+            
+            const headers = {
+                'apikey': environment.supabaseServiceKey,
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'count=exact'
+            };
+            
+            console.log('🚀 URL construida:', url);
+            console.log('🚀 Headers:', headers);
+            
+            const startTime = Date.now();
+            const response = await fetch(url, { method: 'GET', headers });
+            const duration = Date.now() - startTime;
+            
+            console.log('🚀 Fetch completado en', duration, 'ms');
+            console.log('🚀 Status:', response.status);
+            console.log('🚀 Response headers:', response.headers);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🚀 Error response body:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            const contentRange = response.headers.get('content-range');
+            const total = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+            
+            console.log('🚀 Datos recibidos:', data?.length || 0, 'avisos, total:', total);
+            console.log('🚀 Primer aviso (si existe):', data[0]);
+            
+            return {
+                avisos: data as Aviso[],
+                total,
+                pagina,
+                por_pagina: porPagina
+            };
+            
+        } catch (error) {
+            console.error('🚀 Error en fetch directo:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Obtiene un aviso por su ID - VERSIÓN OPTIMIZADA
      */
     getAviso(id: string): Observable<Aviso> {
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .select(`
                     *,
@@ -170,7 +295,7 @@ export class AvisosService {
         };
 
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .insert([avisoData])
                 .select(`
@@ -206,7 +331,7 @@ export class AvisosService {
         };
 
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .update(datosActualizados)
                 .eq('id', id)
@@ -245,22 +370,22 @@ export class AvisosService {
         
         return from(Promise.all([
             // Verificar presupuestos
-            this.supabase
+            this.getSupabaseClient()
                 .from('presupuestos')
                 .select('id')
                 .eq('aviso_id', id),
             // Verificar facturas
-            this.supabase
+            this.getSupabaseClient()
                 .from('facturas')
                 .select('id')
                 .eq('aviso_id', id),
             // Verificar albaranes
-            this.supabase
+            this.getSupabaseClient()
                 .from('albaranes')
                 .select('id')
                 .eq('aviso_id', id),
             // Verificar historial de flujo (solo para logging, no como dependencia)
-            this.supabase
+            this.getSupabaseClient()
                 .from('historial_flujo')
                 .select('id')
                 .eq('aviso_id', id)
@@ -337,13 +462,13 @@ export class AvisosService {
         // Orden de eliminación: de más específico a más general
         const eliminaciones = [
             // 1. Eliminar historial de flujo
-            from(this.supabase.from('historial_flujo').delete().eq('aviso_id', id)),
+            from(this.getSupabaseClient().from('historial_flujo').delete().eq('aviso_id', id)),
             // 2. Eliminar albaranes (esto eliminará automáticamente los repuestos por CASCADE)
-            from(this.supabase.from('albaranes').delete().eq('aviso_id', id)),
+            from(this.getSupabaseClient().from('albaranes').delete().eq('aviso_id', id)),
             // 3. Eliminar presupuestos
-            from(this.supabase.from('presupuestos').delete().eq('aviso_id', id)),
+            from(this.getSupabaseClient().from('presupuestos').delete().eq('aviso_id', id)),
             // 4. Eliminar facturas (si las hay)
-            from(this.supabase.from('facturas').delete().eq('aviso_id', id)),
+            from(this.getSupabaseClient().from('facturas').delete().eq('aviso_id', id)),
             // 5. Eliminar fotos
             this.eliminarFotosAviso(id)
         ];
@@ -355,7 +480,7 @@ export class AvisosService {
                 
                 // Ahora eliminar el aviso
                 return from(
-                    this.supabase
+                    this.getSupabaseClient()
                         .from('avisos')
                         .delete()
                         .eq('id', id)
@@ -396,7 +521,7 @@ export class AvisosService {
     private eliminarFotosAviso(avisoId: string): Observable<void> {
         // Primero obtener todas las fotos del aviso
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('fotos_aviso')
                 .select('*')
                 .eq('aviso_id', avisoId)
@@ -409,7 +534,7 @@ export class AvisosService {
                 if (fotosData.length === 0) {
                     // No hay fotos, solo eliminar registros
                     return from(
-                        this.supabase
+                        this.getSupabaseClient()
                             .from('fotos_aviso')
                             .delete()
                             .eq('aviso_id', avisoId)
@@ -429,7 +554,7 @@ export class AvisosService {
                 
                 // Eliminar archivos del storage
                 return from(
-                    this.supabase.storage
+                    this.getSupabaseClient().storage
                         .from('fotos-avisos')
                         .remove(archivosAEliminar)
                 ).pipe(
@@ -441,7 +566,7 @@ export class AvisosService {
                         
                         // Eliminar registros de la base de datos
                         return from(
-                            this.supabase
+                            this.getSupabaseClient()
                                 .from('fotos_aviso')
                                 .delete()
                                 .eq('aviso_id', avisoId)
@@ -468,7 +593,7 @@ export class AvisosService {
         const fileName = `${avisoId}/${Date.now()}_${sanitizedFileName}`;
 
         return from(
-            this.supabase.storage
+            this.getSupabaseClient().storage
                 .from('fotos-avisos')
                 .upload(fileName, file)
         ).pipe(
@@ -483,14 +608,14 @@ export class AvisosService {
                 }
 
                 // Obtener URL pública
-                const { data: urlData } = this.supabase.storage
+                const { data: urlData } = this.getSupabaseClient().storage
                     .from('fotos-avisos')
                     .getPublicUrl(fileName);
 
                 return urlData.publicUrl;
             }),
             switchMap((publicUrl: string) => from(
-                this.supabase
+                this.getSupabaseClient()
                     .from('fotos_aviso')
                     .insert([{
                         aviso_id: avisoId,
@@ -517,7 +642,7 @@ export class AvisosService {
     eliminarFoto(fotoId: string): Observable<void> {
         // Primero obtener la información de la foto para eliminar el archivo del storage
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('fotos_aviso')
                 .select('*')
                 .eq('id', fotoId)
@@ -536,7 +661,7 @@ export class AvisosService {
                 
                 // Eliminar el archivo del storage
                 return from(
-                    this.supabase.storage
+                    this.getSupabaseClient().storage
                         .from('fotos-avisos')
                         .remove([fullPath])
                 ).pipe(
@@ -548,7 +673,7 @@ export class AvisosService {
                         
                         // Eliminar el registro de la base de datos
                         return from(
-                            this.supabase
+                            this.getSupabaseClient()
                                 .from('fotos_aviso')
                                 .delete()
                                 .eq('id', fotoId)
@@ -571,7 +696,7 @@ export class AvisosService {
      */
     buscarAvisos(termino: string): Observable<Aviso[]> {
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .select(`
           *,
@@ -649,7 +774,7 @@ export class AvisosService {
     crearFacturaDesdeTrabajos(avisoId: string): Observable<any> {
         // Obtener el aviso con todos sus trabajos realizados y albaranes
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .select(`
                     *,
@@ -746,7 +871,7 @@ export class AvisosService {
      */
     getResumenCompletoAviso(avisoId: string): Observable<any> {
         return from(
-            this.supabase
+            this.getSupabaseClient()
                 .from('avisos')
                 .select(`
                     *,

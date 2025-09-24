@@ -8,16 +8,14 @@ import { AuthService } from './core/services/auth.service';
 import { PerformanceFixService } from './core/services/performance-fix.service';
 import { AppInitService } from './core/services/app-init.service';
 import { SafeAreaService } from './core/services/safe-area.service';
-import { ReconnectionService } from './core/services/reconnection.service';
+import { UnifiedReconnectionService } from './core/services/unified-reconnection.service';
 import { DebugReconnectionService } from './core/services/debug-reconnection.service';
-import { SmartReconnectionService } from './core/services/smart-reconnection.service';
-import { DebugPanelComponent } from './core/components/debug-panel.component';
 import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent, DebugPanelComponent],
+  imports: [IonApp, IonRouterOutlet, PwaInstallBannerComponent],
 })
 export class AppComponent implements OnInit {
   constructor(
@@ -28,9 +26,8 @@ export class AppComponent implements OnInit {
     private performanceFix: PerformanceFixService,
     private appInitService: AppInitService,
     private safeAreaService: SafeAreaService,
-    private reconnectionService: ReconnectionService,
-    private debugReconnectionService: DebugReconnectionService,
-    private smartReconnectionService: SmartReconnectionService
+    private unifiedReconnectionService: UnifiedReconnectionService,
+    private debugReconnectionService: DebugReconnectionService
   ) {}
 
   async ngOnInit() {
@@ -39,6 +36,9 @@ export class AppComponent implements OnInit {
 
       // Inicializar la aplicación usando el nuevo servicio
       await this.appInitService.initializeApp();
+
+      // El UnifiedReconnectionService se inicializa automáticamente en su constructor
+      // y maneja toda la lógica de reconexión de forma inteligente
 
       // Inicializar safe areas y detección de plataforma
       const platformInfo = this.safeAreaService.getPlatformInfo();

@@ -30,6 +30,7 @@ import { ConfirmarEliminacionClienteModalComponent } from '../../components/conf
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { Cliente } from '../../models/cliente.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-clientes',
@@ -71,12 +72,36 @@ export class ClientesComponent implements OnInit, OnDestroy {
 
   constructor(
     private modalController: ModalController,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({searchOutline,filterOutline,addCircle,refreshOutline,alertCircleOutline,peopleOutline,eyeOutline,mapOutline,alertCircle,close,add,addCircleOutline,callOutline,mailOutline,locationOutline,pauseCircle,playCircle,trashOutline});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 ClientesComponent: App reanudada, recargando clientes...');
+          this.cargarClientes();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 ClientesComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarClientes();
+        }
+      });
+
     this.cargarClientes();
     this.suscribirseAClientes();
     this.configurarBusqueda();
@@ -94,7 +119,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
-    this.clientesService.getClientes(
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.clientesService.getClientesDirect(
       this.paginaActual,
       this.porPagina,
       this.busqueda,
@@ -299,7 +325,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
       this.loading = true;
       this.error = null;
       
-      this.clientesService.actualizarCliente(cliente.id, data)
+      // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+      this.clientesService.actualizarClienteDirect(cliente.id, data)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (clienteActualizado) => {
@@ -324,7 +351,8 @@ export class ClientesComponent implements OnInit, OnDestroy {
     const accion = nuevoEstado ? 'activar' : 'desactivar';
     
     if (confirm(`¿Estás seguro de que quieres ${accion} al cliente "${cliente.nombre_completo}"?`)) {
-      this.clientesService.actualizarCliente(cliente.id, { es_activo: nuevoEstado })
+      // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+      this.clientesService.actualizarClienteDirect(cliente.id, { es_activo: nuevoEstado })
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (clienteActualizado) => {
@@ -361,7 +389,9 @@ export class ClientesComponent implements OnInit, OnDestroy {
       this.loading = true;
       this.error = null;
 
-      this.clientesService.eliminarCliente(cliente.id)
+      // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+      this.clientesService.eliminarClienteDirect(cliente.id)
+        .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {
             console.log('Cliente eliminado exitosamente');

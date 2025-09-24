@@ -5,8 +5,9 @@ import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, informationCircleOutline } from 'ionicons/icons';
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { Cliente } from '../../models/cliente.model';
-import { Subject } from 'rxjs';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-crear-cliente-modal',
@@ -26,7 +27,8 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDest
     private fb: FormBuilder,
     private modalController: ModalController,
     private viewportService: ViewportService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     this.clienteForm = this.fb.group({
       nombreContacto: ['', Validators.required],
@@ -43,6 +45,32 @@ export class CrearClienteModalComponent implements OnInit, AfterViewInit, OnDest
 
   ngOnInit() {
     addIcons({ closeOutline, saveOutline, informationCircleOutline });
+    
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearClienteModalComponent: App reanudada, recargando datos...');
+          // En modo editar, recargar datos del cliente
+          if (this.modo === 'editar' && this.cliente) {
+            this.cargarDatosCliente();
+          }
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearClienteModalComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.modo === 'editar' && this.cliente) {
+          this.cargarDatosCliente();
+        }
+      });
     
     // Si estamos en modo editar y tenemos datos del cliente, cargar los datos
     if (this.modo === 'editar' && this.cliente) {

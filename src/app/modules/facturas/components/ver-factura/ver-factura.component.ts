@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline, bugOutline, mailOutline } from 'ionicons/icons';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
 
 import { FacturasService } from '../../services/facturas.service';
 import { FacturaCompleta } from '../../models/factura.model';
@@ -14,6 +14,7 @@ import { PdfService } from '../../../../core/services/pdf.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 import { EmailService } from '../../../../core/services/email.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-ver-factura',
@@ -45,12 +46,36 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
     private pdfService: PdfService,
     private avisosService: AvisosService,
     private configuracionService: ConfiguracionService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({arrowBackOutline,printOutline,createOutline,downloadOutline,bugOutline,refreshOutline,alertCircleOutline,eyeOutline,mailOutline});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed && this.facturaId) {
+          console.log('🔄 VerFacturaComponent: App reanudada, recargando factura...');
+          this.cargarFactura();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 VerFacturaComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error && this.facturaId) {
+          this.cargarFactura();
+        }
+      });
+
     this.route.params.subscribe(params => {
       this.facturaId = params['id'];
       if (this.facturaId) {
@@ -82,7 +107,8 @@ export class VerFacturaComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
     
-    this.facturasService.getFactura(this.facturaId).subscribe({
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.facturasService.getFacturaDirect(this.facturaId).subscribe({
       next: (facturaCompleta) => {
         console.log('🔍 Factura completa recibida del servicio:', facturaCompleta);
         console.log('🔍 Líneas de la factura:', facturaCompleta.lineas);

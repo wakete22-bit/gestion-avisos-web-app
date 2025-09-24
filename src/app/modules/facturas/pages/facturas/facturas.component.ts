@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
@@ -21,6 +21,8 @@ import { Router } from '@angular/router';
 import { FacturasService } from '../../services/facturas.service';
 import { Factura, FacturaResponse } from '../../models/factura.model';
 import { ConfirmarEliminacionFacturaModalComponent } from '../../components/confirmar-eliminacion-factura-modal/confirmar-eliminacion-factura-modal.component';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-facturas',
@@ -35,7 +37,7 @@ import { ConfirmarEliminacionFacturaModalComponent } from '../../components/conf
     MatIconModule
   ],
 })
-export class FacturasComponent implements OnInit {
+export class FacturasComponent implements OnInit, OnDestroy {
 
   displayedColumns: string[] = ['numero', 'estado', 'nombre', 'detalle', 'fecha', 'pvp'];
   facturas: Factura[] = [];
@@ -45,22 +47,54 @@ export class FacturasComponent implements OnInit {
   paginaActual = 1;
   porPagina = 10;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private router: Router,
     private facturasService: FacturasService,
+    private unifiedReconnectionService: UnifiedReconnectionService,
     private modalController: ModalController
   ) { 
     addIcons({refreshOutline,alertCircleOutline,searchOutline,addCircle,eyeOutline,receiptOutline,mapOutline,alertCircle,close,add,addCircleOutline,receipt,hourglassOutline,warning,document,trashOutline});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 FacturasComponent: App reanudada, recargando facturas...');
+          this.cargarFacturas();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 FacturasComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarFacturas();
+        }
+      });
+
     this.cargarFacturas();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarFacturas() {
     this.loading = true;
     this.error = null;
-    this.facturasService.getFacturas(this.paginaActual, this.porPagina)
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.facturasService.getFacturasDirect(this.paginaActual, this.porPagina)
       .subscribe({
         next: (response: FacturaResponse) => {
           this.facturas = response.facturas;

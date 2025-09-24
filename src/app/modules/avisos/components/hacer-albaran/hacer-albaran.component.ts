@@ -23,7 +23,7 @@ import { AvisosService } from '../../../../core/services/avisos.service';
 import { PresupuestosService } from '../../../presupuestos/services/presupuestos.service';
 import { RepuestoAlbaran, CrearAlbaranRequest, ESTADOS_CIERRE_ALBARAN } from '../../models/albaran.model';
 import { Router } from '@angular/router';
-import { ReconnectionService } from '../../../../core/services/reconnection.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 import { Subscription } from 'rxjs';
 
 // Las interfaces RepuestoAlbaran y CrearAlbaranRequest ahora se importan del modelo
@@ -90,7 +90,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit, OnDestroy {
     private avisosService: AvisosService,
     private presupuestosService: PresupuestosService,
     private router: Router,
-    private reconnectionService: ReconnectionService
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     console.log('HacerAlbaranComponent constructor called');
     addIcons({closeOutline,timeOutline,cubeOutline,addCircleOutline,close,searchOutline,trashOutline,informationCircleOutline,createOutline,checkmarkOutline,warningOutline,saveOutline,refreshOutline,checkmarkCircleOutline,calendarOutline,personOutline,pencilOutline,documentTextOutline});
@@ -868,7 +868,7 @@ export class HacerAlbaranComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log('🔄 Configurando manejo de reconexión en HacerAlbaranComponent');
     
     // Suscribirse a eventos de reconexión
-    this.reconnectionSubscription = this.reconnectionService.appResumed.subscribe({
+    this.reconnectionSubscription = this.unifiedReconnectionService.appResumed.subscribe({
       next: (isResumed) => {
         if (isResumed && this.isComponentActive) {
           console.log('🔄 App reanudada - verificando estado del componente');

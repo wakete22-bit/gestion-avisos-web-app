@@ -11,6 +11,7 @@ import { InventarioService } from '../../services/inventario.service';
 import { Inventario } from '../../models/inventario.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-inventario',
@@ -48,7 +49,8 @@ export class InventarioComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private inventarioService: InventarioService,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) { 
     addIcons({
       appsOutline, cubeOutline, alertCircleOutline, checkmarkCircleOutline, searchOutline, 
@@ -59,6 +61,29 @@ export class InventarioComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 InventarioComponent: App reanudada, recargando inventario...');
+          this.cargarInventario();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 InventarioComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarInventario();
+        }
+      });
+
     this.cargarInventario();
     this.configurarBusqueda();
     this.suscribirseAInventario();

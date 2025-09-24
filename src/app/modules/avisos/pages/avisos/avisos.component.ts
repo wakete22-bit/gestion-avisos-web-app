@@ -26,6 +26,7 @@ import mapboxgl from 'mapbox-gl';
 import { Aviso } from '../../models/aviso.model';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { setupPassiveEventListeners, GEOCODING_CONFIG } from '../../../../core/config/passive-events.config';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 // Importar CSS de Mapbox directamente
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -98,7 +99,8 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     private navigationService: NavigationService,
     private debugService: DebugService,
     private mapboxService: MapboxNavigationService,
-    private routeCalculationService: RouteCalculationService
+    private routeCalculationService: RouteCalculationService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({refreshOutline,alertCircleOutline,searchOutline,checkmarkCircleOutline,addCircle,navigateOutline,closeCircleOutline,alertCircle,close,eyeOutline,createOutline,trashOutline,chevronBackOutline,chevronForwardOutline,mapOutline,expandOutline,listOutline,play,stop,arrowForward,locationOutline,speedometerOutline,timeOutline,chevronDownCircleOutline,calendarOutline,optionsOutline,add,addCircleOutline});
     
@@ -110,6 +112,29 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 AvisosComponent: App reanudada, recargando avisos...');
+          this.cargarAvisos();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 AvisosComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarAvisos();
+        }
+      });
+
     // Detectar si es móvil
     this.isMobile = window.innerWidth <= 768;
     
@@ -205,14 +230,15 @@ export class AvisosComponent implements AfterViewInit, OnDestroy {
     this.error = null;
     console.log('🔄 Cargando avisos...');
 
-    // Cargar directamente sin cache por ahora para debuggear
-    this.avisosService.getAvisosActivos(
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.avisosService.getAvisosDirect(
       this.paginaActual,
       this.porPagina,
       this.busqueda,
       this.ordenarPor,
       this.orden,
-      this.estadoFiltro
+      this.estadoFiltro,
+      false // incluirCompletados = false (solo activos)
     ).pipe(
       takeUntil(this.destroy$)
     ).subscribe({

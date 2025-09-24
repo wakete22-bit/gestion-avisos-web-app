@@ -22,12 +22,19 @@ import {
   providedIn: 'root'
 })
 export class AjustesService {
-  private supabase: SupabaseClient;
   private ajustesSubject = new BehaviorSubject<AjustesCompletos | null>(null);
   public ajustes$ = this.ajustesSubject.asObservable();
 
   constructor(private supabaseClientService: SupabaseClientService) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('⚙️ AjustesService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -57,7 +64,7 @@ export class AjustesService {
    */
   getConfiguracionEmpresa(): Observable<ConfiguracionEmpresa> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_empresa')
         .select('*')
         .limit(1)
@@ -89,7 +96,7 @@ export class AjustesService {
    */
   getConfiguracionFacturacion(): Observable<ConfiguracionFacturacion> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_facturacion')
         .select('*')
         .limit(1)
@@ -121,7 +128,7 @@ export class AjustesService {
    */
   getConfiguracionNotificaciones(): Observable<ConfiguracionNotificaciones> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_notificaciones')
         .select('*')
         .limit(1)
@@ -153,7 +160,7 @@ export class AjustesService {
    */
   getConfiguracionAvisos(): Observable<ConfiguracionAvisos> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_avisos')
         .select('*')
         .limit(1)
@@ -185,7 +192,7 @@ export class AjustesService {
    */
   getConfiguracionSistema(): Observable<ConfiguracionSistema> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_sistema')
         .select('*')
         .limit(1)
@@ -225,7 +232,7 @@ export class AjustesService {
 
     // Primero buscar si existe una configuración
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_empresa')
         .select('id')
         .limit(1)
@@ -244,7 +251,7 @@ export class AjustesService {
           console.log('✅ Actualizando configuración existente con ID:', idExistente);
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_empresa')
               .update(datosActualizados)
               .eq('id', idExistente)
@@ -256,7 +263,7 @@ export class AjustesService {
           console.log('🆕 Creando nueva configuración de empresa');
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_empresa')
               .insert([{
                 ...datosActualizados,
@@ -297,7 +304,7 @@ export class AjustesService {
 
     // Primero buscar si existe una configuración
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_facturacion')
         .select('id')
         .limit(1)
@@ -314,7 +321,7 @@ export class AjustesService {
           console.log('Actualizando configuración de facturación existente con ID:', idExistente);
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_facturacion')
               .update(datosActualizados)
               .eq('id', idExistente)
@@ -326,7 +333,7 @@ export class AjustesService {
           console.log('Creando nueva configuración de facturación');
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_facturacion')
               .insert([{
                 ...datosActualizados,
@@ -363,7 +370,7 @@ export class AjustesService {
 
     // Primero buscar si existe una configuración
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_notificaciones')
         .select('id')
         .limit(1)
@@ -380,7 +387,7 @@ export class AjustesService {
           console.log('Actualizando configuración de notificaciones existente con ID:', idExistente);
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_notificaciones')
               .update(datosActualizados)
               .eq('id', idExistente)
@@ -392,7 +399,7 @@ export class AjustesService {
           console.log('Creando nueva configuración de notificaciones');
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_notificaciones')
               .insert([{
                 ...datosActualizados,
@@ -429,7 +436,7 @@ export class AjustesService {
 
     // Primero buscar si existe una configuración
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_avisos')
         .select('id')
         .limit(1)
@@ -446,7 +453,7 @@ export class AjustesService {
           console.log('Actualizando configuración de avisos existente con ID:', idExistente);
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_avisos')
               .update(datosActualizados)
               .eq('id', idExistente)
@@ -458,7 +465,7 @@ export class AjustesService {
           console.log('Creando nueva configuración de avisos');
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_avisos')
               .insert([{
                 ...datosActualizados,
@@ -495,7 +502,7 @@ export class AjustesService {
 
     // Primero buscar si existe una configuración
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('configuracion_sistema')
         .select('id')
         .limit(1)
@@ -512,7 +519,7 @@ export class AjustesService {
           console.log('Actualizando configuración del sistema existente con ID:', idExistente);
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_sistema')
               .update(datosActualizados)
               .eq('id', idExistente)
@@ -524,7 +531,7 @@ export class AjustesService {
           console.log('Creando nueva configuración del sistema');
           
           return from(
-            this.supabase
+            this.getSupabaseClient()
               .from('configuracion_sistema')
               .insert([{
                 ...datosActualizados,
@@ -579,7 +586,7 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('configuracion_empresa')
       .insert([configuracionPorDefecto])
       .select()
@@ -604,7 +611,7 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('configuracion_facturacion')
       .insert([configuracionPorDefecto])
       .select()
@@ -629,7 +636,7 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('configuracion_notificaciones')
       .insert([configuracionPorDefecto])
       .select()
@@ -652,7 +659,7 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('configuracion_avisos')
       .insert([configuracionPorDefecto])
       .select()
@@ -676,7 +683,7 @@ export class AjustesService {
       fecha_actualizacion: new Date().toISOString()
     };
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.getSupabaseClient()
       .from('configuracion_sistema')
       .insert([configuracionPorDefecto])
       .select()

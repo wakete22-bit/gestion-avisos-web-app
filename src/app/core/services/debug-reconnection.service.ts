@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Platform } from '@ionic/angular';
+import { UnifiedReconnectionService } from './unified-reconnection.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,11 @@ export class DebugReconnectionService {
   private maxLogs = 50;
   private isMobile = false;
 
-  constructor(private platform: Platform) {
-    console.log('🔍 DebugReconnectionService: Inicializado');
+  constructor(
+    private platform: Platform,
+    private unifiedReconnectionService: UnifiedReconnectionService
+  ) {
+    console.log('🔍 DebugReconnectionService: Inicializado para sistema unificado');
     this.isMobile = this.platform.is('mobile') || this.platform.is('hybrid');
     console.log('🔍 DebugReconnectionService: Es móvil?', this.isMobile);
     
@@ -22,6 +26,9 @@ export class DebugReconnectionService {
     if (this.isMobile) {
       this.setupMobileDebug();
     }
+
+    // Suscribirse a eventos del servicio unificado
+    this.setupUnifiedServiceDebug();
   }
 
   private setupVisibilityDebug() {
@@ -105,6 +112,26 @@ export class DebugReconnectionService {
     }, 10000); // Cada 10 segundos
   }
 
+  private setupUnifiedServiceDebug() {
+    // Suscribirse a cambios de estado de conexión
+    this.unifiedReconnectionService.connectionState.subscribe(state => {
+      this.log(`🔄 Estado de conexión: ${state}`);
+    });
+
+    // Suscribirse a eventos de app resumed
+    this.unifiedReconnectionService.appResumed.subscribe(resumed => {
+      if (resumed) {
+        this.log(`✅ App reanudada exitosamente`);
+      }
+    });
+
+    // Log periódico de estadísticas del servicio unificado
+    setInterval(() => {
+      const debugInfo = this.unifiedReconnectionService.getDebugInfo();
+      this.log(`📈 Stats: intentos=${debugInfo.stats.totalAttempts}, exitosos=${debugInfo.stats.successfulReconnections}, reintentos=${debugInfo.retryCount}`);
+    }, 30000); // Cada 30 segundos
+  }
+
   log(message: string) {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `[${timestamp}] ${message}`;
@@ -132,5 +159,13 @@ export class DebugReconnectionService {
 
   getCurrentLogs() {
     return this.debugLog$.value;
+  }
+
+  getUnifiedServiceDebugInfo() {
+    return this.unifiedReconnectionService.getDebugInfo();
+  }
+
+  getReconnectionStats() {
+    return this.unifiedReconnectionService.reconnectionStats;
   }
 }

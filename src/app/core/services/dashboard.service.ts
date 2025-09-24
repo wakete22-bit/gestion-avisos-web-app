@@ -29,7 +29,6 @@ export interface DashboardData {
   providedIn: 'root'
 })
 export class DashboardService {
-  private supabase: SupabaseClient;
   private dashboardSubject = new BehaviorSubject<DashboardData | null>(null);
   public dashboard$ = this.dashboardSubject.asObservable();
 
@@ -40,13 +39,26 @@ export class DashboardService {
     private supabaseClientService: SupabaseClientService,
     private dataUpdateService: DataUpdateService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar el cliente aquí - obtenerlo dinámicamente en cada uso
+    // this.supabase = this.supabaseClientService.getClient();
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient() {
+    console.log('📊 DashboardService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
    * Obtiene todas las estadísticas del dashboard
    */
   getDashboardData(): Observable<DashboardData> {
+    console.log('📊 DashboardService: INICIANDO getDashboardData...');
+    
+    const startTime = Date.now();
+    
     return forkJoin({
       stats: this.getDashboardStats(),
       avisosRecientes: this.getAvisosRecientes(),
@@ -54,6 +66,15 @@ export class DashboardService {
       presupuestosPendientes: this.getPresupuestosPendientes()
     }).pipe(
       map(data => {
+        const duration = Date.now() - startTime;
+        console.log('📊 DashboardService: Todas las queries completadas en', duration, 'ms');
+        console.log('📊 DashboardService: Datos recibidos:', {
+          stats: data.stats,
+          avisosRecientes: data.avisosRecientes?.length || 0,
+          facturasPendientes: data.facturasPendientes?.length || 0,
+          presupuestosPendientes: data.presupuestosPendientes?.length || 0
+        });
+        
         const dashboardData: DashboardData = {
           stats: data.stats,
           avisosRecientes: data.avisosRecientes,
@@ -61,11 +82,18 @@ export class DashboardService {
           presupuestosPendientes: data.presupuestosPendientes
         };
         
+        console.log('📊 DashboardService: Enviando datos al Subject...');
         this.dashboardSubject.next(dashboardData);
+        console.log('✅ DashboardService: getDashboardData completado exitosamente');
         return dashboardData;
       }),
       catchError(error => {
-        console.error('Error al obtener datos del dashboard:', error);
+        const duration = Date.now() - startTime;
+        console.error('❌ DashboardService: ERROR en getDashboardData después de', duration, 'ms:', {
+          message: error.message,
+          stack: error.stack,
+          fullError: error
+        });
         throw error;
       })
     );
@@ -95,141 +123,407 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene el número de avisos en curso
+   * Obtiene el número de avisos en curso usando fetch directo
    */
   private getAvisosEnCurso(): Observable<number> {
-    return from(
-      this.supabase
-        .from('avisos')
-        .select('*', { count: 'exact', head: true })
-        .in('estado', ['En curso', 'Visitado pendiente', 'Pendiente de presupuesto'])
-    ).pipe(
-      map(({ count, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getAvisosEnCurso con FETCH DIRECTO...');
+    
+    return from(this.fetchAvisosEnCursoDirect()).pipe(
+      map(count => {
+        console.log('✅ DashboardService: getAvisosEnCurso completado, count:', count);
         return count || 0;
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getAvisosEnCurso:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene el número de avisos urgentes
+   * Fetch directo para count de avisos en curso
+   */
+  private async fetchAvisosEnCursoDirect(): Promise<number> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para avisos en curso...');
+    
+    try {
+      // SOLUCIÓN: Usar filtro simple que funciona
+      const url = `${environment.supabaseUrl}/rest/v1/avisos?estado=eq.Pendiente&select=id`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'HEAD', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentRange = response.headers.get('content-range');
+      const count = contentRange ? parseInt(contentRange.split('/')[1]) : 0;
+      console.log('🚀 Count recibido:', count);
+      return count;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene el número de avisos urgentes usando fetch directo
    */
   private getAvisosUrgentes(): Observable<number> {
-    return from(
-      this.supabase
-        .from('avisos')
-        .select('*', { count: 'exact', head: true })
-        .eq('es_urgente', true)
-        .neq('estado', 'Completado')
-    ).pipe(
-      map(({ count, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getAvisosUrgentes con FETCH DIRECTO...');
+    
+    return from(this.fetchAvisosUrgentesDirect()).pipe(
+      map(count => {
+        console.log('✅ DashboardService: getAvisosUrgentes completado, count:', count);
         return count || 0;
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getAvisosUrgentes:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene el número de facturas pendientes
+   * Fetch directo para count de avisos urgentes
+   */
+  private async fetchAvisosUrgentesDirect(): Promise<number> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para avisos urgentes...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/avisos?es_urgente=eq.true&estado=neq.Completado&select=id`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'HEAD', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentRange = response.headers.get('content-range');
+      const count = contentRange ? parseInt(contentRange.split('/')[1]) : 0;
+      console.log('🚀 Count recibido:', count);
+      return count;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene el número de facturas pendientes usando fetch directo
    */
   private getFacturasPendientesCount(): Observable<number> {
-    return from(
-      this.supabase
-        .from('facturas')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'Pendiente')
-    ).pipe(
-      map(({ count, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getFacturasPendientesCount con FETCH DIRECTO...');
+    
+    return from(this.fetchFacturasPendientesDirect()).pipe(
+      map(count => {
+        console.log('✅ DashboardService: getFacturasPendientesCount completado, count:', count);
         return count || 0;
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getFacturasPendientesCount:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene el número de presupuestos pendientes
+   * Fetch directo para count de facturas pendientes
+   */
+  private async fetchFacturasPendientesDirect(): Promise<number> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para facturas pendientes...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/facturas?estado=eq.Pendiente&select=id`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'HEAD', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentRange = response.headers.get('content-range');
+      const count = contentRange ? parseInt(contentRange.split('/')[1]) : 0;
+      console.log('🚀 Count recibido:', count);
+      return count;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene el número de presupuestos pendientes usando fetch directo
    */
   private getPresupuestosPendientesCount(): Observable<number> {
-    return from(
-      this.supabase
-        .from('presupuestos')
-        .select('*', { count: 'exact', head: true })
-        .eq('estado', 'Pendiente')
-    ).pipe(
-      map(({ count, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getPresupuestosPendientesCount con FETCH DIRECTO...');
+    
+    return from(this.fetchPresupuestosPendientesDirect()).pipe(
+      map(count => {
+        console.log('✅ DashboardService: getPresupuestosPendientesCount completado, count:', count);
         return count || 0;
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getPresupuestosPendientesCount:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene los avisos más recientes
+   * Fetch directo para count de presupuestos pendientes
+   */
+  private async fetchPresupuestosPendientesDirect(): Promise<number> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para presupuestos pendientes...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/presupuestos?estado=eq.Pendiente&select=id`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'HEAD', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentRange = response.headers.get('content-range');
+      const count = contentRange ? parseInt(contentRange.split('/')[1]) : 0;
+      console.log('🚀 Count recibido:', count);
+      return count;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene los avisos más recientes usando fetch directo
    */
   private getAvisosRecientes(): Observable<any[]> {
-    return from(
-      this.supabase
-        .from('avisos')
-        .select(`
-          *,
-          cliente:clientes(*)
-        `)
-        .order('fecha_creacion', { ascending: false })
-        .limit(10)
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getAvisosRecientes con FETCH DIRECTO...');
+    
+    return from(this.fetchAvisosRecientesDirect()).pipe(
+      map(data => {
+        console.log('✅ DashboardService: getAvisosRecientes completado, registros:', data?.length || 0);
+        console.log('📊 DashboardService: Datos de avisos:', data);
         return data || [];
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getAvisosRecientes:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene las facturas pendientes con detalles
+   * Fetch directo para avisos recientes - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchAvisosRecientesDirect(): Promise<any[]> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para avisos...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/avisos?select=*,cliente:clientes(*)&or=(estado.eq.Pendiente,estado.eq.Pendiente%20de%20presupuesto,estado.eq.Listo%20para%20facturar)&order=fecha_creacion.desc&limit=10`;
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'avisos');
+      return data || [];
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene las facturas pendientes con detalles usando fetch directo
    */
   private getFacturasPendientes(): Observable<any[]> {
-    return from(
-      this.supabase
-        .from('facturas')
-        .select(`
-          *,
-          cliente:clientes(*),
-          aviso:avisos(*)
-        `)
-        .eq('estado', 'Pendiente')
-        .order('fecha_creacion', { ascending: false })
-        .limit(5)
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getFacturasPendientes con FETCH DIRECTO...');
+    
+    return from(this.fetchFacturasPendientesDetailsDirect()).pipe(
+      map(data => {
+        console.log('✅ DashboardService: getFacturasPendientes completado, registros:', data?.length || 0);
         return data || [];
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getFacturasPendientes:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Obtiene los presupuestos pendientes con detalles
+   * Fetch directo para facturas pendientes con detalles
+   */
+  private async fetchFacturasPendientesDetailsDirect(): Promise<any[]> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para facturas pendientes...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/facturas?estado=eq.Pendiente&select=*,cliente:clientes(*),aviso:avisos(*)&order=fecha_creacion.desc&limit=5`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'facturas');
+      return data || [];
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene los presupuestos pendientes con detalles usando fetch directo
    */
   private getPresupuestosPendientes(): Observable<any[]> {
-    return from(
-      this.supabase
-        .from('presupuestos')
-        .select(`
-          *,
-          aviso:avisos(
-            *,
-            cliente:clientes(*)
-          )
-        `)
-        .eq('estado', 'Pendiente')
-        .order('fecha_creacion', { ascending: false })
-        .limit(5)
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
+    console.log('📊 DashboardService: Iniciando getPresupuestosPendientes con FETCH DIRECTO...');
+    
+    return from(this.fetchPresupuestosPendientesDetailsDirect()).pipe(
+      map(data => {
+        console.log('✅ DashboardService: getPresupuestosPendientes completado, registros:', data?.length || 0);
         return data || [];
+      }),
+      catchError(error => {
+        console.error('❌ DashboardService: Error en getPresupuestosPendientes:', error);
+        throw error;
       })
     );
+  }
+
+  /**
+   * Fetch directo para presupuestos pendientes con detalles
+   */
+  private async fetchPresupuestosPendientesDetailsDirect(): Promise<any[]> {
+    console.log('🚀 DashboardService: Ejecutando fetch directo para presupuestos pendientes...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/presupuestos?estado=eq.Pendiente&select=*,aviso:avisos(*,cliente:clientes(*))&order=fecha_creacion.desc&limit=5`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'presupuestos');
+      return data || [];
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
   }
 
   /**

@@ -50,16 +50,7 @@ export class CacheService {
     fetchFunction: () => Observable<T>, 
     ttl: number = this.DEFAULT_TTL
   ): Observable<T> {
-    const cached = this.get<T>(key);
-    if (cached) {
-      console.log(`✅ Cache hit: ${key}`);
-      return new Observable(observer => {
-        observer.next(cached);
-        observer.complete();
-      });
-    }
-
-    console.log(`🔄 Cache miss: ${key}`);
+    
     return fetchFunction().pipe(
       tap(data => {
         this.set(key, data, ttl);
@@ -110,7 +101,6 @@ export class CacheService {
    */
   clear(): void {
     this.cache.clear();
-    console.log('🗑️ Cache completamente limpiado');
   }
 
   /**
@@ -124,7 +114,6 @@ export class CacheService {
       }
     }
     keysToDelete.forEach(key => this.cache.delete(key));
-    console.log(`🗑️ Cleared cache for prefix: ${prefix} (${keysToDelete.length} items)`);
   }
 
   /**
@@ -132,7 +121,6 @@ export class CacheService {
    */
   clearMultipleCaches(prefixes: string[]): void {
     prefixes.forEach(prefix => this.clearCache(prefix));
-    console.log(`🗑️ Cleared multiple caches: ${prefixes.join(', ')}`);
   }
 
   /**

@@ -37,8 +37,8 @@ import { AvisosService } from '../core/services/avisos.service';
 import { FacturasService } from '../modules/facturas/services/facturas.service';
 import { PresupuestosService } from '../modules/presupuestos/services/presupuestos.service';
 
-// Importar solo el servicio de reconexión
-import { ReconnectionService } from '../core/services/reconnection.service';
+// Importar el servicio unificado de reconexión
+import { UnifiedReconnectionService } from '../core/services/unified-reconnection.service';
 
 addIcons({
   'grid-outline': gridOutline,
@@ -103,10 +103,6 @@ export class HomePage implements OnInit, OnDestroy {
   
   // Subject para manejar la destrucción del componente
   private destroy$ = new Subject<void>();
-  
-  // Variable para controlar el debounce de reconexión
-  private lastReconnectionTime = 0;
-  private readonly RECONNECTION_DEBOUNCE_MS = 5000; // 5 segundos
 
   constructor(
     private router: Router,
@@ -115,31 +111,36 @@ export class HomePage implements OnInit, OnDestroy {
     private facturasService: FacturasService,
     private presupuestosService: PresupuestosService,
     private modalController: ModalController,
-    // Solo inyectar el servicio de reconexión
-    private reconnectionService: ReconnectionService
+    // Inyectar el servicio unificado de reconexión
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({hourglassOutline,alertCircleOutline,refreshOutline,warning,receipt,document,alertCircle,searchOutline,close,eyeOutline,createOutline,phonePortraitOutline,locationOutline,calendarOutline});
   }
 
   ngOnInit() {
-    // Suscribirse a reconexiones para recargar datos automáticamente
-    // Agregar debounce para evitar recargas excesivas
-    this.reconnectionService.appResumed
+    // Suscribirse al servicio unificado de reconexión para recargar datos automáticamente
+    // El nuevo servicio ya incluye debounce inteligente
+    this.unifiedReconnectionService.appResumed
       .pipe(
         takeUntil(this.destroy$),
-        debounceTime(1000), // Esperar 1 segundo antes de procesar
         distinctUntilChanged() // Solo procesar si el valor cambió
       )
-      .subscribe(() => {
-        // Verificar si han pasado al menos 5 segundos desde la última reconexión
-        const now = Date.now();
-        if (now - this.lastReconnectionTime >= this.RECONNECTION_DEBOUNCE_MS) {
-          console.log('🔄 HomePage: App reanudada, recargando dashboard...');
-          this.lastReconnectionTime = now;
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 HomePage: App reanudada exitosamente, recargando dashboard...');
           this.cargarDashboard();
-        } else {
-          console.log('🔄 HomePage: Reconexión ignorada por debounce (última hace', 
-            Math.round((now - this.lastReconnectionTime) / 1000), 'segundos)');
+        }
+      });
+
+    // También suscribirse al estado de conexión para mostrar feedback al usuario
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 HomePage: Estado de conexión:', state);
+        // Aquí podrías mostrar un indicador visual del estado de conexión
+        if (state === 'connected' && this.error) {
+          // Si había error y ahora está conectado, recargar
+          this.cargarDashboard();
         }
       });
 
@@ -155,21 +156,34 @@ export class HomePage implements OnInit, OnDestroy {
    * Carga los datos del dashboard
    */
   cargarDashboard() {
+    console.log('🏠 HomePage: INICIANDO cargarDashboard...');
     this.loading = true;
     this.error = false;
 
+    console.log('🏠 HomePage: Llamando a dashboardService.getDashboardData()...');
     this.dashboardService.getDashboardData()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: DashboardData) => {
+          console.log('✅ HomePage: Datos recibidos del DashboardService:', data);
+          console.log('🏠 HomePage: Avisos recientes count:', data.avisosRecientes?.length || 0);
+          console.log('🏠 HomePage: Stats:', data.stats);
+          
           this.dashboardData = data;
+          console.log('🏠 HomePage: Procesando datos del dashboard...');
           this.procesarDatosDashboard(data);
           this.loading = false;
+          console.log('✅ HomePage: Dashboard cargado exitosamente, loading=false');
         },
         error: (error) => {
-          console.error('Error al cargar dashboard:', error);
+          console.error('❌ HomePage: ERROR al cargar dashboard:', {
+            message: error.message,
+            stack: error.stack,
+            fullError: error
+          });
           this.error = true;
           this.loading = false;
+          console.log('❌ HomePage: Error establecido, loading=false');
         }
       });
   }
@@ -178,7 +192,10 @@ export class HomePage implements OnInit, OnDestroy {
    * Procesa los datos del dashboard para mostrarlos en la vista
    */
   private procesarDatosDashboard(data: DashboardData) {
+    console.log('🏠 HomePage: INICIANDO procesarDatosDashboard con:', data);
+    
     // Procesar avisos recientes
+    console.log('🏠 HomePage: Procesando avisos recientes, cantidad:', data.avisosRecientes?.length || 0);
     this.avisos = data.avisosRecientes.map(aviso => ({
       id: aviso.id,
       numero: aviso.id.substring(0, 8).toUpperCase(),
@@ -189,10 +206,18 @@ export class HomePage implements OnInit, OnDestroy {
       urgente: aviso.es_urgente || false,
       direccion: aviso.direccion_cliente_aviso
     }));
+    console.log('🏠 HomePage: Avisos procesados:', this.avisos);
 
     // Calcular totales
+    console.log('🏠 HomePage: Calculando totales de facturas y presupuestos...');
     this.totalFacturasPendientes = this.dashboardService.calcularTotalFacturasPendientes(data.facturasPendientes);
     this.totalPresupuestosPendientes = this.dashboardService.calcularTotalPresupuestosPendientes(data.presupuestosPendientes);
+    
+    console.log('✅ HomePage: procesarDatosDashboard completado:', {
+      avisosCount: this.avisos.length,
+      totalFacturas: this.totalFacturasPendientes,
+      totalPresupuestos: this.totalPresupuestosPendientes
+    });
   }
 
   /**

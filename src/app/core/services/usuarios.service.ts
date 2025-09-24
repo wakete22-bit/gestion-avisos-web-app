@@ -10,12 +10,19 @@ import { SupabaseClientService } from './supabase-client.service';
   providedIn: 'root'
 })
 export class UsuariosService {
-  private supabase: SupabaseClient;
   private usuariosSubject = new BehaviorSubject<Usuario[]>([]);
   public usuarios$ = this.usuariosSubject.asObservable();
 
   constructor(private supabaseClientService: SupabaseClientService) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('👤 UsuariosService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -23,7 +30,7 @@ export class UsuariosService {
    */
   getUsuarios(): Observable<Usuario[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .select(`
           *,
@@ -49,7 +56,7 @@ export class UsuariosService {
    */
   getUsuario(id: string): Observable<Usuario> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .select(`
           *,
@@ -80,7 +87,7 @@ export class UsuariosService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .insert([usuarioData])
         .select(`
@@ -111,7 +118,7 @@ export class UsuariosService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .update(datosActualizados)
         .eq('id', id)
@@ -142,7 +149,7 @@ export class UsuariosService {
    */
   desactivarUsuario(id: string): Observable<void> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .update({ 
           es_activo: false,

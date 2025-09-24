@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { addIcons } from 'ionicons';
 import { 
   arrowBackOutline, 
@@ -23,6 +24,7 @@ import { InventarioService } from '../../../inventario/services/inventario.servi
 import { Inventario } from '../../../inventario/models/inventario.model';
 import { SupabaseClientService } from '../../../../core/services/supabase-client.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-crear-presupuesto',
@@ -31,7 +33,7 @@ import { ConfiguracionService } from '../../../../core/services/configuracion.se
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, IonContent, IonIcon]
 })
-export class CrearPresupuestoComponent implements OnInit {
+export class CrearPresupuestoComponent implements OnInit, OnDestroy {
   presupuestoForm: FormGroup;
   avisoId: string | null = null;
   presupuestoId: string | null = null;
@@ -75,7 +77,8 @@ export class CrearPresupuestoComponent implements OnInit {
     private avisosService: AvisosService,
     private inventarioService: InventarioService,
     private supabaseClientService: SupabaseClientService,
-    private configuracionService: ConfiguracionService
+    private configuracionService: ConfiguracionService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({arrowBackOutline,refreshOutline,listOutline,close,searchOutline,alertCircleOutline,addCircleOutline,cubeOutline,checkmarkOutline,trashOutline,saveOutline,checkmarkCircleOutline,closeCircleOutline,banOutline,informationCircleOutline,addCircle});
     
@@ -102,8 +105,42 @@ export class CrearPresupuestoComponent implements OnInit {
     });
   }
 
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('💼 CrearPresupuestoComponent: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
+  }
+
   ngOnInit() {
     console.log('ngOnInit - Iniciando componente crear presupuesto');
+    
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearPresupuestoComponent: App reanudada, recargando datos...');
+          this.cargarProductosInventario();
+          if (!this.modoEdicion) {
+            this.cargarAvisos();
+          }
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearPresupuestoComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.errorProductos) {
+          this.cargarProductosInventario();
+        }
+      });
     
     // Cargar productos del inventario primero
     this.cargarProductosInventario();
@@ -190,7 +227,7 @@ export class CrearPresupuestoComponent implements OnInit {
     this.loadingProductos = true;
     this.errorProductos = null;
 
-    this.inventarioService.getInventario(1, 1000, '', 'nombre', 'asc', false)
+    this.inventarioService.getInventario(1, 50, '', 'nombre', 'asc', false)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
@@ -844,7 +881,7 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('Actualizando albarán asociado:', albaranId);
     
     // Usar Supabase directamente para actualizar el albarán
-    this.supabaseClientService.getClient()
+    this.getSupabaseClient()
       .from('albaranes')
       .update({
         estado_cierre: 'Finalizado',
@@ -1004,7 +1041,7 @@ export class CrearPresupuestoComponent implements OnInit {
     console.log('Creando albarán con datos:', albaranData);
     
     // Usar Supabase directamente para crear el albarán
-    this.supabaseClientService.getClient()
+    this.getSupabaseClient()
       .from('albaranes')
       .insert([albaranData])
       .select()

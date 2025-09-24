@@ -28,8 +28,9 @@ import {
   serverOutline,
   constructOutline, locationOutline, cashOutline, documentOutline, listOutline } from 'ionicons/icons';
 import { AjustesService } from '../../services/ajustes.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { AjustesCompletos } from '../../models/ajustes.model';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-ajustes',
@@ -76,7 +77,8 @@ export class AjustesComponent implements OnInit, OnDestroy {
 
   constructor(
     private ajustesService: AjustesService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({settingsOutline,refreshOutline,alertCircleOutline,businessOutline,cardOutline,notificationsOutline,warningOutline,cogOutline,locationOutline,callOutline,mailOutline,globeOutline,imageOutline,saveOutline,calculatorOutline,cashOutline,documentTextOutline,informationCircleOutline,calendarOutline,documentOutline,listOutline,timeOutline,constructOutline,checkmarkCircleOutline,closeOutline,shieldCheckmarkOutline,serverOutline});
 
@@ -84,6 +86,29 @@ export class AjustesComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 AjustesComponent: App reanudada, recargando ajustes...');
+          this.cargarAjustes();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 AjustesComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarAjustes();
+        }
+      });
+
     this.cargarAjustes();
   }
 

@@ -16,7 +16,6 @@ import {
   providedIn: 'root'
 })
 export class TecnicosService {
-  private supabase: SupabaseClient;
   private tecnicosSubject = new BehaviorSubject<Tecnico[]>([]);
   public tecnicos$ = this.tecnicosSubject.asObservable();
 
@@ -24,7 +23,15 @@ export class TecnicosService {
     private supabaseClientService: SupabaseClientService,
     private dataUpdateService: DataUpdateService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient() {
+    console.log('🔧 TecnicosService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -38,7 +45,7 @@ export class TecnicosService {
     orden?: 'asc' | 'desc',
     soloActivos: boolean = false
   ): Observable<TecnicoResponse> {
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('usuarios')
       .select(`
         *,
@@ -83,11 +90,118 @@ export class TecnicosService {
   }
 
   /**
+   * Obtiene la lista de técnicos usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  getTecnicosDirect(
+    pagina: number = 1, 
+    porPagina: number = 10, 
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    soloActivos: boolean = false
+  ): Observable<TecnicoResponse> {
+    console.log('🚀 TecnicosService: Usando FETCH DIRECTO para técnicos...');
+    
+    return from(this.fetchTecnicosDirect(pagina, porPagina, busqueda, ordenarPor, orden, soloActivos)).pipe(
+      map(result => {
+        console.log('✅ TecnicosService: FETCH DIRECTO completado, técnicos:', result.tecnicos.length);
+        
+        // Actualizar el subject local
+        this.tecnicosSubject.next(result.tecnicos);
+        
+        return result;
+      }),
+      catchError(error => {
+        console.error('❌ TecnicosService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para técnicos - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchTecnicosDirect(
+    pagina: number = 1, 
+    porPagina: number = 10, 
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    soloActivos: boolean = false
+  ): Promise<TecnicoResponse> {
+    console.log('🚀 TecnicosService: Ejecutando fetch directo para técnicos...');
+    
+    try {
+      // Construir URL con parámetros
+      let url = `${environment.supabaseUrl}/rest/v1/usuarios?select=*,rol:roles(*)`;
+
+      // Aplicar filtros
+      const filters: string[] = [];
+      
+      if (busqueda) {
+        filters.push(`or=(nombre_completo.ilike.*${busqueda}*,email.ilike.*${busqueda}*)`);
+      }
+      
+      if (soloActivos) {
+        filters.push(`es_activo=eq.true`);
+      }
+      
+      if (filters.length > 0) {
+        url += '&' + filters.join('&');
+      }
+      
+      // Aplicar paginación y ordenamiento
+      const desde = (pagina - 1) * porPagina;
+      url += `&limit=${porPagina}&offset=${desde}`;
+      url += `&order=${ordenarPor || 'fecha_creacion'}.${orden === 'asc' ? 'asc' : 'desc'}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const contentRange = response.headers.get('content-range');
+      const total = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+      
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'técnicos, total:', total);
+      
+      return {
+        tecnicos: data as Tecnico[],
+        total,
+        pagina,
+        por_pagina: porPagina
+      };
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Obtiene un técnico por su ID
    */
   getTecnico(id: string): Observable<Tecnico> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .select(`
           *,
@@ -229,7 +343,7 @@ export class TecnicosService {
       console.log('🔧 Paso 1: Verificando usuario existente...');
       
       // 1. Verificar si el usuario ya existe en la tabla usuarios
-      const { data: existingUser, error: checkError } = await this.supabase
+      const { data: existingUser, error: checkError } = await this.getSupabaseClient()
         .from('usuarios')
         .select('id, email')
         .eq('email', tecnico.email)
@@ -251,7 +365,7 @@ export class TecnicosService {
       console.log('🔧 Paso 2: Creando usuario en Supabase Auth...');
 
       // 2. Crear usuario en Supabase Auth usando signUp
-      const { data: authData, error: authError } = await this.supabase.auth.signUp({
+      const { data: authData, error: authError } = await this.getSupabaseClient().auth.signUp({
         email: tecnico.email,
         password: tecnico.password,
         options: {
@@ -305,7 +419,7 @@ export class TecnicosService {
         }
 
         // Verificar si el usuario ya existe en BD
-        const { data: usuarioExistente, error: checkError } = await this.supabase
+        const { data: usuarioExistente, error: checkError } = await this.getSupabaseClient()
           .from('usuarios')
           .select(`
             *,
@@ -321,7 +435,7 @@ export class TecnicosService {
           if (usuarioExistente.rol_id !== tecnico.rol_id) {
             console.log('🔧 Actualizando rol del usuario existente...');
             
-            const { data: usuarioActualizado, error: updateError } = await this.supabase
+            const { data: usuarioActualizado, error: updateError } = await this.getSupabaseClient()
               .from('usuarios')
               .update({ 
                 rol_id: tecnico.rol_id,
@@ -361,7 +475,7 @@ export class TecnicosService {
 
         console.log('🔧 Insertando usuario con datos:', tecnicoData);
 
-        const { data, error } = await this.supabase
+        const { data, error } = await this.getSupabaseClient()
           .from('usuarios')
           .insert([tecnicoData])
           .select(`
@@ -377,7 +491,7 @@ export class TecnicosService {
           // Manejo específico de errores conocidos
           if (error.code === '23505') {
             console.log('🔧 Detectado duplicado, intentando obtener usuario existente...');
-            const { data: duplicateUser } = await this.supabase
+            const { data: duplicateUser } = await this.getSupabaseClient()
               .from('usuarios')
               .select(`
                 *,
@@ -418,7 +532,7 @@ export class TecnicosService {
     // Último intento de recuperación
     console.log('🔧 Último intento: buscando usuario existente...');
     try {
-      const { data: finalUser, error: finalError } = await this.supabase
+      const { data: finalUser, error: finalError } = await this.getSupabaseClient()
         .from('usuarios')
         .select(`
           *,
@@ -449,7 +563,7 @@ export class TecnicosService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .update(datosActualizados)
         .eq('id', id)
@@ -479,11 +593,97 @@ export class TecnicosService {
   }
 
   /**
+   * Actualiza un técnico existente usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  actualizarTecnicoDirect(id: string, tecnico: ActualizarTecnicoRequest): Observable<Tecnico> {
+    console.log('🚀 TecnicosService: Usando FETCH DIRECTO para actualizar técnico...');
+    
+    return from(this.fetchActualizarTecnicoDirect(id, tecnico)).pipe(
+      map(result => {
+        console.log('✅ TecnicosService: FETCH DIRECTO completado, técnico actualizado:', result.id);
+        
+        // Actualizar el subject local
+        const tecnicosActuales = this.tecnicosSubject.value;
+        const index = tecnicosActuales.findIndex(t => t.id === id);
+        if (index !== -1) {
+          tecnicosActuales[index] = result;
+          this.tecnicosSubject.next([...tecnicosActuales]);
+        }
+        
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
+        
+        return result;
+      }),
+      catchError(error => {
+        console.error('❌ TecnicosService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para actualizar técnico - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchActualizarTecnicoDirect(id: string, tecnico: ActualizarTecnicoRequest): Promise<Tecnico> {
+    console.log('🚀 TecnicosService: Ejecutando fetch directo para actualizar técnico:', id);
+    
+    try {
+      const datosActualizados = {
+        ...tecnico,
+        fecha_actualizacion: new Date().toISOString()
+      };
+
+      const url = `${environment.supabaseUrl}/rest/v1/usuarios?id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      console.log('🚀 Datos a actualizar:', datosActualizados);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { 
+        method: 'PATCH', 
+        headers,
+        body: JSON.stringify(datosActualizados)
+      });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'técnicos actualizados');
+      
+      if (!data || data.length === 0) {
+        throw new Error('Técnico no encontrado');
+      }
+      
+      return data[0] as Tecnico;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Desactiva un técnico (marcar como inactivo)
    */
   desactivarTecnico(id: string): Observable<void> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .update({ 
           es_activo: false,
@@ -508,11 +708,87 @@ export class TecnicosService {
   }
 
   /**
+   * Desactiva un técnico usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  desactivarTecnicoDirect(id: string): Observable<void> {
+    console.log('🚀 TecnicosService: Usando FETCH DIRECTO para desactivar técnico...');
+    
+    return from(this.fetchDesactivarTecnicoDirect(id)).pipe(
+      map(() => {
+        console.log('✅ TecnicosService: FETCH DIRECTO completado, técnico desactivado:', id);
+        
+        // Actualizar el subject local
+        const tecnicosActuales = this.tecnicosSubject.value;
+        const index = tecnicosActuales.findIndex(t => t.id === id);
+        if (index !== -1) {
+          tecnicosActuales[index].es_activo = false;
+          this.tecnicosSubject.next([...tecnicosActuales]);
+        }
+
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
+      }),
+      catchError(error => {
+        console.error('❌ TecnicosService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para desactivar técnico - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchDesactivarTecnicoDirect(id: string): Promise<void> {
+    console.log('🚀 TecnicosService: Ejecutando fetch directo para desactivar técnico:', id);
+    
+    try {
+      const datosActualizados = {
+        es_activo: false,
+        fecha_actualizacion: new Date().toISOString()
+      };
+
+      const url = `${environment.supabaseUrl}/rest/v1/usuarios?id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      console.log('🚀 Datos a actualizar:', datosActualizados);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { 
+        method: 'PATCH', 
+        headers,
+        body: JSON.stringify(datosActualizados)
+      });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      console.log('✅ Técnico desactivado exitosamente');
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Activa un técnico (marcar como activo)
    */
   activarTecnico(id: string): Observable<void> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .update({ 
           es_activo: true,
@@ -537,11 +813,87 @@ export class TecnicosService {
   }
 
   /**
+   * Activa un técnico usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  activarTecnicoDirect(id: string): Observable<void> {
+    console.log('🚀 TecnicosService: Usando FETCH DIRECTO para activar técnico...');
+    
+    return from(this.fetchActivarTecnicoDirect(id)).pipe(
+      map(() => {
+        console.log('✅ TecnicosService: FETCH DIRECTO completado, técnico activado:', id);
+        
+        // Actualizar el subject local
+        const tecnicosActuales = this.tecnicosSubject.value;
+        const index = tecnicosActuales.findIndex(t => t.id === id);
+        if (index !== -1) {
+          tecnicosActuales[index].es_activo = true;
+          this.tecnicosSubject.next([...tecnicosActuales]);
+        }
+
+        // Notificar actualización y limpiar cache
+        this.dataUpdateService.notifyUpdated('tecnicos');
+      }),
+      catchError(error => {
+        console.error('❌ TecnicosService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para activar técnico - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchActivarTecnicoDirect(id: string): Promise<void> {
+    console.log('🚀 TecnicosService: Ejecutando fetch directo para activar técnico:', id);
+    
+    try {
+      const datosActualizados = {
+        es_activo: true,
+        fecha_actualizacion: new Date().toISOString()
+      };
+
+      const url = `${environment.supabaseUrl}/rest/v1/usuarios?id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      console.log('🚀 Datos a actualizar:', datosActualizados);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { 
+        method: 'PATCH', 
+        headers,
+        body: JSON.stringify(datosActualizados)
+      });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      console.log('✅ Técnico activado exitosamente');
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Busca técnicos por término de búsqueda
    */
   buscarTecnicos(termino: string): Observable<Tecnico[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('usuarios')
         .select(`
           *,
@@ -570,7 +922,7 @@ export class TecnicosService {
    */
   async obtenerRolesDisponibles(): Promise<Array<{id: string, nombre_rol: string}>> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await this.getSupabaseClient()
         .from('roles')
         .select('id, nombre_rol')
         .order('nombre_rol');

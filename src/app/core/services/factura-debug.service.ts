@@ -10,13 +10,20 @@ import { LineaFactura } from '../../modules/facturas/models/factura.model';
   providedIn: 'root'
 })
 export class FacturaDebugService {
-  private supabase: SupabaseClient;
 
   constructor(
     private supabaseClientService: SupabaseClientService,
     private configuracionService: ConfiguracionService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('🐛 FacturaDebugService: Obteniendo cliente Supabase actualizado...');
+    return this.getSupabaseClient()ClientService.getClient();
   }
 
   /**
@@ -42,7 +49,7 @@ export class FacturaDebugService {
     console.log('🧪 Probando creación de factura simple:', facturaData);
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .insert([facturaData])
         .select()
@@ -65,7 +72,7 @@ export class FacturaDebugService {
    */
   verificarEstructuraFacturas(): Observable<any> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select('*')
         .limit(1)
@@ -138,7 +145,7 @@ export class FacturaDebugService {
    */
   limpiarFacturasPrueba(): Observable<any> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .delete()
         .like('numero_factura', 'TEST-%')

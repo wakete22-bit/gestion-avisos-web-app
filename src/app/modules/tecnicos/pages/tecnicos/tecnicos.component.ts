@@ -29,6 +29,7 @@ import { Tecnico } from '../../models/tecnico.model';
 import { TecnicosService } from '../../services/tecnicos.service';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { TipoRol } from '../../../../core/models/usuario.model';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-tecnicos',
@@ -59,12 +60,36 @@ export class TecnicosComponent implements OnInit, OnDestroy {
 
   constructor(
     private modalController: ModalController,
-    private tecnicosService: TecnicosService
+    private tecnicosService: TecnicosService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({searchOutline,filterOutline,addCircle,refreshOutline,alertCircleOutline,peopleOutline,eyeOutline,constructOutline,alertCircle,close,add,addCircleOutline,callOutline,mailOutline,locationOutline,pauseCircle,playCircle});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 TecnicosComponent: App reanudada, recargando técnicos...');
+          this.cargarTecnicos();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 TecnicosComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarTecnicos();
+        }
+      });
+
     this.cargarTecnicos();
     this.setupBusqueda();
   }
@@ -101,7 +126,8 @@ export class TecnicosComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
-    this.tecnicosService.getTecnicos(
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.tecnicosService.getTecnicosDirect(
       this.paginaActual,
       this.porPagina,
       this.busqueda,
@@ -111,12 +137,13 @@ export class TecnicosComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
+        console.log('✅ TecnicosComponent: Técnicos cargados exitosamente:', response.tecnicos.length, 'técnicos');
         this.tecnicos = response.tecnicos;
         this.totalTecnicos = response.total;
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar técnicos:', error);
+        console.error('❌ TecnicosComponent: Error al cargar técnicos:', error);
         this.error = 'Error al cargar los técnicos. Por favor, intenta de nuevo.';
         this.loading = false;
       }
@@ -193,20 +220,21 @@ export class TecnicosComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
 
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
     const observable = tecnico.es_activo 
-      ? this.tecnicosService.desactivarTecnico(tecnico.id)
-      : this.tecnicosService.activarTecnico(tecnico.id);
+      ? this.tecnicosService.desactivarTecnicoDirect(tecnico.id)
+      : this.tecnicosService.activarTecnicoDirect(tecnico.id);
 
     observable.pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
-        console.log(`Técnico ${accion}do exitosamente`);
+        console.log(`✅ TecnicosComponent: Técnico ${accion}do exitosamente`);
         this.cargarTecnicos(); // Recargar la lista
         this.loading = false;
       },
       error: (error) => {
-        console.error(`Error al ${accion} técnico:`, error);
+        console.error(`❌ TecnicosComponent: Error al ${accion} técnico:`, error);
         this.error = `Error al ${accion} el técnico. Por favor, intenta de nuevo.`;
         this.loading = false;
       }

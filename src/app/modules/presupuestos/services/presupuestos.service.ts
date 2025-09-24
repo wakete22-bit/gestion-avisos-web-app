@@ -68,7 +68,6 @@ export interface ActualizarPresupuestoRequest {
   providedIn: 'root'
 })
 export class PresupuestosService {
-  private supabase: SupabaseClient;
   private presupuestosSubject = new BehaviorSubject<Presupuesto[]>([]);
   public presupuestos$ = this.presupuestosSubject.asObservable();
 
@@ -76,11 +75,127 @@ export class PresupuestosService {
     private supabaseClientService: SupabaseClientService,
     private dataUpdateService: DataUpdateService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
   }
 
   /**
-   * Obtiene la lista de presupuestos con paginación y filtros
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('💼 PresupuestosService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
+  }
+
+  /**
+   * Obtiene la lista de presupuestos usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  getPresupuestosDirect(
+    pagina: number = 1,
+    porPagina: number = 10,
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    estado?: string
+  ): Observable<PresupuestoResponse> {
+    console.log('🚀 PresupuestosService: Usando FETCH DIRECTO para presupuestos...');
+    
+    return from(this.fetchPresupuestosDirect(pagina, porPagina, busqueda, ordenarPor, orden, estado)).pipe(
+      map(result => {
+        console.log('✅ PresupuestosService: FETCH DIRECTO completado, presupuestos:', result.presupuestos.length);
+        
+        // Actualizar el subject local
+        this.presupuestosSubject.next(result.presupuestos);
+        
+        return result;
+      }),
+      catchError(error => {
+        console.error('❌ PresupuestosService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para presupuestos - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchPresupuestosDirect(
+    pagina: number = 1,
+    porPagina: number = 10,
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    estado?: string
+  ): Promise<PresupuestoResponse> {
+    console.log('🚀 PresupuestosService: Ejecutando fetch directo para presupuestos...');
+    
+    try {
+      // Construir URL con parámetros
+      let url = `${environment.supabaseUrl}/rest/v1/presupuestos?select=*,aviso:avisos(*,cliente:clientes(*))`;
+
+      // Aplicar filtros
+      const filters: string[] = [];
+      
+      if (busqueda) {
+        filters.push(`or=(aviso.nombre_cliente_aviso.ilike.*${busqueda}*,aviso.descripcion_problema.ilike.*${busqueda}*)`);
+      }
+      
+      if (estado) {
+        filters.push(`estado=eq.${estado}`);
+      }
+      
+      if (filters.length > 0) {
+        url += '&' + filters.join('&');
+      }
+      
+      // Aplicar paginación y ordenamiento
+      const desde = (pagina - 1) * porPagina;
+      const hasta = desde + porPagina - 1;
+      url += `&limit=${porPagina}&offset=${desde}`;
+      url += `&order=${ordenarPor || 'fecha_creacion'}.${orden === 'asc' ? 'asc' : 'desc'}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const contentRange = response.headers.get('content-range');
+      const total = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+      
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'presupuestos, total:', total);
+      
+      return {
+        presupuestos: data as Presupuesto[],
+        total,
+        pagina,
+        por_pagina: porPagina
+      };
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene la lista de presupuestos con paginación y filtros (método original)
    */
   getPresupuestos(
     pagina: number = 1,
@@ -90,7 +205,7 @@ export class PresupuestosService {
     orden?: 'asc' | 'desc',
     estado?: string
   ): Observable<PresupuestoResponse> {
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('presupuestos')
       .select(`
         *,
@@ -142,7 +257,7 @@ export class PresupuestosService {
   getPresupuesto(id: string): Observable<Presupuesto> {
     console.log('Servicio: Buscando presupuesto con ID:', id);
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,
@@ -192,7 +307,7 @@ export class PresupuestosService {
     console.log('Servicio: Creando presupuesto con datos:', presupuestoData);
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .insert([presupuestoData])
         .select(`
@@ -250,7 +365,7 @@ export class PresupuestosService {
     console.log('Servicio: Datos del presupuesto a actualizar:', datosActualizados);
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .update(datosActualizados)
         .eq('id', id)
@@ -270,7 +385,6 @@ export class PresupuestosService {
         console.log('Servicio: Presupuesto actualizado:', presupuesto);
 
         // Los materiales ahora se almacenan directamente en el campo JSONB materiales_estimados
-        console.log('Servicio: Presupuesto actualizado:', presupuesto);
         
         // Actualizar el estado local
         const presupuestosActuales = this.presupuestosSubject.value;
@@ -295,7 +409,7 @@ export class PresupuestosService {
     console.log('🔍 eliminarPresupuesto llamado con ID:', id);
     
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .delete()
         .eq('id', id)
@@ -331,7 +445,7 @@ export class PresupuestosService {
    */
   buscarPresupuestos(termino: string): Observable<Presupuesto[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,
@@ -355,7 +469,7 @@ export class PresupuestosService {
    */
   getPresupuestosPorEstado(estado: string): Observable<Presupuesto[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,
@@ -379,7 +493,7 @@ export class PresupuestosService {
    */
   getPresupuestosPorAviso(avisoId: string): Observable<Presupuesto[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,
@@ -403,7 +517,7 @@ export class PresupuestosService {
    */
   cambiarEstado(id: string, estado: 'Pendiente' | 'En curso' | 'Completado' | 'Facturado' | 'Cancelado'): Observable<Presupuesto> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .update({ 
           estado,
@@ -450,7 +564,7 @@ export class PresupuestosService {
     
     // Actualizar solo el presupuesto primero para verificar que funciona
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .update({ 
           estado: 'Aprobado',

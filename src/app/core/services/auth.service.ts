@@ -18,7 +18,6 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  supabase: SupabaseClient;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
   private isInitializing = false;
@@ -28,8 +27,16 @@ export class AuthService {
     private usuariosService: UsuariosService,
     private supabaseClientService: SupabaseClientService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
     this.initializeAuth();
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('🔐 AuthService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   private async initializeAuth(): Promise<void> {
@@ -65,7 +72,7 @@ export class AuthService {
       try {
         console.log(`🔧 AuthService: Intento ${retryCount + 1} de ${maxRetries}`);
 
-        const sessionPromise = this.supabase.auth.getSession();
+        const sessionPromise = this.getSupabaseClient().auth.getSession();
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Timeout getting session')), 10000) // ✅ Aumentar timeout
         );
@@ -96,7 +103,7 @@ export class AuthService {
     }
   }
   private setupAuthListener(): void {
-    this.supabase.auth.onAuthStateChange(async (event, session) => {
+    this.getSupabaseClient().auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id);
 
       if (event === 'SIGNED_IN' && session?.user) {
@@ -170,7 +177,7 @@ export class AuthService {
 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      const { data, error } = await this.supabase.auth.signInWithPassword({
+      const { data, error } = await this.getSupabaseClient().auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password
       });
@@ -195,7 +202,7 @@ export class AuthService {
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
       // Registrar usuario en Supabase Auth
-      const { data, error } = await this.supabase.auth.signUp({
+      const { data, error } = await this.getSupabaseClient().auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
@@ -243,13 +250,13 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    await this.supabase.auth.signOut();
+    await this.getSupabaseClient().auth.signOut();
     this.clearAuth();
   }
 
   async refreshToken(): Promise<AuthResponse> {
     try {
-      const { data, error } = await this.supabase.auth.refreshSession();
+      const { data, error } = await this.getSupabaseClient().auth.refreshSession();
 
       if (error) throw error;
 
@@ -279,7 +286,7 @@ export class AuthService {
   }
 
   async getToken(): Promise<string | null> {
-    const { data: { session } } = await this.supabase.auth.getSession();
+    const { data: { session } } = await this.getSupabaseClient().auth.getSession();
     const token = session?.access_token || null;
     console.log('🔧 AuthService: getToken() - Token obtenido:', token ? 'SÍ' : 'NO');
     return token;
@@ -301,7 +308,7 @@ export class AuthService {
 
   // Verificar si el token ha expirado
   async isTokenExpired(): Promise<boolean> {
-    const { data: { session } } = await this.supabase.auth.getSession();
+    const { data: { session } } = await this.getSupabaseClient().auth.getSession();
     if (!session) return true;
 
     return new Date(session.expires_at! * 1000) < new Date();
@@ -309,7 +316,7 @@ export class AuthService {
 
   // Método público para obtener la sesión actual
   async getCurrentSession() {
-    return await this.supabase.auth.getSession();
+    return await this.getSupabaseClient().auth.getSession();
   }
 
   // Método para refresh manual de token (solución para NavigatorLockAcquireTimeoutError)
@@ -318,7 +325,7 @@ export class AuthService {
       console.log('🔄 AuthService: Iniciando refresh manual de token...');
 
       // Verificar si hay una sesión activa
-      const { data: { session } } = await this.supabase.auth.getSession();
+      const { data: { session } } = await this.getSupabaseClient().auth.getSession();
       if (!session) {
         console.log('🔄 AuthService: No hay sesión activa para refrescar');
         return false;
@@ -338,7 +345,7 @@ export class AuthService {
       console.log('🔄 AuthService: Token próximo a expirar, refrescando...');
 
       // Intentar refresh con timeout para evitar bloqueos
-      const refreshPromise = this.supabase.auth.refreshSession();
+      const refreshPromise = this.getSupabaseClient().auth.refreshSession();
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Refresh timeout')), 10000)
       );
@@ -379,7 +386,7 @@ export class AuthService {
   // Método para asegurar que el token sea válido
   async ensureValidToken(): Promise<boolean> {
     try {
-      const { data: { session } } = await this.supabase.auth.getSession();
+      const { data: { session } } = await this.getSupabaseClient().auth.getSession();
       if (!session) {
         return false;
       }
@@ -439,7 +446,7 @@ export class AuthService {
   // Métodos de debug para diagnóstico
   async debugTokenStatus(): Promise<any> {
     try {
-      const { data: { session } } = await this.supabase.auth.getSession();
+      const { data: { session } } = await this.getSupabaseClient().auth.getSession();
       if (!session) {
         return {
           hasSession: false,

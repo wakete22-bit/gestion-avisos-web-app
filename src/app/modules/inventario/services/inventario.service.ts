@@ -16,7 +16,6 @@ import { DataUpdateService } from '../../../core/services/data-update.service';
   providedIn: 'root'
 })
 export class InventarioService {
-  private supabase: SupabaseClient;
   private inventarioSubject = new BehaviorSubject<Inventario[]>([]);
   public inventario$ = this.inventarioSubject.asObservable();
 
@@ -24,7 +23,15 @@ export class InventarioService {
     private supabaseClientService: SupabaseClientService,
     private dataUpdateService: DataUpdateService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('📦 InventarioService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -38,7 +45,7 @@ export class InventarioService {
     orden?: 'asc' | 'desc',
     soloConStock: boolean = false
   ): Observable<InventarioResponse> {
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('inventario')
       .select('*', { count: 'exact' });
 
@@ -84,7 +91,7 @@ export class InventarioService {
    */
   getProducto(id: string): Observable<Inventario> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('*')
         .eq('id', id)
@@ -102,7 +109,7 @@ export class InventarioService {
    */
   getProductoPorCodigo(codigo: string): Observable<Inventario> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('*')
         .eq('codigo', codigo)
@@ -126,7 +133,7 @@ export class InventarioService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .insert([productoData])
         .select()
@@ -157,7 +164,7 @@ export class InventarioService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .update(datosActualizados)
         .eq('id', id)
@@ -188,7 +195,7 @@ export class InventarioService {
    */
   eliminarProducto(id: string): Observable<void> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .delete()
         .eq('id', id)
@@ -211,7 +218,7 @@ export class InventarioService {
    */
   buscarProductos(termino: string): Observable<Inventario[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('*')
         .or(`nombre.ilike.%${termino}%,descripcion.ilike.%${termino}%,codigo.ilike.%${termino}%`)
@@ -230,7 +237,7 @@ export class InventarioService {
    */
   getProductosStockBajo(): Observable<Inventario[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('*')
         .lt('cantidad_disponible', 5)
@@ -249,7 +256,7 @@ export class InventarioService {
    */
   getProductosSinStock(): Observable<Inventario[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('*')
         .eq('cantidad_disponible', 0)
@@ -283,7 +290,7 @@ export class InventarioService {
    */
   verificarCodigoExistente(codigo: string): Observable<boolean> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('codigo')
         .eq('codigo', codigo)
@@ -301,7 +308,7 @@ export class InventarioService {
    */
   getEstadisticas(): Observable<any> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('inventario')
         .select('cantidad_disponible')
     ).pipe(
@@ -361,7 +368,7 @@ export class InventarioService {
     ordenarPor?: string,
     orden?: 'asc' | 'desc'
   ): Observable<InventarioResponse> {
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('inventario')
       .select('*', { count: 'exact' })
       .eq('cantidad_disponible', 0);

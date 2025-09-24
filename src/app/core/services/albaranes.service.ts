@@ -12,13 +12,20 @@ import { InventarioService } from '../../modules/inventario/services/inventario.
   providedIn: 'root'
 })
 export class AlbaranesService {
-  private supabase: SupabaseClient;
 
   constructor(
     private supabaseClientService: SupabaseClientService,
     private inventarioService: InventarioService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('📋 AlbaranesService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -32,7 +39,7 @@ export class AlbaranesService {
     
     // Primero crear el albarán básico (sin repuestos)
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .insert([albaranBasico])
         .select()
@@ -64,7 +71,7 @@ export class AlbaranesService {
         
         // Insertar repuestos en la tabla repuestos_albaran
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('repuestos_albaran')
             .insert(repuestosParaInsertar)
             .select()
@@ -120,7 +127,7 @@ export class AlbaranesService {
    */
   getAlbaran(id: string): Observable<Albaran> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .select(`
           *,
@@ -151,7 +158,7 @@ export class AlbaranesService {
     console.log('📦 Actualizando stock para repuesto:', repuesto);
     
     // Buscar el producto en inventario por código o nombre
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('inventario')
       .select('*');
     
@@ -179,7 +186,7 @@ export class AlbaranesService {
         
         // Actualizar el stock en inventario
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('inventario')
             .update({ 
               cantidad_disponible: nuevaCantidad,
@@ -215,7 +222,7 @@ export class AlbaranesService {
    */
   getAlbaranesAviso(avisoId: string): Observable<Albaran[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .select(`
           *,
@@ -245,7 +252,7 @@ export class AlbaranesService {
    */
   actualizarAlbaran(id: string, datos: Partial<Albaran>): Observable<Albaran> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .update({
           ...datos,
@@ -312,7 +319,7 @@ export class AlbaranesService {
    */
   private eliminarAlbaranDeBD(id: string): Observable<void> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .delete()
         .eq('id', id)
@@ -338,7 +345,7 @@ export class AlbaranesService {
     console.log('📦 Restaurando stock para repuesto:', repuesto);
     
     // Buscar el producto en inventario por código o nombre
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('inventario')
       .select('*');
     
@@ -366,7 +373,7 @@ export class AlbaranesService {
         
         // Actualizar el stock en inventario
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('inventario')
             .update({ 
               cantidad_disponible: nuevaCantidad,
@@ -402,7 +409,7 @@ export class AlbaranesService {
    */
   getEstadisticasAlbaranes(avisoId: string): Observable<any> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('albaranes')
         .select('estado_cierre')
         .eq('aviso_id', avisoId)

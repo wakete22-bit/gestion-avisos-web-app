@@ -21,7 +21,6 @@ import { AvisosService } from '../../../core/services/avisos.service';
   providedIn: 'root'
 })
 export class FacturasService {
-  private supabase: SupabaseClient;
   private facturasSubject = new BehaviorSubject<Factura[]>([]);
   public facturas$ = this.facturasSubject.asObservable();
 
@@ -31,7 +30,15 @@ export class FacturasService {
     private configuracionService: ConfiguracionService,
     private avisosService: AvisosService
   ) {
-    this.supabase = this.supabaseClientService.getClient();
+    // NO asignar cliente estático - usar método dinámico
+  }
+
+  /**
+   * Obtiene el cliente Supabase actualizado dinámicamente
+   */
+  private getSupabaseClient(): SupabaseClient {
+    console.log('💰 FacturasService: Obteniendo cliente Supabase actualizado...');
+    return this.supabaseClientService.getClient();
   }
 
   /**
@@ -45,7 +52,7 @@ export class FacturasService {
     orden?: 'asc' | 'desc',
     estado?: string
   ): Observable<FacturaResponse> {
-    let query = this.supabase
+    let query = this.getSupabaseClient()
       .from('facturas')
       .select(`
         *,
@@ -90,11 +97,186 @@ export class FacturasService {
   }
 
   /**
-   * Obtiene una factura por su ID con todas sus líneas
+   * Obtiene la lista de facturas usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  getFacturasDirect(
+    pagina: number = 1,
+    porPagina: number = 10,
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    estado?: string
+  ): Observable<FacturaResponse> {
+    console.log('🚀 FacturasService: Usando FETCH DIRECTO para facturas...');
+    
+    return from(this.fetchFacturasDirect(pagina, porPagina, busqueda, ordenarPor, orden, estado)).pipe(
+      map(result => {
+        console.log('✅ FacturasService: FETCH DIRECTO completado, facturas:', result.facturas.length);
+        
+        // Actualizar el subject local
+        this.facturasSubject.next(result.facturas);
+        
+        return result;
+      }),
+      catchError(error => {
+        console.error('❌ FacturasService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para facturas - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchFacturasDirect(
+    pagina: number = 1,
+    porPagina: number = 10,
+    busqueda?: string,
+    ordenarPor?: string,
+    orden?: 'asc' | 'desc',
+    estado?: string
+  ): Promise<FacturaResponse> {
+    console.log('🚀 FacturasService: Ejecutando fetch directo para facturas...');
+    
+    try {
+      // Construir URL con parámetros
+      let url = `${environment.supabaseUrl}/rest/v1/facturas?select=*,cliente:clientes(*),aviso:avisos(*)`;
+
+      // Aplicar filtros
+      const filters: string[] = [];
+      
+      if (busqueda) {
+        filters.push(`or=(numero_factura.ilike.*${busqueda}*,nombre_cliente.ilike.*${busqueda}*)`);
+      }
+      
+      if (estado) {
+        filters.push(`estado=eq.${estado}`);
+      }
+      
+      if (filters.length > 0) {
+        url += '&' + filters.join('&');
+      }
+      
+      // Aplicar paginación y ordenamiento
+      const desde = (pagina - 1) * porPagina;
+      url += `&limit=${porPagina}&offset=${desde}`;
+      url += `&order=${ordenarPor || 'fecha_creacion'}.${orden === 'asc' ? 'asc' : 'desc'}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'count=exact'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const contentRange = response.headers.get('content-range');
+      const total = contentRange ? parseInt(contentRange.split('/')[1]) : data.length;
+      
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'facturas, total:', total);
+      
+      return {
+        facturas: data as Factura[],
+        total,
+        pagina,
+        por_pagina: porPagina
+      };
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene una factura por su ID usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  getFacturaDirect(id: string): Observable<FacturaCompleta> {
+    console.log('🚀 FacturasService: Usando FETCH DIRECTO para factura individual...');
+    
+    return from(this.fetchFacturaDirect(id)).pipe(
+      map(factura => {
+        console.log('✅ FacturasService: FETCH DIRECTO completado, factura:', factura?.factura?.id);
+        return factura;
+      }),
+      catchError(error => {
+        console.error('❌ FacturasService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para factura individual - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchFacturaDirect(id: string): Promise<FacturaCompleta> {
+    console.log('🚀 FacturasService: Ejecutando fetch directo para factura:', id);
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/facturas?select=*,cliente:clientes(*),aviso:avisos(*),lineas:lineas_factura(*)&id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 URL construida:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('🚀 Datos recibidos:', data?.length || 0, 'facturas');
+      
+      if (!data || data.length === 0) {
+        throw new Error('Factura no encontrada');
+      }
+      
+      const facturaData = data[0];
+      console.log('🚀 Estructura de factura recibida:', facturaData);
+      
+      // Devolver en formato FacturaCompleta: { factura, lineas }
+      return {
+        factura: facturaData,
+        lineas: facturaData.lineas || []
+      } as FacturaCompleta;
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene una factura por su ID con todas sus líneas (método original)
    */
   getFactura(id: string): Observable<FacturaCompleta> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select(`
           *,
@@ -109,7 +291,7 @@ export class FacturasService {
 
         // Obtener las líneas de la factura
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('lineas_factura')
             .select('*')
             .eq('factura_id', id)
@@ -161,7 +343,7 @@ export class FacturasService {
     console.log('📋 Insertando factura con datos:', facturaInsert);
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .insert([facturaInsert])
         .select(`
@@ -184,7 +366,7 @@ export class FacturasService {
                 };
                 
                 return from(
-                  this.supabase
+                  this.getSupabaseClient()
                     .from('facturas')
                     .insert([facturaRetry])
                     .select(`
@@ -236,7 +418,7 @@ export class FacturasService {
     }));
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('lineas_factura')
         .insert(lineasInsert)
         .select()
@@ -270,7 +452,7 @@ export class FacturasService {
     };
 
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .update(facturaUpdate)
         .eq('id', id)
@@ -293,7 +475,7 @@ export class FacturasService {
 
         // Eliminar líneas existentes y crear nuevas
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('lineas_factura')
             .delete()
             .eq('factura_id', id)
@@ -316,7 +498,7 @@ export class FacturasService {
             }));
 
             return from(
-              this.supabase
+              this.getSupabaseClient()
                 .from('lineas_factura')
                 .insert(lineasInsert)
                 .select()
@@ -352,7 +534,7 @@ export class FacturasService {
   eliminarFactura(id: string): Observable<void> {
     // Primero obtener la información de la factura para saber el aviso asociado
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select('aviso_id')
         .eq('id', id)
@@ -366,7 +548,7 @@ export class FacturasService {
 
         // Eliminar las líneas de factura primero
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('lineas_factura')
             .delete()
             .eq('factura_id', id)
@@ -376,7 +558,7 @@ export class FacturasService {
 
             // Eliminar la factura
             return from(
-              this.supabase
+              this.getSupabaseClient()
                 .from('facturas')
                 .delete()
                 .eq('id', id)
@@ -416,7 +598,7 @@ export class FacturasService {
    */
   buscarFacturas(termino: string): Observable<Factura[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select(`
           *,
@@ -438,7 +620,7 @@ export class FacturasService {
    */
   getFacturasPorEstado(estado: string): Observable<Factura[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select(`
           *,
@@ -460,7 +642,7 @@ export class FacturasService {
    */
   getFacturasPorCliente(clienteId: string): Observable<Factura[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select(`
           *,
@@ -482,7 +664,7 @@ export class FacturasService {
    */
   getFacturasPorAviso(avisoId: string): Observable<Factura[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select(`
           *,
@@ -504,7 +686,7 @@ export class FacturasService {
    */
   cambiarEstado(id: string, estado: 'Pendiente' | 'En curso' | 'Completado'): Observable<Factura> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .update({ 
           estado,
@@ -542,7 +724,7 @@ export class FacturasService {
    */
   getSiguienteNumero(): Observable<string> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .rpc('obtener_siguiente_numero_factura')
     ).pipe(
       map(({ data, error }) => {
@@ -567,7 +749,7 @@ export class FacturasService {
     const año = new Date().getFullYear();
     
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('facturas')
         .select('numero_factura')
         .like('numero_factura', `FAC-${año}-%`)
@@ -669,7 +851,7 @@ export class FacturasService {
   crearFacturaDesdePresupuesto(presupuestoId: string): Observable<FacturaCompleta> {
     // Primero obtener el presupuesto completo con materiales
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,
@@ -798,7 +980,7 @@ export class FacturasService {
       switchMap(facturaCreada => {
         // Actualizar el presupuesto para marcar que ya fue facturado
         return from(
-          this.supabase
+          this.getSupabaseClient()
             .from('presupuestos')
             .update({ 
               estado: 'Facturado',
@@ -817,7 +999,7 @@ export class FacturasService {
    */
   getPresupuestosListosParaFacturar(): Observable<any[]> {
     return from(
-      this.supabase
+      this.getSupabaseClient()
         .from('presupuestos')
         .select(`
           *,

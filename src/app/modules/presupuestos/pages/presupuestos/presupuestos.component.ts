@@ -4,8 +4,9 @@ import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { addIcons } from 'ionicons';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 import { 
   mapOutline,
   addCircle,
@@ -48,12 +49,36 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private presupuestosService: PresupuestosService
+    private presupuestosService: PresupuestosService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) { 
     addIcons({hourglassOutline,alertCircleOutline,refreshOutline,searchOutline,addCircle,eyeOutline,createOutline,trashOutline,documentOutline,mapOutline,alertCircle,close,add,addCircleOutline});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 PresupuestosComponent: App reanudada, recargando presupuestos...');
+          this.cargarPresupuestos();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 PresupuestosComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarPresupuestos();
+        }
+      });
+
     this.cargarPresupuestos();
   }
 
@@ -68,8 +93,8 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
   cargarPresupuestos() {
     this.loading = true;
     this.error = false;
-
-    this.presupuestosService.getPresupuestos(this.paginaActual, this.porPagina)
+    // 🚀 USAR FETCH DIRECTO para evitar bloqueos del cliente Supabase
+    this.presupuestosService.getPresupuestosDirect(this.paginaActual, this.porPagina)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: PresupuestoResponse) => {

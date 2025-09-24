@@ -20,7 +20,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { UsuariosService } from '../../../../core/services/usuarios.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Usuario } from '../../../../core/models/usuario.model';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, takeUntil, distinctUntilChanged } from 'rxjs';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-mi-cuenta',
@@ -50,11 +51,13 @@ export class MiCuentaComponent implements OnInit, OnDestroy {
   isEditing = false;
   isLoading = false;
   private subscription = new Subscription();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private formBuilder: FormBuilder,
     private usuariosService: UsuariosService,
-    private authService: AuthService
+    private authService: AuthService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) { 
     addIcons({
       arrowForward,
@@ -79,10 +82,35 @@ export class MiCuentaComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA (patrón del dashboard)
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 MiCuentaComponent: App reanudada, recargando datos de usuario...');
+          this.cargarUsuarioActual();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 MiCuentaComponent: Estado de conexión:', state);
+        if (state === 'connected' && !this.usuario) {
+          this.cargarUsuarioActual();
+        }
+      });
+
     this.cargarUsuarioActual();
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.subscription.unsubscribe();
   }
 
