@@ -212,33 +212,27 @@ export class ClientesService {
   }
 
   /**
-   * Crea un nuevo cliente
+   * Crea un nuevo cliente usando FETCH DIRECTO - EVITA BLOQUEOS
    */
   crearCliente(cliente: CrearClienteRequest): Observable<Cliente> {
-    const clienteData = {
-      ...cliente,
-      fecha_creacion: new Date().toISOString(),
-      es_activo: cliente.es_activo ?? true
-    };
-
-    return from(
-      this.getSupabaseClient()
-        .from('clientes')
-        .insert([clienteData])
-        .select()
-        .single()
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
+    console.log('🚀 ClientesService: Usando FETCH DIRECTO para crear cliente...');
+    
+    return from(this.fetchCrearClienteDirect(cliente)).pipe(
+      map(result => {
+        console.log('✅ ClientesService: FETCH DIRECTO completado, cliente creado:', result.id);
         
-        const nuevoCliente = data as Cliente;
+        // Actualizar el subject local
         const clientesActuales = this.clientesSubject.value;
-        this.clientesSubject.next([nuevoCliente, ...clientesActuales]);
+        this.clientesSubject.next([result, ...clientesActuales]);
         
         // Notificar creación y limpiar cache
         this.dataUpdateService.notifyCreated('clientes');
         
-        return nuevoCliente;
+        return result;
+      }),
+      catchError(error => {
+        console.error('❌ ClientesService: Error en FETCH DIRECTO para crear cliente:', error);
+        throw error;
       })
     );
   }
@@ -503,5 +497,50 @@ export class ClientesService {
    */
   limpiarClientes(): void {
     this.clientesSubject.next([]);
+  }
+
+  /**
+   * Método privado para crear cliente con fetch directo
+   */
+  private async fetchCrearClienteDirect(cliente: CrearClienteRequest): Promise<Cliente> {
+    console.log('🚀 ClientesService: Ejecutando fetch directo para crear cliente...');
+    
+    try {
+      const clienteData = {
+        ...cliente,
+        fecha_creacion: new Date().toISOString(),
+        es_activo: cliente.es_activo ?? true
+      };
+
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      };
+
+      const url = `${environment.supabaseUrl}/rest/v1/clientes`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(clienteData)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      const clienteCreado = data[0] as Cliente;
+      
+      console.log('✅ Cliente creado con FETCH DIRECTO:', clienteCreado);
+      return clienteCreado;
+
+    } catch (error) {
+      console.error('🚀 Error en fetch directo para crear cliente:', error);
+      throw error;
+    }
   }
 } 
