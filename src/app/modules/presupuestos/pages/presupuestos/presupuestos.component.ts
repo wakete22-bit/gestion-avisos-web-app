@@ -18,7 +18,6 @@ import {
   searchOutline, hourglassOutline, alertCircleOutline, refreshOutline, createOutline, documentOutline, trashOutline } from 'ionicons/icons';
 
 import { PresupuestosService, Presupuesto, PresupuestoResponse } from '../../services/presupuestos.service';
-import { FlujoBotonComponent } from '../../../../shared/components/flujo-boton/flujo-boton.component';
 
 @Component({
   selector: 'app-presupuestos',
@@ -30,8 +29,7 @@ import { FlujoBotonComponent } from '../../../../shared/components/flujo-boton/f
     IonContent,
     IonIcon,
     MatTableModule,
-    MatIconModule,
-    FlujoBotonComponent
+    MatIconModule
   ],
 })
 export class PresupuestosComponent implements OnInit, OnDestroy {
@@ -132,14 +130,14 @@ export class PresupuestosComponent implements OnInit, OnDestroy {
     if (confirm(`¿Estás seguro de que quieres eliminar el presupuesto #${this.getNumeroPresupuesto(presupuesto)}?\n\nEsta acción no se puede deshacer.`)) {
       this.loading = true;
       
-      this.presupuestosService.eliminarPresupuesto(presupuesto.id).subscribe({
+      this.presupuestosService.eliminarPresupuestoDirect(presupuesto.id).subscribe({
         next: () => {
-          console.log('Presupuesto eliminado exitosamente');
+          console.log('✅ Presupuesto eliminado exitosamente con FETCH DIRECTO');
           this.loading = false;
           this.cargarPresupuestos(); // Recargar la lista
         },
         error: (error) => {
-          console.error('Error al eliminar presupuesto:', error);
+          console.error('❌ Error al eliminar presupuesto con FETCH DIRECTO:', error);
           this.loading = false;
           alert('Error al eliminar el presupuesto: ' + (error.message || 'Error desconocido'));
         }

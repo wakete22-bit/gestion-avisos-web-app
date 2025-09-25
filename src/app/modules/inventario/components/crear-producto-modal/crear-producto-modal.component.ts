@@ -7,16 +7,17 @@ import { ViewportService } from 'src/app/core/services/viewport.service';
 import { InventarioService } from '../../services/inventario.service';
 import { Inventario } from '../../models/inventario.model';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
+import { takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-crear-producto-modal',
   templateUrl: './crear-producto-modal.component.html',
   styleUrls: ['./crear-producto-modal.component.scss'],
   standalone: true,
-  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter]
 })
 export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() productoParaEditar?: Inventario;
@@ -35,7 +36,8 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
     private viewportService: ViewportService,
     private elementRef: ElementRef,
     private inventarioService: InventarioService,
-    private configuracionService: ConfiguracionService
+    private configuracionService: ConfiguracionService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     this.productoForm = this.fb.group({
       codigo: [{ value: '', disabled: true }],
@@ -50,6 +52,33 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
 
   ngOnInit() {
     addIcons({ closeOutline, saveOutline, informationCircleOutline });
+    
+    // Suscribirse al servicio unificado de reconexión para recargar datos automáticamente
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged() // Solo procesar si el valor cambió
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearProductoModal: App reanudada exitosamente, recargando datos...');
+          // En modo edición, recargar datos del producto
+          if (this.modoEdicion && this.productoParaEditar) {
+            this.cargarDatosProducto();
+          }
+        }
+      });
+
+    // También suscribirse al estado de conexión para mostrar feedback al usuario
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearProductoModal: Estado de conexión:', state);
+        if (state === 'connected' && this.modoEdicion && this.productoParaEditar) {
+          // Si había error y ahora está conectado, recargar datos
+          this.cargarDatosProducto();
+        }
+      });
     
     // Verificar si estamos en modo edición
     if (this.productoParaEditar) {
@@ -106,6 +135,7 @@ export class CrearProductoModalComponent implements OnInit, AfterViewInit, OnDes
         formData.id = this.productoParaEditar.id;
       }
 
+      console.log('🔄 Guardando producto con datos:', formData);
       await this.modalController.dismiss(formData, 'confirm');
     }
   }

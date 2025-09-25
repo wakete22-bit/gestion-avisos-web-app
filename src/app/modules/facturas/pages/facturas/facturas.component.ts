@@ -193,10 +193,10 @@ export class FacturasComponent implements OnInit, OnDestroy {
       this.loading = true;
       this.error = null;
 
-      this.facturasService.eliminarFactura(factura.id!)
+      this.facturasService.eliminarFacturaDirect(factura.id!)
         .subscribe({
           next: () => {
-            console.log('Factura eliminada exitosamente');
+            console.log('✅ Factura eliminada exitosamente con FETCH DIRECTO');
             this.loading = false;
             
             // Recargar la lista de facturas
@@ -209,10 +209,10 @@ export class FacturasComponent implements OnInit, OnDestroy {
             // Puedes implementar un toast o notificación aquí
           },
           error: (error) => {
-            console.error('Error al eliminar factura:', error);
+            console.error('❌ Error al eliminar factura con FETCH DIRECTO:', error);
             
             // Mostrar mensaje de error más específico
-            if (error.code === '23503') {
+            if (error.message && error.message.includes('23503')) {
               this.error = 'No se puede eliminar la factura porque tiene datos relacionados. Contacta al administrador.';
             } else {
               this.error = 'Error al eliminar la factura. Por favor, inténtalo de nuevo.';

@@ -1,10 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from "@ionic/angular/standalone";
 import { IonIcon } from '@ionic/angular/standalone';
 import { Router, ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 
 import { trash, closeOutline, trashOutline, arrowBackOutline, sendOutline, download, print, refreshOutline, saveOutline } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
@@ -22,6 +23,7 @@ import { PdfService } from '../../../../core/services/pdf.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { Cliente } from '../../../clientes/models/cliente.model';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 import jsPDF from 'jspdf';
 import { IonFooter, IonToolbar, IonButton } from '@ionic/angular/standalone';
 
@@ -30,9 +32,9 @@ import { IonFooter, IonToolbar, IonButton } from '@ionic/angular/standalone';
   templateUrl: './crear-factura.component.html',
   styleUrls: ['./crear-factura.component.scss'],
   standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, FormsModule, IonIcon, IonFooter, IonToolbar, IonButton]
+    imports: [CommonModule, ReactiveFormsModule, FormsModule, IonIcon, IonFooter, IonToolbar]
 })
-export class CrearFacturaComponent implements OnInit {
+export class CrearFacturaComponent implements OnInit, OnDestroy {
   @Input() facturaId?: string; // Para editar factura existente
   
   facturaForm: FormGroup;
@@ -51,6 +53,8 @@ export class CrearFacturaComponent implements OnInit {
   mostrarSelectorClientes = false;
   clienteSeleccionado: Cliente | null = null;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private fb: FormBuilder,
     private facturasService: FacturasService,
@@ -58,7 +62,8 @@ export class CrearFacturaComponent implements OnInit {
     private route: ActivatedRoute,
     private pdfService: PdfService,
     private configuracionService: ConfiguracionService,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     this.facturaForm = this.fb.group({
       numeroFactura: ['', Validators.required],
@@ -74,6 +79,33 @@ export class CrearFacturaComponent implements OnInit {
 
   ngOnInit() {
     addIcons({ trash, closeOutline, download, print, searchOutline, personOutline });
+    
+    console.log('🔄 CrearFacturaComponent inicializado');
+
+    // Patrón de reconexión
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearFacturaComponent: App reanudada, recargando datos...');
+          this.cargarClientes();
+          if (this.isEditing && this.facturaId) {
+            this.cargarFacturaParaEditar(this.facturaId);
+          }
+        }
+      });
+
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearFacturaComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.isEditing && this.facturaId) {
+          this.cargarFacturaParaEditar(this.facturaId);
+        }
+      });
     
     // Cargar clientes disponibles
     this.cargarClientes();
@@ -92,19 +124,27 @@ export class CrearFacturaComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   /**
    * Carga una factura existente para editar
    */
   private cargarFacturaParaEditar(facturaId: string) {
     this.loading = true;
-    this.facturasService.getFactura(facturaId).subscribe({
+    console.log('🔄 Cargando factura para editar:', facturaId);
+    
+    this.facturasService.getFacturaDirect(facturaId).subscribe({
       next: (facturaCompleta) => {
+        console.log('✅ Factura cargada exitosamente para editar:', facturaCompleta);
         this.facturaOriginal = facturaCompleta;
         this.cargarDatosFactura(facturaCompleta);
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar factura para editar:', error);
+        console.error('❌ Error al cargar factura para editar:', error);
         this.loading = false;
         // Redirigir a lista de facturas si hay error
         this.router.navigate(['/facturas']);
@@ -444,11 +484,12 @@ export class CrearFacturaComponent implements OnInit {
 
   // Métodos para el selector de clientes
   cargarClientes() {
-    this.clientesService.getClientes(1, 100).subscribe({
+    console.log('🔄 Cargando clientes...');
+    this.clientesService.getClientesDirect(1, 100).subscribe({
       next: (response) => {
+        console.log('✅ Clientes cargados exitosamente:', response.clientes.length);
         this.clientes = response.clientes;
         this.clientesFiltrados = response.clientes;
-        console.log('✅ Clientes cargados:', this.clientes.length);
       },
       error: (error) => {
         console.error('❌ Error al cargar clientes:', error);

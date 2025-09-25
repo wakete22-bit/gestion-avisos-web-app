@@ -1,14 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, eyeOutline, printOutline, downloadOutline, refreshOutline, alertCircleOutline, createOutline, mailOutline } from 'ionicons/icons';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 
 import { PresupuestosService, Presupuesto } from '../../services/presupuestos.service';
 import { ConfiguracionService } from '../../../../core/services/configuracion.service';
 import { PresupuestoPdfService } from '../../../../core/services/presupuesto-pdf.service';
 import { EmailService } from '../../../../core/services/email.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-ver-presupuesto',
@@ -17,7 +19,7 @@ import { EmailService } from '../../../../core/services/email.service';
   standalone: true,
   imports: [CommonModule, IonContent, IonIcon]
 })
-export class VerPresupuestoComponent implements OnInit {
+export class VerPresupuestoComponent implements OnInit, OnDestroy {
   presupuesto: Presupuesto | null = null;
   loading = false;
   error: string | null = null;
@@ -26,20 +28,47 @@ export class VerPresupuestoComponent implements OnInit {
   precioHoraManoObra: number = 50;
   enviandoCorreo = false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private presupuestosService: PresupuestosService,
     private configuracionService: ConfiguracionService,
     private presupuestoPdfService: PresupuestoPdfService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     console.log('VerPresupuestoComponent constructor');
     addIcons({arrowBackOutline,createOutline,printOutline,downloadOutline,refreshOutline,alertCircleOutline,eyeOutline,mailOutline});
   }
 
   ngOnInit() {
-    console.log('VerPresupuestoComponent ngOnInit');
+    console.log('🔄 VerPresupuestoComponent inicializado');
+    
+    // Patrón de reconexión
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 VerPresupuestoComponent: App reanudada, recargando presupuesto...');
+          if (this.presupuestoId) {
+            this.cargarPresupuesto();
+          }
+        }
+      });
+
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 VerPresupuestoComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.presupuestoId) {
+          this.cargarPresupuesto();
+        }
+      });
     
     // Cargar IVA desde configuración
     this.configuracionService.getIvaPorDefecto().subscribe(iva => {
@@ -58,22 +87,27 @@ export class VerPresupuestoComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   cargarPresupuesto() {
     if (!this.presupuestoId) return;
     
-    console.log('Cargando presupuesto con ID:', this.presupuestoId);
+    console.log('🔄 Cargando presupuesto con ID:', this.presupuestoId);
     this.loading = true;
     this.error = null;
     
-    this.presupuestosService.getPresupuesto(this.presupuestoId).subscribe({
+    this.presupuestosService.getPresupuestoDirect(this.presupuestoId).subscribe({
       next: (presupuesto) => {
-        console.log('Presupuesto cargado:', presupuesto);
+        console.log('✅ Presupuesto cargado exitosamente:', presupuesto);
         console.log('Materiales estimados:', presupuesto.materiales_estimados);
         this.presupuesto = presupuesto;
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar presupuesto:', error);
+        console.error('❌ Error al cargar presupuesto:', error);
         this.error = `Error al cargar el presupuesto: ${error.message || error}`;
         this.loading = false;
       }

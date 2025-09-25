@@ -7,15 +7,16 @@ import { CrearClienteModalComponent } from '../../../clientes/components/crear-c
 import { ViewportService } from 'src/app/core/services/viewport.service';
 import { ClientesService } from '../../../../core/services/clientes.service';
 import { Cliente } from '../../../clientes/models/cliente.model';
-import { Subject, takeUntil } from 'rxjs';
-import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, IonModal, ModalController } from '@ionic/angular/standalone';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
+import { IonHeader, IonToolbar, IonContent, IonFooter, IonIcon, ModalController } from '@ionic/angular/standalone';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-crear-avisos-modal',
   templateUrl: './crear-avisos-modal.component.html',
   styleUrls: ['./crear-avisos-modal.component.scss'],
   standalone: true,
-  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter, IonModal]
+  imports: [IonIcon, CommonModule, ReactiveFormsModule, IonHeader, IonToolbar, IonContent, IonFooter]
 })
 export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() clienteData: any;
@@ -35,7 +36,8 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
     private modalController: ModalController,
     private viewportService: ViewportService,
     private elementRef: ElementRef,
-    private clientesService: ClientesService
+    private clientesService: ClientesService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     this.avisoForm = this.fb.group({
       tipo: ['', Validators.required],
@@ -63,6 +65,33 @@ export class CrearAvisosModalComponent implements OnInit, AfterViewInit, OnDestr
       saveOutline,
       trashOutline
     });
+    
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 CrearAvisosModalComponent: App reanudada, recargando datos...');
+          this.cargarClientes();
+          // En modo edición, recargar datos del aviso
+          if (this.modoEdicion && this.avisoExistente) {
+            this.cargarDatosAvisoExistente();
+          }
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 CrearAvisosModalComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.errorClientes) {
+          this.cargarClientes();
+        }
+      });
     
     this.cargarClientes();
     

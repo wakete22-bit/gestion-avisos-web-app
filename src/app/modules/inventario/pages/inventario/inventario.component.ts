@@ -97,8 +97,9 @@ export class InventarioComponent implements OnInit, OnDestroy {
   private cargarInventario() {
     this.loading = true;
     this.error = null;
+    console.log('🔄 Iniciando carga de inventario con FETCH DIRECTO...');
 
-    this.inventarioService.getInventario(
+    this.inventarioService.getInventarioDirect(
       this.paginaActual,
       this.porPagina,
       this.busqueda,
@@ -107,13 +108,14 @@ export class InventarioComponent implements OnInit, OnDestroy {
     ).pipe(takeUntil(this.destroy$))
     .subscribe({
       next: (response) => {
+        console.log('✅ Inventario cargado exitosamente con FETCH DIRECTO:', response.inventario.length, 'productos');
         this.productos = response.inventario;
         this.productosFiltrados = response.inventario;
         this.totalProductos = response.total;
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar inventario:', error);
+        console.error('❌ Error al cargar inventario con FETCH DIRECTO:', error);
         this.error = 'Error al cargar el inventario. Por favor, inténtalo de nuevo.';
         this.loading = false;
       }
@@ -269,18 +271,20 @@ export class InventarioComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.error = null;
+    console.log('🔄 Creando producto con FETCH DIRECTO...');
 
-    this.inventarioService.crearProducto(producto)
+    this.inventarioService.crearProductoDirect(producto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          console.log('✅ Producto creado exitosamente con FETCH DIRECTO');
           this.mostrarToast('Producto creado exitosamente', 'success');
           this.loading = false;
           // Recargar la lista para mostrar el nuevo producto
           this.cargarInventario();
         },
         error: (error) => {
-          console.error('Error al crear producto:', error);
+          console.error('❌ Error al crear producto con FETCH DIRECTO:', error);
           this.error = 'Error al crear el producto. Por favor, inténtalo de nuevo.';
           this.loading = false;
           this.mostrarToast('Error al crear el producto', 'danger');
@@ -359,18 +363,20 @@ export class InventarioComponent implements OnInit, OnDestroy {
 
     this.loading = true;
     this.error = null;
+    console.log('🔄 Actualizando producto con FETCH DIRECTO...');
 
-    this.inventarioService.actualizarProducto(id, producto)
+    this.inventarioService.actualizarProductoDirect(id, producto)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          console.log('✅ Producto actualizado exitosamente con FETCH DIRECTO');
           this.mostrarToast('Producto actualizado exitosamente', 'success');
           this.loading = false;
           // Recargar la lista para mostrar el producto actualizado
           this.cargarInventario();
         },
         error: (error) => {
-          console.error('Error al actualizar producto:', error);
+          console.error('❌ Error al actualizar producto con FETCH DIRECTO:', error);
           this.error = 'Error al actualizar el producto. Por favor, inténtalo de nuevo.';
           this.loading = false;
           this.mostrarToast('Error al actualizar el producto', 'danger');
@@ -400,18 +406,20 @@ export class InventarioComponent implements OnInit, OnDestroy {
   private eliminarProducto(id: string) {
     this.loading = true;
     this.error = null;
+    console.log('🔄 Eliminando producto con FETCH DIRECTO...');
 
-    this.inventarioService.eliminarProducto(id)
+    this.inventarioService.eliminarProductoDirect(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          console.log('✅ Producto eliminado exitosamente con FETCH DIRECTO');
           this.mostrarToast('Producto eliminado exitosamente', 'success');
           this.loading = false;
           // Recargar la lista para actualizar la vista
           this.cargarInventario();
         },
         error: (error) => {
-          console.error('Error al eliminar producto:', error);
+          console.error('❌ Error al eliminar producto con FETCH DIRECTO:', error);
           this.error = 'Error al eliminar el producto. Por favor, inténtalo de nuevo.';
           this.loading = false;
           this.mostrarToast('Error al eliminar el producto', 'danger');

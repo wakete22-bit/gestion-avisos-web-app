@@ -15,8 +15,9 @@ import { FlujoEstadoComponent } from '../../../../shared/components/flujo-estado
 import { CrearAvisosModalComponent } from '../crear-avisos-modal/crear-avisos-modal.component';
 import { VerAlbaranModalComponent } from '../ver-albaran-modal/ver-albaran-modal.component';
 import { VerImagenModalComponent } from '../ver-imagen-modal/ver-imagen-modal.component';
-import { Subject, takeUntil, firstValueFrom } from 'rxjs';
+import { Subject, takeUntil, firstValueFrom, distinctUntilChanged } from 'rxjs';
 import { FlujoAvisosService } from '../../../../core/services/flujo-avisos.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 addIcons({ close, pencilOutline, navigate, person, call, mail, mapOutline, arrowBackOutline });
 
@@ -54,12 +55,36 @@ export class VerAvisosComponent implements OnInit {
     private avisosService: AvisosService,
     private albaranesService: AlbaranesService,
     private modalController: ModalController,
-    private flujoAvisosService: FlujoAvisosService
+    private flujoAvisosService: FlujoAvisosService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {
     addIcons({refreshOutline,alertCircleOutline,arrowBackOutline,close,pencilOutline,checkmarkCircleOutline,navigate,person,call,mail,addCircle,documentTextOutline,calculator,eyeOutline,imagesOutline,trashOutline,informationCircleOutline,constructOutline,bugOutline,personOutline,gridOutline,listOutline,chevronDownOutline,ellipsisVerticalOutline,ellipsisVertical,add,mapOutline});
   }
 
   ngOnInit() {
+    // 🔄 CONFIGURAR RECONEXIÓN AUTOMÁTICA
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 VerAvisosComponent: App reanudada, recargando aviso...');
+          this.cargarAviso();
+        }
+      });
+
+    // También suscribirse al estado de conexión
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 VerAvisosComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          this.cargarAviso();
+        }
+      });
+
     this.cargarAviso();
   }
 
@@ -83,7 +108,7 @@ export class VerAvisosComponent implements OnInit {
         const avisoId = params['id-aviso'];
         console.log('🔍 ID de aviso obtenido de la URL:', avisoId);
         if (avisoId) {
-          this.avisosService.getResumenCompletoAviso(avisoId)
+          this.avisosService.getResumenCompletoAvisoDirect(avisoId)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (aviso) => {
@@ -130,8 +155,14 @@ export class VerAvisosComponent implements OnInit {
   private verificarGeneracionFacturaAutomatica(avisoId: string) {
     console.log('🔍 Verificando generación automática de factura para aviso:', avisoId);
     
+    // Agregar timeout para evitar esperas indefinidas
+    const timeout = setTimeout(() => {
+      console.log('⏰ Timeout en verificación de factura automática - cancelando');
+    }, 10000); // 10 segundos de timeout
+    
     this.flujoAvisosService.actualizarEstadoConFacturaAutomatica(avisoId).subscribe({
       next: (resultado) => {
+        clearTimeout(timeout); // Limpiar timeout
         console.log('🔍 Resultado de verificación automática:', resultado);
         
         // Si se generó una factura automáticamente, mostrar mensaje y recargar
@@ -146,6 +177,7 @@ export class VerAvisosComponent implements OnInit {
         }
       },
       error: (error) => {
+        clearTimeout(timeout); // Limpiar timeout
         console.error('❌ Error al verificar generación automática:', error);
       }
     });
@@ -163,12 +195,21 @@ export class VerAvisosComponent implements OnInit {
       albaranesDetalle: aviso.albaranes?.map(a => ({ id: a.id, estado: a.estado_cierre })) || []
     });
 
+    // Si no hay albaranes ni facturas, no hacer verificaciones innecesarias
+    const tieneAlbaranes = aviso.albaranes && aviso.albaranes.length > 0;
+    const tieneFacturas = aviso.facturas && aviso.facturas.length > 0;
+    
+    if (!tieneAlbaranes && !tieneFacturas) {
+      console.log('ℹ️ Aviso sin albaranes ni facturas - no se requieren verificaciones de estado');
+      return;
+    }
+
     // Si el aviso está en "Listo para facturar" pero ya tiene facturas, debería estar "En curso"
-    if (aviso.estado === 'Listo para facturar' && aviso.facturas && aviso.facturas.length > 0) {
+    if (aviso.estado === 'Listo para facturar' && tieneFacturas) {
       console.log('⚠️ Aviso en estado "Listo para facturar" pero tiene facturas - actualizando a "En curso"');
       
       // Actualizar el estado del aviso
-      this.avisosService.actualizarAviso(aviso.id, { estado: 'En curso' }).subscribe({
+      this.avisosService.actualizarAvisoDirect(aviso.id, { estado: 'En curso' }).subscribe({
         next: (avisoActualizado) => {
           console.log('✅ Estado del aviso actualizado a "En curso"');
           this.aviso = avisoActualizado;
@@ -179,7 +220,7 @@ export class VerAvisosComponent implements OnInit {
       });
     }
     // Si el aviso está en "Listo para facturar" sin facturas, verificar si se debe generar factura automáticamente
-    else if (aviso.estado === 'Listo para facturar' && (!aviso.facturas || aviso.facturas.length === 0)) {
+    else if (aviso.estado === 'Listo para facturar' && !tieneFacturas && tieneAlbaranes) {
       console.log('💰 Aviso en estado "Listo para facturar" sin facturas - verificando generación automática');
       
       // Verificar si tiene albaranes finalizados
@@ -194,7 +235,7 @@ export class VerAvisosComponent implements OnInit {
       }
     }
     // Si el aviso está en "En curso" pero no tiene facturas y tiene albaranes finalizados, debería estar "Listo para facturar"
-    else if (aviso.estado === 'En curso' && (!aviso.facturas || aviso.facturas.length === 0)) {
+    else if (aviso.estado === 'En curso' && !tieneFacturas && tieneAlbaranes) {
       console.log('🔍 Aviso en estado "En curso" sin facturas - verificando si debería estar "Listo para facturar"');
       
       // Verificar si tiene albaranes finalizados
@@ -204,7 +245,7 @@ export class VerAvisosComponent implements OnInit {
         console.log('💰 Aviso tiene albaranes finalizados sin facturas - actualizando a "Listo para facturar"');
         
         // Actualizar el estado del aviso
-        this.avisosService.actualizarAviso(aviso.id, { estado: 'Listo para facturar' }).subscribe({
+        this.avisosService.actualizarAvisoDirect(aviso.id, { estado: 'Listo para facturar' }).subscribe({
           next: (avisoActualizado) => {
             console.log('✅ Estado del aviso actualizado a "Listo para facturar"');
             this.aviso = avisoActualizado;
@@ -242,7 +283,7 @@ export class VerAvisosComponent implements OnInit {
     if (!this.aviso?.id) return;
     
     console.log('🔄 Recargando albaranes del aviso:', this.aviso.id);
-    this.avisosService.getResumenCompletoAviso(this.aviso.id)
+    this.avisosService.getResumenCompletoAvisoDirect(this.aviso.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (avisoActualizado) => {
@@ -325,7 +366,7 @@ export class VerAvisosComponent implements OnInit {
 
         // Actualizar el aviso
         this.loading = true;
-        this.avisosService.actualizarAviso(this.aviso.id, datosActualizacion)
+        this.avisosService.actualizarAvisoDirect(this.aviso.id, datosActualizacion)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: (avisoActualizado) => {
@@ -403,7 +444,7 @@ export class VerAvisosComponent implements OnInit {
         const totalFotos = files.length;
 
         files.forEach((file: File) => {
-          this.avisosService.subirFoto(this.aviso!.id!, file)
+          this.avisosService.subirFotoDirect(this.aviso!.id!, file)
             .pipe(takeUntil(this.destroy$))
             .subscribe({
               next: (foto) => {
@@ -529,7 +570,7 @@ export class VerAvisosComponent implements OnInit {
 
     if (confirmacion) {
       try {
-        await firstValueFrom(this.avisosService.eliminarFoto(foto.id));
+        await firstValueFrom(this.avisosService.eliminarFotoDirect(foto.id));
         console.log('Foto eliminada exitosamente');
 
         // Recargar el aviso para actualizar la lista de fotos
@@ -775,7 +816,7 @@ export class VerAvisosComponent implements OnInit {
       this.loading = true;
       
       // Usar el servicio de albaranes para eliminar
-      this.albaranesService.eliminarAlbaran(albaran.id).subscribe({
+      this.albaranesService.eliminarAlbaranDirect(albaran.id).subscribe({
         next: () => {
           console.log('Albarán eliminado exitosamente y repuestos devueltos al inventario');
           this.loading = false;

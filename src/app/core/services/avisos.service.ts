@@ -322,6 +322,94 @@ export class AvisosService {
     }
 
     /**
+     * Actualiza un aviso existente usando FETCH DIRECTO - EVITA BLOQUEOS
+     */
+    actualizarAvisoDirect(id: string, aviso: ActualizarAvisoRequest): Observable<Aviso> {
+        console.log('🚀 AvisosService: Usando FETCH DIRECTO para actualizar aviso...');
+        
+        return from(this.fetchActualizarAvisoDirect(id, aviso)).pipe(
+            map(result => {
+                console.log('✅ AvisosService: FETCH DIRECTO completado, aviso actualizado:', result.id);
+                return result;
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error en FETCH DIRECTO:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Fetch directo para actualizar aviso - BYPASA CLIENTE SUPABASE
+     */
+    private async fetchActualizarAvisoDirect(id: string, aviso: ActualizarAvisoRequest): Promise<Aviso> {
+        console.log('🚀 AvisosService: Ejecutando fetch directo para actualizar aviso:', id);
+        
+        try {
+            const datosActualizados = {
+                ...aviso,
+                fecha_actualizacion: new Date().toISOString()
+            };
+
+            const url = `${environment.supabaseUrl}/rest/v1/avisos?id=eq.${id}`;
+            
+            const headers = {
+                'apikey': environment.supabaseServiceKey,
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            };
+            
+            console.log('🚀 URL construida:', url);
+            console.log('🚀 Datos a actualizar:', datosActualizados);
+            
+            const startTime = Date.now();
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify(datosActualizados)
+            });
+            const duration = Date.now() - startTime;
+            
+            console.log('🚀 Fetch completado en', duration, 'ms');
+            console.log('🚀 Status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🚀 Error response body:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('🚀 Datos recibidos:', data?.length || 0, 'avisos');
+            
+            if (!data || data.length === 0) {
+                throw new Error('Aviso no encontrado');
+            }
+            
+            const avisoActualizado = data[0] as Aviso;
+            console.log('🚀 Aviso actualizado:', avisoActualizado);
+            
+            // Actualizar el subject local
+            const avisosActuales = this.avisosSubject.value;
+            const index = avisosActuales.findIndex(a => a.id === id);
+            if (index !== -1) {
+                avisosActuales[index] = avisoActualizado;
+                this.avisosSubject.next([...avisosActuales]);
+            }
+
+            // Limpiar cache de avisos para forzar recarga
+            this.cacheService.clearCache('avisos');
+            
+            return avisoActualizado;
+            
+        } catch (error) {
+            console.error('🚀 Error en fetch directo:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Actualiza un aviso existente
      */
     actualizarAviso(id: string, aviso: ActualizarAvisoRequest): Observable<Aviso> {
@@ -757,6 +845,192 @@ export class AvisosService {
     }
 
     /**
+     * Sube una foto usando FETCH DIRECTO - EVITA BLOQUEOS
+     */
+    subirFotoDirect(avisoId: string, file: File, descripcion?: string): Observable<FotoAviso> {
+        console.log('🚀 AvisosService: Usando FETCH DIRECTO para subir foto...');
+        
+        return from(this.fetchSubirFotoDirect(avisoId, file, descripcion)).pipe(
+            map(result => {
+                console.log('✅ AvisosService: FETCH DIRECTO completado, foto subida:', result.id);
+                return result;
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error en FETCH DIRECTO:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Fetch directo para subir foto - BYPASA CLIENTE SUPABASE
+     */
+    private async fetchSubirFotoDirect(avisoId: string, file: File, descripcion?: string): Promise<FotoAviso> {
+        console.log('🚀 AvisosService: Ejecutando fetch directo para subir foto...');
+        
+        try {
+            // Sanitizar el nombre del archivo
+            const sanitizedFileName = this.sanitizeFileName(file.name);
+            const fileName = `${avisoId}/${Date.now()}_${sanitizedFileName}`;
+            
+            // Subir archivo al storage usando fetch directo
+            const uploadUrl = `${environment.supabaseUrl}/storage/v1/object/fotos-avisos/${fileName}`;
+            
+            const headers = {
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': file.type
+            };
+            
+            console.log('🚀 Subiendo archivo a:', uploadUrl);
+            
+            const uploadResponse = await fetch(uploadUrl, {
+                method: 'POST',
+                headers,
+                body: file
+            });
+            
+            if (!uploadResponse.ok) {
+                throw new Error(`HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`);
+            }
+            
+            // Obtener URL pública
+            const publicUrl = `${environment.supabaseUrl}/storage/v1/object/public/fotos-avisos/${fileName}`;
+            
+            // Crear registro en la base de datos
+            const insertUrl = `${environment.supabaseUrl}/rest/v1/fotos_aviso`;
+            const insertData = {
+                aviso_id: avisoId,
+                url: publicUrl,
+                descripcion: descripcion || null
+            };
+            
+            const insertHeaders = {
+                'apikey': environment.supabaseServiceKey,
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            };
+            
+            console.log('🚀 Creando registro de foto:', insertUrl);
+            
+            const insertResponse = await fetch(insertUrl, {
+                method: 'POST',
+                headers: insertHeaders,
+                body: JSON.stringify(insertData)
+            });
+            
+            if (!insertResponse.ok) {
+                const errorText = await insertResponse.text();
+                console.error('🚀 Error response body:', errorText);
+                throw new Error(`HTTP ${insertResponse.status}: ${insertResponse.statusText}`);
+            }
+            
+            const fotoData = await insertResponse.json();
+            console.log('🚀 Foto creada:', fotoData);
+            
+            return fotoData[0] as FotoAviso;
+            
+        } catch (error) {
+            console.error('🚀 Error en fetch directo:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Elimina una foto usando FETCH DIRECTO - EVITA BLOQUEOS
+     */
+    eliminarFotoDirect(fotoId: string): Observable<void> {
+        console.log('🚀 AvisosService: Usando FETCH DIRECTO para eliminar foto...');
+        
+        return from(this.fetchEliminarFotoDirect(fotoId)).pipe(
+            map(() => {
+                console.log('✅ AvisosService: FETCH DIRECTO completado, foto eliminada');
+                return void 0;
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error en FETCH DIRECTO:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Fetch directo para eliminar foto - BYPASA CLIENTE SUPABASE
+     */
+    private async fetchEliminarFotoDirect(fotoId: string): Promise<void> {
+        console.log('🚀 AvisosService: Ejecutando fetch directo para eliminar foto:', fotoId);
+        
+        try {
+            // Primero obtener la información de la foto
+            const getUrl = `${environment.supabaseUrl}/rest/v1/fotos_aviso?select=*&id=eq.${fotoId}`;
+            
+            const headers = {
+                'apikey': environment.supabaseServiceKey,
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': 'application/json'
+            };
+            
+            console.log('🚀 Obteniendo información de la foto:', getUrl);
+            
+            const getResponse = await fetch(getUrl, { method: 'GET', headers });
+            
+            if (!getResponse.ok) {
+                throw new Error(`HTTP ${getResponse.status}: ${getResponse.statusText}`);
+            }
+            
+            const fotoData = await getResponse.json();
+            
+            if (!fotoData || fotoData.length === 0) {
+                throw new Error('Foto no encontrada');
+            }
+            
+            const foto = fotoData[0];
+            console.log('🚀 Foto obtenida:', foto);
+            
+            // Extraer el nombre del archivo de la URL
+            const urlParts = foto.url.split('/');
+            const fileName = urlParts[urlParts.length - 1];
+            const avisoId = foto.aviso_id;
+            const fullPath = `${avisoId}/${fileName}`;
+            
+            // Eliminar el archivo del storage
+            const deleteStorageUrl = `${environment.supabaseUrl}/storage/v1/object/fotos-avisos/${fullPath}`;
+            
+            const deleteStorageResponse = await fetch(deleteStorageUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${environment.supabaseServiceKey}`
+                }
+            });
+            
+            if (!deleteStorageResponse.ok) {
+                console.warn('⚠️ Error al eliminar archivo del storage:', deleteStorageResponse.status);
+                // Continuar aunque falle la eliminación del storage
+            } else {
+                console.log('✅ Archivo eliminado del storage');
+            }
+            
+            // Eliminar el registro de la base de datos
+            const deleteDbUrl = `${environment.supabaseUrl}/rest/v1/fotos_aviso?id=eq.${fotoId}`;
+            
+            const deleteDbResponse = await fetch(deleteDbUrl, {
+                method: 'DELETE',
+                headers
+            });
+            
+            if (!deleteDbResponse.ok) {
+                throw new Error(`HTTP ${deleteDbResponse.status}: ${deleteDbResponse.statusText}`);
+            }
+            
+            console.log('✅ Foto eliminada exitosamente');
+            
+        } catch (error) {
+            console.error('🚀 Error en fetch directo:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Sanitiza el nombre del archivo para evitar caracteres inválidos en Supabase Storage
      */
     private sanitizeFileName(fileName: string): string {
@@ -866,6 +1140,122 @@ export class AvisosService {
     }
 
     /**
+     * Obtiene un resumen completo del aviso con todos sus elementos - VERSIÓN DIRECTA
+     */
+    getResumenCompletoAvisoDirect(avisoId: string): Observable<any> {
+        console.log('🚀 AvisosService: Usando FETCH DIRECTO para resumen completo de aviso...');
+        
+        return from(this.fetchResumenCompletoAvisoDirect(avisoId)).pipe(
+            map(result => {
+                console.log('✅ AvisosService: FETCH DIRECTO completado, aviso:', result?.id);
+                return result;
+            }),
+            catchError(error => {
+                console.error('❌ AvisosService: Error en FETCH DIRECTO:', error);
+                throw error;
+            })
+        );
+    }
+
+    /**
+     * Fetch directo para resumen completo de aviso - BYPASA CLIENTE SUPABASE
+     */
+    private async fetchResumenCompletoAvisoDirect(avisoId: string): Promise<any> {
+        console.log('🚀 AvisosService: Ejecutando fetch directo para resumen completo de aviso:', avisoId);
+        
+        try {
+            const url = `${environment.supabaseUrl}/rest/v1/avisos?select=*,cliente:clientes(*),tecnico_asignado:usuarios(*),fotos:fotos_aviso(*),albaranes:albaranes(*,repuestos:repuestos_albaran(*)),presupuestos:presupuestos(*),facturas:facturas(*)&id=eq.${avisoId}`;
+            
+            const headers = {
+                'apikey': environment.supabaseServiceKey,
+                'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+                'Content-Type': 'application/json'
+            };
+            
+            console.log('🚀 URL construida:', url);
+            
+            const startTime = Date.now();
+            const response = await fetch(url, { method: 'GET', headers });
+            const duration = Date.now() - startTime;
+            
+            console.log('🚀 Fetch completado en', duration, 'ms');
+            console.log('🚀 Status:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🚀 Error response body:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('🚀 Datos recibidos:', data?.length || 0, 'avisos');
+            
+            if (!data || data.length === 0) {
+                throw new Error('Aviso no encontrado');
+            }
+            
+            const avisoCompleto = data[0];
+            console.log('🚀 Estructura de aviso recibida:', avisoCompleto);
+            
+            // Calcular estadísticas basadas en albaranes (nuevo flujo)
+            const albaranesFinalizados = avisoCompleto.albaranes?.filter((a: any) => 
+                a.estado_cierre === 'Finalizado'
+            ) || [];
+            
+            const albaranesPresupuestoPendiente = avisoCompleto.albaranes?.filter((a: any) => 
+                a.estado_cierre === 'Presupuesto pendiente'
+            ) || [];
+            
+            const albaranesOtraVisita = avisoCompleto.albaranes?.filter((a: any) => 
+                a.estado_cierre === 'Otra visita'
+            ) || [];
+            
+            // Los albaranes cerrados incluyen tanto finalizados como presupuesto pendiente
+            const albaranesCerrados = [...albaranesFinalizados, ...albaranesPresupuestoPendiente];
+            
+            const facturasPendientes = avisoCompleto.facturas?.filter((f: any) => 
+                f.estado !== 'Completado'
+            ) || [];
+            
+            const facturasCompletadas = avisoCompleto.facturas?.filter((f: any) => 
+                f.estado === 'Completado'
+            ) || [];
+            
+            // Determinar si tiene presupuesto pendiente
+            const presupuestoPendiente = albaranesPresupuestoPendiente.length > 0;
+            
+            // Determinar si requiere otra visita
+            const requiereOtraVisita = albaranesOtraVisita.length > 0;
+            
+            return {
+                ...avisoCompleto,
+                estadisticas: {
+                    totalAlbaranes: avisoCompleto.albaranes?.length || 0,
+                    albaranesCerrados: albaranesCerrados.length,
+                    albaranesFinalizados: albaranesFinalizados.length,
+                    albaranesPresupuestoPendiente: albaranesPresupuestoPendiente.length,
+                    albaranesOtraVisita: albaranesOtraVisita.length,
+                    tienePresupuesto: presupuestoPendiente,
+                    requiereOtraVisita: requiereOtraVisita,
+                    estadoPresupuesto: presupuestoPendiente ? 'Pendiente' : null,
+                    totalFacturas: avisoCompleto.facturas?.length || 0,
+                    facturasPendientes: facturasPendientes.length,
+                    facturasCompletadas: facturasCompletadas.length,
+                    // Mantener compatibilidad con código existente
+                    totalTrabajos: avisoCompleto.albaranes?.length || 0,
+                    trabajosConAlbaran: albaranesCerrados.length,
+                    trabajosFinalizados: albaranesFinalizados.length, // Solo los realmente finalizados
+                    puedeFacturar: albaranesFinalizados.length > 0 && facturasPendientes.length === 0
+                }
+            };
+            
+        } catch (error) {
+            console.error('🚀 Error en fetch directo:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Obtiene un resumen completo del aviso con todos sus elementos
      * Actualizado para el nuevo esquema de base de datos
      */
@@ -958,7 +1348,7 @@ export class AvisosService {
      * Actualizado para el nuevo flujo de albaranes con generación automática de facturas
      */
     actualizarEstadoAutomatico(avisoId: string): Observable<Aviso> {
-        return this.getResumenCompletoAviso(avisoId).pipe(
+        return this.getResumenCompletoAvisoDirect(avisoId).pipe(
             switchMap(resumen => {
                 let nuevoEstado = resumen.estado;
                 

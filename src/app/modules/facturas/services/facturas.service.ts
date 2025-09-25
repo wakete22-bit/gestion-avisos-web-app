@@ -529,72 +529,212 @@ export class FacturasService {
   }
 
   /**
-   * Elimina una factura y todas sus líneas
+   * Elimina una factura usando FETCH DIRECTO - EVITA BLOQUEOS
    */
-  eliminarFactura(id: string): Observable<void> {
-    // Primero obtener la información de la factura para saber el aviso asociado
-    return from(
-      this.getSupabaseClient()
-        .from('facturas')
-        .select('aviso_id')
-        .eq('id', id)
-        .single()
-    ).pipe(
-      switchMap(({ data: facturaData, error: facturaError }) => {
-        if (facturaError) throw facturaError;
-        
-        const avisoId = facturaData.aviso_id;
-        console.log('🗑️ Eliminando factura y actualizando aviso:', avisoId);
-
-        // Eliminar las líneas de factura primero
-        return from(
-          this.getSupabaseClient()
-            .from('lineas_factura')
-            .delete()
-            .eq('factura_id', id)
-        ).pipe(
-          switchMap(({ error: lineasError }) => {
-            if (lineasError) throw lineasError;
-
-            // Eliminar la factura
-            return from(
-              this.getSupabaseClient()
-                .from('facturas')
-                .delete()
-                .eq('id', id)
-            ).pipe(
-              map(({ error }) => {
-                if (error) throw error;
-
-                const facturasActuales = this.facturasSubject.value;
-                const facturasFiltradas = facturasActuales.filter(f => f.id !== id);
-                this.facturasSubject.next(facturasFiltradas);
-
-                // Notificar eliminación y limpiar cache
-                this.dataUpdateService.notifyDeleted('facturas');
-                
-                return avisoId; // Retornar el avisoId para el siguiente paso
-              })
-            );
-          })
-        );
+  eliminarFacturaDirect(id: string): Observable<void> {
+    console.log('🚀 FacturasService: Usando FETCH DIRECTO para eliminar factura...');
+    
+    return from(this.fetchEliminarFacturaDirect(id)).pipe(
+      map(() => {
+        console.log('✅ FacturasService: FETCH DIRECTO completado, factura eliminada');
+        return void 0;
       }),
-      switchMap((avisoId) => {
-        // Actualizar el estado del aviso después de eliminar la factura
-        console.log('🔄 Actualizando estado del aviso después de eliminar factura:', avisoId);
-        return this.avisosService.actualizarEstadoAutomatico(avisoId).pipe(
-          map(() => void 0), // Convertir el resultado a void
-          catchError(error => {
-            console.error('❌ Error al actualizar estado del aviso:', error);
-            return of(void 0); // Continuar aunque falle la actualización del estado
-          })
-        );
+      catchError(error => {
+        console.error('❌ FacturasService: Error en FETCH DIRECTO:', error);
+        throw error;
       })
     );
   }
 
   /**
-   * Busca facturas por término de búsqueda
+   * Fetch directo para eliminar factura - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchEliminarFacturaDirect(id: string): Promise<void> {
+    console.log('🚀 FacturasService: Ejecutando fetch directo para eliminar factura:', id);
+    
+    try {
+      // Primero obtener la información de la factura para saber el aviso asociado
+      const getUrl = `${environment.supabaseUrl}/rest/v1/facturas?select=aviso_id&id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 Obteniendo información de la factura:', getUrl);
+      
+      const getResponse = await fetch(getUrl, { method: 'GET', headers });
+      
+      if (!getResponse.ok) {
+        throw new Error(`HTTP ${getResponse.status}: ${getResponse.statusText}`);
+      }
+      
+      const facturaData = await getResponse.json();
+      
+      if (!facturaData || facturaData.length === 0) {
+        throw new Error('Factura no encontrada');
+      }
+      
+      const avisoId = facturaData[0].aviso_id;
+      console.log('🗑️ Eliminando factura y actualizando aviso:', avisoId);
+
+      // Eliminar las líneas de factura primero
+      const deleteLineasUrl = `${environment.supabaseUrl}/rest/v1/lineas_factura?factura_id=eq.${id}`;
+      
+      console.log('🚀 Eliminando líneas de factura:', deleteLineasUrl);
+      
+      const deleteLineasResponse = await fetch(deleteLineasUrl, {
+        method: 'DELETE',
+        headers
+      });
+      
+      if (!deleteLineasResponse.ok) {
+        console.warn('⚠️ Error al eliminar líneas de factura:', deleteLineasResponse.status);
+        // Continuar aunque falle la eliminación de líneas
+      } else {
+        console.log('✅ Líneas de factura eliminadas');
+      }
+
+      // Eliminar la factura
+      const deleteFacturaUrl = `${environment.supabaseUrl}/rest/v1/facturas?id=eq.${id}`;
+      
+      console.log('🚀 Eliminando factura:', deleteFacturaUrl);
+      
+      const deleteFacturaResponse = await fetch(deleteFacturaUrl, {
+        method: 'DELETE',
+        headers
+      });
+      
+      if (!deleteFacturaResponse.ok) {
+        throw new Error(`HTTP ${deleteFacturaResponse.status}: ${deleteFacturaResponse.statusText}`);
+      }
+      
+      console.log('✅ Factura eliminada exitosamente');
+
+      // Actualizar el estado local
+      const facturasActuales = this.facturasSubject.value;
+      const facturasFiltradas = facturasActuales.filter(f => f.id !== id);
+      this.facturasSubject.next(facturasFiltradas);
+
+      // Notificar eliminación y limpiar cache
+      this.dataUpdateService.notifyDeleted('facturas');
+      
+      // Actualizar el estado del aviso después de eliminar la factura (solo si no está completado)
+      if (avisoId) {
+        console.log('🔄 Verificando estado del aviso antes de actualizar:', avisoId);
+        try {
+          // Primero obtener el estado actual del aviso
+          const getAvisoUrl = `${environment.supabaseUrl}/rest/v1/avisos?select=estado&id=eq.${avisoId}`;
+          
+          const getAvisoResponse = await fetch(getAvisoUrl, {
+            method: 'GET',
+            headers
+          });
+          
+          if (getAvisoResponse.ok) {
+            const avisoData = await getAvisoResponse.json();
+            
+            if (avisoData && avisoData.length > 0) {
+              const estadoActual = avisoData[0].estado;
+              console.log('📊 Estado actual del aviso:', estadoActual);
+              
+              // Solo actualizar si no está completado
+              if (estadoActual !== 'Completado') {
+                console.log('🔄 Actualizando estado del aviso a "En curso"...');
+                await this.avisosService.actualizarAvisoDirect(avisoId, { estado: 'En curso' }).toPromise();
+                console.log('✅ Estado del aviso actualizado a "En curso"');
+              } else {
+                console.log('ℹ️ El aviso ya está completado, no se actualiza el estado');
+              }
+            } else {
+              console.log('⚠️ No se pudo obtener información del aviso');
+            }
+          } else {
+            console.log('⚠️ No se pudo verificar el estado del aviso');
+          }
+        } catch (error) {
+          console.error('❌ Error al verificar/actualizar estado del aviso:', error);
+          // Continuar aunque falle la actualización del estado
+        }
+      }
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Elimina una factura y todas sus líneas (método original - DEPRECATED)
+   */
+  eliminarFactura(id: string): Observable<void> {
+    // Usar el método directo por defecto
+    return this.eliminarFacturaDirect(id);
+  }
+
+  /**
+   * Busca facturas por término de búsqueda usando FETCH DIRECTO
+   */
+  buscarFacturasDirect(termino: string): Observable<Factura[]> {
+    console.log('🚀 FacturasService: Usando FETCH DIRECTO para búsqueda de facturas...');
+    
+    return from(this.fetchBuscarFacturasDirect(termino)).pipe(
+      map(facturas => {
+        console.log('✅ FacturasService: FETCH DIRECTO completado para búsqueda, facturas:', facturas.length);
+        return facturas;
+      }),
+      catchError(error => {
+        console.error('❌ FacturasService: Error en FETCH DIRECTO para búsqueda:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para búsqueda de facturas - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchBuscarFacturasDirect(termino: string): Promise<Factura[]> {
+    console.log('🚀 FacturasService: Ejecutando fetch directo para búsqueda de facturas...');
+    
+    try {
+      const url = `${environment.supabaseUrl}/rest/v1/facturas?select=*,cliente:clientes(*),aviso:avisos(*)&or=(numero_factura.ilike.*${termino}*,nombre_cliente.ilike.*${termino}*)&limit=10`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 URL construida para búsqueda:', url);
+      
+      const startTime = Date.now();
+      const response = await fetch(url, { method: 'GET', headers });
+      const duration = Date.now() - startTime;
+      
+      console.log('🚀 Fetch completado en', duration, 'ms');
+      console.log('🚀 Status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Error response body:', errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      console.log('🚀 Datos recibidos para búsqueda:', data?.length || 0, 'facturas');
+      
+      return data as Factura[];
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo para búsqueda:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca facturas por término de búsqueda (método original)
    */
   buscarFacturas(termino: string): Observable<Factura[]> {
     return from(

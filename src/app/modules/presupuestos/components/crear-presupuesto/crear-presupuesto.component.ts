@@ -180,14 +180,14 @@ export class CrearPresupuestoComponent implements OnInit, OnDestroy {
 
       // Solo cargar aviso si hay avisoId en la URL
       if (this.avisoId) {
-        console.log('Cargando aviso específico:', this.avisoId);
-        this.avisosService.getAviso(this.avisoId).subscribe({
+        console.log('🔄 Cargando aviso específico con FETCH DIRECTO:', this.avisoId);
+        this.avisosService.getResumenCompletoAvisoDirect(this.avisoId).subscribe({
           next: (aviso: any) => {
             this.aviso = aviso;
-            console.log('Aviso específico cargado:', aviso);
+            console.log('✅ Aviso específico cargado con FETCH DIRECTO:', aviso);
           },
           error: (error: any) => {
-            console.error('Error al cargar aviso específico:', error);
+            console.error('❌ Error al cargar aviso específico con FETCH DIRECTO:', error);
           }
         });
       } else if (!this.modoEdicion) {
@@ -359,9 +359,9 @@ export class CrearPresupuestoComponent implements OnInit, OnDestroy {
     if (!this.presupuestoId) return;
 
     this.loading = true;
-    this.presupuestosService.getPresupuesto(this.presupuestoId).subscribe({
+    this.presupuestosService.getPresupuestoDirect(this.presupuestoId).subscribe({
       next: (presupuesto) => {
-        console.log('Presupuesto cargado para editar:', presupuesto);
+        console.log('✅ Presupuesto cargado para editar con FETCH DIRECTO:', presupuesto);
         this.presupuesto = presupuesto;
         
         // Establecer el avisoId desde el presupuesto
@@ -369,14 +369,14 @@ export class CrearPresupuestoComponent implements OnInit, OnDestroy {
           this.avisoId = presupuesto.aviso_id;
           console.log('AvisoId establecido:', this.avisoId);
           
-          // Cargar el aviso correspondiente
-          this.avisosService.getAviso(this.avisoId).subscribe({
+          // Cargar el aviso correspondiente usando fetch directo
+          this.avisosService.getResumenCompletoAvisoDirect(this.avisoId).subscribe({
             next: (aviso: any) => {
               this.aviso = aviso;
-              console.log('Aviso cargado desde presupuesto:', aviso);
+              console.log('✅ Aviso cargado desde presupuesto con FETCH DIRECTO:', aviso);
             },
             error: (error: any) => {
-              console.error('Error al cargar aviso desde presupuesto:', error);
+              console.error('❌ Error al cargar aviso desde presupuesto con FETCH DIRECTO:', error);
             }
           });
         }
@@ -416,8 +416,9 @@ export class CrearPresupuestoComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error al cargar presupuesto para editar:', error);
+        console.error('❌ Error al cargar presupuesto para editar con FETCH DIRECTO:', error);
         this.loading = false;
+        alert('Error al cargar el presupuesto: ' + (error.message || 'Error desconocido'));
       }
     });
   }
@@ -747,16 +748,16 @@ export class CrearPresupuestoComponent implements OnInit, OnDestroy {
       console.log('Cantidad de materiales:', this.materiales.length);
       console.log('Materiales detallados:', JSON.stringify(this.materiales, null, 2));
 
-      this.presupuestosService.actualizarPresupuesto(this.presupuestoId, presupuestoData).subscribe({
+      this.presupuestosService.actualizarPresupuestoDirect(this.presupuestoId, presupuestoData).subscribe({
         next: (presupuesto) => {
-          console.log('Presupuesto actualizado exitosamente:', presupuesto);
+          console.log('✅ Presupuesto actualizado exitosamente con FETCH DIRECTO:', presupuesto);
           this.loading = false;
           
           // Mostrar mensaje de éxito sin navegación automática
           alert('✅ Presupuesto actualizado correctamente');
         },
         error: (error) => {
-          console.error('Error al actualizar presupuesto:', error);
+          console.error('❌ Error al actualizar presupuesto con FETCH DIRECTO:', error);
           this.loading = false;
           alert('Error al actualizar el presupuesto: ' + (error.message || 'Error desconocido'));
         }

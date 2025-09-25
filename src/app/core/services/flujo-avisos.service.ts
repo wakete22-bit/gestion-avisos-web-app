@@ -34,7 +34,7 @@ export class FlujoAvisosService {
    * Obtiene el estado actual del flujo para un aviso
    */
   obtenerEstadoFlujo(avisoId: string): Observable<FlujoEstado> {
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       map(resumen => {
         const estado: FlujoEstado = {
           avisoId,
@@ -100,7 +100,7 @@ export class FlujoAvisosService {
   private generarFacturaAutomatica(avisoId: string): Observable<any> {
     console.log('💰 Iniciando generación automática de factura para aviso:', avisoId);
     
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       switchMap(resumen => {
         console.log('🔍 Verificando condiciones para facturación automática:', {
           albaranesFinalizados: resumen.estadisticas.albaranesFinalizados,
@@ -163,12 +163,12 @@ export class FlujoAvisosService {
    * Flujo directo sin presupuesto
    */
   private flujoDirectoSinPresupuesto(avisoId: string): Observable<any> {
-    return this.avisosService.actualizarAviso(avisoId, { 
+    return this.avisosService.actualizarAvisoDirect(avisoId, { 
       estado: 'En curso',
       requiere_presupuesto: false 
     }).pipe(
       tap(() => console.log('✅ Aviso actualizado para trabajo directo')),
-      switchMap(() => this.avisosService.getResumenCompletoAviso(avisoId)),
+      switchMap(() => this.avisosService.getResumenCompletoAvisoDirect(avisoId)),
       map(resumen => ({
         paso: 'flujo_directo_iniciado',
         avisoId,
@@ -182,7 +182,7 @@ export class FlujoAvisosService {
    * Flujo con presupuesto
    */
   private flujoConPresupuesto(avisoId: string): Observable<any> {
-    return this.avisosService.actualizarAviso(avisoId, { 
+    return this.avisosService.actualizarAvisoDirect(avisoId, { 
       estado: 'Pendiente de presupuesto',
       requiere_presupuesto: true 
     }).pipe(
@@ -209,7 +209,7 @@ export class FlujoAvisosService {
   aprobarPresupuesto(presupuestoId: string): Observable<any> {
     return this.presupuestosService.cambiarEstado(presupuestoId, 'Completado').pipe(
       switchMap(presupuesto => 
-        this.avisosService.actualizarAviso(presupuesto.aviso_id, { estado: 'En curso' })
+        this.avisosService.actualizarAvisoDirect(presupuesto.aviso_id, { estado: 'En curso' })
       ),
       tap(() => console.log('✅ Presupuesto aprobado y aviso en curso')),
       map(aviso => ({
@@ -249,7 +249,7 @@ export class FlujoAvisosService {
   facturarTrabajos(avisoId: string): Observable<any> {
     console.log('🔧 Iniciando facturación de trabajos para aviso:', avisoId);
     
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       switchMap(resumen => {
         console.log('🔧 Resumen completo obtenido:', resumen);
         
@@ -290,7 +290,7 @@ export class FlujoAvisosService {
         );
       }),
       tap(() => console.log('✅ Factura creada desde trabajos realizados')),
-      switchMap(() => this.avisosService.getResumenCompletoAviso(avisoId)),
+      switchMap(() => this.avisosService.getResumenCompletoAvisoDirect(avisoId)),
       map(resumen => ({
         paso: 'factura_creada_desde_trabajos',
         avisoId,
@@ -305,7 +305,7 @@ export class FlujoAvisosService {
    * basándose en el estado del aviso
    */
   verificarEstadoFactura(facturaId: string, avisoId: string): Observable<any> {
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       switchMap(resumen => {
         // Si el aviso está completado, la factura también debería estarlo
         if (resumen.estado === 'Completado') {
@@ -327,7 +327,7 @@ export class FlujoAvisosService {
    * basándose en el estado actual del aviso
    */
   sincronizarEstadosFacturas(avisoId: string): Observable<any> {
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       switchMap(resumen => {
         if (!resumen.facturas || resumen.facturas.length === 0) {
           return from([{ mensaje: 'No hay facturas para sincronizar' }]);
@@ -365,7 +365,7 @@ export class FlujoAvisosService {
    * Actualizado para el nuevo flujo de albaranes
    */
   completarAviso(avisoId: string): Observable<any> {
-    return this.avisosService.getResumenCompletoAviso(avisoId).pipe(
+    return this.avisosService.getResumenCompletoAvisoDirect(avisoId).pipe(
       switchMap(resumen => {
         // Validar que se puede completar el aviso
         if (!this.puedeCompletarAviso(resumen)) {
@@ -390,7 +390,7 @@ export class FlujoAvisosService {
         }
 
         // Actualizar el aviso a estado "Completado"
-        return this.avisosService.actualizarAviso(avisoId, {
+        return this.avisosService.actualizarAvisoDirect(avisoId, {
           estado: 'Completado',
           fecha_finalizacion: new Date()
         }).pipe(
@@ -411,7 +411,7 @@ export class FlujoAvisosService {
         );
       }),
       tap(() => console.log('✅ Aviso completado exitosamente')),
-      switchMap(() => this.avisosService.getResumenCompletoAviso(avisoId)),
+      switchMap(() => this.avisosService.getResumenCompletoAvisoDirect(avisoId)),
       map(resumen => ({
         paso: 'aviso_completado',
         avisoId,

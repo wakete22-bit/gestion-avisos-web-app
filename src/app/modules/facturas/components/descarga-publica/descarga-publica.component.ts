@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, distinctUntilChanged } from 'rxjs';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { FacturasService } from '../../services/facturas.service';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
 
 @Component({
   selector: 'app-descarga-publica',
@@ -205,21 +207,50 @@ import { FacturasService } from '../../services/facturas.service';
     }
   `]
 })
-export class DescargaPublicaComponent implements OnInit {
+export class DescargaPublicaComponent implements OnInit, OnDestroy {
   numeroFactura: string = '';
   datosFactura: any = null;
   cargando = true;
   descargando = false;
   error: string | null = null;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private pdfService: PdfService,
-    private facturasService: FacturasService
+    private facturasService: FacturasService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) {}
 
   ngOnInit() {
+    console.log('🔄 DescargaPublicaComponent inicializado');
+
+    // Patrón de reconexión
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged()
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 DescargaPublicaComponent: App reanudada, recargando factura...');
+          if (this.numeroFactura) {
+            this.cargarFactura();
+          }
+        }
+      });
+
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 DescargaPublicaComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.numeroFactura && !this.datosFactura) {
+          this.cargarFactura();
+        }
+      });
+
     this.route.queryParams.subscribe(params => {
       this.numeroFactura = params['factura'] || '';
       const fileBase64 = params['file'];
@@ -236,6 +267,11 @@ export class DescargaPublicaComponent implements OnInit {
         this.cargando = false;
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   async descargarPDFDesdeBase64(fileBase64: string, fileName: string) {
@@ -281,18 +317,21 @@ export class DescargaPublicaComponent implements OnInit {
     try {
       this.cargando = true;
       this.error = null;
+      console.log('🔄 Cargando factura para descarga pública:', this.numeroFactura);
       
-      // Buscar la factura por número
-      const facturas = await this.facturasService.buscarFacturas(this.numeroFactura).toPromise();
+      // Buscar la factura por número usando fetch directo
+      const facturas = await this.facturasService.buscarFacturasDirect(this.numeroFactura).toPromise();
       const factura = facturas?.find(f => f.numero_factura === this.numeroFactura);
       
       if (factura) {
+        console.log('✅ Factura encontrada para descarga pública:', factura);
         this.datosFactura = factura;
       } else {
+        console.log('❌ Factura no encontrada para descarga pública');
         this.error = 'Factura no encontrada';
       }
     } catch (error) {
-      console.error('Error al cargar factura:', error);
+      console.error('❌ Error al cargar factura para descarga pública:', error);
       this.error = 'Error al cargar la factura';
     } finally {
       this.cargando = false;

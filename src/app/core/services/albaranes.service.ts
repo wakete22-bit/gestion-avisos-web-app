@@ -5,6 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseClientService } from './supabase-client.service';
 import { Albaran, CrearAlbaranRequest } from '../../modules/avisos/models/albaran.model';
 import { InventarioService } from '../../modules/inventario/services/inventario.service';
+import { environment } from 'src/environments/environment';
 
 // Las interfaces ahora se importan del modelo albaran.model.ts
 
@@ -432,5 +433,114 @@ export class AlbaranesService {
         throw error;
       })
     );
+  }
+
+  /**
+   * Elimina un albarán usando FETCH DIRECTO - EVITA BLOQUEOS
+   */
+  eliminarAlbaranDirect(id: string): Observable<void> {
+    console.log('🚀 AlbaranesService: Usando FETCH DIRECTO para eliminar albarán...');
+    
+    return from(this.fetchEliminarAlbaranDirect(id)).pipe(
+      map(() => {
+        console.log('✅ AlbaranesService: FETCH DIRECTO completado, albarán eliminado');
+        return void 0;
+      }),
+      catchError(error => {
+        console.error('❌ AlbaranesService: Error en FETCH DIRECTO:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Fetch directo para eliminar albarán - BYPASA CLIENTE SUPABASE
+   */
+  private async fetchEliminarAlbaranDirect(id: string): Promise<void> {
+    console.log('🚀 AlbaranesService: Ejecutando fetch directo para eliminar albarán:', id);
+    
+    try {
+      // Primero obtener el albarán para devolver repuestos al inventario
+      const getUrl = `${environment.supabaseUrl}/rest/v1/albaranes?select=*,repuestos:repuestos_albaran(*)&id=eq.${id}`;
+      
+      const headers = {
+        'apikey': environment.supabaseServiceKey,
+        'Authorization': `Bearer ${environment.supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('🚀 Obteniendo albarán para eliminar:', getUrl);
+      
+      const getResponse = await fetch(getUrl, { method: 'GET', headers });
+      
+      if (!getResponse.ok) {
+        throw new Error(`HTTP ${getResponse.status}: ${getResponse.statusText}`);
+      }
+      
+      const albaranData = await getResponse.json();
+      
+      if (!albaranData || albaranData.length === 0) {
+        throw new Error('Albarán no encontrado');
+      }
+      
+      const albaran = albaranData[0];
+      console.log('🚀 Albarán obtenido:', albaran);
+      
+      // Si hay repuestos, devolverlos al inventario
+      if (albaran.repuestos && albaran.repuestos.length > 0) {
+        console.log('📦 Devolviendo repuestos al inventario:', albaran.repuestos.length, 'repuestos');
+        
+        for (const repuesto of albaran.repuestos) {
+          try {
+            const updateUrl = `${environment.supabaseUrl}/rest/v1/inventario?id=eq.${repuesto.material_id}`;
+            const updateData = {
+              stock_disponible: repuesto.cantidad_utilizada
+            };
+            
+            const updateResponse = await fetch(updateUrl, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify(updateData)
+            });
+            
+            if (!updateResponse.ok) {
+              console.warn('⚠️ Error al devolver repuesto al inventario:', repuesto.material_id);
+            } else {
+              console.log('✅ Repuesto devuelto al inventario:', repuesto.material_id);
+            }
+          } catch (error) {
+            console.warn('⚠️ Error al devolver repuesto:', error);
+          }
+        }
+      }
+      
+      // Eliminar repuestos del albarán
+      const deleteRepuestosUrl = `${environment.supabaseUrl}/rest/v1/repuestos_albaran?albaran_id=eq.${id}`;
+      const deleteRepuestosResponse = await fetch(deleteRepuestosUrl, {
+        method: 'DELETE',
+        headers
+      });
+      
+      if (!deleteRepuestosResponse.ok) {
+        console.warn('⚠️ Error al eliminar repuestos del albarán');
+      }
+      
+      // Finalmente eliminar el albarán
+      const deleteUrl = `${environment.supabaseUrl}/rest/v1/albaranes?id=eq.${id}`;
+      const deleteResponse = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers
+      });
+      
+      if (!deleteResponse.ok) {
+        throw new Error(`HTTP ${deleteResponse.status}: ${deleteResponse.statusText}`);
+      }
+      
+      console.log('✅ Albarán eliminado exitosamente');
+      
+    } catch (error) {
+      console.error('🚀 Error en fetch directo:', error);
+      throw error;
+    }
   }
 }

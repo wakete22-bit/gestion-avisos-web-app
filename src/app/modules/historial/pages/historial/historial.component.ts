@@ -19,7 +19,8 @@ import {
 import { Aviso } from 'src/app/modules/avisos/models/aviso.model';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { NavigationService } from '../../../../core/services/navigation.service';
-import { Subject, takeUntil, take } from 'rxjs';
+import { UnifiedReconnectionService } from '../../../../core/services/unified-reconnection.service';
+import { Subject, takeUntil, take, distinctUntilChanged } from 'rxjs';
 import { Router } from '@angular/router';
 
 @Component({
@@ -58,14 +59,40 @@ export class HistorialComponent implements OnInit, OnDestroy, AfterViewInit {
     private avisosService: AvisosService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private navigationService: NavigationService
+    private navigationService: NavigationService,
+    private unifiedReconnectionService: UnifiedReconnectionService
   ) { 
     addIcons({searchOutline,eyeOutline,refreshOutline,alertCircleOutline,alertCircle,close,timeOutline,chevronBackOutline,chevronForwardOutline,mapOutline,addCircle,add,addCircleOutline,locationOutline,calendarOutline});
   }
 
   ngOnInit() {
-    // Solo marcar que el componente está inicializado
     console.log('🔄 HistorialComponent inicializado');
+    
+    // Suscribirse al servicio unificado de reconexión para recargar datos automáticamente
+    this.unifiedReconnectionService.appResumed
+      .pipe(
+        takeUntil(this.destroy$),
+        distinctUntilChanged() // Solo procesar si el valor cambió
+      )
+      .subscribe((resumed) => {
+        if (resumed) {
+          console.log('🔄 HistorialComponent: App reanudada exitosamente, recargando historial...');
+          this.dataLoaded = false; // Resetear flag para forzar recarga
+          this.cargarHistorial();
+        }
+      });
+
+    // También suscribirse al estado de conexión para mostrar feedback al usuario
+    this.unifiedReconnectionService.connectionState
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((state) => {
+        console.log('🔄 HistorialComponent: Estado de conexión:', state);
+        if (state === 'connected' && this.error) {
+          // Si había error y ahora está conectado, recargar
+          this.dataLoaded = false;
+          this.cargarHistorial();
+        }
+      });
     
     // Suscribirse a cambios de navegación
     this.navigationService.getCurrentRoute()
@@ -105,7 +132,7 @@ export class HistorialComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Carga el historial de avisos completados
+   * Carga el historial de avisos completados usando FETCH DIRECTO
    */
   cargarHistorial() {
     if (this.dataLoaded && this.avisos.length > 0) {
@@ -115,19 +142,21 @@ export class HistorialComponent implements OnInit, OnDestroy, AfterViewInit {
 
     this.loading = true;
     this.error = null;
-    console.log('🔄 Iniciando carga de historial...');
+    console.log('🔄 Iniciando carga de historial con FETCH DIRECTO...');
 
-    this.avisosService.getAvisosCompletados(
+    this.avisosService.getAvisosDirect(
       this.paginaActual,
       this.porPagina,
       this.busqueda,
       this.ordenarPor,
-      this.orden
+      this.orden,
+      'Completado', // Solo avisos completados
+      true // incluirCompletados = true
     ).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
-        console.log('✅ Historial cargado exitosamente:', response.avisos.length, 'avisos');
+        console.log('✅ Historial cargado exitosamente con FETCH DIRECTO:', response.avisos.length, 'avisos');
         this.avisos = response.avisos;
         this.totalAvisos = response.total;
         this.loading = false;
@@ -137,7 +166,7 @@ export class HistorialComponent implements OnInit, OnDestroy, AfterViewInit {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('❌ Error al cargar historial:', error);
+        console.error('❌ Error al cargar historial con FETCH DIRECTO:', error);
         this.error = 'Error al cargar el historial. Por favor, inténtalo de nuevo.';
         this.loading = false;
         
